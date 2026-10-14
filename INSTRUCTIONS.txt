@@ -1,0 +1,45 @@
+========================================================================
+         WORLD TYCOON : GLOBAL EDITION (3D WEBRTC MULTIPLAYER)
+========================================================================
+
+Hey! Welcome to World Tycoon: Global Edition.
+You can play 3D Monopoly online with your friend without installing Node.js,
+Python, or any complex software. Everything runs serverless!
+
+------------------------------------------------------------------------
+ HOW TO PLAY ONLINE WITH YOUR FRIEND:
+------------------------------------------------------------------------
+
+STEP 1: BOTH OF YOU RUN THE GAME
+* Double-click "WorldTycoon.exe" (or "run.bat").
+* A small launcher console opens, and your default web browser (Edge/Chrome/Brave)
+  will automatically open the 3D board at http://localhost:3000/.
+* Keep the launcher window open while you play!
+
+STEP 2: ONE PLAYER HOSTS (ROOM LEADER)
+* On the main setup page, click "🌐 Online WebRTC (P2P)".
+* Under "Host Online Room", click "Create Room".
+* You will get a 4-letter Room Code (for example: 8492).
+* Click "Copy Code" (or copy the code manually) and send it to your friend!
+
+STEP 3: YOUR FRIEND JOINS
+* Your friend opens the game on their computer and clicks "🌐 Online WebRTC (P2P)".
+* Under "Join Friend's Room", they enter your 4-letter Room Code (e.g. 8492).
+* Click "Connect".
+* Both of you will see a green connection confirmation!
+
+STEP 4: START PLAYING!
+* The Host clicks "ENTER THE BOARD & START GAME".
+* The match begins for all connected players simultaneously!
+* Roll 3D dice, hop across cities, buy world capitals, upgrade skyscrapers,
+  mortgage properties, spin the Chance Wheel, and send live emotes!
+
+------------------------------------------------------------------------
+ HOTKEYS IN LAUNCHER WINDOW:
+------------------------------------------------------------------------
+* [B] - Re-open the game in your browser if you accidentally closed the tab.
+* [C] - Connect to a friend's Room Code directly.
+* [Q] or [ESC] - Quit the game server.
+
+Have fun becoming the ultimate World Tycoon!
+========================================================================

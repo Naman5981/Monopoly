@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+dist/
+dist_package/
+
+# Temporary and log files
+*.tmp
+*.log
+.gemini/
+
+# Operating System & Editor Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
