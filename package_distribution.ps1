@@ -1,16 +1,16 @@
 param()
 
-$distFolder = "E:\study-material\Monopoly\dist_package"
+$distFolder = "$PSScriptRoot\dist_package"
 if (Test-Path $distFolder) {
     Remove-Item $distFolder -Recurse -Force
 }
 New-Item -ItemType Directory -Path $distFolder | Out-Null
 
-Copy-Item "E:\study-material\Monopoly\WorldTycoon.exe" $distFolder
-Copy-Item "E:\study-material\Monopoly\INSTRUCTIONS.txt" $distFolder
-Copy-Item "E:\study-material\Monopoly\run.bat" $distFolder
+Copy-Item "$PSScriptRoot\WorldTycoon.exe" $distFolder
+Copy-Item "$PSScriptRoot\INSTRUCTIONS.txt" $distFolder
+Copy-Item "$PSScriptRoot\run.bat" $distFolder
 
-$zipDest = "E:\study-material\Monopoly\WorldTycoon_Online_Game.zip"
+$zipDest = "$PSScriptRoot\WorldTycoon_Online_Game.zip"
 if (Test-Path $zipDest) {
     Remove-Item $zipDest -Force
 }

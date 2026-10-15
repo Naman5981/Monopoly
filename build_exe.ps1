@@ -1,20 +1,20 @@
 param()
 
 $csc = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-$outExe = "E:\study-material\Monopoly\WorldTycoon.exe"
-$src = "E:\study-material\Monopoly\Launcher.cs"
-$zip = "E:\study-material\Monopoly\world-tycoon.zip"
+$outExe = "$PSScriptRoot\WorldTycoon.exe"
+$src = "$PSScriptRoot\Launcher.cs"
+$zip = "$PSScriptRoot\world-tycoon.zip"
 
 Write-Host "Compiling standalone executable: $outExe ..." -ForegroundColor Cyan
 
 $args = @(
     "/target:exe",
-    "/out:$outExe",
-    "/resource:$zip,WorldTycoon.assets.zip",
+    "`"/out:$outExe`"",
+    "`"/resource:$zip,WorldTycoon.assets.zip`"",
     "/reference:System.IO.Compression.dll,System.IO.Compression.FileSystem.dll",
     "/optimize+",
     "/platform:anycpu",
-    $src
+    "`"$src`""
 )
 
 $proc = Start-Process -FilePath $csc -ArgumentList $args -NoNewWindow -Wait -PassThru
