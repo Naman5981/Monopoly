@@ -4,9 +4,10 @@
  */
 
 import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
-import { gameState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable } from './game/state.js';
+import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable } from './game/state.js';
 import { updateMasterVolume, playSFX } from './game/audio.js';
-import { initThreeScene, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting } from './three/scene.js';
+import { initThreeScene, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
+import { context } from './three/core/context.js';
 import {
   initEngine,
   startNewMatch,
@@ -115,6 +116,7 @@ import {
 import { initDebugSuite, toggleDebugPanel } from './game/debug.js';
 
 window.gameState = gameState;
+window.debugState = debugState;
 window.threeContext = context;
 window.showVictoryModal = showVictoryModal;
 window.closeVictoryAndPlayAgain = closeVictoryAndPlayAgain;
