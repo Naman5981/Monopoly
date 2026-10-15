@@ -10,6 +10,7 @@ export const matchSettings = {
   turnDuration: 15,
   lightingTheme: 'day', // 'day' | 'sunset' | 'night'
   boardStyle: 'wood', // 'wood' | 'cyberpunk' | 'elegant'
+  boardEdition: 'world', // 'world' | 'rajasthan'
   customPlayers: [
     { name: 'YOU', isAI: false, charColor: 0xef4444, colorHex: '#6c5ce7', hatColor: 0x334155, hatStyle: 0 },
     { name: 'BIDIK', isAI: true, charColor: 0xf97316, colorHex: '#f39c12', hatColor: 0xfde047, hatStyle: 1 },

@@ -3,7 +3,7 @@
  * Application entry point for Vite / Modern browsers.
  */
 
-import { PLAYER_THEMES } from './game/data.js';
+import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
 import { gameState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, matchSettings, isHumanTurnActionable } from './game/state.js';
 import { initThreeScene, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting } from './three/scene.js';
 import {
@@ -29,6 +29,8 @@ import {
   setAtmosphereMode,
   setBoardStyle,
   cycleBoardStyle,
+  setBoardEdition,
+  cycleBoardEdition,
   startGameFromLandingPage,
   selectMatchMode,
   hostP2PRoom,
@@ -162,6 +164,8 @@ window.setTurnTimerDuration = setTurnTimerDuration;
 window.setAtmosphereMode = setAtmosphereMode;
 window.setBoardStyle = setBoardStyle;
 window.cycleBoardStyle = cycleBoardStyle;
+window.setBoardEdition = setBoardEdition;
+window.cycleBoardEdition = cycleBoardEdition;
 window.startGameFromLandingPage = startGameFromLandingPage;
 window.addBotOrSlot = addBotOrSlot;
 window.removeBotOrSlot = removeBotOrSlot;
@@ -293,7 +297,8 @@ function initApp() {
   initThreeScene(onTileClick);
   initLandingSetup();
 
-  // Apply initial lighting mode
+  // Apply initial board edition and lighting mode
+  applyBoardEdition(matchSettings.boardEdition || 'world');
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
 
   // Check if an unfinished match exists to offer resume

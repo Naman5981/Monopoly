@@ -6,6 +6,7 @@
 
 import * as THREE from 'three';
 import { context } from '../core/context.js';
+import { disposeHierarchy } from '../core/dispose.js';
 
 export let roadCars = [];
 let lastCarAnimTime = performance.now();
@@ -340,7 +341,10 @@ export function getRoadTrackPoint(p, R) {
 
 export function buildAnimatedRoadCars3D(boardGroup) {
   roadCars.forEach(c => {
-    if (c.mesh) boardGroup.remove(c.mesh);
+    if (c.mesh) {
+      boardGroup.remove(c.mesh);
+      disposeHierarchy(c.mesh);
+    }
   });
   roadCars = [];
   lastCarAnimTime = performance.now();

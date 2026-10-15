@@ -20,6 +20,7 @@ import {
   createDetailedSkyscraperMesh,
   animatedBuildingPopups
 } from '../assets/buildings.js';
+import { disposeHierarchy } from '../core/dispose.js';
 
 /**
  * Renders an offscreen canvas texture for a specific tile.
@@ -128,7 +129,7 @@ export function createTileTexture(tile, propState) {
   ctx.textBaseline = 'middle';
 
   if (tile.type === 'city') {
-    const fontSize = tile.name.length > 8 ? 50 : 56;
+    const fontSize = tile.name.length > 10 ? 42 : (tile.name.length > 7 ? 48 : 56);
     ctx.font = `900 ${fontSize}px Inter, sans-serif`;
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
     ctx.fillText(tile.name, 256, 215);
@@ -189,9 +190,10 @@ export function createTileTexture(tile, propState) {
 
     ctx.fillStyle = '#ffffff';
     ctx.font = '900 42px Inter, sans-serif';
-    ctx.fillText('BEACH', 256, 58);
+    ctx.fillText('RESORT', 256, 58);
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    ctx.font = '900 52px Inter, sans-serif';
+    const resortFontSize = tile.name.length > 8 ? 44 : 52;
+    ctx.font = `900 ${resortFontSize}px Inter, sans-serif`;
     ctx.fillText(tile.name, 256, 210);
 
     const isOwnedResort = (propState?.owner !== null && propState?.owner !== undefined && !propState?.mortgaged);
@@ -429,7 +431,11 @@ export function refreshTileTextureAndBuildings(tileId) {
 
   const bGroup = context.tileBuildingGroups[tileId];
   if (!bGroup) return;
-  while (bGroup.children.length > 0) bGroup.remove(bGroup.children[0]);
+  while (bGroup.children.length > 0) {
+    const child = bGroup.children[0];
+    disposeHierarchy(child);
+    bGroup.remove(child);
+  }
   if (!propState || propState.owner === null || propState.mortgaged) return;
 
   const pos = getTileWorldPosition(tileId);

@@ -4,10 +4,10 @@
  */
 
 import { matchSettings, setLobbyPlayerCount, lobbyPlayerCount } from '../game/state.js';
-import { PLAYER_THEMES } from '../game/data.js';
+import { PLAYER_THEMES, applyBoardEdition } from '../game/data.js';
 import { playSFX } from '../game/audio.js';
 import { fireConfettiBurst, applyLightingMode } from '../three/effects.js';
-import { startIntroCameraFlyIn, getSceneLighting, initLobbyHeroStage, updateLobbyHeroAvatar, applyBoardStyle } from '../three/scene.js';
+import { startIntroCameraFlyIn, getSceneLighting, initLobbyHeroStage, updateLobbyHeroAvatar, applyBoardStyle, refreshAllTileTexturesAndMaterials } from '../three/scene.js';
 import { startNewMatch } from '../game/engine.js';
 import {
   networkState,
@@ -17,7 +17,8 @@ import {
   copyRoomInviteLink,
   copyRoomCodeOnly,
   broadcastStartOnlineMatch,
-  registerNetworkCallbacks
+  registerNetworkCallbacks,
+  broadcastAction
 } from '../network/p2p.js';
 
 const ARCHETYPES = [
@@ -419,6 +420,26 @@ export function cycleBoardStyle() {
   setBoardStyle(nextStyle);
 }
 
+export function setBoardEdition(edition) {
+  if (['world', 'rajasthan'].includes(edition)) {
+    matchSettings.boardEdition = edition;
+    applyBoardEdition(edition);
+    refreshAllTileTexturesAndMaterials();
+    renderMatchSettingButtons();
+    playSFX('hop');
+    if (networkState.isMultiplayer && networkState.isHost) {
+      broadcastAction('ACTION_SYNC_BOARD_EDITION', { boardEdition: edition });
+    }
+  }
+}
+
+export function cycleBoardEdition() {
+  const editions = ['world', 'rajasthan'];
+  const curIdx = editions.indexOf(matchSettings.boardEdition || 'world');
+  const nextEdition = editions[(curIdx + 1) % editions.length];
+  setBoardEdition(nextEdition);
+}
+
 export function renderMatchSettingButtons() {
   // Cash buttons
   [1500000, 2000000, 3000000, 5000000].forEach(amt => {
@@ -462,11 +483,38 @@ export function renderMatchSettingButtons() {
     }
   });
 
+  // Board Edition buttons in setup lobby
+  ['world', 'rajasthan'].forEach(ed => {
+    const btn = document.getElementById(`setup-edition-${ed}`);
+    if (btn) {
+      const active = (matchSettings.boardEdition || 'world') === ed;
+      btn.className = `py-2.5 px-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center justify-center gap-1.5 ${
+        active ? 'bg-sky-500 text-white shadow-md scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+      }`;
+    }
+  });
+
+  // Lobby Edition Info Badge
+  const badgeText = document.getElementById('lobby-edition-badge-text');
+  if (badgeText) {
+    badgeText.textContent = (matchSettings.boardEdition === 'rajasthan') ? 'Rajasthan Edition' : 'World Tour Edition';
+  }
+  const tilesText = document.getElementById('lobby-edition-tiles-text');
+  if (tilesText) {
+    tilesText.textContent = (matchSettings.boardEdition === 'rajasthan') ? '32 Royal Cities & Heritage' : '32 Cities & Landmarks';
+  }
+
   // HUD Board Style text
   const hudBoardText = document.getElementById('btn-board-style-text');
   if (hudBoardText) {
     const style = matchSettings.boardStyle || 'wood';
     hudBoardText.textContent = style === 'cyberpunk' ? 'Cyber' : (style === 'elegant' ? 'Elegant' : 'Wood');
+  }
+
+  // HUD Board Edition text
+  const hudEditionText = document.getElementById('btn-board-edition-text');
+  if (hudEditionText) {
+    hudEditionText.textContent = (matchSettings.boardEdition === 'rajasthan') ? 'Rajasthan' : 'World';
   }
 
   // Color Swatches - reflects the player currently selected on the podium

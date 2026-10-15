@@ -8,8 +8,20 @@ import { soundEnabled } from './state.js';
 let audioCtx = null;
 
 function getCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (!audioCtx) return;
+        if (document.hidden) {
+          if (audioCtx.state === 'running') audioCtx.suspend();
+        } else {
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+      });
+    }
+  }
+  if (audioCtx.state === 'suspended' && !document.hidden) audioCtx.resume();
   return audioCtx;
 }
 

@@ -4,6 +4,7 @@
  */
 
 import * as THREE from 'three';
+export { disposeHierarchy, disposeMaterial } from './dispose.js';
 
 export const context = {
   // Primary Three.js singletons

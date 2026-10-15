@@ -8,6 +8,8 @@ import { gameState, setupPlayers, matchSettings, lobbyPlayerCount, setLobbyPlaye
 import { logEvent } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { spawnAnimatedReaction, stopVictoryCelebration } from '../three/effects.js';
+import { applyBoardEdition } from '../game/data.js';
+import { refreshAllTileTexturesAndMaterials } from '../three/scene.js';
 
 // Network state
 export const networkState = {
@@ -368,7 +370,12 @@ function applyGameplayMatchSettings(src) {
   if (!src) return;
   if (typeof src.startingCash === 'number') matchSettings.startingCash = src.startingCash;
   if (typeof src.turnDuration === 'number') matchSettings.turnDuration = src.turnDuration;
-  // Fashion, cosmetics (cars, clouds, boardStyle, atmosphere) remain strictly independent and local to each player.
+  if (src.boardEdition && (src.boardEdition === 'world' || src.boardEdition === 'rajasthan')) {
+    matchSettings.boardEdition = src.boardEdition;
+    applyBoardEdition(src.boardEdition);
+    refreshAllTileTexturesAndMaterials();
+    if (window.renderMatchSettingButtons) window.renderMatchSettingButtons();
+  }
 }
 
 function handleGuestReceivedMessage(msg) {
@@ -454,6 +461,16 @@ function handleGuestReceivedMessage(msg) {
       }
       if (networkCallbacks.onStartGame) {
         networkCallbacks.onStartGame();
+      }
+      break;
+    }
+
+    case 'ACTION_SYNC_BOARD_EDITION': {
+      if (msg.boardEdition) {
+        matchSettings.boardEdition = msg.boardEdition;
+        applyBoardEdition(msg.boardEdition);
+        refreshAllTileTexturesAndMaterials();
+        if (window.renderMatchSettingButtons) window.renderMatchSettingButtons();
       }
       break;
     }

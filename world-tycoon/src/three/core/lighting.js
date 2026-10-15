@@ -142,7 +142,7 @@ export function buildStreetLampsAndBulbs3D(boardGroup) {
     { x: 14.2, z: 14.2, rot: -3 * Math.PI / 4 }
   ];
 
-  lampPositions.forEach(pos => {
+  lampPositions.forEach((pos, idx) => {
     const lamp = new THREE.Group();
     lamp.position.set(pos.x, 0.35, pos.z);
     lamp.rotation.y = pos.rot;
@@ -279,11 +279,16 @@ export function buildStreetLampsAndBulbs3D(boardGroup) {
     lamp.add(groundPool);
     streetGroundLightPools.push(poolMat);
 
-    const pl = new THREE.PointLight(0xfffaed, 0, 4.5, 2.0);
-    pl.position.set(0, 1.95, 0);
-    pl.visible = false;
-    lamp.add(pl);
-    streetPointLights.push(pl);
+    // Performance optimization: Forward-rendering shaders run dramatically faster by limiting
+    // dynamic point lights to the 4 inner courtyard corners (indices 10..13).
+    // The other 14 street lamps rely on zero-cost emissive bulbs, bloom sprites, volumetric beams, and ground pools.
+    if (idx >= 10 && idx <= 13) {
+      const pl = new THREE.PointLight(0xfffaed, 0, 5.5, 1.8);
+      pl.position.set(0, 1.95, 0);
+      pl.visible = false;
+      lamp.add(pl);
+      streetPointLights.push(pl);
+    }
 
     streetLampsGroup.add(lamp);
   });

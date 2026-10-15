@@ -5,7 +5,7 @@
  */
 
 import { context } from './context.js';
-import { updateCameraDamping } from './camera.js';
+import { updateCameraDamping, cameraState } from './camera.js';
 import { updateRoadCarsAnimation } from '../environment/cars.js';
 import { updateCloudsAndBalloons } from '../environment/clouds.js';
 import { updateAvatarIdleAnimations, renderLive3DHUDPortraits, updatePlayerTokenPositions3D } from '../pawns/tokens.js';
@@ -13,7 +13,7 @@ import { renderCityPreviewStage } from '../stages/cityPreview.js';
 import { updateTileDepressionsAnimation } from '../board/tilePress.js';
 import { updateStreetLampGlow, updateAvatarBreathingLights, updateTileIlluminationsAndPressLight } from './lighting.js';
 import { updateActivePlayerBeacon } from '../board/highlights.js';
-import { updateBuildingAnimations } from '../assets/buildings.js';
+import { updateBuildingAnimations, animatedBuildingPopups } from '../assets/buildings.js';
 import { updateSpeechBubbleScreenPosition } from '../pawns/speech.js';
 import { renderLobbyHeroStage } from '../stages/lobbyStage.js';
 import { gameState, displayedCash } from '../../game/state.js';
@@ -52,11 +52,21 @@ export function animateThreeLoop() {
     return;
   }
 
-  // 4. Throttled Shadow Map Updates: Update shadow map every 6 frames (~10Hz) or during active motion
+  // 4. Motion-Driven Shadow Map Updates:
+  // Render shadow maps dynamically when tokens move, buildings pop up, or camera rotates.
+  // When the scene is completely static/idle, throttle to ~2Hz (every 30 frames) to save GPU passes.
   if (context.renderer && context.renderer.shadowMap) {
     shadowTick++;
     const isMoving = (gameState && gameState.phase === 'MOVING');
-    if (isMoving || shadowTick % 6 === 0) {
+    const hasPopups = (animatedBuildingPopups && animatedBuildingPopups.length > 0);
+    const isCameraActive = cameraState && (
+      Math.abs(cameraState.cameraAzimuth - cameraState.targetCameraAzimuth) > 0.002 ||
+      cameraState.isIntroAnimating
+    );
+
+    if (isMoving || hasPopups || isCameraActive) {
+      context.renderer.shadowMap.needsUpdate = true;
+    } else if (shadowTick % 30 === 0) {
       context.renderer.shadowMap.needsUpdate = true;
     }
   }

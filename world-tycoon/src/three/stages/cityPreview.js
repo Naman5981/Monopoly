@@ -12,6 +12,7 @@ import {
   createDetailedHouseMesh,
   createDetailedSkyscraperMesh
 } from '../assets/buildings.js';
+import { disposeHierarchy } from '../core/dispose.js';
 
 let cityPreviewRenderer = null;
 let cityPreviewScene = null;
@@ -49,7 +50,9 @@ export function populateCityPreview3DScene(tile, targetCanvasId) {
   activeCityPreviewCanvasId = targetCanvasId;
 
   while (cityPreviewGroup.children.length > 0) {
-    cityPreviewGroup.remove(cityPreviewGroup.children[0]);
+    const child = cityPreviewGroup.children[0];
+    disposeHierarchy(child);
+    cityPreviewGroup.remove(child);
   }
 
   const groupColorHex = tile.group ? GROUP_META[tile.group].hex : '#38bdf8';

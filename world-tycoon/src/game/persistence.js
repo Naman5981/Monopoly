@@ -4,7 +4,7 @@
  */
 
 import { gameState, matchSettings, displayedCash, matchSeconds } from './state.js';
-import { BOARD_TILES } from './data.js';
+import { BOARD_TILES, applyBoardEdition } from './data.js';
 import { fmtMoney } from './utils.js';
 import { refreshTileTextureAndBuildings, spawnAllPlayerTokens3D, updatePlayerTokenPositions3D, showSpeechBubble, applyBoardStyle } from '../three/scene.js';
 import { renderCornerHUDs, updateRollButtonsUI, logEvent } from '../ui/hud.js';
@@ -31,6 +31,7 @@ export function saveCurrentMatchToStorage() {
         turnDuration: matchSettings.turnDuration,
         lightingTheme: matchSettings.lightingTheme,
         boardStyle: matchSettings.boardStyle,
+        boardEdition: matchSettings.boardEdition,
         customPlayers: matchSettings.customPlayers,
         playerCount: gameState.players.length
       },
@@ -99,6 +100,10 @@ export function resumeSavedMatch() {
       if (data.matchSettings.boardStyle) {
         matchSettings.boardStyle = data.matchSettings.boardStyle;
         applyBoardStyle(matchSettings.boardStyle);
+      }
+      if (data.matchSettings.boardEdition) {
+        matchSettings.boardEdition = data.matchSettings.boardEdition;
+        applyBoardEdition(matchSettings.boardEdition);
       }
       if (Array.isArray(data.matchSettings.customPlayers)) {
         matchSettings.customPlayers = data.matchSettings.customPlayers;

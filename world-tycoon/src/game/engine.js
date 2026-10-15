@@ -4,7 +4,7 @@
  */
 
 import { BOARD_TILES } from './data.js';
-import { gameState, displayedCash, isHumanTurnActionable, resetGameStateForNewMatch, lobbyPlayerCount } from './state.js';
+import { gameState, displayedCash, isHumanTurnActionable, resetGameStateForNewMatch, lobbyPlayerCount, matchSettings } from './state.js';
 import { fmtMoney } from './utils.js';
 import { playSFX } from './audio.js';
 import { calculateTileRent, checkAndHandleNegativeCash } from './rules.js';
@@ -159,7 +159,8 @@ export function startNewMatch() {
   renderCornerHUDs();
   updateRollButtonsUI(isHumanTurnActionable());
   showSpeechBubble('Ready to roll!', 2500);
-  logEvent(`🌍 <strong>New Match Started!</strong> All players begin with <strong>2M</strong>.`);
+  const editionName = matchSettings.boardEdition === 'rajasthan' ? 'Rajasthan Edition' : 'World Cities Edition';
+  logEvent(`🎲 <strong>New Match Started (${editionName})!</strong> All players begin with <strong>${fmtMoney(matchSettings.startingCash || 2000000)}</strong>.`);
   saveCurrentMatchToStorage();
 }
 

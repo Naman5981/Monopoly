@@ -273,7 +273,20 @@
             </div>
           </div>
 
-          <!-- 5. BOARD STYLE / SKIN -->
+          <!-- 5. BOARD MAP / EDITION -->
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-500 tracking-wider mb-2">BOARD MAP / EDITION</label>
+            <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl">
+              <button id="setup-edition-world" onclick="window.setBoardEdition('world')" class="py-2 px-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer bg-sky-500 text-white shadow-sm flex items-center justify-center gap-1.5">
+                🌍 World Cities
+              </button>
+              <button id="setup-edition-rajasthan" onclick="window.setBoardEdition('rajasthan')" class="py-2 px-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5">
+                🏰 Rajasthan (India)
+              </button>
+            </div>
+          </div>
+
+          <!-- 6. BOARD STYLE / SKIN -->
           <div>
             <label class="block text-xs font-black uppercase text-slate-500 tracking-wider mb-2">BOARD STYLE</label>
             <div class="grid grid-cols-3 gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
@@ -292,8 +305,8 @@
 
         <!-- Board Edition Info Badge -->
         <div class="pt-2 border-t border-sky-100 flex items-center justify-between text-xs text-slate-500 font-bold">
-          <span>Board Map: <strong class="text-sky-700">World Tour Edition</strong></span>
-          <span>Tiles: <strong class="text-slate-700">32 Cities & Landmarks</strong></span>
+          <span>Board Map: <strong id="lobby-edition-badge-text" class="text-sky-700">World Tour Edition</strong></span>
+          <span>Tiles: <strong id="lobby-edition-tiles-text" class="text-slate-700">32 Cities & Landmarks</strong></span>
         </div>
       </div>
 
@@ -339,6 +352,10 @@
     <button id="btn-lighting-mode" onclick="window.cycleLightingMode()" class="top-pill text-slate-700" title="Toggle Day, Sunset, Night mode">
       <i class="fa-solid fa-sun text-amber-500"></i>
       <span>Day</span>
+    </button>
+    <button id="btn-board-edition" onclick="window.cycleBoardEdition()" class="top-pill text-slate-700" title="Toggle Board Edition (World Cities / Rajasthan, India)">
+      <i class="fa-solid fa-map-location-dot text-amber-600"></i>
+      <span id="btn-board-edition-text">World</span>
     </button>
     <button id="btn-board-style" onclick="window.cycleBoardStyle()" class="top-pill text-slate-700" title="Toggle Board Skin (Wood, Cyber, Elegant)">
       <i class="fa-solid fa-layer-group text-sky-500"></i>

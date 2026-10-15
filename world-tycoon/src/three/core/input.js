@@ -36,6 +36,53 @@ export function getIntersectedTileId(intersects) {
   return undefined;
 }
 
+let cachedTileMeshes = null;
+let lastTilesMeshMapRef = null;
+
+function getTileMeshes() {
+  if (!cachedTileMeshes || lastTilesMeshMapRef !== context.tilesMeshMap) {
+    cachedTileMeshes = Object.values(context.tilesMeshMap);
+    lastTilesMeshMapRef = context.tilesMeshMap;
+  }
+  return cachedTileMeshes;
+}
+
+/**
+ * Fast multi-tier raycaster: tests primary tile collision boxes non-recursively first (O(1)),
+ * falling back to avatars or landmarks only if necessary.
+ * @returns {number|undefined}
+ */
+export function findIntersectedTileId() {
+  const tileMeshes = getTileMeshes();
+  if (tileMeshes.length > 0) {
+    const tileIntersects = context.raycaster.intersectObjects(tileMeshes, false);
+    if (tileIntersects.length > 0 && tileIntersects[0].object.userData?.tileId !== undefined) {
+      return tileIntersects[0].object.userData.tileId;
+    }
+  }
+
+  // Fallback 1: Avatar meshes
+  if (context.playerMeshes && context.playerMeshes.length > 0) {
+    const playerIntersects = context.raycaster.intersectObjects(context.playerMeshes, true);
+    if (playerIntersects.length > 0) {
+      const pTileId = getIntersectedTileId(playerIntersects);
+      if (pTileId !== undefined) return pTileId;
+    }
+  }
+
+  // Fallback 2: Corner landmark groups
+  const landmarkGroups = Object.values(context.cornerLandmarkGroups);
+  if (landmarkGroups.length > 0) {
+    const landmarkIntersects = context.raycaster.intersectObjects(landmarkGroups, true);
+    if (landmarkIntersects.length > 0) {
+      const lTileId = getIntersectedTileId(landmarkIntersects);
+      if (lTileId !== undefined) return lTileId;
+    }
+  }
+
+  return undefined;
+}
+
 /**
  * Handles hover events to render the property inspector tooltip or highlight World Tour tiles.
  * @param {PointerEvent|MouseEvent} event
@@ -48,16 +95,7 @@ export function handleCanvasHover(event) {
   context.mouseVec.y = -(event.clientY / window.innerHeight) * 2 + 1;
   context.raycaster.setFromCamera(context.mouseVec, context.camera);
 
-  const hoverTargets = [
-    ...Object.values(context.tilesMeshMap),
-    ...Object.values(context.cornerLandmarkGroups),
-    ...context.playerMeshes
-  ];
-
-  const intersects = context.raycaster.intersectObjects(hoverTargets, true);
-
-  if (intersects.length > 0) {
-    const tileId = getIntersectedTileId(intersects);
+  const tileId = findIntersectedTileId();
     if (tileId !== undefined) {
       const tile = BOARD_TILES[tileId];
       if (tile) {
@@ -129,22 +167,13 @@ export function handleCanvasClick(event) {
   context.mouseVec.y = -(event.clientY / window.innerHeight) * 2 + 1;
   context.raycaster.setFromCamera(context.mouseVec, context.camera);
 
-  const clickTargets = [
-    ...Object.values(context.tilesMeshMap),
-    ...Object.values(context.cornerLandmarkGroups),
-    ...context.playerMeshes
-  ];
-
-  const intersects = context.raycaster.intersectObjects(clickTargets, true);
-  if (intersects.length > 0) {
-    const clickedTileId = getIntersectedTileId(intersects);
-    if (clickedTileId !== undefined) {
-      triggerTileButtonPress(clickedTileId, -0.18, 180);
-      if (typeof context.onTileClick === 'function') {
-        context.onTileClick(clickedTileId);
-      }
-      return;
+  const clickedTileId = findIntersectedTileId();
+  if (clickedTileId !== undefined) {
+    triggerTileButtonPress(clickedTileId, -0.18, 180);
+    if (typeof context.onTileClick === 'function') {
+      context.onTileClick(clickedTileId);
     }
+    return;
   }
 
   // Clicked outside board tile: dismiss property inspector if open

@@ -9,6 +9,7 @@ import { gameState } from '../../game/state.js';
 import { getTileWorldPosition, getTileFacingAngle, BASE_BUILDING_Y } from '../board/coords.js';
 import { createDetailed3DAvatarMesh } from '../assets/avatars.js';
 import { updateAvatarLightingForCurrentMode } from '../core/lighting.js';
+import { disposeHierarchy } from '../core/dispose.js';
 
 let portraitRenderer = null;
 let portraitCamera = null;
@@ -52,6 +53,9 @@ export function rebuild3DPortraits() {
     ensure3DPortraitSystemInitialized();
     return;
   }
+  portraitScenes.forEach(entry => {
+    if (entry.scene) disposeHierarchy(entry.scene);
+  });
   portraitScenes = [];
   for (let i = 0; i < 6; i++) {
     const pScene = new THREE.Scene();
@@ -81,7 +85,10 @@ export function rebuild3DPortraits() {
 export function spawnAllPlayerTokens3D(boardGroup = context.boardGroup) {
   if (!boardGroup) return;
   rebuild3DPortraits();
-  context.playerMeshes.forEach(m => boardGroup.remove(m));
+  context.playerMeshes.forEach(m => {
+    boardGroup.remove(m);
+    disposeHierarchy(m);
+  });
   context.playerMeshes = [];
 
   gameState.players.forEach((_, idx) => {
