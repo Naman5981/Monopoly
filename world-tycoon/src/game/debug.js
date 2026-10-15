@@ -1272,7 +1272,7 @@ function injectDebugUI() {
         <span>Debug Engine Active</span>
       </div>
       <div>
-        Press <span class="text-amber-400 font-bold font-mono">`</span> or <span class="text-amber-400 font-bold font-mono">F2</span> to toggle
+        Press <span class="text-amber-400 font-bold font-mono">&#96;</span> or <span class="text-amber-400 font-bold font-mono">F2</span> to toggle
       </div>
     </div>
   `;
