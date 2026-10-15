@@ -266,8 +266,9 @@ export function buildStreetLampsAndBulbs3D(boardGroup) {
     lamp.add(groundPool);
     streetGroundLightPools.push(poolMat);
 
-    const pl = new THREE.PointLight(0xfffaed, 0.35, 4.5, 2.0);
+    const pl = new THREE.PointLight(0xfffaed, 0, 4.5, 2.0);
     pl.position.set(0, 1.95, 0);
+    pl.visible = false;
     lamp.add(pl);
     streetPointLights.push(pl);
 
@@ -402,6 +403,7 @@ export function setBulbLightingTheme(mode) {
       mat.opacity = 0.08;
     });
     streetPointLights.forEach(pl => {
+      pl.visible = true;
       pl.color.setHex(0xffeedd);
       pl.intensity = 1.5;
       pl.distance = 7.5;
@@ -432,6 +434,7 @@ export function setBulbLightingTheme(mode) {
       mat.opacity = 0.06;
     });
     streetPointLights.forEach(pl => {
+      pl.visible = true;
       pl.color.setHex(0xffe29a);
       pl.intensity = 1.1;
       pl.distance = 6.0;
@@ -462,8 +465,9 @@ export function setBulbLightingTheme(mode) {
       mat.opacity = 0.03;
     });
     streetPointLights.forEach(pl => {
+      pl.visible = false;
       pl.color.setHex(0xffecc7);
-      pl.intensity = 0.50;
+      pl.intensity = 0;
       pl.distance = 5.0;
       pl.decay = 2.0;
     });

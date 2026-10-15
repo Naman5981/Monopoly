@@ -62,9 +62,11 @@ export function initThreeScene(onTileClickCb) {
     powerPreference: 'high-performance'
   });
   context.renderer.setSize(window.innerWidth, window.innerHeight);
-  context.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  context.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
   context.renderer.shadowMap.enabled = true;
   context.renderer.shadowMap.type = THREE.PCFShadowMap;
+  context.renderer.shadowMap.autoUpdate = false;
+  context.renderer.shadowMap.needsUpdate = true;
   context.renderer.toneMapping = THREE.LinearToneMapping;
   context.renderer.toneMappingExposure = 1.0;
   context.renderer.outputColorSpace = THREE.SRGBColorSpace;

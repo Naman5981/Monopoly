@@ -21,6 +21,8 @@ import { fmtMoney } from '../../game/utils.js';
 
 let isLoopRunning = false;
 let lastFrameTime = performance.now();
+let lastRenderTime = 0;
+let shadowTick = 0;
 
 /**
  * Main animation loop driven by requestAnimationFrame.
@@ -28,10 +30,36 @@ let lastFrameTime = performance.now();
 export function animateThreeLoop() {
   requestAnimationFrame(animateThreeLoop);
 
+  // 1. Power-save: Pause rendering entirely if tab is minimized or hidden in background
+  if (document.hidden) return;
+
   const now = performance.now();
+
+  // 2. 60 FPS Target Frame Limiter: Prevents 120Hz/144Hz/240Hz monitors from wasting 2x-4x CPU cycles
+  const minInterval = 1000 / 60 - 1.5;
+  if (now - lastRenderTime < minInterval) return;
+  lastRenderTime = now;
+
   const dt = Math.min(0.05, Math.max(0.001, (now - lastFrameTime) * 0.001));
   lastFrameTime = now;
   const t = now * 0.001;
+
+  // 3. Lobby Setup Screen Bypass: When user is in lobby/setup menu, skip rendering the background 3D board!
+  const landingScreen = document.getElementById('landing-setup-screen');
+  const isLandingVisible = landingScreen && !landingScreen.classList.contains('hidden') && landingScreen.style.display !== 'none';
+  if (isLandingVisible) {
+    renderLobbyHeroStage(t);
+    return;
+  }
+
+  // 4. Throttled Shadow Map Updates: Update shadow map every 6 frames (~10Hz) or during active motion
+  if (context.renderer && context.renderer.shadowMap) {
+    shadowTick++;
+    const isMoving = (gameState && gameState.phase === 'MOVING');
+    if (isMoving || shadowTick % 6 === 0) {
+      context.renderer.shadowMap.needsUpdate = true;
+    }
+  }
 
   // 1. Camera damping & isometric orientation updates
   updateCameraDamping(dt);
@@ -87,10 +115,7 @@ export function animateThreeLoop() {
   // 12. Floating 3D speech bubble screen projection
   updateSpeechBubbleScreenPosition();
 
-  // 13. Lobby 3D Hero Podium render
-  renderLobbyHeroStage(t);
-
-  // 14. Primary Scene Render
+  // 13. Primary Scene Render
   if (context.renderer && context.scene && context.camera) {
     context.renderer.render(context.scene, context.camera);
   }
