@@ -144,7 +144,7 @@ export function handleCanvasHover(event) {
         return;
       }
     }
-  }
+
 
   if (gameState.phase === 'WORLD_TOUR') {
     BOARD_TILES.forEach(t => {
