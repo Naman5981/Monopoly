@@ -3,12 +3,13 @@
  * Match state persistence in localStorage and resume management.
  */
 
-import { gameState, matchSettings, displayedCash, matchSeconds } from './state.js';
+import { gameState, matchSettings, displayedCash, matchSeconds, isHumanTurnActionable } from './state.js';
 import { BOARD_TILES, applyBoardEdition } from './data.js';
 import { fmtMoney } from './utils.js';
 import { refreshTileTextureAndBuildings, spawnAllPlayerTokens3D, updatePlayerTokenPositions3D, showSpeechBubble, applyBoardStyle } from '../three/scene.js';
 import { renderCornerHUDs, updateRollButtonsUI, logEvent } from '../ui/hud.js';
 import { playSFX } from './audio.js';
+import { resumeActiveTurn } from './engine.js';
 
 const STORAGE_KEY = 'WORLD_TYCOON_SAVED_MATCH_V1';
 
@@ -113,7 +114,8 @@ export function resumeSavedMatch() {
     // 2. Restore game state
     gameState.gameStarted = true;
     gameState.currentPlayerIdx = data.gameState.currentPlayerIdx ?? 0;
-    gameState.phase = data.gameState.phase || 'ROLL';
+    // Always sanitize phase to ROLL so match doesn't hang if previously saved mid-action/mid-hop
+    gameState.phase = 'ROLL';
     gameState.turnTimeLeft = data.gameState.turnTimeLeft || 15;
     gameState.festivalPot = data.gameState.festivalPot || 0;
     gameState.doublesCount = data.gameState.doublesCount || 0;
@@ -138,7 +140,7 @@ export function resumeSavedMatch() {
 
     // 5. Update HUD
     renderCornerHUDs();
-    updateRollButtonsUI(true);
+    updateRollButtonsUI(isHumanTurnActionable());
 
     // 6. Close all setup/resume modals
     closeResumeModal();
@@ -151,6 +153,10 @@ export function resumeSavedMatch() {
     playSFX('win');
     showSpeechBubble('🎮 Match resumed! Welcome back!', 3000);
     logEvent(`💾 <strong>Unfinished match resumed</strong> from previous session.`);
+
+    // 7. Kick off the active turn immediately (starts AI dice roll timer or enables human roll)
+    resumeActiveTurn();
+
     return true;
   } catch (err) {
     console.error('[Persistence] Error resuming match:', err);

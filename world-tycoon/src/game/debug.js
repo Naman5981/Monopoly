@@ -52,7 +52,8 @@ import {
   advanceTurn,
   cancelAllGameTimers,
   startNewMatch,
-  executeWorldTourFlight
+  executeWorldTourFlight,
+  applyChancePrize
 } from './engine.js';
 import { fireConfettiBurst, spawnAnimatedReaction } from '../three/effects.js';
 import { saveCurrentMatchToStorage } from './persistence.js';
@@ -94,6 +95,7 @@ export function initDebugSuite() {
     chance: (prizeIdx = null, pIdx = null) => debugTriggerChancePrize(prizeIdx, pIdx ?? gameState.currentPlayerIdx),
     festivalWin: (pIdx = null) => debugTriggerFestivalJackpot(pIdx ?? gameState.currentPlayerIdx),
     victory: (pIdx = null) => debugTriggerVictory(pIdx ?? gameState.currentPlayerIdx),
+    leaderboard: () => window.toggleLeaderboardModal?.(),
     scenario: (key) => debugRunScenario(key),
     toggleUI: () => toggleDebugPanel(),
     state: () => ({ gameState, debugState, matchSettings })
@@ -587,29 +589,7 @@ export async function debugTriggerChancePrize(prizeIdx = null, playerIdx = null)
 
   logEvent(`🌈 <strong>[DEBUG]</strong> Applying Chance prize to <strong>${p.name}</strong>: <em>${prize.desc}</em>`);
 
-  if (prize.type === 'cash') {
-    p.cash += prize.amount;
-    playSFX('cash');
-    spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(prize.amount)}`, true);
-  } else if (prize.type === 'tax') {
-    p.cash -= prize.amount;
-    gameState.festivalPot += prize.amount;
-    spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(prize.amount)}`, false);
-    checkAndHandleNegativeCash(playerIdx, {
-      onRefreshTile: refreshTileTextureAndBuildings,
-      onLog: logEvent
-    });
-  } else if (prize.type === 'island') {
-    p.position = 8;
-    p.inIsland = true;
-    p.islandTurns = 0;
-    updatePlayerTokenPositions3D();
-  } else if (prize.type === 'move') {
-    p.position = prize.target;
-    updatePlayerTokenPositions3D();
-    await evaluateTileLanding(playerIdx, false);
-    return;
-  }
+  await applyChancePrize(playerIdx, prize, false);
 
   renderCornerHUDs();
   saveCurrentMatchToStorage();
@@ -1155,7 +1135,7 @@ function injectDebugUI() {
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="debug-chk-freeze-ai" onchange="window.debugToggleFreezeAI(this.checked)" class="sr-only peer">
-              <div class="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+              <div class="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-[transform,border-color] after:duration-150 peer-checked:bg-amber-500"></div>
             </label>
           </div>
 
@@ -1225,6 +1205,9 @@ function injectDebugUI() {
             </button>
             <button onclick="window.debug.victory()" class="py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-xs shadow flex items-center justify-center gap-1.5">
               <i class="fa-solid fa-trophy"></i> Victory Screen
+            </button>
+            <button onclick="window.toggleLeaderboardModal()" class="py-2 col-span-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold border border-slate-700 flex items-center justify-center gap-1.5 shadow-xs">
+              <i class="fa-solid fa-ranking-star text-amber-400"></i> Open Tycoon Leaderboard (Live Net Worth)
             </button>
           </div>
         </div>

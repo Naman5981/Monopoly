@@ -26,6 +26,25 @@ function getCtx() {
   return audioCtx;
 }
 
+/**
+ * Ensures AudioContext is safely unlocked and warmed up on first user gesture.
+ */
+export function initAudioUnlock() {
+  if (typeof window === 'undefined') return;
+  const unlock = () => {
+    try {
+      const ctx = getCtx();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume();
+      }
+    } catch (_) {}
+    window.removeEventListener('pointerdown', unlock);
+    window.removeEventListener('keydown', unlock);
+  };
+  window.addEventListener('pointerdown', unlock, { once: true, passive: true });
+  window.addEventListener('keydown', unlock, { once: true, passive: true });
+}
+
 export function getAudioDestination() {
   const ctx = getCtx();
   if (!masterGainNode) {
@@ -328,6 +347,51 @@ export function playSFX(type, volumeMultiplier = 1.0) {
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
       o.connect(g); g.connect(dest);
       o.start(now); o.stop(now + 0.06);
+    } else if (type === 'hurt' || type === 'flinch') {
+      // Comical impact thud + downward wobble for cash deduction / rent
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(70, now + 0.18);
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800, now);
+      filter.frequency.exponentialRampToValueAtTime(200, now + 0.18);
+      gain.gain.setValueAtTime(0.16 * vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(dest);
+      osc.start(now);
+    } else if (type === 'wheelTick') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1400, now);
+      osc.frequency.exponentialRampToValueAtTime(400, now + 0.025);
+      gain.gain.setValueAtTime(0.08 * vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+      osc.connect(gain);
+      gain.connect(dest);
+      osc.start(now);
+      osc.stop(now + 0.025);
+    } else if (type === 'jail' || type === 'jailDoor') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.35);
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, now);
+      gain.gain.setValueAtTime(0.22 * vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(dest);
+      osc.start(now);
+      osc.stop(now + 0.35);
     }
   } catch (_) { /* silently ignore audio errors */ }
 }

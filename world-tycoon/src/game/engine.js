@@ -4,15 +4,16 @@
  */
 
 import { BOARD_TILES } from './data.js';
-import { gameState, displayedCash, isHumanTurnActionable, resetGameStateForNewMatch, lobbyPlayerCount, matchSettings, debugState } from './state.js';
+import { gameState, displayedCash, isHumanTurnActionable, resetGameStateForNewMatch, lobbyPlayerCount, matchSettings, debugState, localPlayerIdx } from './state.js';
 import { fmtMoney } from './utils.js';
 import { playSFX } from './audio.js';
-import { calculateTileRent, checkAndHandleNegativeCash, checkVictoryConditions } from './rules.js';
+import { calculateTileRent, checkAndHandleNegativeCash, checkVictoryConditions, calculatePlayerNetWorth } from './rules.js';
 import {
   animate3DDiceTumble,
   hopPlayerStepAnimation,
   resetTokenAfterHop,
   updatePlayerTokenPositions3D,
+  triggerTokenHurtAnimation,
   showSpeechBubble,
   refreshTileTextureAndBuildings,
   getTileWorldPosition,
@@ -23,7 +24,16 @@ import {
   flyPlayerDirectFlightAnimation,
   resetLocalCarAnimationClock
 } from '../three/scene.js';
-import { renderCornerHUDs, spawnFloatingCashOnHUD, updateRollButtonsUI, logEvent, showTurnLockToast, animateRentTransferOnHUD } from '../ui/hud.js';
+import {
+  renderCornerHUDs,
+  spawnFloatingCashOnHUD,
+  updateRollButtonsUI,
+  logEvent,
+  showTurnLockToast,
+  animateRentTransferOnHUD,
+  setStatusPill,
+  refreshActivePlayerTurnStatus
+} from '../ui/hud.js';
 import {
   openBuyCityModal,
   openUpgradeCityModal,
@@ -33,11 +43,13 @@ import {
   openMonopolyCelebrationModal,
   checkAndTriggerMonopoly,
   showVictoryModal,
-  closeAllGameModals
+  closeAllGameModals,
+  showIncomingTradeOfferModal
 } from '../ui/modals.js';
 import { spawnAnimatedReaction, fireConfettiBurst, stopVictoryCelebration } from '../three/effects.js';
 import { networkState, broadcastAction, registerNetworkCallbacks, broadcastReturnToLobby } from '../network/p2p.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from './persistence.js';
+import { generateProactiveBotTrade } from './trading.js';
 
 let autoEndTurnTimer = null;
 let aiRollTimer = null;
@@ -141,6 +153,23 @@ export function initEngine() {
   });
 }
 
+export function getGameDelay(ms) {
+  const speed = matchSettings.gameSpeed || 1;
+  return Math.max(30, Math.round(ms / speed));
+}
+
+export function recordNetWorthSnapshot() {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+  if (!gameState.netWorthHistory) gameState.netWorthHistory = [];
+  const turnNum = gameState.netWorthHistory.length + 1;
+  const values = gameState.players.map((p, idx) => calculatePlayerNetWorth(p.id !== undefined ? p.id : idx));
+  gameState.netWorthHistory.push({
+    turn: turnNum,
+    time: `${turnNum}`,
+    values
+  });
+}
+
 export function startNewMatch() {
   stopVictoryCelebration();
   closeAllGameModals();
@@ -152,6 +181,9 @@ export function startNewMatch() {
   resetGameStateForNewMatch(lobbyPlayerCount);
   resetLocalCarAnimationClock();
 
+  gameState.netWorthHistory = [];
+  recordNetWorthSnapshot();
+
   BOARD_TILES.forEach(t => {
     refreshTileTextureAndBuildings(t.id);
   });
@@ -162,7 +194,24 @@ export function startNewMatch() {
   showSpeechBubble('Ready to roll!', 2500);
   const editionName = matchSettings.boardEdition === 'rajasthan' ? 'Rajasthan Edition' : 'World Cities Edition';
   logEvent(`🎲 <strong>New Match Started (${editionName})!</strong> All players begin with <strong>${fmtMoney(matchSettings.startingCash || 2000000)}</strong>.`);
+  refreshActivePlayerTurnStatus();
+  const statusWrap = document.getElementById('hud-bottom-status-wrap');
+  if (statusWrap) statusWrap.classList.remove('hidden');
   saveCurrentMatchToStorage();
+
+  const curP = gameState.players[gameState.currentPlayerIdx];
+  if (curP && curP.isAI) {
+    setStatusPill(`🤔 <strong>${curP.name}</strong> is rolling the dice...`, { isThinking: true, playerIdx: gameState.currentPlayerIdx });
+    if (!networkState.isMultiplayer || networkState.isHost) {
+      if (!debugState?.freezeAI) {
+        aiRollTimer = setTimeout(() => {
+          aiRollTimer = null;
+          if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+          executePlayerRoll();
+        }, getGameDelay(1500));
+      }
+    }
+  }
 }
 
 export async function handleRollButtonClick() {
@@ -228,6 +277,7 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
         p.cash -= 150000;
         gameState.festivalPot += 150000;
         spawnFloatingCashOnHUD(pIdx, '-150K Bail', false);
+        triggerTokenHurtAnimation(pIdx);
         logEvent(`🏝️ <strong>${p.name}</strong> paid 150K after 3 turns on the Island.`);
       } else {
         showSpeechBubble(`Stuck on Island (${p.islandTurns}/3)`, 2000);
@@ -270,13 +320,13 @@ export async function hopPlayerSteps3D(playerIdx, steps) {
 
     if (s < steps - 1) {
       // Fluid transition between intermediate hops without halting momentum
-      await new Promise(r => setTimeout(r, 15));
+      await new Promise(r => setTimeout(r, Math.max(5, Math.round(15 / (matchSettings.gameSpeed || 1)))));
     } else {
       resetTokenAfterHop(playerIdx);
     }
   }
 
-  await new Promise(r => setTimeout(r, 220));
+  await new Promise(r => setTimeout(r, Math.max(40, Math.round(220 / (matchSettings.gameSpeed || 1)))));
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   updatePlayerTokenPositions3D();
   setTimeout(() => setTileHighlightRing(0, false), 800);
@@ -356,8 +406,8 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
     const taxAmt = tile.amount || 250000;
     p.cash -= taxAmt;
     gameState.festivalPot += taxAmt;
-    playSFX('cash');
     spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(taxAmt)} Tax`, false);
+    triggerTokenHurtAnimation(playerIdx);
     showSpeechBubble(`Paid ${fmtMoney(taxAmt)} Tax!`, 2000);
     logEvent(`🏛️ <strong>${p.name}</strong> paid <strong>${fmtMoney(taxAmt)}</strong> Luxury Tax into the Festival Pool.`);
     checkAndHandleNegativeCash(playerIdx, {
@@ -475,7 +525,8 @@ async function handleAICityDecision(playerIdx, tile, isDoubles) {
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   const p = gameState.players[playerIdx];
   if (!p) return;
-  await new Promise(r => setTimeout(r, 600));
+  setStatusPill(`🤔 <strong>${p.name}</strong> is deciding whether to buy <strong>${tile.name}</strong>...`, { isThinking: true, playerIdx });
+  await new Promise(r => setTimeout(r, getGameDelay(650)));
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
   if (p.cash >= tile.price + 120000) {
@@ -499,7 +550,8 @@ async function handleAIOwnedCityLanding(playerIdx, tile, isDoubles) {
   const p = gameState.players[playerIdx];
   if (!p) return;
   const st = gameState.properties[tile.id];
-  await new Promise(r => setTimeout(r, 650));
+  setStatusPill(`🤔 <strong>${p.name}</strong> is considering estate upgrades in <strong>${tile.name}</strong>...`, { isThinking: true, playerIdx });
+  await new Promise(r => setTimeout(r, getGameDelay(700)));
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
   if (st && !st.mortgaged && st.level < 4 && p.cash >= tile.houseCost + 200000) {
@@ -513,10 +565,12 @@ async function handleAIOwnedCityLanding(playerIdx, tile, isDoubles) {
 
 async function executeAIChanceSpin(playerIdx, isDoubles) {
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+  const p = gameState.players[playerIdx];
+  setStatusPill(`🎡 <strong>${p.name}</strong> is spinning the Chance Wheel...`, { isThinking: true, playerIdx });
   const CHANCE_WHEEL_PRIZES = (await import('./data.js')).CHANCE_WHEEL_PRIZES;
   const prize = CHANCE_WHEEL_PRIZES[Math.floor(Math.random() * CHANCE_WHEEL_PRIZES.length)];
   showSpeechBubble(`Chance: ${prize.label}!`, 2000);
-  await new Promise(r => setTimeout(r, 700));
+  await new Promise(r => setTimeout(r, getGameDelay(700)));
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   await applyChancePrize(playerIdx, prize, isDoubles);
 }
@@ -534,26 +588,70 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
   if (prize.type === 'cash') {
     p.cash += prize.amount;
     playSFX('cash');
+    playSFX('win');
+    showSpeechBubble(`🎉 +${fmtMoney(prize.amount)}!`, 2200);
     spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(prize.amount)}`, true);
   } else if (prize.type === 'tax') {
     p.cash -= prize.amount;
     gameState.festivalPot += prize.amount;
-    spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(prize.amount)}`, false);
+    showSpeechBubble(`💸 -${fmtMoney(prize.amount)} Tax!`, 2200);
+    spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(prize.amount)} Tax`, false);
+    triggerTokenHurtAnimation(playerIdx);
+    playSFX('hurt');
     checkAndHandleNegativeCash(playerIdx, {
       onRefreshTile: refreshTileTextureAndBuildings,
       onLog: logEvent
     });
   } else if (prize.type === 'island') {
+    const fromPos = p.position;
+    gameState.phase = 'MOVING';
+    playSFX('jail');
+    setTileHighlightRing(8, true);
+    showSpeechBubble('🏝️ Detained on Tropical Island!', 2800);
+    await flyPlayerDirectFlightAnimation(playerIdx, fromPos, 8);
     p.position = 8;
     p.inIsland = true;
     p.islandTurns = 0;
+    resetTokenAfterHop(playerIdx);
     updatePlayerTokenPositions3D();
+    playSFX('hop');
+    setTimeout(() => setTileHighlightRing(8, false), 900);
     renderCornerHUDs();
     concludeActionPhase(false);
     return;
   } else if (prize.type === 'move') {
-    p.position = prize.target;
-    updatePlayerTokenPositions3D();
+    const fromPos = p.position;
+    const dest = prize.target;
+    gameState.phase = 'MOVING';
+
+    playSFX('flight');
+    setTileHighlightRing(dest, true);
+
+    if (dest === 0) {
+      showSpeechBubble('🚀 Express Jet to START!', 2500);
+      await flyPlayerDirectFlightAnimation(playerIdx, fromPos, 0);
+      p.position = 0;
+      resetTokenAfterHop(playerIdx);
+      updatePlayerTokenPositions3D();
+      playSFX('hop');
+      setTimeout(() => setTileHighlightRing(0, false), 900);
+      const salary = 300000;
+      p.cash += salary;
+      playSFX('cash');
+      spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(salary)} START`, true);
+      logEvent(`💰 <strong>${p.name}</strong> landed on <strong>START</strong> and collected <strong>${fmtMoney(salary)}</strong> salary.`);
+    } else {
+      showSpeechBubble(`✈️ Flying to ${BOARD_TILES[dest]?.name || 'Destination'}!`, 2500);
+      await flyPlayerDirectFlightAnimation(playerIdx, fromPos, dest);
+      p.position = dest;
+      resetTokenAfterHop(playerIdx);
+      updatePlayerTokenPositions3D();
+      playSFX('hop');
+      setTimeout(() => setTileHighlightRing(dest, false), 900);
+      showSpeechBubble(`🛬 Landed on ${BOARD_TILES[dest]?.name || 'Destination'}!`, 2200);
+      // Give the player a clear visual pause to witness the avatar landing on World Tour before opening flight selection mode
+      await new Promise(r => setTimeout(r, 650));
+    }
     renderCornerHUDs();
     await evaluateTileLanding(playerIdx, isDoubles);
     return;
@@ -595,7 +693,7 @@ export function concludeActionPhase(isDoubles) {
         aiRollTimer = null;
         if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
         executePlayerRoll();
-      }, 1350);
+      }, getGameDelay(1350));
     }
     return;
   }
@@ -611,7 +709,7 @@ export function concludeActionPhase(isDoubles) {
       autoEndTurnTimer = null;
       if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
       advanceTurn();
-    }, 1150);
+    }, getGameDelay(1150));
   } else {
     gameState.phase = 'END';
     updateRollButtonsUI(isHumanTurnActionable());
@@ -621,7 +719,7 @@ export function concludeActionPhase(isDoubles) {
       if (gameState.phase === 'END') {
         advanceTurn();
       }
-    }, 1200);
+    }, getGameDelay(1200));
   }
 }
 
@@ -646,29 +744,104 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
   gameState.phase = 'ROLL';
   gameState.turnTimeLeft = 15;
 
+  // Record net worth snapshot for timeline chart
+  recordNetWorthSnapshot();
+
   renderCornerHUDs();
   updateRollButtonsUI(isHumanTurnActionable());
   saveCurrentMatchToStorage();
 
   const nextP = gameState.players[next];
   showSpeechBubble(`${nextP.name}'s Turn!`, 2000);
+  refreshActivePlayerTurnStatus();
 
   if (networkState.isMultiplayer && !isRemote) {
     broadcastAction('ACTION_END_TURN', { nextPlayerIdx: next });
   }
 
   if (nextP.isAI) {
+    setStatusPill(`🤔 <strong>${nextP.name}</strong> is rolling the dice...`, { isThinking: true, playerIdx: next });
     if (!networkState.isMultiplayer || networkState.isHost) {
       if (debugState?.freezeAI) {
         logEvent(`⏸️ <strong>[DEBUG]</strong> AI turn start paused for <strong>${nextP.name}</strong> (AI Frozen).`);
         return;
       }
+
+      // Check proactive bot trade offer to local player
+      const humanIdx = localPlayerIdx || 0;
+      const botTrade = generateProactiveBotTrade(next);
+      if (botTrade && botTrade.targetIdx === humanIdx && !gameState.players[humanIdx]?.bankrupt) {
+        showIncomingTradeOfferModal(botTrade);
+      }
+
       aiRollTimer = setTimeout(() => {
         aiRollTimer = null;
         if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
         executePlayerRoll();
-      }, 1350);
+      }, getGameDelay(1350));
     }
+  }
+}
+
+/**
+ * Resumes active turn loop after an existing saved match is restored.
+ * Ensures the AI roll timer starts if it's the AI's turn, and cleanses any stalled states.
+ */
+export function resumeActiveTurn() {
+  cancelAllGameTimers();
+
+  if (!gameState.gameStarted || !gameState.players || gameState.players.length === 0) return;
+
+  const total = gameState.players.length;
+  let cur = gameState.currentPlayerIdx;
+  if (cur === undefined || cur === null || cur < 0 || cur >= total || gameState.players[cur]?.bankrupt) {
+    cur = 0;
+    while (cur < total && gameState.players[cur]?.bankrupt) {
+      cur++;
+    }
+    if (cur >= total) return;
+    gameState.currentPlayerIdx = cur;
+  }
+
+  // Always reset phase to 'ROLL' because previous async promises/modals died when the session reloaded
+  gameState.phase = 'ROLL';
+  gameState.doublesCount = 0;
+  gameState.upgradesThisVisit = 0;
+  gameState.turnTimeLeft = matchSettings.turnDuration || 15;
+
+  const curP = gameState.players[cur];
+  renderCornerHUDs();
+  updateRollButtonsUI(isHumanTurnActionable());
+  refreshActivePlayerTurnStatus();
+
+  const statusWrap = document.getElementById('hud-bottom-status-wrap');
+  if (statusWrap) statusWrap.classList.remove('hidden');
+
+  showSpeechBubble(`${curP.name}'s Turn!`, 2200);
+
+  if (curP.isAI) {
+    setStatusPill(`🤔 <strong>${curP.name}</strong> is rolling the dice...`, { isThinking: true, playerIdx: cur });
+    if (!networkState.isMultiplayer || networkState.isHost) {
+      if (debugState?.freezeAI) {
+        logEvent(`⏸️ <strong>[DEBUG]</strong> AI roll paused for <strong>${curP.name}</strong> (AI Frozen).`);
+        return;
+      }
+
+      // Check proactive bot trade offer to local player
+      const humanIdx = localPlayerIdx || 0;
+      const botTrade = generateProactiveBotTrade(cur);
+      if (botTrade && botTrade.targetIdx === humanIdx && !gameState.players[humanIdx]?.bankrupt) {
+        showIncomingTradeOfferModal(botTrade);
+      }
+
+      aiRollTimer = setTimeout(() => {
+        aiRollTimer = null;
+        if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+        executePlayerRoll();
+      }, getGameDelay(1400));
+    }
+  } else {
+    logEvent(`🎲 Resumed match on <strong>${curP.name}'s</strong> turn to roll.`);
   }
 }
 
@@ -682,6 +855,7 @@ export function handlePayIslandBail() {
   p.islandTurns = 0;
   playSFX('cash');
   spawnFloatingCashOnHUD(pIdx, '-150K Bail', false);
+  triggerTokenHurtAnimation(pIdx);
   showSpeechBubble('Paid 150K Island Bail!', 1800);
   renderCornerHUDs();
   updateRollButtonsUI(isHumanTurnActionable());
@@ -723,6 +897,8 @@ export function terminateMatchAndReturnToLobby() {
   if (speechBubble) speechBubble.classList.add('hidden');
   const diceSumBadge = document.getElementById('dice-sum-badge');
   if (diceSumBadge) diceSumBadge.classList.add('hidden');
+  const statusWrap = document.getElementById('hud-bottom-status-wrap');
+  if (statusWrap) statusWrap.classList.add('hidden');
 
   if (networkState.isMultiplayer) {
     if (networkState.isHost) {

@@ -366,16 +366,29 @@ export function joinRoom(roomCode, guestInfo = {}) {
   });
 }
 
+export function broadcastLobbySettings() {
+  if (!networkState.isHost) return;
+  broadcastToAll({
+    type: 'LOBBY_STATE',
+    matchSettings,
+    setupPlayers,
+    lobbyPlayerCount
+  });
+}
+
 function applyGameplayMatchSettings(src) {
   if (!src) return;
   if (typeof src.startingCash === 'number') matchSettings.startingCash = src.startingCash;
   if (typeof src.turnDuration === 'number') matchSettings.turnDuration = src.turnDuration;
+  if (typeof src.matchDurationMinutes === 'number') matchSettings.matchDurationMinutes = src.matchDurationMinutes;
+  if (typeof src.monopolySetsToWin === 'number') matchSettings.monopolySetsToWin = src.monopolySetsToWin;
+  if (typeof src.lineMonopolyEnabled === 'boolean') matchSettings.lineMonopolyEnabled = src.lineMonopolyEnabled;
   if (src.boardEdition && (src.boardEdition === 'world' || src.boardEdition === 'rajasthan')) {
     matchSettings.boardEdition = src.boardEdition;
     applyBoardEdition(src.boardEdition);
     refreshAllTileTexturesAndMaterials();
-    if (window.renderMatchSettingButtons) window.renderMatchSettingButtons();
   }
+  if (window.renderMatchSettingButtons) window.renderMatchSettingButtons();
 }
 
 function handleGuestReceivedMessage(msg) {

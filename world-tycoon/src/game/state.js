@@ -14,6 +14,7 @@ export const matchSettings = {
   monopolySetsToWin: 3, // Complete 3 color groups to win instantly
   lineMonopolyEnabled: true, // Conquering an entire side of the board wins instantly
   matchDurationMinutes: 15, // Match time limit (richest player by Net Worth wins, 0 for unlimited)
+  gameSpeed: 1, // 1 | 2 | 4 (Fast-forward multiplier for animations and bot actions)
   customPlayers: [
     { name: 'YOU', isAI: false, charColor: 0xef4444, colorHex: '#6c5ce7', hatColor: 0x334155, hatStyle: 0 },
     { name: 'BIDIK', isAI: true, charColor: 0xf97316, colorHex: '#f39c12', hatColor: 0xfde047, hatStyle: 1 },
@@ -51,7 +52,17 @@ export const gameState = {
   pendingBuyTile: null,
   pendingDoubles: false,
   upgradesThisVisit: 0,
+  netWorthHistory: [], // [{ turn: 0, time: '00:00', values: [2000000, 2000000] }]
 };
+
+export function cycleGameSpeed() {
+  const speeds = [1, 2, 4];
+  const curIdx = speeds.indexOf(matchSettings.gameSpeed || 1);
+  const nextSpeed = speeds[(curIdx + 1) % speeds.length];
+  matchSettings.gameSpeed = nextSpeed;
+  if (typeof window !== 'undefined' && window.updateGameSpeedUI) window.updateGameSpeedUI();
+  return nextSpeed;
+}
 
 /** Animated cash displayed in the HUD (lags behind real cash for rolling effect) */
 export const displayedCash = [2000000, 2000000, 2000000, 2000000, 2000000, 2000000];
