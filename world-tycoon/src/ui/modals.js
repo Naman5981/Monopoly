@@ -30,10 +30,17 @@ export function registerEngineCallbacks(cbs) {
   engineCallbacks = cbs;
 }
 
+export function isLobbyScreenActive() {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return true;
+  const landingScreen = document.getElementById('landing-setup-screen');
+  return !!(landingScreen && !landingScreen.classList.contains('hidden') && landingScreen.style.display !== 'none');
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    A. BUY CITY MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function openBuyCityModal(tile, isDoubles) {
+  if (isLobbyScreenActive()) return;
   gameState.phase = 'MODAL';
   gameState.pendingBuyTile = tile;
   gameState.pendingDoubles = isDoubles;
@@ -140,6 +147,7 @@ export function passBuyCity() {
    A2. UPGRADE CITY POPUP MODAL (When landing on owned property)
 ───────────────────────────────────────────────────────────────────────────── */
 export function openUpgradeCityModal(tile, isDoubles) {
+  if (isLobbyScreenActive()) return;
   gameState.phase = 'MODAL';
   gameState.pendingUpgradeTile = tile;
   gameState.pendingDoubles = isDoubles;
@@ -370,6 +378,7 @@ export function closeUpgradeCityModal() {
    B. LIVE AUCTION MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function startCityAuction() {
+  if (isLobbyScreenActive()) return;
   clearCityPreview();
   document.getElementById('modal-buy-city').classList.add('hidden');
   document.getElementById('modal-buy-city').classList.remove('flex');
@@ -507,6 +516,7 @@ export function drawChanceWheelCanvas() {
 }
 
 export function openChanceWheelModal(isDoubles) {
+  if (isLobbyScreenActive()) return;
   gameState.phase = 'MODAL';
   gameState.pendingDoubles = isDoubles;
   if (engineCallbacks.updateUI) engineCallbacks.updateUI();
@@ -531,6 +541,7 @@ export function spinChanceWheel() {
   canvas.style.transform = `rotate(${wheelAngle}deg)`;
 
   setTimeout(async () => {
+    if (isLobbyScreenActive()) return;
     document.getElementById('chance-result-text').textContent = prize.desc;
     await new Promise(r => setTimeout(r, 1100));
     document.getElementById('modal-chance-wheel').classList.add('hidden');
@@ -545,6 +556,7 @@ export function spinChanceWheel() {
    D. TILE INSPECTOR MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function openInspectorModal(tileId) {
+  if (isLobbyScreenActive()) return;
   const tile = BOARD_TILES[tileId];
   if (!tile) return;
   gameState.activeInspectorTile = tileId;
@@ -814,6 +826,7 @@ export function toggleCityMortgage(tileId, isAutoLiquidation = false) {
    E. MANAGE CITIES PORTFOLIO MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function openPortfolioModal() {
+  if (isLobbyScreenActive()) return;
   if (!isHumanTurnActionable()) {
     showTurnLockToast("Wait for your turn to manage cities!");
     return;
@@ -901,6 +914,7 @@ export function renderPortfolioGrid() {
    F. DIPLOMATIC TRADE MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function openTradeModal() {
+  if (isLobbyScreenActive()) return;
   if (!isHumanTurnActionable()) {
     showTurnLockToast("Wait for your turn to propose a trade!");
     return;
@@ -1004,6 +1018,7 @@ export function closeTradeModal() {
    G. VICTORY CELEBRATION MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function showVictoryModal(winner) {
+  if (isLobbyScreenActive()) return;
   const winnerObj = winner || gameState.players.find(p => !p.bankrupt) || gameState.players[0];
   const isLocalHuman = winnerObj && (winnerObj.id === localPlayerIdx || (!winnerObj.isAI && (localPlayerIdx === undefined || localPlayerIdx === 0)));
 
@@ -1276,6 +1291,7 @@ export function toggleEventLogDrawer() {
    J. MONOPOLY CELEBRATION MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function openMonopolyCelebrationModal(playerIdx, groupKey) {
+  if (isLobbyScreenActive()) return;
   const p = gameState.players[playerIdx];
   const group = GROUP_META[groupKey];
   if (!p || !group) return;

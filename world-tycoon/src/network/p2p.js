@@ -364,6 +364,13 @@ export function joinRoom(roomCode, guestInfo = {}) {
   });
 }
 
+function applyGameplayMatchSettings(src) {
+  if (!src) return;
+  if (typeof src.startingCash === 'number') matchSettings.startingCash = src.startingCash;
+  if (typeof src.turnDuration === 'number') matchSettings.turnDuration = src.turnDuration;
+  // Fashion, cosmetics (cars, clouds, boardStyle, atmosphere) remain strictly independent and local to each player.
+}
+
 function handleGuestReceivedMessage(msg) {
   if (!msg || !msg.type) return;
 
@@ -371,7 +378,7 @@ function handleGuestReceivedMessage(msg) {
     case 'JOIN_ACCEPTED': {
       networkState.localPlayerIdx = msg.assignedSlot;
       if (msg.lobbyPlayerCount) setLobbyPlayerCount(msg.lobbyPlayerCount);
-      if (msg.matchSettings) Object.assign(matchSettings, msg.matchSettings);
+      if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
       }
@@ -389,7 +396,7 @@ function handleGuestReceivedMessage(msg) {
 
     case 'LOBBY_STATE': {
       if (msg.lobbyPlayerCount) setLobbyPlayerCount(msg.lobbyPlayerCount);
-      if (msg.matchSettings) Object.assign(matchSettings, msg.matchSettings);
+      if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
       }
@@ -413,7 +420,7 @@ function handleGuestReceivedMessage(msg) {
         }
       }
       if (msg.lobbyPlayerCount) setLobbyPlayerCount(msg.lobbyPlayerCount);
-      if (msg.matchSettings) Object.assign(matchSettings, msg.matchSettings);
+      if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
       }
@@ -441,7 +448,7 @@ function handleGuestReceivedMessage(msg) {
       if (statusEl) statusEl.classList.add('hidden');
 
       if (msg.lobbyPlayerCount) setLobbyPlayerCount(msg.lobbyPlayerCount);
-      if (msg.matchSettings) Object.assign(matchSettings, msg.matchSettings);
+      if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
       }

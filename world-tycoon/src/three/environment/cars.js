@@ -366,6 +366,10 @@ export function buildAnimatedRoadCars3D(boardGroup) {
   }
 }
 
+export function resetLocalCarAnimationClock() {
+  lastCarAnimTime = performance.now();
+}
+
 export function updateRoadCarsAnimation() {
   const now = performance.now();
   const dtScale = Math.min(2.0, Math.max(0.4, (now - lastCarAnimTime) / 16.67));

@@ -12,7 +12,8 @@ import {
   handleRollButtonClick,
   executeWorldTourFlight,
   handlePayIslandBail,
-  terminateMatchAndReturnToLobby
+  terminateMatchAndReturnToLobby,
+  cancelAllGameTimers
 } from './game/engine.js';
 import {
   initLandingSetup,
@@ -129,6 +130,10 @@ window.triggerVictoryTest = () => {
   showVictoryModal(p);
 };
 window.openLandingSetupScreen = () => {
+  cancelAllGameTimers();
+  closeAllGameModals();
+  gameState.gameStarted = false;
+  gameState.phase = 'SETUP';
   const el = document.getElementById('landing-setup-screen');
   if (el) {
     el.classList.remove('hidden');

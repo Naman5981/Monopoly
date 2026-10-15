@@ -19,7 +19,8 @@ import {
   spawnAllPlayerTokens3D,
   setTileHighlightRing,
   setFlightModeHighlights,
-  flyPlayerStepAnimation
+  flyPlayerStepAnimation,
+  resetLocalCarAnimationClock
 } from '../three/scene.js';
 import { renderCornerHUDs, spawnFloatingCashOnHUD, updateRollButtonsUI, logEvent, showTurnLockToast, animateRentTransferOnHUD } from '../ui/hud.js';
 import {
@@ -148,6 +149,7 @@ export function startNewMatch() {
   cancelAllGameTimers();
   clearSavedMatch();
   resetGameStateForNewMatch(lobbyPlayerCount);
+  resetLocalCarAnimationClock();
 
   BOARD_TILES.forEach(t => {
     refreshTileTextureAndBuildings(t.id);
@@ -181,9 +183,10 @@ export async function handleRollButtonClick() {
 }
 
 export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
-  if (!gameState.gameStarted) return;
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
+  if (!p) return;
   gameState.phase = 'MOVING';
   updateRollButtonsUI(isHumanTurnActionable());
 
@@ -204,6 +207,7 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
 
   showSpeechBubble('Rolling dice...', 1600);
   await animate3DDiceTumble(d1, d2);
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
   showSpeechBubble(`Rolled ${d1} + ${d2} = ${total}${isDoubles ? ' (DOUBLES!)' : ''}`, 2200);
   logEvent(`🎲 <strong>${p.name}</strong> rolled <strong>${d1} + ${d2} = ${total}</strong>.`);
@@ -233,13 +237,16 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
   }
 
   await hopPlayerSteps3D(pIdx, total);
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   await evaluateTileLanding(pIdx, isDoubles);
 }
 
 async function hopPlayerSteps3D(playerIdx, steps) {
   const p = gameState.players[playerIdx];
+  if (!p) return;
 
   for (let s = 0; s < steps; s++) {
+    if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
     const startPos = getTileWorldPosition(p.position);
     p.position = (p.position + 1) % 32;
     const destTileId = p.position;
@@ -247,6 +254,7 @@ async function hopPlayerSteps3D(playerIdx, steps) {
 
     playSFX('hop');
     await hopPlayerStepAnimation(playerIdx, startPos, endPos, s, steps, destTileId);
+    if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
     // Passing START bonus (+300K) — only on intermediate passing, not final landing
     if (p.position === 0 && s < steps - 1) {
@@ -267,14 +275,18 @@ async function hopPlayerSteps3D(playerIdx, steps) {
   }
 
   await new Promise(r => setTimeout(r, 220));
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   updatePlayerTokenPositions3D();
   setTimeout(() => setTileHighlightRing(0, false), 800);
 }
 
 export async function evaluateTileLanding(playerIdx, isDoubles) {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   gameState.upgradesThisVisit = 0;
   const p = gameState.players[playerIdx];
+  if (!p) return;
   const tile = BOARD_TILES[p.position];
+  if (!tile) return;
   const st = gameState.properties[tile.id];
 
   if (tile.type === 'city' || tile.type === 'resort') {
@@ -465,8 +477,12 @@ export async function executeWorldTourFlight(destTileId, isRemote = false, expli
 }
 
 async function handleAICityDecision(playerIdx, tile, isDoubles) {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   const p = gameState.players[playerIdx];
+  if (!p) return;
   await new Promise(r => setTimeout(r, 600));
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+
   if (p.cash >= tile.price + 120000) {
     p.cash -= tile.price;
     gameState.properties[tile.id].owner = playerIdx;
@@ -484,9 +500,13 @@ async function handleAICityDecision(playerIdx, tile, isDoubles) {
 }
 
 async function handleAIOwnedCityLanding(playerIdx, tile, isDoubles) {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   const p = gameState.players[playerIdx];
+  if (!p) return;
   const st = gameState.properties[tile.id];
   await new Promise(r => setTimeout(r, 650));
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+
   if (st && !st.mortgaged && st.level < 4 && p.cash >= tile.houseCost + 200000) {
     upgradeCityLevel(tile.id, true);
     showSpeechBubble(`Upgraded ${tile.name} to Level ${st.level}! 🏗️`, 2200);
@@ -497,10 +517,12 @@ async function handleAIOwnedCityLanding(playerIdx, tile, isDoubles) {
 }
 
 async function executeAIChanceSpin(playerIdx, isDoubles) {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   const CHANCE_WHEEL_PRIZES = (await import('./data.js')).CHANCE_WHEEL_PRIZES;
   const prize = CHANCE_WHEEL_PRIZES[Math.floor(Math.random() * CHANCE_WHEEL_PRIZES.length)];
   showSpeechBubble(`Chance: ${prize.label}!`, 2000);
   await new Promise(r => setTimeout(r, 700));
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   await applyChancePrize(playerIdx, prize, isDoubles);
 }
 
@@ -557,7 +579,10 @@ export function concludeActionPhase(isDoubles) {
     return;
   }
 
-  if (!gameState.gameStarted) return;
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') {
+    cancelAllGameTimers();
+    return;
+  }
   saveCurrentMatchToStorage();
 
   if (isDoubles && !p.inIsland && !p.bankrupt && gameState.doublesCount < 2) {
@@ -569,7 +594,7 @@ export function concludeActionPhase(isDoubles) {
       if (aiRollTimer) clearTimeout(aiRollTimer);
       aiRollTimer = setTimeout(() => {
         aiRollTimer = null;
-        if (!gameState.gameStarted) return;
+        if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
         executePlayerRoll();
       }, 1350);
     }
@@ -581,7 +606,7 @@ export function concludeActionPhase(isDoubles) {
   if (p.isAI) {
     autoEndTurnTimer = setTimeout(() => {
       autoEndTurnTimer = null;
-      if (!gameState.gameStarted) return;
+      if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
       advanceTurn();
     }, 1150);
   } else {
@@ -589,7 +614,7 @@ export function concludeActionPhase(isDoubles) {
     updateRollButtonsUI(isHumanTurnActionable());
     autoEndTurnTimer = setTimeout(() => {
       autoEndTurnTimer = null;
-      if (!gameState.gameStarted) return;
+      if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
       if (gameState.phase === 'END') {
         advanceTurn();
       }
@@ -598,7 +623,10 @@ export function concludeActionPhase(isDoubles) {
 }
 
 export function advanceTurn(isRemote = false, forcedNextIdx = null) {
-  if (!gameState.gameStarted) return;
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') {
+    cancelAllGameTimers();
+    return;
+  }
   cancelAllGameTimers();
 
   const total = gameState.players.length;
@@ -630,7 +658,7 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
     if (!networkState.isMultiplayer || networkState.isHost) {
       aiRollTimer = setTimeout(() => {
         aiRollTimer = null;
-        if (!gameState.gameStarted) return;
+        if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
         executePlayerRoll();
       }, 1350);
     }
@@ -663,6 +691,8 @@ export function terminateMatchAndReturnToLobby() {
   gameState.gameStarted = false;
   gameState.phase = 'SETUP';
   gameState.activeInspectorTile = null;
+  gameState.pendingBuyTile = null;
+  gameState.auction = null;
 
   clearSavedMatch();
   stopVictoryCelebration();
@@ -672,10 +702,20 @@ export function terminateMatchAndReturnToLobby() {
     setTileHighlightRing(0, false);
   } catch (_) {}
 
+  // Hide all in-game overlays and badges
   const turnToast = document.getElementById('turn-lock-toast');
   if (turnToast) turnToast.classList.add('hidden');
   const flightBanner = document.getElementById('world-tour-banner');
   if (flightBanner) flightBanner.classList.add('hidden');
+  const diceOverlay = document.getElementById('screen-dice-overlay');
+  if (diceOverlay) {
+    diceOverlay.classList.add('hidden');
+    diceOverlay.style.display = 'none';
+  }
+  const speechBubble = document.getElementById('token-speech-bubble');
+  if (speechBubble) speechBubble.classList.add('hidden');
+  const diceSumBadge = document.getElementById('dice-sum-badge');
+  if (diceSumBadge) diceSumBadge.classList.add('hidden');
 
   if (networkState.isMultiplayer) {
     if (networkState.isHost) {

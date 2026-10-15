@@ -194,3 +194,4 @@ export {
   initLobbyHeroStage,
   updateLobbyHeroAvatar
 } from './stages/lobbyStage.js';
+export { resetLocalCarAnimationClock } from './environment/cars.js';

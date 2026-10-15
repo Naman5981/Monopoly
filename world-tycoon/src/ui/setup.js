@@ -118,7 +118,7 @@ export function addBotOrSlot() {
 }
 
 export function removePlayerAt(idx) {
-  if (idx <= 0 || idx >= lobbyPlayerCount) return;
+  if (lobbyPlayerCount <= 2 || idx <= 0 || idx >= lobbyPlayerCount) return;
 
   matchSettings.customPlayers.splice(idx, 1);
 
@@ -143,7 +143,7 @@ export function removePlayerAt(idx) {
     }
   });
 
-  setLobbyPlayerCount(Math.max(1, lobbyPlayerCount - 1));
+  setLobbyPlayerCount(Math.max(2, lobbyPlayerCount - 1));
 
   if (selectedSetupPlayerIdx >= lobbyPlayerCount) {
     selectedSetupPlayerIdx = Math.max(0, lobbyPlayerCount - 1);
@@ -159,7 +159,7 @@ export function removePlayerAt(idx) {
 }
 
 export function removeBotOrSlot() {
-  if (lobbyPlayerCount > 1) {
+  if (lobbyPlayerCount > 2) {
     removePlayerAt(lobbyPlayerCount - 1);
   }
 }
@@ -271,7 +271,7 @@ export function renderPlayerCards() {
           <i class="${isHuman ? 'fa-solid fa-user' : 'fa-solid fa-robot'} mr-1 text-xs"></i>
           ${isHuman ? 'Player' : 'Bot'}
         </button>
-        ${i > 0 ? `
+        ${(i > 0 && lobbyPlayerCount > 2) ? `
         <button onclick="window.removePlayerAt(${i})" class="text-xs font-black px-2.5 py-1.5 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:border-rose-300 transition cursor-pointer shadow-xs flex items-center gap-1" title="Remove this bot / player">
           <i class="fa-solid fa-xmark text-xs font-black"></i>
           <span>Remove</span>
