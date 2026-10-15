@@ -1,6 +1,6 @@
 param (
     [int]$Port = 3000,
-    [string]$Path = "E:\study-material\Monopoly\world-tycoon"
+    [string]$Path = "$PSScriptRoot\world-tycoon"
 )
 
 $listener = New-Object System.Net.HttpListener

@@ -1,7 +1,7 @@
 param()
 
-$sourceDir = "E:\study-material\Monopoly\world-tycoon"
-$zipPath = "E:\study-material\Monopoly\world-tycoon.zip"
+$sourceDir = "$PSScriptRoot\world-tycoon"
+$zipPath = "$PSScriptRoot\world-tycoon.zip"
 
 if (Test-Path $zipPath) {
     Remove-Item $zipPath -Force

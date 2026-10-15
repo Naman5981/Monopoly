@@ -64,7 +64,14 @@ namespace WorldTycoonLauncher
                 Console.WriteLine(ex.StackTrace);
                 Console.ResetColor();
                 Console.WriteLine("\nPress any key to exit...");
-                Console.ReadKey();
+                try
+                {
+                    if (!Console.IsInputRedirected)
+                    {
+                        Console.ReadKey();
+                    }
+                }
+                catch { }
             }
             finally
             {
@@ -351,29 +358,64 @@ namespace WorldTycoonLauncher
             Console.WriteLine("=====================================================================\n");
             Console.ResetColor();
 
+            bool isRedirected = false;
+            try
+            {
+                isRedirected = Console.IsInputRedirected;
+            }
+            catch
+            {
+                isRedirected = true;
+            }
+
+            if (isRedirected)
+            {
+                ManualResetEvent quitEvent = new ManualResetEvent(false);
+                Console.CancelKeyPress += (sender, e) =>
+                {
+                    e.Cancel = true;
+                    _running = false;
+                    quitEvent.Set();
+                };
+
+                while (_running)
+                {
+                    quitEvent.WaitOne(1000);
+                }
+                return;
+            }
+
             while (_running)
             {
-                if (Console.KeyAvailable)
+                try
                 {
-                    ConsoleKeyInfo key = Console.ReadKey(true);
-                    if (key.Key == ConsoleKey.Q || key.Key == ConsoleKey.Escape)
+                    if (Console.KeyAvailable)
                     {
-                        Console.WriteLine("\n[*] Shutting down server. Goodbye!");
-                        break;
-                    }
-                    else if (key.Key == ConsoleKey.B)
-                    {
-                        LaunchBrowser(null);
-                    }
-                    else if (key.Key == ConsoleKey.C)
-                    {
-                        Console.Write("\nEnter friend's 4-character Room Code: ");
-                        string code = Console.ReadLine();
-                        if (!string.IsNullOrEmpty(code))
+                        ConsoleKeyInfo key = Console.ReadKey(true);
+                        if (key.Key == ConsoleKey.Q || key.Key == ConsoleKey.Escape)
                         {
-                            LaunchBrowser(code.Trim());
+                            Console.WriteLine("\n[*] Shutting down server. Goodbye!");
+                            break;
+                        }
+                        else if (key.Key == ConsoleKey.B)
+                        {
+                            LaunchBrowser(null);
+                        }
+                        else if (key.Key == ConsoleKey.C)
+                        {
+                            Console.Write("\nEnter friend's 4-character Room Code: ");
+                            string code = Console.ReadLine();
+                            if (!string.IsNullOrEmpty(code))
+                            {
+                                LaunchBrowser(code.Trim());
+                            }
                         }
                     }
+                }
+                catch (InvalidOperationException)
+                {
+                    Thread.Sleep(1000);
+                    continue;
                 }
                 Thread.Sleep(100);
             }

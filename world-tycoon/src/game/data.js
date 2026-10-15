@@ -20,7 +20,7 @@ export const GROUP_META = {
  */
 export const BOARD_TILES = [
   // Bottom Corner (0)
-  { id: 0,  name: 'START',      subtitle: 'Collect 300K',        type: 'start'   },
+  { id: 0,  name: 'START',      subtitle: 'Pass +300K / Land +400K',        type: 'start'   },
 
   // Side 1: Bottom-Left (1..7)
   { id: 1,  name: 'CAIRO',      price: 120000, rent: [25000, 75000, 180000, 320000, 480000],  houseCost: 80000,  type: 'city',   group: 'brown'     },

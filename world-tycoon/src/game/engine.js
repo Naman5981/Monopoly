@@ -37,6 +37,8 @@ import { spawnAnimatedReaction, fireConfettiBurst, stopVictoryCelebration } from
 import { networkState, broadcastAction, registerNetworkCallbacks } from '../network/p2p.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from './persistence.js';
 
+let autoEndTurnTimer = null;
+
 export function initEngine() {
   registerEngineCallbacks({
     updateUI: () => updateRollButtonsUI(isHumanTurnActionable()),
@@ -131,6 +133,10 @@ export function startNewMatch() {
   document.getElementById('modal-setup')?.classList.add('hidden');
   document.getElementById('modal-setup')?.classList.remove('flex');
 
+  if (autoEndTurnTimer) {
+    clearTimeout(autoEndTurnTimer);
+    autoEndTurnTimer = null;
+  }
   clearSavedMatch();
   resetGameStateForNewMatch(lobbyPlayerCount);
 
@@ -156,6 +162,10 @@ export async function handleRollButtonClick() {
   }
 
   if (gameState.phase === 'END') {
+    if (autoEndTurnTimer) {
+      clearTimeout(autoEndTurnTimer);
+      autoEndTurnTimer = null;
+    }
     advanceTurn();
     return;
   }
@@ -231,18 +241,22 @@ async function hopPlayerSteps3D(playerIdx, steps) {
     playSFX('hop');
     await hopPlayerStepAnimation(playerIdx, startPos, endPos, s, steps, destTileId);
 
-    // Passing START bonus (+300K)
-    if (p.position === 0) {
+    // Passing START bonus (+300K) — only on intermediate passing, not final landing
+    if (p.position === 0 && s < steps - 1) {
       p.cash += 300000;
       playSFX('cash');
       spawnAnimatedReaction('cash');
-      spawnFloatingCashOnHUD(playerIdx, '+300K START', true);
-      logEvent(`🚩 <strong>${p.name}</strong> passed START and collected <strong>300K</strong>!`);
+      spawnFloatingCashOnHUD(playerIdx, '+300K Passed START', true);
+      logEvent(`🚩 <strong>${p.name}</strong> passed START and collected <strong>300K</strong> salary!`);
       renderCornerHUDs();
     }
 
-    await new Promise(r => setTimeout(r, 75));
-    resetTokenAfterHop(playerIdx);
+    if (s < steps - 1) {
+      // Fluid transition between intermediate hops without halting momentum
+      await new Promise(r => setTimeout(r, 15));
+    } else {
+      resetTokenAfterHop(playerIdx);
+    }
   }
 
   await new Promise(r => setTimeout(r, 220));
@@ -374,6 +388,14 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
       updateRollButtonsUI(isHumanTurnActionable());
       return;
     }
+  } else if (tile.type === 'start') {
+    p.cash += 400000;
+    playSFX('cash');
+    spawnAnimatedReaction('cash');
+    spawnFloatingCashOnHUD(playerIdx, '+400K LANDED START!', true);
+    showSpeechBubble('Landed on START! +400K Super Bonus! 🚩', 2800);
+    logEvent(`🚩 <strong>${p.name}</strong> landed directly on <strong>START</strong> and collected <strong>400K</strong> super bonus!`);
+    renderCornerHUDs();
   }
 
   concludeActionPhase(isDoubles);
@@ -409,12 +431,12 @@ export async function executeWorldTourFlight(destTileId, isRemote = false, expli
       setTileHighlightRing(currentTileId, true);
       await flyPlayerStepAnimation(pIdx, stepStartPos, stepEndPos, s, totalSteps, currentTileId);
 
-      // Passing START bonus (+300K)
-      if (p.position === 0) {
+      // Passing START bonus (+300K) — only on intermediate fly-bys
+      if (p.position === 0 && s < totalSteps - 1) {
         p.cash += 300000;
         playSFX('cash');
         spawnAnimatedReaction('cash');
-        spawnFloatingCashOnHUD(pIdx, '+300K START', true);
+        spawnFloatingCashOnHUD(pIdx, '+300K Passed START', true);
         logEvent(`🚩 <strong>${p.name}</strong> flew past START and collected <strong>300K</strong>!`);
         renderCornerHUDs();
       }
@@ -506,17 +528,11 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
     concludeActionPhase(false);
     return;
   } else if (prize.type === 'move') {
-    if (prize.target === 0) {
-      p.cash += 300000;
-      spawnFloatingCashOnHUD(playerIdx, '+300K START', true);
-    }
     p.position = prize.target;
     updatePlayerTokenPositions3D();
     renderCornerHUDs();
-    if (prize.target !== 0) {
-      await evaluateTileLanding(playerIdx, isDoubles);
-      return;
-    }
+    await evaluateTileLanding(playerIdx, isDoubles);
+    return;
   }
   renderCornerHUDs();
   concludeActionPhase(isDoubles);
@@ -545,15 +561,29 @@ export function concludeActionPhase(isDoubles) {
     return;
   }
 
+  if (autoEndTurnTimer) {
+    clearTimeout(autoEndTurnTimer);
+    autoEndTurnTimer = null;
+  }
+
   if (p.isAI) {
-    setTimeout(() => advanceTurn(), 1150);
+    autoEndTurnTimer = setTimeout(() => advanceTurn(), 1150);
   } else {
     gameState.phase = 'END';
     updateRollButtonsUI(isHumanTurnActionable());
+    autoEndTurnTimer = setTimeout(() => {
+      if (gameState.phase === 'END') {
+        advanceTurn();
+      }
+    }, 1200);
   }
 }
 
 export function advanceTurn(isRemote = false, forcedNextIdx = null) {
+  if (autoEndTurnTimer) {
+    clearTimeout(autoEndTurnTimer);
+    autoEndTurnTimer = null;
+  }
   const total = gameState.players.length;
   let next = forcedNextIdx !== null ? forcedNextIdx : (gameState.currentPlayerIdx + 1) % total;
   let guard = 0;
