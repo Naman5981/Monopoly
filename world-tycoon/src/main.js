@@ -8,6 +8,7 @@ import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, match
 import { updateMasterVolume, playSFX } from './game/audio.js';
 import { initThreeScene, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
 import { context } from './three/core/context.js';
+import { checkVictoryConditions } from './game/rules.js';
 import {
   initEngine,
   startNewMatch,
@@ -156,6 +157,7 @@ window.openLandingSetupScreen = () => {
   }
   renderPlayerCards();
   renderMatchSettingButtons();
+  applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
 };
 window.setPlayerCount = setPlayerCount;
 window.setPlayerSetupName = setPlayerSetupName;
@@ -353,6 +355,13 @@ function initApp() {
     const secs = String(matchSeconds % 60).padStart(2, '0');
     const clockEl = document.getElementById('hud-game-clock');
     if (clockEl) clockEl.textContent = `${mins}:${secs}`;
+
+    // Check match time limit victory (Highest Net Worth wins)
+    const timeVic = checkVictoryConditions();
+    if (timeVic) {
+      showVictoryModal(timeVic.winner, timeVic);
+      return;
+    }
 
     const currentPlayer = gameState.players && gameState.players[gameState.currentPlayerIdx];
     if (gameState.phase === 'ROLL' && currentPlayer) {

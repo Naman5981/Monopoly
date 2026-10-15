@@ -512,6 +512,59 @@ export const LIGHTING_MODES = {
   night: THEME_COMBINATIONS['wood:night']
 };
 
+export const LOBBY_THEMES = {
+  // 🪵 WOOD / DEFAULT
+  'wood:day': {
+    bg: 'linear-gradient(180deg, #38b6ff 0%, #2fa5f5 35%, #60a5fa 70%, #93c5fd 100%)',
+    skyIcons: ['☁️', '☁️', '☁️'],
+    skyStyle: 'opacity: 0.45; filter: drop-shadow(0 4px 12px rgba(2,132,199,0.3));'
+  },
+  'wood:sunset': {
+    bg: 'linear-gradient(180deg, #fb923c 0%, #ea580c 25%, #be185d 55%, #581c87 80%, #1e1b4b 100%)',
+    skyIcons: ['⛅', '🌤️', '⛅'],
+    skyStyle: 'opacity: 0.55; filter: drop-shadow(0 4px 14px rgba(234,88,12,0.45)) hue-rotate(325deg);'
+  },
+  'wood:night': {
+    bg: 'linear-gradient(180deg, #1e1b4b 0%, #0f172a 32%, #080d1a 65%, #020617 100%)',
+    skyIcons: ['✨', '🌙', '⭐'],
+    skyStyle: 'opacity: 0.75; filter: drop-shadow(0 0 16px rgba(255,255,255,0.4));'
+  },
+
+  // ⚡ CYBERPUNK
+  'cyberpunk:day': {
+    bg: 'linear-gradient(180deg, #0284c7 0%, #0f172a 38%, #1e1b4b 72%, #312e81 100%)',
+    skyIcons: ['☁️', '⚡', '☁️'],
+    skyStyle: 'opacity: 0.5; filter: drop-shadow(0 0 12px rgba(56,189,248,0.5));'
+  },
+  'cyberpunk:sunset': {
+    bg: 'linear-gradient(180deg, #f472b6 0%, #d946ef 22%, #9333ea 48%, #4c1d95 75%, #090514 100%)',
+    skyIcons: ['🌆', '🌤️', '🌆'],
+    skyStyle: 'opacity: 0.6; filter: drop-shadow(0 0 16px rgba(217,70,239,0.6));'
+  },
+  'cyberpunk:night': {
+    bg: 'linear-gradient(180deg, #1e1b4b 0%, #0f172a 35%, #020617 75%, #000000 100%)',
+    skyIcons: ['✨', '⚡', '⭐'],
+    skyStyle: 'opacity: 0.8; filter: drop-shadow(0 0 20px rgba(0,245,255,0.7));'
+  },
+
+  // ✨ ELEGANT
+  'elegant:day': {
+    bg: 'linear-gradient(180deg, #38bdf8 0%, #818cf8 35%, #c084fc 70%, #fbcfe8 100%)',
+    skyIcons: ['☁️', '✨', '☁️'],
+    skyStyle: 'opacity: 0.45; filter: drop-shadow(0 4px 12px rgba(129,140,248,0.4));'
+  },
+  'elegant:sunset': {
+    bg: 'linear-gradient(180deg, #fbbf24 0%, #f97316 28%, #9a3412 60%, #451a03 85%, #1c0a02 100%)',
+    skyIcons: ['⛅', '👑', '⛅'],
+    skyStyle: 'opacity: 0.55; filter: drop-shadow(0 4px 16px rgba(251,191,36,0.5));'
+  },
+  'elegant:night': {
+    bg: 'linear-gradient(180deg, #1e1b4b 0%, #111827 40%, #030712 75%, #000000 100%)',
+    skyIcons: ['✨', '💎', '⭐'],
+    skyStyle: 'opacity: 0.75; filter: drop-shadow(0 0 16px rgba(245,158,11,0.5));'
+  }
+};
+
 let currentLightingKey = 'day';
 
 export function applyLightingMode(key, threeSceneObjects) {
@@ -527,6 +580,36 @@ export function applyLightingMode(key, threeSceneObjects) {
   // Update HTML body background with composite gradient
   if (typeof document !== 'undefined' && document.body) {
     document.body.style.background = cfg.bg;
+  }
+
+  // Update Main Menu (Lobby) full-screen background & sky elements
+  if (typeof document !== 'undefined') {
+    const lobbyEl = document.getElementById('landing-setup-screen');
+    const lobbyTheme = LOBBY_THEMES[comboKey] || LOBBY_THEMES[`wood:${key}`] || LOBBY_THEMES['wood:day'];
+    if (lobbyEl && lobbyTheme) {
+      lobbyEl.style.background = lobbyTheme.bg;
+    }
+    const skyEl = document.getElementById('setup-atmosphere-sky-elements');
+    if (skyEl && lobbyTheme && lobbyTheme.skyIcons) {
+      skyEl.innerHTML = `
+        <div class="text-9xl cloud-float-1 transform -translate-y-6 select-none pointer-events-none">${lobbyTheme.skyIcons[0]}</div>
+        <div class="text-8xl cloud-float-2 transform -translate-y-3 select-none pointer-events-none">${lobbyTheme.skyIcons[1]}</div>
+        <div class="text-9xl cloud-float-1 transform -translate-y-8 select-none pointer-events-none">${lobbyTheme.skyIcons[2]}</div>
+      `;
+      if (lobbyTheme.skyStyle) {
+        skyEl.style.cssText = lobbyTheme.skyStyle;
+      }
+    }
+    const diamonds = document.querySelectorAll('.diamond-watermark');
+    diamonds.forEach(d => {
+      if (key === 'night') {
+        d.style.borderColor = 'rgba(165, 180, 252, 0.22)';
+      } else if (key === 'sunset') {
+        d.style.borderColor = 'rgba(254, 215, 170, 0.28)';
+      } else {
+        d.style.borderColor = 'rgba(255, 255, 255, 0.22)';
+      }
+    });
   }
 
   if (threeSceneObjects) {

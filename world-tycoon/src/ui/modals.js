@@ -7,7 +7,7 @@ import { BOARD_TILES, GROUP_META, PLAYER_THEMES, CHANCE_WHEEL_PRIZES } from '../
 import { gameState, isHumanTurnActionable, setLobbyPlayerCount, lobbyPlayerCount, displayedCash, localPlayerIdx } from '../game/state.js';
 import { fmtMoney } from '../game/utils.js';
 import { playSFX } from '../game/audio.js';
-import { calculateTileRent, ownsFullColorGroup } from '../game/rules.js';
+import { calculateTileRent, ownsFullColorGroup, checkVictoryConditions } from '../game/rules.js';
 import { networkState, broadcastAction, broadcastReturnToLobby, broadcastStartOnlineMatch } from '../network/p2p.js';
 import { matchSettings } from '../game/state.js';
 import {
@@ -59,13 +59,13 @@ export function openBuyCityModal(tile, isDoubles) {
   const tiers = document.getElementById('buy-modal-tiers');
   if (tile.type === 'city') {
     tiers.innerHTML = `
-      <div class="flex justify-between py-1 border-b border-slate-200"><span>1 House</span><strong class="text-slate-900">${fmtMoney(tile.rent[1])}</strong></div>
-      <div class="flex justify-between py-1 border-b border-slate-200"><span>2 Houses</span><strong class="text-slate-900">${fmtMoney(tile.rent[2])}</strong></div>
-      <div class="flex justify-between py-1 border-b border-slate-200"><span>3 Houses</span><strong class="text-slate-900">${fmtMoney(tile.rent[3])}</strong></div>
-      <div class="flex justify-between py-1 text-sky-700 font-black"><span>Skyscraper</span><strong class="text-sky-800">${fmtMoney(tile.rent[4])}</strong></div>
+      <div class="flex justify-between py-1.5 border-b border-slate-200 text-xs sm:text-sm font-semibold text-slate-700"><span>1 House</span><strong class="text-slate-950 font-black">${fmtMoney(tile.rent[1])}</strong></div>
+      <div class="flex justify-between py-1.5 border-b border-slate-200 text-xs sm:text-sm font-semibold text-slate-700"><span>2 Houses</span><strong class="text-slate-950 font-black">${fmtMoney(tile.rent[2])}</strong></div>
+      <div class="flex justify-between py-1.5 border-b border-slate-200 text-xs sm:text-sm font-semibold text-slate-700"><span>3 Houses</span><strong class="text-slate-950 font-black">${fmtMoney(tile.rent[3])}</strong></div>
+      <div class="flex justify-between py-1.5 text-sky-800 font-black text-xs sm:text-sm"><span>Skyscraper</span><strong class="text-sky-950 font-black">${fmtMoney(tile.rent[4])}</strong></div>
     `;
   } else {
-    tiers.innerHTML = `<div class="text-center font-black text-slate-800 py-1">Own both Resorts for higher payouts!</div>`;
+    tiers.innerHTML = `<div class="text-center font-black text-slate-800 py-1.5 text-xs sm:text-sm">Own both Resorts for higher payouts!</div>`;
   }
 
   const pIdx = gameState.currentPlayerIdx;
@@ -207,19 +207,19 @@ export function renderUpgradeModalContent(tile) {
     const isCurrent = (st.level === idx && !st.mortgaged);
     const isNext = (st.level + 1 === idx && !st.mortgaged);
     const rentVal = tile.rent[idx];
-    let rowClass = 'flex justify-between items-center py-1 px-2 rounded-lg text-slate-700 transition-colors';
+    let rowClass = 'flex justify-between items-center py-1.5 px-2.5 rounded-xl text-slate-700 transition-colors text-xs sm:text-sm';
     let badge = '';
     if (isCurrent) {
-      rowClass = 'flex justify-between items-center py-1 px-2.5 rounded-xl bg-emerald-100 text-emerald-950 font-black border border-emerald-300 shadow-2xs';
-      badge = '<span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-600 text-white font-black ml-1.5 shadow-2xs">Current</span>';
+      rowClass = 'flex justify-between items-center py-1.5 px-3 rounded-xl bg-emerald-100 text-emerald-950 font-black border border-emerald-300 shadow-2xs text-xs sm:text-sm';
+      badge = '<span class="text-[10px] uppercase px-2 py-0.5 rounded-full bg-emerald-600 text-white font-black ml-1.5 shadow-2xs">Current</span>';
     } else if (isNext) {
-      rowClass = 'flex justify-between items-center py-1 px-2.5 rounded-xl bg-sky-50 text-sky-950 font-black border border-sky-200';
-      badge = '<span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-sky-600 text-white font-black ml-1.5">Next</span>';
+      rowClass = 'flex justify-between items-center py-1.5 px-3 rounded-xl bg-sky-50 text-sky-950 font-black border border-sky-200 text-xs sm:text-sm';
+      badge = '<span class="text-[10px] uppercase px-2 py-0.5 rounded-full bg-sky-600 text-white font-black ml-1.5">Next</span>';
     }
     return `
       <div class="${rowClass}">
-        <span class="flex items-center text-xs font-extrabold">${lbl} ${badge}</span>
-        <strong class="${isCurrent ? 'text-emerald-800 font-black' : isNext ? 'text-sky-800 font-black' : 'text-slate-800'}">${fmtMoney(rentVal)}</strong>
+        <span class="flex items-center font-bold">${lbl} ${badge}</span>
+        <strong class="${isCurrent ? 'text-emerald-800 font-black' : isNext ? 'text-sky-800 font-black' : 'text-slate-900 font-bold'}">${fmtMoney(rentVal)}</strong>
       </div>
     `;
   }).join('');
@@ -238,32 +238,32 @@ export function renderUpgradeModalContent(tile) {
     noticeEl.classList.remove('hidden');
     noticeEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> City is mortgaged! Unmortgage to start collecting rent and upgrading.`;
     btnUpgrade.disabled = !canUnmort;
-    btnUpgrade.className = `game-btn ${canUnmort ? 'game-btn-blue' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-2.5 px-3 text-xs font-black flex flex-col items-center justify-center gap-0.5 leading-snug`;
-    btnUpgrade.innerHTML = `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-key"></i> UNMORTGAGE</span><span class="text-[11px] font-extrabold opacity-90">(${fmtMoney(unmortCost)})</span>`;
+    btnUpgrade.className = `game-btn ${canUnmort ? 'game-btn-blue' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug`;
+    btnUpgrade.innerHTML = `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-key"></i> UNMORTGAGE</span><span class="text-xs font-bold opacity-90">(${fmtMoney(unmortCost)})</span>`;
     btnClose.textContent = 'CLOSE';
   } else if (upgradesDone >= 2) {
     if (btnUpgrade2) btnUpgrade2.classList.add('hidden');
     noticeEl.classList.remove('hidden');
     noticeEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> <strong class="text-emerald-800">Visit Limit Reached (2/2)!</strong> You can upgrade at most 2 levels at one time.`;
     btnUpgrade.disabled = true;
-    btnUpgrade.className = 'game-btn game-btn-slate opacity-50 cursor-not-allowed flex-1 py-2.5 px-3 text-xs font-black flex flex-col items-center justify-center gap-0.5 leading-snug';
-    btnUpgrade.innerHTML = `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-ban text-amber-500"></i> MAX REACHED</span><span class="text-[11px] font-extrabold opacity-80">(2/2 Levels)</span>`;
+    btnUpgrade.className = 'game-btn game-btn-slate opacity-50 cursor-not-allowed flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug';
+    btnUpgrade.innerHTML = `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-ban text-amber-500"></i> MAX REACHED</span><span class="text-xs font-bold opacity-80">(2/2 Levels)</span>`;
     btnClose.textContent = 'DONE';
   } else if (st.level >= 4) {
     if (btnUpgrade2) btnUpgrade2.classList.add('hidden');
     noticeEl.classList.remove('hidden');
     noticeEl.innerHTML = `🏆 <strong class="text-amber-800">Skyscraper Maxed!</strong> This estate is generating maximum rent of ${fmtMoney(tile.rent[4])}.`;
     btnUpgrade.disabled = true;
-    btnUpgrade.className = 'game-btn game-btn-slate opacity-50 cursor-not-allowed flex-1 py-2.5 px-3 text-xs font-black flex flex-col items-center justify-center gap-0.5 leading-snug';
-    btnUpgrade.innerHTML = `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-crown text-amber-500"></i> MAX LEVEL</span><span class="text-[11px] font-extrabold opacity-80">(Skyscraper)</span>`;
+    btnUpgrade.className = 'game-btn game-btn-slate opacity-50 cursor-not-allowed flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug';
+    btnUpgrade.innerHTML = `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-crown text-amber-500"></i> MAX LEVEL</span><span class="text-xs font-bold opacity-80">(Skyscraper)</span>`;
     btnClose.textContent = 'DONE';
   } else {
     const canAfford = p.cash >= tile.houseCost;
     btnUpgrade.disabled = !canAfford;
-    btnUpgrade.className = `game-btn ${canAfford ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-2.5 px-3 text-xs font-black flex flex-col items-center justify-center gap-0.5 leading-snug`;
+    btnUpgrade.className = `game-btn ${canAfford ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug`;
     btnUpgrade.innerHTML = canAfford
-      ? `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-arrow-up-right-dots"></i> +1 LEVEL</span><span class="text-[11px] font-extrabold opacity-90">(${fmtMoney(tile.houseCost)})</span>`
-      : `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-lock"></i> +1 LEVEL</span><span class="text-[11px] font-extrabold opacity-80">(NEED ${fmtMoney(tile.houseCost)})</span>`;
+      ? `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-arrow-up-right-dots"></i> +1 LEVEL</span><span class="text-xs font-bold opacity-90">(${fmtMoney(tile.houseCost)})</span>`
+      : `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-lock"></i> +1 LEVEL</span><span class="text-xs font-bold opacity-80">(NEED ${fmtMoney(tile.houseCost)})</span>`;
 
     // Show +2 Levels button if 0 upgrades done yet, property can take 2 more levels, and level <= 2
     if (btnUpgrade2) {
@@ -272,10 +272,10 @@ export function renderUpgradeModalContent(tile) {
         const cost2 = tile.houseCost * 2;
         const canAfford2 = p.cash >= cost2;
         btnUpgrade2.disabled = !canAfford2;
-        btnUpgrade2.className = `game-btn ${canAfford2 ? 'game-btn-blue' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-2.5 px-3 text-xs font-black flex flex-col items-center justify-center gap-0.5 leading-snug`;
+        btnUpgrade2.className = `game-btn ${canAfford2 ? 'game-btn-blue' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug`;
         btnUpgrade2.innerHTML = canAfford2
-          ? `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-angles-up"></i> +2 LEVELS</span><span class="text-[11px] font-extrabold opacity-90">(${fmtMoney(cost2)})</span>`
-          : `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-lock"></i> +2 LEVELS</span><span class="text-[11px] font-extrabold opacity-80">(NEED ${fmtMoney(cost2)})</span>`;
+          ? `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-angles-up"></i> +2 LEVELS</span><span class="text-xs font-bold opacity-90">(${fmtMoney(cost2)})</span>`
+          : `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-lock"></i> +2 LEVELS</span><span class="text-xs font-bold opacity-80">(NEED ${fmtMoney(cost2)})</span>`;
       } else {
         btnUpgrade2.classList.add('hidden');
       }
@@ -582,18 +582,18 @@ export function openInspectorModal(tileId) {
   const rentList = document.getElementById('insp-rent-list');
   if (tile.type === 'city') {
     rentList.innerHTML = `
-      <div class="flex justify-between py-0.5 border-b border-slate-200"><span>Base Rent</span><strong class="text-slate-900">${fmtMoney(tile.rent[0])}</strong></div>
-      <div class="flex justify-between py-0.5 border-b border-slate-200"><span>1 House</span><strong class="text-slate-900">${fmtMoney(tile.rent[1])}</strong></div>
-      <div class="flex justify-between py-0.5 border-b border-slate-200"><span>2 Houses</span><strong class="text-slate-900">${fmtMoney(tile.rent[2])}</strong></div>
-      <div class="flex justify-between py-0.5 border-b border-slate-200"><span>3 Houses</span><strong class="text-slate-900">${fmtMoney(tile.rent[3])}</strong></div>
-      <div class="flex justify-between py-0.5 text-sky-700 font-black"><span>Skyscraper</span><strong class="text-sky-800">${fmtMoney(tile.rent[4])}</strong></div>
-      <div class="border-t-2 border-slate-300 pt-2 mt-2 flex justify-between text-slate-700 font-black">
+      <div class="flex justify-between py-1 border-b border-slate-200 text-xs sm:text-sm font-semibold text-slate-700"><span>Base Rent</span><strong class="text-slate-900 font-bold">${fmtMoney(tile.rent[0])}</strong></div>
+      <div class="flex justify-between py-1 border-b border-slate-200 text-xs sm:text-sm font-semibold text-slate-700"><span>1 House</span><strong class="text-slate-900 font-bold">${fmtMoney(tile.rent[1])}</strong></div>
+      <div class="flex justify-between py-1 border-b border-slate-200 text-xs sm:text-sm font-semibold text-slate-700"><span>2 Houses</span><strong class="text-slate-900 font-bold">${fmtMoney(tile.rent[2])}</strong></div>
+      <div class="flex justify-between py-1 border-b border-slate-200 text-xs sm:text-sm font-semibold text-slate-700"><span>3 Houses</span><strong class="text-slate-900 font-bold">${fmtMoney(tile.rent[3])}</strong></div>
+      <div class="flex justify-between py-1 text-sky-800 font-black text-xs sm:text-sm"><span>Skyscraper</span><strong class="text-sky-950 font-black">${fmtMoney(tile.rent[4])}</strong></div>
+      <div class="border-t-2 border-slate-200 pt-2 mt-2 flex justify-between text-slate-800 font-extrabold text-xs sm:text-sm">
         <span>Upgrade: ${fmtMoney(tile.houseCost)}</span>
         <span>Mortgage: ${fmtMoney(tile.price / 2)}</span>
       </div>
     `;
   } else {
-    rentList.innerHTML = `<div class="text-center py-2 text-slate-800 font-bold">${tile.subtitle || 'Land here to trigger special board rules.'}</div>`;
+    rentList.innerHTML = `<div class="text-center py-2.5 text-slate-800 font-bold text-xs sm:text-sm">${tile.subtitle || 'Land here to trigger special board rules.'}</div>`;
   }
 
   const actionsEl = document.getElementById('insp-actions');
@@ -616,16 +616,16 @@ export function openInspectorModal(tileId) {
         const canDown = isStandingOnTile && st.level > 0;
         if (isStandingOnTile) {
           html += `
-            <button onclick="window.upgradeCityLevel(${tileId})" ${!canUp ? 'disabled' : ''} class="game-btn ${canUp ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs font-black">
+            <button onclick="window.upgradeCityLevel(${tileId})" ${!canUp ? 'disabled' : ''} class="game-btn ${canUp ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs sm:text-sm font-black">
               +Upgrade (${fmtMoney(tile.houseCost)})
             </button>
-            <button onclick="window.downgradeCityLevel(${tileId})" ${!canDown ? 'disabled' : ''} class="game-btn ${canDown ? 'game-btn-orange' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs font-black">
+            <button onclick="window.downgradeCityLevel(${tileId})" ${!canDown ? 'disabled' : ''} class="game-btn ${canDown ? 'game-btn-orange' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs sm:text-sm font-black">
               -Sell (+${fmtMoney(tile.houseCost / 2)})
             </button>
           `;
         } else {
           html += `
-            <div class="col-span-2 py-2 px-3 text-[11px] font-black text-slate-500 bg-slate-100 rounded-xl text-center flex items-center justify-center gap-1.5 border border-slate-200">
+            <div class="col-span-2 py-2.5 px-3 text-xs font-extrabold text-slate-600 bg-slate-100 rounded-xl text-center flex items-center justify-center gap-1.5 border border-slate-200">
               <i class="fa-solid fa-location-dot text-amber-500"></i> Land here to upgrade this estate
             </div>
           `;
@@ -874,12 +874,12 @@ export function renderPortfolioGrid() {
             <span class="w-4 h-4 rounded-full border border-black/20" style="background:${color}; ${isIlluminated ? `box-shadow: 0 0 8px ${color};` : ''}"></span>
             <span class="font-black text-sm text-slate-900">${t.name}</span>
             ${isIlluminated ? `
-              <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase text-white shadow-2xs flex items-center gap-1" style="background:${color}">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase text-white shadow-2xs flex items-center gap-1" style="background:${color}">
                 <i class="fa-solid fa-location-dot"></i> ACTIVE (${2 - upgradesLeft}/2)
               </span>
             ` : ''}
           </div>
-          <span class="text-xs font-black ${st.mortgaged ? 'text-rose-700' : 'text-emerald-700'}">
+          <span class="text-xs sm:text-sm font-black ${st.mortgaged ? 'text-rose-700' : 'text-emerald-700'}">
             ${st.mortgaged ? 'MORTGAGED' : `Rent: ${fmtMoney(calculateTileRent(t.id))}`}
           </span>
         </div>
@@ -887,21 +887,21 @@ export function renderPortfolioGrid() {
           ${t.type === 'city' && !st.mortgaged ? `
             ${isPlayerOnTile ? `
               ${canBeUpgraded ? `
-                <button onclick="window.upgradeCityLevel(${t.id})" class="game-btn game-btn-green flex-1 py-2 text-xs font-black shadow-md">
-                  <i class="fa-solid fa-arrow-up-right-dots mr-1"></i> +Upgrade (${fmtMoney(t.houseCost)}) <span class="text-[10px] opacity-80 font-bold ml-1">(${2 - upgradesLeft}/2)</span>
+                <button onclick="window.upgradeCityLevel(${t.id})" class="game-btn game-btn-green flex-1 py-2 text-xs sm:text-sm font-black shadow-md">
+                  <i class="fa-solid fa-arrow-up-right-dots mr-1"></i> +Upgrade (${fmtMoney(t.houseCost)}) <span class="text-xs opacity-90 font-bold ml-1">(${2 - upgradesLeft}/2)</span>
                 </button>
               ` : `
-                <div class="flex-1 py-2 text-[11px] font-black text-slate-500 bg-slate-100 rounded-xl text-center flex items-center justify-center gap-1 border border-slate-200">
+                <div class="flex-1 py-2 text-xs font-extrabold text-slate-600 bg-slate-100 rounded-xl text-center flex items-center justify-center gap-1 border border-slate-200">
                   <i class="fa-solid fa-ban text-amber-500"></i> ${st.level >= 4 ? 'Max Level' : 'Max 2/visit reached'}
                 </div>
               `}
             ` : `
-              <div class="flex-1 py-2 text-[11px] font-black text-slate-500 bg-slate-100 rounded-xl text-center flex items-center justify-center gap-1 border border-slate-200" title="You can only upgrade when your avatar is standing on this tile">
+              <div class="flex-1 py-2 text-xs font-extrabold text-slate-600 bg-slate-100 rounded-xl text-center flex items-center justify-center gap-1 border border-slate-200" title="You can only upgrade when your avatar is standing on this tile">
                 <i class="fa-solid fa-location-dot text-amber-500"></i> Land here to upgrade
               </div>
             `}
           ` : ''}
-          <button onclick="window.toggleCityMortgage(${t.id})" class="game-btn ${st.mortgaged ? 'game-btn-blue' : 'game-btn-slate'} flex-1 py-2 text-xs font-black">
+          <button onclick="window.toggleCityMortgage(${t.id})" class="game-btn ${st.mortgaged ? 'game-btn-blue' : 'game-btn-slate'} flex-1 py-2 text-xs sm:text-sm font-black">
             ${st.mortgaged ? 'Unmortgage' : `Mortgage (+${fmtMoney(t.price/2)})`}
           </button>
         </div>
@@ -1007,6 +1007,11 @@ export function executeTradeOffer() {
   renderCornerHUDs();
   saveCurrentMatchToStorage();
   closeTradeModal();
+  const vic = checkVictoryConditions();
+  if (vic) {
+    clearSavedMatch();
+    showVictoryModal(vic.winner, vic);
+  }
 }
 
 export function closeTradeModal() {
@@ -1017,19 +1022,44 @@ export function closeTradeModal() {
 /* ─────────────────────────────────────────────────────────────────────────────
    G. VICTORY CELEBRATION MODAL
 ───────────────────────────────────────────────────────────────────────────── */
-export function showVictoryModal(winner) {
+export function showVictoryModal(winner, victoryDetails = null) {
   if (isLobbyScreenActive()) return;
   const winnerObj = winner || gameState.players.find(p => !p.bankrupt) || gameState.players[0];
   const isLocalHuman = winnerObj && (winnerObj.id === localPlayerIdx || (!winnerObj.isAI && (localPlayerIdx === undefined || localPlayerIdx === 0)));
 
   const titleEl = document.getElementById('victory-title');
   if (titleEl) {
-    titleEl.textContent = isLocalHuman ? 'YOU WON!' : `${winnerObj?.name || 'Player'} WON!`;
+    if (victoryDetails?.type === 'triple_monopoly') {
+      titleEl.textContent = isLocalHuman ? 'TRIPLE MONOPOLY!' : `${winnerObj?.name || 'Player'} TRIPLE WIN!`;
+    } else if (victoryDetails?.type === 'line_monopoly') {
+      titleEl.textContent = isLocalHuman ? 'LINE MONOPOLY!' : `${winnerObj?.name || 'Player'} LINE WIN!`;
+    } else if (victoryDetails?.type === 'net_worth_time') {
+      titleEl.textContent = isLocalHuman ? 'RICHEST TYCOON!' : `${winnerObj?.name || 'Player'} WON!`;
+    } else {
+      titleEl.textContent = isLocalHuman ? 'YOU WON!' : `${winnerObj?.name || 'Player'} WON!`;
+    }
   }
 
   const subtitleEl = document.getElementById('victory-subtitle');
   if (subtitleEl) {
-    subtitleEl.textContent = isLocalHuman ? 'Supreme World Real Estate Tycoon' : 'Master of the Global Board';
+    subtitleEl.textContent = victoryDetails?.title || (isLocalHuman ? 'Supreme World Real Estate Tycoon' : 'Master of the Global Board');
+  }
+
+  const accoladeTitle = document.getElementById('victory-accolade-title');
+  const accoladeDesc = document.getElementById('victory-accolade-desc');
+  const accoladeIcon = document.getElementById('victory-accolade-icon');
+
+  if (accoladeTitle) {
+    accoladeTitle.textContent = victoryDetails?.title || 'GLOBAL TYCOON SUPREMACY!';
+  }
+  if (accoladeDesc) {
+    accoladeDesc.textContent = victoryDetails?.desc || 'All rival tycoons bankrupted. You rule the entire global real estate empire!';
+  }
+  if (accoladeIcon) {
+    if (victoryDetails?.type === 'triple_monopoly') accoladeIcon.textContent = '🏰';
+    else if (victoryDetails?.type === 'line_monopoly') accoladeIcon.textContent = '🌐';
+    else if (victoryDetails?.type === 'net_worth_time') accoladeIcon.textContent = '⏱️';
+    else accoladeIcon.textContent = '👑';
   }
 
   const cashEl = document.getElementById('victory-stat-cash');
@@ -1039,7 +1069,8 @@ export function showVictoryModal(winner) {
 
   const propsEl = document.getElementById('victory-stat-props');
   if (propsEl && winnerObj) {
-    const ownedCount = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === winnerObj.id).length;
+    const pIdx = winnerObj.id !== undefined ? winnerObj.id : gameState.players.indexOf(winnerObj);
+    const ownedCount = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === pIdx).length;
     propsEl.textContent = `${ownedCount} Cities`;
   }
 
@@ -1313,17 +1344,17 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
       const baseRent = t.rent[0];
       const boostedRent = baseRent * 2;
       return `
-        <div class="flex items-center justify-between p-3 rounded-2xl border border-slate-200 bg-slate-50 shadow-xs">
-          <div class="flex items-center gap-2.5">
-            <span class="w-4 h-4 rounded-full border-2 border-white shadow-xs" style="background:${group.hex}"></span>
+        <div class="flex items-center justify-between p-3.5 rounded-2xl border-2 border-slate-200/90 bg-white shadow-xs">
+          <div class="flex items-center gap-3">
+            <span class="w-4 h-4 rounded-full border-2 border-white shadow-xs flex-shrink-0" style="background:${group.hex}"></span>
             <div>
-              <div class="font-rounded font-extrabold text-sm text-slate-800">${t.name}</div>
-              <div class="text-[10px] text-slate-500 font-semibold">City Value: ${fmtMoney(t.price)}</div>
+              <div class="font-display font-extrabold text-base text-slate-900 leading-tight">${t.name}</div>
+              <div class="text-xs text-slate-600 font-bold mt-0.5">City Value: ${fmtMoney(t.price)}</div>
             </div>
           </div>
           <div class="text-right">
-            <div class="text-xs font-black text-emerald-600">${fmtMoney(boostedRent)} / visit</div>
-            <div class="text-[10px] font-extrabold text-amber-600 tracking-wider uppercase">⚡ 2× RENT BOOSTED</div>
+            <div class="text-sm font-black text-emerald-700">${fmtMoney(boostedRent)} <span class="text-xs font-bold text-emerald-800">/ visit</span></div>
+            <div class="text-xs font-black text-amber-700 tracking-wider uppercase mt-0.5">⚡ 2× BOOSTED</div>
           </div>
         </div>
       `;

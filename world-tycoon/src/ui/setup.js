@@ -256,9 +256,9 @@ export function renderPlayerCards() {
           <div class="flex items-center gap-1.5 flex-wrap">
             ${i === 0 ? '<span class="text-sm">👑</span>' : ''}
             <input type="text" value="${cp.name}" oninput="window.setPlayerSetupName(${i}, this.value)" class="bg-transparent font-black text-sm sm:text-base text-slate-800 uppercase focus:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-400 rounded-lg px-1.5 py-0.5 w-24 sm:w-32 truncate transition">
-            ${isSelected ? '<span class="text-[10px] font-black bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-xs">PODIUM</span>' : ''}
+            ${isSelected ? '<span class="text-xs font-black bg-sky-500 text-white px-2.5 py-0.5 rounded-full shadow-xs">PODIUM</span>' : ''}
           </div>
-          <div class="text-[11px] font-bold text-slate-400 pl-1 mt-0.5">
+          <div class="text-xs font-semibold text-slate-500 pl-1 mt-0.5">
             ${i === 0 ? 'Table Host' : (isHuman ? 'Human Player' : 'AI Tycoon Bot')}
           </div>
         </div>

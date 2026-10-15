@@ -4,7 +4,7 @@
  */
 
 import { PLAYER_THEMES, GROUP_META } from '../game/data.js';
-import { gameState, displayedCash } from '../game/state.js';
+import { gameState, displayedCash, matchSettings } from '../game/state.js';
 import { fmtMoney } from '../game/utils.js';
 import { ownsFullColorGroup } from '../game/rules.js';
 import { showSpeechBubble } from '../three/scene.js';
@@ -39,7 +39,7 @@ export function renderCornerHUDs() {
             </div>
             <div class="cash-strip">
               <span id="hud-cash-val-${idx}">${p.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
-              <span class="inline-flex items-center justify-center w-5 h-4 rounded bg-emerald-600 text-white text-[11px] font-black shadow-xs">💵</span>
+              <span class="inline-flex items-center justify-center w-5 h-4 rounded bg-emerald-600 text-white text-xs font-black shadow-xs">💵</span>
             </div>
           </div>
         </div>
@@ -57,7 +57,7 @@ export function renderCornerHUDs() {
             </div>
             <div class="cash-strip">
               <span id="hud-cash-val-${idx}">${p.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
-              <span class="inline-flex items-center justify-center w-5 h-4 rounded bg-emerald-600 text-white text-[11px] font-black shadow-xs">💵</span>
+              <span class="inline-flex items-center justify-center w-5 h-4 rounded bg-emerald-600 text-white text-xs font-black shadow-xs">💵</span>
             </div>
           </div>
           <div class="avatar-circle">
@@ -73,8 +73,9 @@ export function renderCornerHUDs() {
   document.getElementById('hud-player-count').textContent = `${aliveCount}/${gameState.players.length}`;
 
   const mySets = Object.keys(GROUP_META).filter(g => ownsFullColorGroup(0, g)).length;
+  const targetSets = matchSettings.monopolySetsToWin || 3;
   const bonusEl = document.getElementById('hud-bonus-counter');
-  if (bonusEl) bonusEl.textContent = `+${mySets}`;
+  if (bonusEl) bonusEl.textContent = `${mySets}/${targetSets} Sets`;
 }
 
 function getIsometricCashPileSVG() {
@@ -246,7 +247,7 @@ export function showRentTransferBanner(fromName, toName, amount, fromIdx = null,
         <div class="font-rounded font-black text-4xl sm:text-5xl text-emerald-600 tracking-tight drop-shadow-xs">
           ${fmtMoney(amount)}
         </div>
-        <div class="mt-1 px-3 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[11px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+        <div class="mt-1 px-3 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-black uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
           <i class="fa-solid fa-receipt text-slate-400"></i> Rent Paid
         </div>
       </div>
@@ -255,7 +256,7 @@ export function showRentTransferBanner(fromName, toName, amount, fromIdx = null,
       <div class="flex items-center justify-between w-full gap-2.5 mt-1">
         <!-- Payer Card -->
         <div class="bg-rose-50 border-2 border-rose-200 rounded-2xl p-2.5 flex-1 text-center shadow-xs">
-          <div class="text-[10px] font-black uppercase tracking-wider text-rose-500 mb-0.5 flex items-center justify-center gap-1.5">
+          <div class="text-xs font-black uppercase tracking-wider text-rose-600 mb-0.5 flex items-center justify-center gap-1.5">
             <span class="w-2.5 h-2.5 rounded-full inline-block border border-black/10 shrink-0" style="background-color: ${fromTheme.colorHex};"></span>
             PAYER
           </div>
@@ -274,7 +275,7 @@ export function showRentTransferBanner(fromName, toName, amount, fromIdx = null,
 
         <!-- Collector Card -->
         <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-2.5 flex-1 text-center shadow-xs">
-          <div class="text-[10px] font-black uppercase tracking-wider text-emerald-600 mb-0.5 flex items-center justify-center gap-1.5">
+          <div class="text-xs font-black uppercase tracking-wider text-emerald-700 mb-0.5 flex items-center justify-center gap-1.5">
             <span class="w-2.5 h-2.5 rounded-full inline-block border border-black/10 shrink-0" style="background-color: ${toTheme.colorHex};"></span>
             COLLECTOR
           </div>

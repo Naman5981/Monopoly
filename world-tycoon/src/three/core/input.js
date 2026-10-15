@@ -102,12 +102,12 @@ export function handleCanvasHover(event) {
 
       if (gameState.phase === 'WORLD_TOUR') {
         tooltip.innerHTML = `
-          <div class="flex items-center gap-2 border-b border-indigo-400 pb-1">
-            <span class="text-sm">✈️</span>
+          <div class="flex items-center gap-2 border-b border-indigo-400 pb-1.5">
+            <span class="text-base">✈️</span>
             <span class="font-extrabold text-xs tracking-wide text-white">WORLD TOUR DESTINATION</span>
           </div>
-          <div class="text-xs font-bold text-amber-300 mt-1">${tile.name}</div>
-          <div class="text-[10px] text-slate-300">Click to fly here immediately!</div>
+          <div class="text-sm font-extrabold text-amber-300 mt-1.5">${tile.name}</div>
+          <div class="text-xs text-slate-200 font-semibold mt-0.5">Click to fly here immediately!</div>
         `;
         tooltip.style.left = `${event.clientX}px`;
         tooltip.style.top = `${event.clientY}px`;
@@ -127,12 +127,12 @@ export function handleCanvasHover(event) {
         const curRent = (st?.owner !== null && st?.owner !== undefined && !st.mortgaged)
           ? fmtMoney(calculateTileRent(tileId))
           : fmtMoney(tile.rent[0]);
-        detailsHtml = `<div class="flex justify-between gap-4 text-[11px] text-slate-300 mt-1"><span>Price: <strong class="text-white">${fmtMoney(tile.price)}</strong></span><span>Rent: <strong class="text-emerald-400">${curRent}</strong></span></div><div class="text-[11px] text-slate-300 mt-0.5">Owner: <strong class="text-white">${ownerText}</strong></div>`;
+        detailsHtml = `<div class="flex justify-between gap-4 text-xs text-slate-200 mt-1.5"><span>Price: <strong class="text-white font-bold">${fmtMoney(tile.price)}</strong></span><span>Rent: <strong class="text-emerald-400 font-bold">${curRent}</strong></span></div><div class="text-xs text-slate-200 mt-1">Owner: <strong class="text-white font-bold">${ownerText}</strong></div>`;
       } else {
-        detailsHtml = `<div class="text-[11px] text-slate-300 mt-1">${tile.subtitle || 'Special Board Tile'}</div>`;
+        detailsHtml = `<div class="text-xs text-slate-200 mt-1.5 font-medium">${tile.subtitle || 'Special Board Tile'}</div>`;
       }
 
-      tooltip.innerHTML = `<div class="flex items-center gap-2 border-b border-slate-700 pb-1"><span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${groupColor}"></span><span class="font-extrabold text-xs tracking-wide text-white">${tile.name}</span></div>${detailsHtml}`;
+      tooltip.innerHTML = `<div class="flex items-center gap-2 border-b border-slate-700 pb-1.5"><span class="w-3.5 h-3.5 rounded-full flex-shrink-0" style="background:${groupColor}"></span><span class="font-extrabold text-sm tracking-wide text-white">${tile.name}</span></div>${detailsHtml}`;
       tooltip.style.left = `${event.clientX}px`;
       tooltip.style.top = `${event.clientY}px`;
       tooltip.classList.remove('hidden');

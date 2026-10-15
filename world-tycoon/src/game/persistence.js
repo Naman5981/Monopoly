@@ -196,7 +196,7 @@ export function checkAndPromptResumeMatch() {
           </div>
           <div class="text-right">
             <span class="font-extrabold text-emerald-600">${fmtMoney(p.cash)}</span>
-            <span class="text-[10px] text-slate-400 ml-1">(${ownedCount} cities)</span>
+            <span class="text-xs text-slate-500 font-semibold ml-1">(${ownedCount} cities)</span>
           </div>
         </div>
       `;

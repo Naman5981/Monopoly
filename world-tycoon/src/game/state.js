@@ -11,6 +11,9 @@ export const matchSettings = {
   lightingTheme: 'day', // 'day' | 'sunset' | 'night'
   boardStyle: 'wood', // 'wood' | 'cyberpunk' | 'elegant'
   boardEdition: 'world', // 'world' | 'rajasthan'
+  monopolySetsToWin: 3, // Complete 3 color groups to win instantly
+  lineMonopolyEnabled: true, // Conquering an entire side of the board wins instantly
+  matchDurationMinutes: 15, // Match time limit (richest player by Net Worth wins, 0 for unlimited)
   customPlayers: [
     { name: 'YOU', isAI: false, charColor: 0xef4444, colorHex: '#6c5ce7', hatColor: 0x334155, hatStyle: 0 },
     { name: 'BIDIK', isAI: true, charColor: 0xf97316, colorHex: '#f39c12', hatColor: 0xfde047, hatStyle: 1 },

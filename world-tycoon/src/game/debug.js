@@ -18,7 +18,7 @@ import { BOARD_TILES, GROUP_META, PLAYER_THEMES, CHANCE_WHEEL_PRIZES } from './d
 import { gameState, displayedCash, debugState, isHumanTurnActionable, matchSettings } from './state.js';
 import { fmtMoney } from './utils.js';
 import { playSFX } from './audio.js';
-import { calculateTileRent, ownsFullColorGroup, checkAndHandleNegativeCash } from './rules.js';
+import { calculateTileRent, ownsFullColorGroup, checkAndHandleNegativeCash, checkVictoryConditions } from './rules.js';
 import {
   refreshTileTextureAndBuildings,
   updatePlayerTokenPositions3D,
@@ -290,6 +290,12 @@ export function debugSetPropertyOwner(tileId, playerIdx, chargePrice = false) {
     if (tile.group) {
       checkAndTriggerMonopoly(playerIdx, tile.group);
     }
+
+    const vic = checkVictoryConditions();
+    if (vic) {
+      showVictoryModal(vic.winner, vic);
+      return;
+    }
   }
 
   refreshTileTextureAndBuildings(tileId);
@@ -394,6 +400,11 @@ export function debugGrantMonopoly(groupKey, playerIdx, level = 0) {
   renderCornerHUDs();
   saveCurrentMatchToStorage();
   syncDebugUIState();
+
+  const vic = checkVictoryConditions();
+  if (vic) {
+    showVictoryModal(vic.winner, vic);
+  }
 }
 
 /** Clear group ownership back to Bank. */
@@ -755,6 +766,35 @@ export async function debugRunScenario(scenarioKey) {
       debugForceTurn(0);
       showSpeechBubble('Passing START: Rolling 5 to cross START and collect 300K!', 2500);
       await debugRoll(2, 3, 0);
+      break;
+    }
+
+    case 'triple-monopoly-win': {
+      debugGrantMonopoly('brown', 0, 1);
+      debugGrantMonopoly('lightblue', 0, 1);
+      debugGrantMonopoly('pink', 0, 2);
+      break;
+    }
+
+    case 'line-monopoly-win': {
+      [9, 10, 11, 13, 14, 15].forEach(id => {
+        debugSetPropertyOwner(id, 0, false);
+      });
+      const vic = checkVictoryConditions();
+      if (vic) showVictoryModal(vic.winner, vic);
+      break;
+    }
+
+    case 'time-cap-win': {
+      debugAdjustCash(0, 5000000);
+      matchSettings.matchDurationMinutes = 15;
+      const vic = {
+        winner: gameState.players[0],
+        type: 'net_worth_time',
+        title: 'RICHEST TYCOON VICTORY!',
+        desc: `Match time limit expired (15m)! Crowned champion with the highest total Net Worth!`
+      };
+      showVictoryModal(vic.winner, vic);
       break;
     }
 
@@ -1259,6 +1299,39 @@ function injectDebugUI() {
           <div>
             <div class="font-black text-white group-hover:text-amber-400 transition">Pass START Salary Collection</div>
             <div class="text-[10px] text-slate-400 mt-0.5">Places player on Monaco and rolls 5 to pass START (collecting $300K salary) before landing.</div>
+          </div>
+        </button>
+
+        <!-- Preset 7: Triple Monopoly Win -->
+        <button onclick="window.debug.scenario('triple-monopoly-win')" class="w-full p-2.5 rounded-2xl bg-slate-900/90 hover:bg-slate-800/90 border border-amber-900/50 flex items-start gap-2.5 text-left transition group">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-sm flex-shrink-0 mt-0.5">
+            <i class="fa-solid fa-crown"></i>
+          </div>
+          <div>
+            <div class="font-black text-white group-hover:text-amber-400 transition">🏆 Victory: Triple Monopoly (3 Sets)</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Grants Player 0 three complete color sets (Brown, Light Blue, Pink) to trigger instant Triple Monopoly Victory!</div>
+          </div>
+        </button>
+
+        <!-- Preset 8: Line Monopoly Win -->
+        <button onclick="window.debug.scenario('line-monopoly-win')" class="w-full p-2.5 rounded-2xl bg-slate-900/90 hover:bg-slate-800/90 border border-sky-900/50 flex items-start gap-2.5 text-left transition group">
+          <div class="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400 text-sm flex-shrink-0 mt-0.5">
+            <i class="fa-solid fa-globe"></i>
+          </div>
+          <div>
+            <div class="font-black text-white group-hover:text-amber-400 transition">🌐 Victory: Line Monopoly (Entire Side)</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Assigns all cities along an entire edge of the board (Side 2) to Player 0 to trigger Line Monopoly Victory!</div>
+          </div>
+        </button>
+
+        <!-- Preset 9: Richest Tycoon Time Cap Win -->
+        <button onclick="window.debug.scenario('time-cap-win')" class="w-full p-2.5 rounded-2xl bg-slate-900/90 hover:bg-slate-800/90 border border-emerald-900/50 flex items-start gap-2.5 text-left transition group">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-sm flex-shrink-0 mt-0.5">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <div>
+            <div class="font-black text-white group-hover:text-amber-400 transition">⏱️ Victory: Time Limit / Highest Net Worth</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Tests match duration timeout where the wealthiest tycoon by Net Worth is crowned champion!</div>
           </div>
         </button>
       </div>

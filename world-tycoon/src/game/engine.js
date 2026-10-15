@@ -7,7 +7,7 @@ import { BOARD_TILES } from './data.js';
 import { gameState, displayedCash, isHumanTurnActionable, resetGameStateForNewMatch, lobbyPlayerCount, matchSettings, debugState } from './state.js';
 import { fmtMoney } from './utils.js';
 import { playSFX } from './audio.js';
-import { calculateTileRent, checkAndHandleNegativeCash } from './rules.js';
+import { calculateTileRent, checkAndHandleNegativeCash, checkVictoryConditions } from './rules.js';
 import {
   animate3DDiceTumble,
   hopPlayerStepAnimation,
@@ -566,11 +566,11 @@ export function concludeActionPhase(isDoubles) {
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
 
-  // Check victory condition
-  const alive = gameState.players.filter(pl => !pl.bankrupt);
-  if (alive.length === 1) {
+  // Check victory conditions (Bankruptcy, Triple Monopoly, Line Monopoly, Net Worth Cap)
+  const victory = checkVictoryConditions();
+  if (victory) {
     clearSavedMatch();
-    showVictoryModal(alive[0]);
+    showVictoryModal(victory.winner, victory);
     return;
   }
 
