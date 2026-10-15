@@ -8,6 +8,7 @@ Welcome to the official release registry for **World Tycoon: Global Edition**. T
 
 | Version | Release Date | Title | Key Enhancements | Document |
 | :--- | :--- | :--- | :--- | :--- |
+| **v2.2.0** | 2026-10-15 | **Visual Symmetry, Square Edge Perspective & Automated Flow** | Lamps on all 4 corners, 45° rotation to square edge view, START 400K land / 300K pass, auto-turn advance | [v2.2.0 Notes](file:///c:/Users/karti/OneDrive/Desktop/Anti%20Gravity/Monopoly/Monopoly/release-notes/v2.2.0-ui-and-gameplay-enhancements.md) |
 | **v2.1.0** | 2026-10-15 | **CPU & GPU Performance Pipeline Optimization** | 60 FPS limiter, lobby background bypass, on-demand shadow passes, HUD portrait caching, fluid hop step transitions | [v2.1.0 Notes](file:///c:/Users/karti/OneDrive/Desktop/Anti%20Gravity/Monopoly/Monopoly/release-notes/v2.1.0-performance-optimization.md) |
 | **v2.0.0** | 2026-10-15 | **Three.js Architecture Modularization** | Monolithic `scene.js` (4,504 lines) decoupled into 19 single-responsibility submodules and unified Facade pattern | [v2.0.0 Notes](file:///c:/Users/karti/OneDrive/Desktop/Anti%20Gravity/Monopoly/Monopoly/release-notes/v2.0.0-architecture-modularization.md) |
 | **v1.5.0** | 2026-10-14 | **Standalone Launcher & P2P WebRTC Multiplayer** | C# embedded HTTP server, background daemon, PeerJS WebRTC cloud broker, automated build scripts | [v1.5.0 Notes](file:///c:/Users/karti/OneDrive/Desktop/Anti%20Gravity/Monopoly/Monopoly/release-notes/v1.5.0-launcher-and-multiplayer.md) |

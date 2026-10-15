@@ -115,18 +115,31 @@ export function buildStreetLampsAndBulbs3D(boardGroup) {
   const socketMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.3, metalness: 0.8 });
 
   const lampPositions = [
+    // North & South Promenades
     { x: -5.4, z: -5.5, rot: 0 },
     { x: 0, z: -5.6, rot: 0 },
     { x: 5.4, z: -5.5, rot: 0 },
     { x: -5.4, z: 5.5, rot: Math.PI },
     { x: 0, z: 5.6, rot: Math.PI },
     { x: 5.4, z: 5.5, rot: Math.PI },
+
+    // West & East Promenades
     { x: -5.6, z: -2.8, rot: Math.PI / 2 },
     { x: -5.6, z: 2.8, rot: Math.PI / 2 },
     { x: 5.6, z: -2.8, rot: -Math.PI / 2 },
     { x: 5.6, z: 2.8, rot: -Math.PI / 2 },
+
+    // 4 Inner Street Corners
     { x: -8.5, z: -8.5, rot: Math.PI / 4 },
-    { x: 8.5, z: 8.5, rot: -3 * Math.PI / 4 }
+    { x: 8.5, z: -8.5, rot: -Math.PI / 4 },
+    { x: -8.5, z: 8.5, rot: 3 * Math.PI / 4 },
+    { x: 8.5, z: 8.5, rot: -3 * Math.PI / 4 },
+
+    // 4 Outer Board Corners
+    { x: -14.2, z: -14.2, rot: Math.PI / 4 },
+    { x: 14.2, z: -14.2, rot: -Math.PI / 4 },
+    { x: -14.2, z: 14.2, rot: 3 * Math.PI / 4 },
+    { x: 14.2, z: 14.2, rot: -3 * Math.PI / 4 }
   ];
 
   lampPositions.forEach(pos => {

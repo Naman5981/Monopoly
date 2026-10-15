@@ -18,11 +18,18 @@ export const cameraState = {
 
 /**
  * Recomputes the isometric camera position and look-at target based on current azimuth, zoom, and center.
+ * Smoothly blends elevation and distance between Diamond (corner at bottom) and Edge-On (edge at bottom)
+ * orientations so the board appears accurately square and proportioned when viewed edge-on.
  */
 export function updateIsometricCamera() {
   if (!context.camera) return;
-  const dist = 36;
-  const elev = 32;
+
+  // edgeFactor is 1.0 when an edge is at the bottom (azimuth = 0, PI/2, PI, 3*PI/2)
+  // and 0.0 when a corner is at the bottom (diamond view, azimuth = PI/4, 3*PI/4, ...)
+  const edgeFactor = Math.pow(Math.cos(2 * cameraState.cameraAzimuth), 2);
+  const dist = 34.0 - 16.0 * edgeFactor;
+  const elev = 30.0 + 14.0 * edgeFactor;
+
   context.camera.position.set(
     cameraState.cameraTarget.x + Math.cos(cameraState.cameraAzimuth) * dist,
     cameraState.cameraTarget.y + elev,
@@ -74,19 +81,19 @@ export function resetCameraView() {
 }
 
 /**
- * Rotates the board view 90 degrees counter-clockwise (snapped to 45 degree increments).
+ * Rotates the board view 45 degrees counter-clockwise (smoothly switching between edge-on and diamond).
  */
 export function rotateBoardLeft() {
-  cameraState.targetCameraAzimuth -= Math.PI / 2;
+  cameraState.targetCameraAzimuth -= Math.PI / 4;
   const snap = Math.PI / 4;
   cameraState.targetCameraAzimuth = Math.round(cameraState.targetCameraAzimuth / snap) * snap;
 }
 
 /**
- * Rotates the board view 90 degrees clockwise (snapped to 45 degree increments).
+ * Rotates the board view 45 degrees clockwise (smoothly switching between edge-on and diamond).
  */
 export function rotateBoardRight() {
-  cameraState.targetCameraAzimuth += Math.PI / 2;
+  cameraState.targetCameraAzimuth += Math.PI / 4;
   const snap = Math.PI / 4;
   cameraState.targetCameraAzimuth = Math.round(cameraState.targetCameraAzimuth / snap) * snap;
 }
