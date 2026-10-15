@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { BOARD_TILES, GROUP_META, PLAYER_THEMES } from '../../game/data.js';
-import { gameState } from '../../game/state.js';
+import { gameState, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { calculateTileRent } from '../../game/rules.js';
 import { getTileWorldPosition, BASE_TILE_Y, BASE_BUILDING_Y } from './coords.js';
@@ -33,7 +33,18 @@ export function createTileTexture(tile, propState) {
   c.height = 512;
   const ctx = c.getContext('2d');
 
-  ctx.fillStyle = propState?.mortgaged ? '#e2e8f0' : '#ffffff';
+  const boardStyle = matchSettings.boardStyle || 'wood';
+  const isCyber = (boardStyle === 'cyberpunk');
+  const isElegant = (boardStyle === 'elegant');
+
+  // Background fill
+  if (isCyber) {
+    ctx.fillStyle = propState?.mortgaged ? '#0e1726' : '#080d1a';
+  } else if (isElegant) {
+    ctx.fillStyle = propState?.mortgaged ? '#f1f5f9' : '#fafaf9';
+  } else {
+    ctx.fillStyle = propState?.mortgaged ? '#e2e8f0' : '#ffffff';
+  }
   ctx.fillRect(0, 0, 512, 512);
 
   const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
@@ -45,11 +56,11 @@ export function createTileTexture(tile, propState) {
     ctx.lineWidth = 14;
     ctx.strokeRect(7, 7, 498, 498);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.fillStyle = isCyber ? 'rgba(0, 245, 255, 0.25)' : (isElegant ? 'rgba(212, 175, 55, 0.25)' : 'rgba(255, 255, 255, 0.85)');
     ctx.fillRect(14, 14, 484, 8);
     ctx.fillRect(14, 14, 8, 484);
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.22)';
+    ctx.fillStyle = isCyber ? 'rgba(0, 0, 0, 0.6)' : 'rgba(15, 23, 42, 0.22)';
     ctx.fillRect(14, 490, 484, 8);
     ctx.fillRect(490, 14, 8, 484);
 
@@ -57,21 +68,39 @@ export function createTileTexture(tile, propState) {
     ctx.lineWidth = 4;
     ctx.strokeRect(20, 20, 472, 472);
   } else {
-    ctx.strokeStyle = '#64748b';
-    ctx.lineWidth = 14;
-    ctx.strokeRect(7, 7, 498, 498);
+    if (isCyber) {
+      ctx.strokeStyle = '#00f5ff';
+      ctx.lineWidth = 10;
+      ctx.strokeRect(7, 7, 498, 498);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    ctx.fillRect(14, 14, 484, 8);
-    ctx.fillRect(14, 14, 8, 484);
+      ctx.strokeStyle = '#d946ef';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(16, 16, 480, 480);
+    } else if (isElegant) {
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 12;
+      ctx.strokeRect(7, 7, 498, 498);
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.28)';
-    ctx.fillRect(14, 490, 484, 8);
-    ctx.fillRect(490, 14, 8, 484);
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(16, 16, 480, 480);
+    } else {
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 14;
+      ctx.strokeRect(7, 7, 498, 498);
 
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(20, 20, 472, 472);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.fillRect(14, 14, 484, 8);
+      ctx.fillRect(14, 14, 8, 484);
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.28)';
+      ctx.fillRect(14, 490, 484, 8);
+      ctx.fillRect(490, 14, 8, 484);
+
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(20, 20, 472, 472);
+    }
   }
 
   const pos = getTileWorldPosition(tile.id);
@@ -101,18 +130,20 @@ export function createTileTexture(tile, propState) {
   if (tile.type === 'city') {
     const fontSize = tile.name.length > 8 ? 50 : 56;
     ctx.font = `900 ${fontSize}px Inter, sans-serif`;
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
     ctx.fillText(tile.name, 256, 215);
 
     const displayAmt = (propState?.owner !== null && propState?.owner !== undefined && !propState?.mortgaged)
       ? calculateTileRent(tile.id)
       : tile.price;
     ctx.font = '900 94px Inter, sans-serif';
-    ctx.fillStyle = (propState?.owner !== null && propState?.owner !== undefined) ? '#047857' : '#0f172a';
+    ctx.fillStyle = (propState?.owner !== null && propState?.owner !== undefined)
+      ? (isCyber ? '#38bdf8' : '#047857')
+      : (isCyber ? '#00f5ff' : '#0f172a');
     ctx.fillText(fmtMoney(displayAmt), 256, 375);
 
     if (propState?.festivalBoost) {
-      ctx.fillStyle = '#6d28d9';
+      ctx.fillStyle = isCyber ? '#ec4899' : '#6d28d9';
       ctx.font = '900 34px Inter, sans-serif';
       ctx.fillText('★ 2X RENT ★', 256, 286);
     }
@@ -126,23 +157,23 @@ export function createTileTexture(tile, propState) {
       ctx.closePath();
       ctx.fillStyle = colors[i];
       ctx.fill();
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = isCyber ? '#00f5ff' : '#ffffff';
       ctx.lineWidth = 4;
       ctx.stroke();
     }
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
     ctx.font = '900 54px Inter, sans-serif';
     ctx.fillText('CHANCE', 256, 405);
   } else if (tile.type === 'tax') {
-    ctx.fillStyle = '#f1f5f9';
-    ctx.strokeStyle = '#64748b';
+    ctx.fillStyle = isCyber ? '#111827' : '#f1f5f9';
+    ctx.strokeStyle = isCyber ? '#ec4899' : '#64748b';
     ctx.lineWidth = 6;
     ctx.fillRect(166, 70, 180, 190);
     ctx.strokeRect(166, 70, 180, 190);
     ctx.fillStyle = '#dc2626';
     ctx.font = '900 84px Inter, sans-serif';
     ctx.fillText('%', 256, 170);
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
     ctx.font = '900 62px Inter, sans-serif';
     ctx.fillText('TAX', 256, 345);
     ctx.font = '800 46px Inter, sans-serif';
@@ -159,14 +190,14 @@ export function createTileTexture(tile, propState) {
     ctx.fillStyle = '#ffffff';
     ctx.font = '900 42px Inter, sans-serif';
     ctx.fillText('BEACH', 256, 58);
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
     ctx.font = '900 52px Inter, sans-serif';
     ctx.fillText(tile.name, 256, 210);
 
     const isOwnedResort = (propState?.owner !== null && propState?.owner !== undefined && !propState?.mortgaged);
     const displayAmt = isOwnedResort ? calculateTileRent(tile.id) : tile.price;
     ctx.font = '900 90px Inter, sans-serif';
-    ctx.fillStyle = isOwnedResort ? '#047857' : '#0f172a';
+    ctx.fillStyle = isOwnedResort ? (isCyber ? '#38bdf8' : '#047857') : (isCyber ? '#00f5ff' : '#0f172a');
     ctx.fillText(fmtMoney(displayAmt), 256, 380);
 
     if (propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner]) {
@@ -174,10 +205,10 @@ export function createTileTexture(tile, propState) {
       ctx.fillRect(12, 464, 488, 36);
     }
   } else {
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
     ctx.font = '900 54px Inter, sans-serif';
     ctx.fillText(tile.name, 256, 395);
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = isCyber ? '#94a3b8' : '#334155';
     ctx.font = '800 34px Inter, sans-serif';
     ctx.fillText(tile.subtitle || '', 256, 452);
   }
@@ -249,13 +280,26 @@ export function buildAllBoardTiles3D(boardGroup) {
     const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
     const ownerTheme = isOwned ? PLAYER_THEMES[propState.owner] : null;
     const lightPlayerAccent = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
+    const boardStyle = matchSettings.boardStyle || 'wood';
+    const isCyber = (boardStyle === 'cyberpunk');
+    const isElegant = (boardStyle === 'elegant');
+
     const sideColor = isOwned
       ? new THREE.Color(lightPlayerAccent)
-      : new THREE.Color(0xe2e8f0);
+      : (isCyber ? new THREE.Color(0x0b1220) : (isElegant ? new THREE.Color(0xfafaf9) : new THREE.Color(0xe2e8f0)));
 
-    const sideMat = new THREE.MeshStandardMaterial({ color: sideColor, roughness: 0.42, metalness: 0.04 });
+    const sideMat = new THREE.MeshStandardMaterial({
+      color: sideColor,
+      roughness: isCyber ? 0.28 : (isElegant ? 0.18 : 0.42),
+      metalness: isCyber ? 0.85 : (isElegant ? 0.25 : 0.04)
+    });
     const topTex = createTileTexture(tile, propState);
-    const topMat = new THREE.MeshStandardMaterial({ map: topTex, color: 0xffffff, roughness: 0.28, metalness: 0.02 });
+    const topMat = new THREE.MeshStandardMaterial({
+      map: topTex,
+      color: 0xffffff,
+      roughness: isCyber ? 0.20 : (isElegant ? 0.15 : 0.28),
+      metalness: isCyber ? 0.15 : (isElegant ? 0.08 : 0.02)
+    });
     const materials = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
     const tileMesh = new THREE.Mesh(new THREE.BoxGeometry(2.96, 0.24, 2.96), materials);
     tileMesh.position.set(pos.x, BASE_TILE_Y, pos.z);
@@ -327,9 +371,14 @@ export function refreshTileTextureAndBuildings(tileId) {
   const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
   const ownerTheme = isOwned ? PLAYER_THEMES[propState.owner] : null;
   const lightPlayerAccent = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
+
+  const boardStyle = matchSettings.boardStyle || 'wood';
+  const isCyber = (boardStyle === 'cyberpunk');
+  const isElegant = (boardStyle === 'elegant');
+
   const sideColor = isOwned
     ? new THREE.Color(lightPlayerAccent)
-    : new THREE.Color(0xe2e8f0);
+    : (isCyber ? new THREE.Color(0x0b1220) : (isElegant ? new THREE.Color(0xfafaf9) : new THREE.Color(0xe2e8f0)));
 
   const isNight = (currentBulbMode === 'night');
   const isSunset = (currentBulbMode === 'sunset');
@@ -338,6 +387,8 @@ export function refreshTileTextureAndBuildings(tileId) {
     [0, 1, 3, 4, 5].forEach(idx => {
       if (mesh.material[idx]) {
         mesh.material[idx].color.copy(sideColor);
+        mesh.material[idx].roughness = isCyber ? 0.28 : (isElegant ? 0.18 : 0.42);
+        mesh.material[idx].metalness = isCyber ? 0.85 : (isElegant ? 0.25 : 0.04);
         if (isOwned && isNight && lightPlayerAccent) {
           mesh.material[idx].emissive.setStyle(lightPlayerAccent);
           mesh.material[idx].emissiveIntensity = 0.50;
@@ -412,3 +463,12 @@ export function refreshTileTextureAndBuildings(tileId) {
 }
 
 export const updateTileMesh = refreshTileTextureAndBuildings;
+
+/**
+ * Refreshes textures, side colors, and materials on all 32 tiles simultaneously.
+ */
+export function refreshAllTileTexturesAndMaterials() {
+  BOARD_TILES.forEach(tile => {
+    refreshTileTextureAndBuildings(tile.id);
+  });
+}

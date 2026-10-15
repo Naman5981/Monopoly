@@ -66,7 +66,7 @@
             </div>
             <div class="text-xs font-black text-emerald-600 mt-0.5 flex items-center gap-1">
               <i class="fa-solid fa-coins text-[11px] text-amber-500"></i>
-              <span>$1,500,000</span>
+              <span id="setup-profile-cash">$2.0M</span>
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@
               <i class="fa-solid fa-users text-sky-500 text-lg"></i> TABLE PLAYERS
             </div>
             <div id="table-player-count-badge" class="px-3 py-1 rounded-full bg-sky-100 text-sky-700 font-black text-xs sm:text-sm border border-sky-200">
-              2/4
+              2/6
             </div>
           </div>
 
@@ -210,16 +210,22 @@
               <span>🌐 WebRTC P2P ROOM</span>
               <span id="setup-p2p-status-text" class="text-xs font-bold text-sky-600">Ready</span>
             </div>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
               <button id="btn-p2p-create-room" onclick="window.hostP2PRoom()" class="flex-1 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs shadow-sm cursor-pointer">
                 Host Room
               </button>
               <button id="btn-p2p-copy-link" onclick="window.copyRoomInviteLink()" class="hidden px-3 py-2 rounded-xl bg-white text-sky-700 border border-sky-300 font-black text-xs cursor-pointer" title="Copy Invite Link">
                 🔗 Copy Link
               </button>
+              <button id="btn-p2p-copy-code" onclick="window.copyRoomCodeOnly()" class="hidden px-3 py-2 rounded-xl bg-white text-sky-700 border border-sky-300 font-black text-xs cursor-pointer" title="Copy Room Code Only">
+                📋 Copy Code
+              </button>
+              <button id="btn-p2p-leave" onclick="window.leaveP2PRoom()" class="hidden px-3 py-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-300 font-black text-xs cursor-pointer" title="Leave Room">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Leave
+              </button>
             </div>
             <div class="flex gap-2">
-              <input id="input-p2p-room-code" type="text" maxlength="6" placeholder="Enter Room Code" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-black uppercase bg-white">
+              <input id="input-p2p-room-code" type="text" maxlength="6" placeholder="Enter Room Code" onkeydown="if(event.key==='Enter') window.joinP2PRoom()" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-black uppercase bg-white">
               <button id="btn-p2p-join-room" onclick="window.joinP2PRoom()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm cursor-pointer">
                 Join
               </button>
@@ -264,6 +270,22 @@
                 <span id="setup-match-length-text" class="text-xs font-black text-slate-800 min-w-[56px] text-center">Morning</span>
                 <button onclick="window.stepMatchLength(1)" class="w-8 h-8 rounded-full bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs">+</button>
               </div>
+            </div>
+          </div>
+
+          <!-- 5. BOARD STYLE / SKIN -->
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-500 tracking-wider mb-2">BOARD STYLE</label>
+            <div class="grid grid-cols-3 gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
+              <button id="setup-board-wood" onclick="window.setBoardStyle('wood')" class="py-2 px-1 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer bg-sky-500 text-white shadow-sm flex items-center justify-center gap-1">
+                🪵 Wood
+              </button>
+              <button id="setup-board-cyberpunk" onclick="window.setBoardStyle('cyberpunk')" class="py-2 px-1 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+                ⚡ Cyber
+              </button>
+              <button id="setup-board-elegant" onclick="window.setBoardStyle('elegant')" class="py-2 px-1 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+                ✨ Elegant
+              </button>
             </div>
           </div>
         </div>
@@ -317,6 +339,10 @@
     <button id="btn-lighting-mode" onclick="window.cycleLightingMode()" class="top-pill text-slate-700" title="Toggle Day, Sunset, Night mode">
       <i class="fa-solid fa-sun text-amber-500"></i>
       <span>Day</span>
+    </button>
+    <button id="btn-board-style" onclick="window.cycleBoardStyle()" class="top-pill text-slate-700" title="Toggle Board Skin (Wood, Cyber, Elegant)">
+      <i class="fa-solid fa-layer-group text-sky-500"></i>
+      <span id="btn-board-style-text">Wood</span>
     </button>
     <button onclick="window.rotateBoardLeft()" class="top-pill text-slate-700" title="Rotate Board 45° Left">
       <i class="fa-solid fa-rotate-left text-indigo-500"></i>
@@ -382,8 +408,8 @@
   </div>
 
   <!-- 7. CORNER PLAYER HUD CARDS -->
-  <div id="hud-left-players" class="fixed top-[68px] left-4 z-20 flex flex-col gap-6 pointer-events-auto"></div>
-  <div id="hud-right-players" class="fixed top-[68px] right-4 z-20 flex flex-col gap-6 items-end pointer-events-auto"></div>
+  <div id="hud-left-players" class="fixed top-[68px] left-4 z-20 flex flex-col gap-3 sm:gap-4 pointer-events-auto"></div>
+  <div id="hud-right-players" class="fixed top-[68px] right-4 z-20 flex flex-col gap-3 sm:gap-4 items-end pointer-events-auto"></div>
 
   <!-- 8. CENTER BOARD FLOATING "ROLL" PILL BUTTON -->
   <div id="center-park-controls" class="fixed left-1/2 top-[51%] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto flex flex-col items-center gap-2 transition-all duration-300">
@@ -723,10 +749,12 @@
       <div class="p-5 space-y-4">
         <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200">
           <span class="text-xs font-black text-slate-700">Number of Players</span>
-          <div class="flex gap-2">
-            <button onclick="window.setLobbyCount(2)" id="lobby-cnt-2" class="px-3.5 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2">2P</button>
-            <button onclick="window.setLobbyCount(3)" id="lobby-cnt-3" class="px-3.5 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2">3P</button>
-            <button onclick="window.setLobbyCount(4)" id="lobby-cnt-4" class="px-3.5 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2">4P</button>
+          <div class="flex gap-1.5 flex-wrap">
+            <button onclick="window.setLobbyCount(2)" id="lobby-cnt-2" class="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2">2P</button>
+            <button onclick="window.setLobbyCount(3)" id="lobby-cnt-3" class="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2">3P</button>
+            <button onclick="window.setLobbyCount(4)" id="lobby-cnt-4" class="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2">4P</button>
+            <button onclick="window.setLobbyCount(5)" id="lobby-cnt-5" class="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2">5P</button>
+            <button onclick="window.setLobbyCount(6)" id="lobby-cnt-6" class="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2">6P</button>
           </div>
         </div>
         <div id="lobby-players-list" class="space-y-2"></div>

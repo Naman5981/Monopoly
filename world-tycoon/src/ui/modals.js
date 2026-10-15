@@ -1186,7 +1186,7 @@ export function setLobbyCount(n) {
 }
 
 export function renderLobbyControls() {
-  [2, 3, 4].forEach(n => {
+  [2, 3, 4, 5, 6].forEach(n => {
     const b = document.getElementById(`lobby-cnt-${n}`);
     if (b) {
       b.className = n === lobbyPlayerCount

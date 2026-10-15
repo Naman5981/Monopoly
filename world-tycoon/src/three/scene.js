@@ -13,6 +13,7 @@
 
 import * as THREE from 'three';
 import { context } from './core/context.js';
+import { matchSettings } from '../game/state.js';
 import { updateIsometricCamera } from './core/camera.js';
 import { buildMainDirectionalAndAmbientLights } from './core/lighting.js';
 import { buildDioramaBaseAndPark, buildLowPolyParkDecor3D } from './board/diorama.js';
@@ -24,6 +25,7 @@ import { buildAnimatedRoadCars3D } from './environment/cars.js';
 import { build3DDicePair } from './assets/dice.js';
 import { buildTileHighlightRing3D, buildActivePlayerHighlightSystem } from './board/highlights.js';
 import { ensure3DPortraitSystemInitialized } from './pawns/tokens.js';
+import { applyBoardStyle, BOARD_STYLES } from './board/skins.js';
 import { initInputHandlers } from './core/input.js';
 import { startRenderLoop } from './core/loop.js';
 
@@ -102,6 +104,9 @@ export function initThreeScene(onTileClickCb) {
   buildActivePlayerHighlightSystem(context.boardGroup);
   ensure3DPortraitSystemInitialized();
 
+  // 8B. Apply initial board style skin (wood, cyberpunk, elegant)
+  applyBoardStyle(matchSettings.boardStyle || 'wood');
+
   // 9. Input & interaction listeners (raycast, hover, drag-orbit, wheel zoom)
   initInputHandlers(context.renderer.domElement, onTileClickCb);
 
@@ -126,8 +131,13 @@ export { getTileWorldPosition } from './board/coords.js';
 export { triggerTileButtonPress } from './board/tilePress.js';
 export {
   refreshTileTextureAndBuildings,
-  updateTileMesh
+  updateTileMesh,
+  refreshAllTileTexturesAndMaterials
 } from './board/tiles.js';
+export {
+  applyBoardStyle,
+  BOARD_STYLES
+} from './board/skins.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Re-exports: Highlights, Beacons & Flight Rings

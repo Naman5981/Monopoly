@@ -161,13 +161,29 @@ export function createParkFountain3D() {
   return g;
 }
 
+export const dioramaMeshes = {
+  plinthMesh: null,
+  earthMesh: null,
+  lipMesh: null,
+  cornerGroups: [],
+  rimMesh: null,
+  innerMesh: null,
+  treeClusters: [],
+  fountain: null,
+  shadowPlane: null
+};
+
 export function buildDioramaBaseAndPark(boardGroup) {
+  dioramaMeshes.cornerGroups = [];
+  dioramaMeshes.treeClusters = [];
+
   const shadowGeo = new THREE.PlaneGeometry(34.0, 34.0);
   const shadowMat = new THREE.MeshBasicMaterial({ color: 0x0f172a, transparent: true, opacity: 0.26 });
   const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
   shadowPlane.rotation.x = -Math.PI / 2;
   shadowPlane.position.y = -1.36;
   boardGroup.add(shadowPlane);
+  dioramaMeshes.shadowPlane = shadowPlane;
 
   const woodTex = createProceduralWoodTexture();
   const woodMat = new THREE.MeshStandardMaterial({
@@ -183,6 +199,7 @@ export function buildDioramaBaseAndPark(boardGroup) {
   plinthMesh.receiveShadow = true;
   plinthMesh.castShadow = true;
   boardGroup.add(plinthMesh);
+  dioramaMeshes.plinthMesh = plinthMesh;
 
   // 2. Main Wooden Body
   const earthGeo = new THREE.BoxGeometry(29.8, 1.15, 29.8);
@@ -191,6 +208,7 @@ export function buildDioramaBaseAndPark(boardGroup) {
   earthMesh.receiveShadow = true;
   earthMesh.castShadow = true;
   boardGroup.add(earthMesh);
+  dioramaMeshes.earthMesh = earthMesh;
 
   // 3. Upper Wooden Moulding
   const lipGeo = new THREE.BoxGeometry(29.96, 0.16, 29.96);
@@ -198,6 +216,7 @@ export function buildDioramaBaseAndPark(boardGroup) {
   lipMesh.position.y = -0.06;
   lipMesh.receiveShadow = true;
   boardGroup.add(lipMesh);
+  dioramaMeshes.lipMesh = lipMesh;
 
   // 4. Brass Corner Brackets
   const cornerMat = new THREE.MeshStandardMaterial({
@@ -223,6 +242,7 @@ export function buildDioramaBaseAndPark(boardGroup) {
     cg.position.set(c.x, -0.62, c.z);
     cg.rotation.y = c.rot;
     boardGroup.add(cg);
+    dioramaMeshes.cornerGroups.push(cg);
   });
 
   const rimGeo = new THREE.BoxGeometry(29.9, 0.36, 29.9);
@@ -231,6 +251,7 @@ export function buildDioramaBaseAndPark(boardGroup) {
   rimMesh.position.y = 0.12;
   rimMesh.receiveShadow = true;
   boardGroup.add(rimMesh);
+  dioramaMeshes.rimMesh = rimMesh;
 
   // Inner park road and lawn
   const roadCanvas = document.createElement('canvas');
@@ -295,6 +316,7 @@ export function buildDioramaBaseAndPark(boardGroup) {
   innerMesh.position.y = 0.28;
   innerMesh.receiveShadow = true;
   boardGroup.add(innerMesh);
+  dioramaMeshes.innerMesh = innerMesh;
 
   const treeClusters = [
     { x: -4.6, z: 1.5 },
@@ -306,11 +328,13 @@ export function buildDioramaBaseAndPark(boardGroup) {
     const cluster = createPineTreeCluster3D();
     cluster.position.set(pos.x, 0.35, pos.z);
     boardGroup.add(cluster);
+    dioramaMeshes.treeClusters.push(cluster);
   });
 
   const fountain = createParkFountain3D();
   fountain.position.set(-3.2, 0.36, -2.2);
   boardGroup.add(fountain);
+  dioramaMeshes.fountain = fountain;
 }
 
 export function buildLowPolyParkDecor3D(boardGroup) {

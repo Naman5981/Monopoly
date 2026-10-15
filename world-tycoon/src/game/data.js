@@ -78,8 +78,11 @@ export const CHANCE_WHEEL_PRIZES = [
 ];
 
 export const PLAYER_THEMES = [
-  { name: 'YOU',   colorHex: '#6c5ce7', charColor: 0xef4444, hatColor: 0x334155, isAI: false },
-  { name: 'BIDIK', colorHex: '#f39c12', charColor: 0xf97316, hatColor: 0xfde047, isAI: true  },
-  { name: 'ATLAS', colorHex: '#10b981', charColor: 0x10b981, hatColor: 0x1e293b, isAI: true  },
-  { name: 'NOVA',  colorHex: '#ec4899', charColor: 0xec4899, hatColor: 0xffffff, isAI: true  },
+  { name: 'YOU',     colorHex: '#6c5ce7', charColor: 0xef4444, hatColor: 0x334155, isAI: false },
+  { name: 'BIDIK',   colorHex: '#f39c12', charColor: 0xf97316, hatColor: 0xfde047, isAI: true  },
+  { name: 'ATLAS',   colorHex: '#10b981', charColor: 0x10b981, hatColor: 0x1e293b, isAI: true  },
+  { name: 'NOVA',    colorHex: '#ec4899', charColor: 0xec4899, hatColor: 0xffffff, isAI: true  },
+  { name: 'PHOENIX', colorHex: '#ef4444', charColor: 0xef4444, hatColor: 0xf97316, isAI: true  },
+  { name: 'CYBER',   colorHex: '#06b6d4', charColor: 0x06b6d4, hatColor: 0x38bdf8, isAI: true  },
 ];
+

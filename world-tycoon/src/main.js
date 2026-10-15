@@ -26,6 +26,8 @@ import {
   setStartingCash,
   setTurnTimerDuration,
   setAtmosphereMode,
+  setBoardStyle,
+  cycleBoardStyle,
   startGameFromLandingPage,
   selectMatchMode,
   hostP2PRoom,
@@ -39,7 +41,8 @@ import {
   stepDecisionTime,
   stepMatchLength,
   renderPlayerCards,
-  renderMatchSettingButtons
+  renderMatchSettingButtons,
+  selectSetupPlayer
 } from './ui/setup.js';
 import {
   networkState,
@@ -151,6 +154,8 @@ window.randomizeSinglePlayerName = randomizeSinglePlayerName;
 window.setStartingCash = setStartingCash;
 window.setTurnTimerDuration = setTurnTimerDuration;
 window.setAtmosphereMode = setAtmosphereMode;
+window.setBoardStyle = setBoardStyle;
+window.cycleBoardStyle = cycleBoardStyle;
 window.startGameFromLandingPage = startGameFromLandingPage;
 window.addBotOrSlot = addBotOrSlot;
 window.removeBotOrSlot = removeBotOrSlot;
@@ -159,6 +164,7 @@ window.cycleAvatarNext = cycleAvatarNext;
 window.setLocalPlayerColor = setLocalPlayerColor;
 window.stepDecisionTime = stepDecisionTime;
 window.stepMatchLength = stepMatchLength;
+window.selectSetupPlayer = selectSetupPlayer;
 
 // P2P Multiplayer Window Handlers
 window.selectMatchMode = selectMatchMode;
@@ -246,6 +252,12 @@ window.toggleSound = () => {
     btn.innerHTML = soundEnabled
       ? '<i class="fa-solid fa-volume-high text-xs"></i>'
       : '<i class="fa-solid fa-volume-xmark text-xs text-rose-400"></i>';
+  }
+  const setupBtn = document.getElementById('setup-btn-sound');
+  if (setupBtn) {
+    setupBtn.innerHTML = soundEnabled
+      ? '<i class="fa-solid fa-volume-high text-sm"></i>'
+      : '<i class="fa-solid fa-volume-xmark text-sm text-rose-400"></i>';
   }
 };
 

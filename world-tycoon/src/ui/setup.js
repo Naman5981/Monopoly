@@ -7,7 +7,7 @@ import { matchSettings, setLobbyPlayerCount, lobbyPlayerCount } from '../game/st
 import { PLAYER_THEMES } from '../game/data.js';
 import { playSFX } from '../game/audio.js';
 import { fireConfettiBurst, applyLightingMode } from '../three/effects.js';
-import { startIntroCameraFlyIn, getSceneLighting, initLobbyHeroStage, updateLobbyHeroAvatar } from '../three/scene.js';
+import { startIntroCameraFlyIn, getSceneLighting, initLobbyHeroStage, updateLobbyHeroAvatar, applyBoardStyle } from '../three/scene.js';
 import { startNewMatch } from '../game/engine.js';
 import {
   networkState,
@@ -42,8 +42,25 @@ const FUN_NAMES = [
   ['NAMAN', 'ALEX', 'ELON', 'CAPTAIN', 'ACE', 'MAVERICK'],
   ['PRANJAL', 'WARREN', 'BARON', 'FINANCIER', 'MIDAS', 'STERLING'],
   ['ATLAS', 'COLUMBUS', 'MARCO', 'VOYAGER', 'DRAKE', 'SCOUT'],
-  ['NOVA', 'CYBER', 'AURA', 'VALKYRIE', 'PHOENIX', 'NEO']
+  ['NOVA', 'CYBER', 'AURA', 'VALKYRIE', 'PHOENIX', 'NEO'],
+  ['TITAN', 'VORTEX', 'APOLLO', 'SHADOW', 'ORION', 'BLAZE'],
+  ['ZEPHYR', 'NEXUS', 'PULSE', 'COSMO', 'QUANTUM', 'ECHO']
 ];
+
+export let selectedSetupPlayerIdx = 0;
+
+export function selectSetupPlayer(idx) {
+  if (idx >= 0 && idx < lobbyPlayerCount) {
+    selectedSetupPlayerIdx = idx;
+    const cp = matchSettings.customPlayers[selectedSetupPlayerIdx];
+    if (cp) {
+      updateLobbyHeroAvatar(cp.hatStyle || 0, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6);
+    }
+    renderPlayerCards();
+    renderMatchSettingButtons();
+    playSFX('hop');
+  }
+}
 
 export function initLandingSetup() {
   renderPlayerCards();
@@ -78,13 +95,16 @@ export function initLandingSetup() {
 }
 
 export function setPlayerCount(n) {
-  setLobbyPlayerCount(n);
+  setLobbyPlayerCount(Math.min(6, Math.max(2, n)));
+  if (selectedSetupPlayerIdx >= lobbyPlayerCount) {
+    selectedSetupPlayerIdx = 0;
+  }
   renderPlayerCards();
   playSFX('hop');
 }
 
 export function addBotOrSlot() {
-  if (lobbyPlayerCount < 4) {
+  if (lobbyPlayerCount < 6) {
     setLobbyPlayerCount(lobbyPlayerCount + 1);
     const newIdx = lobbyPlayerCount - 1;
     if (matchSettings.customPlayers[newIdx]) {
@@ -100,35 +120,45 @@ export function addBotOrSlot() {
 export function removeBotOrSlot() {
   if (lobbyPlayerCount > 2) {
     setLobbyPlayerCount(lobbyPlayerCount - 1);
+    if (selectedSetupPlayerIdx >= lobbyPlayerCount) {
+      selectedSetupPlayerIdx = 0;
+      const cp = matchSettings.customPlayers[0];
+      if (cp) updateLobbyHeroAvatar(cp.hatStyle || 0, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6);
+    }
     renderPlayerCards();
     playSFX('hop');
   }
 }
 
 export function cycleAvatarPrev() {
-  const p0 = matchSettings.customPlayers[0];
-  if (!p0) return;
-  p0.hatStyle = (p0.hatStyle + 3) % 4;
-  p0.hatColor = ARCHETYPES[p0.hatStyle].hatColor;
-  PLAYER_THEMES[0].hatColor = p0.hatColor;
-  updateLobbyHeroAvatar(p0.hatStyle, p0.colorHex, p0.charColor);
+  const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
+  const p = matchSettings.customPlayers[curIdx];
+  if (!p) return;
+  p.hatStyle = (p.hatStyle + 3) % 4;
+  p.hatColor = ARCHETYPES[p.hatStyle].hatColor;
+  if (PLAYER_THEMES[curIdx]) PLAYER_THEMES[curIdx].hatColor = p.hatColor;
+  updateLobbyHeroAvatar(p.hatStyle, p.colorHex, p.charColor);
+  renderPlayerCards();
   playSFX('hop');
 }
 
 export function cycleAvatarNext() {
-  const p0 = matchSettings.customPlayers[0];
-  if (!p0) return;
-  p0.hatStyle = (p0.hatStyle + 1) % 4;
-  p0.hatColor = ARCHETYPES[p0.hatStyle].hatColor;
-  PLAYER_THEMES[0].hatColor = p0.hatColor;
-  updateLobbyHeroAvatar(p0.hatStyle, p0.colorHex, p0.charColor);
+  const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
+  const p = matchSettings.customPlayers[curIdx];
+  if (!p) return;
+  p.hatStyle = (p.hatStyle + 1) % 4;
+  p.hatColor = ARCHETYPES[p.hatStyle].hatColor;
+  if (PLAYER_THEMES[curIdx]) PLAYER_THEMES[curIdx].hatColor = p.hatColor;
+  updateLobbyHeroAvatar(p.hatStyle, p.colorHex, p.charColor);
+  renderPlayerCards();
   playSFX('hop');
 }
 
 export function setLocalPlayerColor(hex, charColor) {
-  setPlayerColor(0, hex, charColor);
-  const p0 = matchSettings.customPlayers[0];
-  updateLobbyHeroAvatar(p0?.hatStyle || 0, hex, charColor);
+  const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
+  setPlayerColor(curIdx, hex, charColor);
+  const p = matchSettings.customPlayers[curIdx];
+  updateLobbyHeroAvatar(p?.hatStyle || 0, hex, charColor);
   renderPlayerCards();
   renderMatchSettingButtons();
 }
@@ -136,7 +166,11 @@ export function setLocalPlayerColor(hex, charColor) {
 export function renderPlayerCards() {
   const container = document.getElementById('setup-players-roster');
   const countBadge = document.getElementById('table-player-count-badge');
-  if (countBadge) countBadge.textContent = `${lobbyPlayerCount}/4`;
+  if (countBadge) countBadge.textContent = `${lobbyPlayerCount}/6`;
+
+  if (selectedSetupPlayerIdx >= lobbyPlayerCount) {
+    selectedSetupPlayerIdx = 0;
+  }
 
   // Update top bar profile badge
   const p0 = matchSettings.customPlayers[0];
@@ -149,11 +183,13 @@ export function renderPlayerCards() {
     profileAvatarEl.style.color = p0.colorHex || '#10b981';
   }
 
-  // Update center hero archetype pill indicator
+  // Update center hero archetype pill indicator based on selected player
+  const curPlayer = matchSettings.customPlayers[selectedSetupPlayerIdx] || p0;
   const archEl = document.getElementById('setup-character-archetype-name');
-  if (archEl && p0) {
-    const arch = ARCHETYPES[p0.hatStyle || 0] || ARCHETYPES[0];
-    archEl.innerHTML = `<span class="text-xl">${arch.icon}</span><span class="font-black text-sm tracking-wide text-slate-800">${arch.name.toUpperCase()}</span>`;
+  if (archEl && curPlayer) {
+    const arch = ARCHETYPES[curPlayer.hatStyle || 0] || ARCHETYPES[0];
+    const roleTag = selectedSetupPlayerIdx === 0 ? 'YOU' : curPlayer.name;
+    archEl.innerHTML = `<span class="text-xl">${arch.icon}</span><span class="font-black text-sm tracking-wide text-slate-800">${arch.name.toUpperCase()} (${roleTag})</span>`;
   }
 
   if (!container) return;
@@ -163,21 +199,29 @@ export function renderPlayerCards() {
   for (let i = 0; i < lobbyPlayerCount; i++) {
     const cp = matchSettings.customPlayers[i];
     const isHuman = !cp.isAI;
+    const isSelected = (i === selectedSetupPlayerIdx);
     const initial = (cp.name || `P${i + 1}`)[0].toUpperCase();
 
     const row = document.createElement('div');
-    row.className = 'bg-white/95 border-2 border-slate-200/80 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 transition hover:border-sky-300 shadow-xs';
+    row.className = `bg-white/95 border-2 ${
+      isSelected ? 'border-sky-500 ring-2 ring-sky-300 shadow-md bg-sky-50/50' : 'border-slate-200/80 hover:border-sky-300 shadow-xs'
+    } rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 transition cursor-pointer`;
+    row.onclick = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+      window.selectSetupPlayer(i);
+    };
 
     row.innerHTML = `
-      <div class="flex items-center gap-3 min-w-0">
+      <div class="flex items-center gap-3 min-w-0 flex-1">
         <!-- Colored avatar initial circle -->
         <div class="w-11 h-11 rounded-full border-3 border-white shadow-md flex items-center justify-center font-black text-sm text-white flex-shrink-0" style="background:${cp.colorHex}">
           ${initial}
         </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 flex-wrap">
             ${i === 0 ? '<span class="text-sm">👑</span>' : ''}
-            <input type="text" value="${cp.name}" oninput="window.setPlayerSetupName(${i}, this.value)" class="bg-transparent font-black text-sm sm:text-base text-slate-800 uppercase focus:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-400 rounded-lg px-1.5 py-0.5 w-28 sm:w-36 truncate transition">
+            <input type="text" value="${cp.name}" oninput="window.setPlayerSetupName(${i}, this.value)" class="bg-transparent font-black text-sm sm:text-base text-slate-800 uppercase focus:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-400 rounded-lg px-1.5 py-0.5 w-24 sm:w-32 truncate transition">
+            ${isSelected ? '<span class="text-[10px] font-black bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-xs">PODIUM</span>' : ''}
           </div>
           <div class="text-xs font-bold text-slate-400 pl-1 mt-0.5">
             ${i === 0 ? 'Table Host' : (isHuman ? 'Human Player' : 'AI Tycoon Bot')}
@@ -199,8 +243,8 @@ export function renderPlayerCards() {
     container.appendChild(row);
   }
 
-  // Render open slots (up to 4)
-  for (let s = lobbyPlayerCount; s < 4; s++) {
+  // Render open slots (up to 6)
+  for (let s = lobbyPlayerCount; s < 6; s++) {
     const slot = document.createElement('div');
     slot.className = 'game-slot-dashed p-3.5 flex items-center justify-between cursor-pointer transition hover:scale-[1.01]';
     slot.onclick = () => window.addBotOrSlot();
@@ -209,7 +253,7 @@ export function renderPlayerCards() {
         <div class="w-11 h-11 rounded-full border-2 border-dashed border-sky-300 flex items-center justify-center text-sky-400 text-sm">
           <i class="fa-solid fa-user-plus"></i>
         </div>
-        <span class="font-extrabold text-sm text-sky-700">Open Player Slot</span>
+        <span class="font-extrabold text-sm text-sky-700">Open Slot ${s + 1}</span>
       </div>
       <span class="text-xs font-black text-sky-500 uppercase tracking-wider bg-white/80 px-3 py-1 rounded-full shadow-xs border border-sky-200">+ Add</span>
     `;
@@ -319,6 +363,22 @@ export function setAtmosphereMode(mode) {
   playSFX('hop');
 }
 
+export function setBoardStyle(style) {
+  if (['wood', 'cyberpunk', 'elegant'].includes(style)) {
+    matchSettings.boardStyle = style;
+    applyBoardStyle(style);
+    renderMatchSettingButtons();
+    playSFX('hop');
+  }
+}
+
+export function cycleBoardStyle() {
+  const styles = ['wood', 'cyberpunk', 'elegant'];
+  const curIdx = styles.indexOf(matchSettings.boardStyle || 'wood');
+  const nextStyle = styles[(curIdx + 1) % styles.length];
+  setBoardStyle(nextStyle);
+}
+
 export function renderMatchSettingButtons() {
   // Cash buttons
   [1500000, 2000000, 3000000, 5000000].forEach(amt => {
@@ -330,6 +390,13 @@ export function renderMatchSettingButtons() {
       }`;
     }
   });
+
+  // Profile Cash display in top bar
+  const profileCashEl = document.getElementById('setup-profile-cash');
+  if (profileCashEl) {
+    const cashM = (matchSettings.startingCash / 1_000_000).toFixed(1).replace('.0', '');
+    profileCashEl.textContent = `$${cashM}M`;
+  }
 
   // Decision time text
   const timerTextEl = document.getElementById('setup-decision-time-text');
@@ -344,15 +411,34 @@ export function renderMatchSettingButtons() {
     atmoTextEl.textContent = theme === 'night' ? 'Night' : (theme === 'sunset' ? 'Sunset' : 'Morning');
   }
 
-  // Color Swatches
+  // Board style buttons in setup lobby
+  ['wood', 'cyberpunk', 'elegant'].forEach(style => {
+    const btn = document.getElementById(`setup-board-${style}`);
+    if (btn) {
+      const active = (matchSettings.boardStyle || 'wood') === style;
+      btn.className = `py-2 px-1 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center justify-center gap-1 ${
+        active ? 'bg-sky-500 text-white shadow-md scale-[1.02]' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+      }`;
+    }
+  });
+
+  // HUD Board Style text
+  const hudBoardText = document.getElementById('btn-board-style-text');
+  if (hudBoardText) {
+    const style = matchSettings.boardStyle || 'wood';
+    hudBoardText.textContent = style === 'cyberpunk' ? 'Cyber' : (style === 'elegant' ? 'Elegant' : 'Wood');
+  }
+
+  // Color Swatches - reflects the player currently selected on the podium
   const colorContainer = document.getElementById('setup-color-swatches');
   if (colorContainer) {
-    const p0Hex = matchSettings.customPlayers[0]?.colorHex || '#3b82f6';
+    const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
+    const curHex = matchSettings.customPlayers[curIdx]?.colorHex || '#3b82f6';
     colorContainer.innerHTML = CANDY_PALETTE.map(c => `
       <button onclick="window.setLocalPlayerColor('${c.hex}', ${c.charColor})" class="w-8 h-8 rounded-full border-2 transition transform hover:scale-115 cursor-pointer flex items-center justify-center ${
-        p0Hex === c.hex ? 'border-slate-900 ring-3 ring-sky-400 scale-110 shadow-md' : 'border-white shadow-xs'
+        curHex === c.hex ? 'border-slate-900 ring-3 ring-sky-400 scale-110 shadow-md' : 'border-white shadow-xs'
       }" style="background:${c.hex}" title="${c.name}">
-        ${p0Hex === c.hex ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+        ${curHex === c.hex ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
       </button>
     `).join('');
   }

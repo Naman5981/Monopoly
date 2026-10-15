@@ -26,7 +26,34 @@ export function ensure3DPortraitSystemInitialized() {
   portraitCamera.lookAt(0, 0.82, 0);
 
   portraitScenes = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
+    const pScene = new THREE.Scene();
+    pScene.add(new THREE.AmbientLight(0xffffff, 0.85));
+
+    const kl = new THREE.DirectionalLight(0xfffbeb, 0.9);
+    kl.position.set(2.5, 4, 3.5);
+    pScene.add(kl);
+
+    const rl = new THREE.DirectionalLight(0x93c5fd, 0.55);
+    rl.position.set(-3, 2, -2);
+    pScene.add(rl);
+
+    const avatar3D = createDetailed3DAvatarMesh(i, true);
+    avatar3D.position.set(0, -0.05, 0);
+    avatar3D.rotation.y = (i % 2 === 0) ? 0.24 : -0.24;
+    pScene.add(avatar3D);
+
+    portraitScenes.push({ scene: pScene, avatar: avatar3D });
+  }
+}
+
+export function rebuild3DPortraits() {
+  if (!portraitRenderer) {
+    ensure3DPortraitSystemInitialized();
+    return;
+  }
+  portraitScenes = [];
+  for (let i = 0; i < 6; i++) {
     const pScene = new THREE.Scene();
     pScene.add(new THREE.AmbientLight(0xffffff, 0.85));
 
@@ -53,6 +80,7 @@ export function ensure3DPortraitSystemInitialized() {
  */
 export function spawnAllPlayerTokens3D(boardGroup = context.boardGroup) {
   if (!boardGroup) return;
+  rebuild3DPortraits();
   context.playerMeshes.forEach(m => boardGroup.remove(m));
   context.playerMeshes = [];
 
@@ -72,10 +100,12 @@ export function spawnAllPlayerTokens3D(boardGroup = context.boardGroup) {
  */
 export function updatePlayerTokenPositions3D() {
   const offsets = [
-    { x: -0.45, z: 0.45 },
-    { x: 0.45, z: 0.45 },
-    { x: -0.45, z: -0.45 },
-    { x: 0.45, z: -0.45 }
+    { x: -0.48, z: 0.45 },
+    { x: 0.48, z: 0.45 },
+    { x: -0.48, z: -0.45 },
+    { x: 0.48, z: -0.45 },
+    { x: -0.52, z: 0.0 },
+    { x: 0.52, z: 0.0 }
   ];
 
   gameState.players.forEach((p, idx) => {
@@ -88,7 +118,8 @@ export function updatePlayerTokenPositions3D() {
     mesh.visible = true;
     const pos = getTileWorldPosition(p.position);
     const tilePress = context.activeTileDepressions[p.position]?.currentOffset ?? 0;
-    mesh.position.set(pos.x + offsets[idx].x, BASE_BUILDING_Y + tilePress, pos.z + offsets[idx].z);
+    const off = offsets[idx % offsets.length];
+    mesh.position.set(pos.x + off.x, BASE_BUILDING_Y + tilePress, pos.z + off.z);
     mesh.rotation.y = getTileFacingAngle(p.position);
   });
 }

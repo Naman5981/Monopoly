@@ -9,11 +9,14 @@ export const matchSettings = {
   startingCash: 2_000_000,
   turnDuration: 15,
   lightingTheme: 'day', // 'day' | 'sunset' | 'night'
+  boardStyle: 'wood', // 'wood' | 'cyberpunk' | 'elegant'
   customPlayers: [
     { name: 'YOU', isAI: false, charColor: 0xef4444, colorHex: '#6c5ce7', hatColor: 0x334155, hatStyle: 0 },
     { name: 'BIDIK', isAI: true, charColor: 0xf97316, colorHex: '#f39c12', hatColor: 0xfde047, hatStyle: 1 },
     { name: 'ATLAS', isAI: true, charColor: 0x10b981, colorHex: '#10b981', hatColor: 0x1e293b, hatStyle: 2 },
-    { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3 }
+    { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3 },
+    { name: 'PHOENIX', isAI: true, charColor: 0xef4444, colorHex: '#ef4444', hatColor: 0xf97316, hatStyle: 0 },
+    { name: 'CYBER', isAI: true, charColor: 0x06b6d4, colorHex: '#06b6d4', hatColor: 0x38bdf8, hatStyle: 3 }
   ]
 };
 
@@ -38,7 +41,7 @@ export const gameState = {
 };
 
 /** Animated cash displayed in the HUD (lags behind real cash for rolling effect) */
-export const displayedCash = [2000000, 2000000, 2000000, 2000000];
+export const displayedCash = [2000000, 2000000, 2000000, 2000000, 2000000, 2000000];
 
 export let lobbyPlayerCount = 2;
 export function setLobbyPlayerCount(n) { lobbyPlayerCount = n; }

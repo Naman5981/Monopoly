@@ -198,9 +198,9 @@ function handleHostReceivedMessage(conn, msg) {
 
   switch (msg.type) {
     case 'GUEST_JOIN': {
-      // Find an available player slot for the guest (slot 1, 2, or 3)
+      // Find an available player slot for the guest (slots 1 to 5)
       let slotIdx = setupPlayers.findIndex((p, idx) => idx > 0 && p.isAI && !p.isOnlinePeer);
-      if (slotIdx === -1 && lobbyPlayerCount < 4) {
+      if (slotIdx === -1 && lobbyPlayerCount < 6) {
         // Automatically expand player count if room allows
         slotIdx = lobbyPlayerCount;
         setLobbyPlayerCount(lobbyPlayerCount + 1);
