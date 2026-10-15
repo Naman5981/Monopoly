@@ -293,12 +293,12 @@ function onTileClick(tileId) {
 
 // Bootstrap
 function initApp() {
+  applyBoardEdition(matchSettings.boardEdition || 'world');
   initEngine();
   initThreeScene(onTileClick);
   initLandingSetup();
 
-  // Apply initial board edition and lighting mode
-  applyBoardEdition(matchSettings.boardEdition || 'world');
+  // Apply initial lighting mode
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
 
   // Check if an unfinished match exists to offer resume
