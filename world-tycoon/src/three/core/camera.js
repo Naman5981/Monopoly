@@ -37,21 +37,25 @@ export function updateIsometricCamera() {
  * Damps camera azimuth, zoom, and target vector smoothly toward their target values.
  * Should be called once per render frame.
  */
-export function updateCameraDamping() {
+export function updateCameraDamping(dt = 0.016) {
   let camChanged = false;
+  const safeDt = Math.min(0.05, Math.max(0.001, dt));
+  const azDamp = 1 - Math.exp(-6.5 * safeDt);
+  const zoomDamp = 1 - Math.exp(-9.0 * safeDt);
+  const targetDamp = 1 - Math.exp(-9.0 * safeDt);
 
   if (Math.abs(cameraState.targetCameraAzimuth - cameraState.cameraAzimuth) > 0.0005) {
-    cameraState.cameraAzimuth += (cameraState.targetCameraAzimuth - cameraState.cameraAzimuth) * 0.08;
+    cameraState.cameraAzimuth += (cameraState.targetCameraAzimuth - cameraState.cameraAzimuth) * azDamp;
     camChanged = true;
   }
 
   if (Math.abs(cameraState.targetCameraZoom - cameraState.cameraZoom) > 0.0005) {
-    cameraState.cameraZoom += (cameraState.targetCameraZoom - cameraState.cameraZoom) * 0.12;
+    cameraState.cameraZoom += (cameraState.targetCameraZoom - cameraState.cameraZoom) * zoomDamp;
     camChanged = true;
   }
 
   if (cameraState.cameraTarget.distanceTo(cameraState.targetCameraTarget) > 0.001) {
-    cameraState.cameraTarget.lerp(cameraState.targetCameraTarget, 0.12);
+    cameraState.cameraTarget.lerp(cameraState.targetCameraTarget, targetDamp);
     camChanged = true;
   }
 

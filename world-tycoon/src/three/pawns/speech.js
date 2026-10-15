@@ -8,6 +8,7 @@ import { context } from '../core/context.js';
 import { gameState } from '../../game/state.js';
 
 let hideBubbleTimer = null;
+const projectedWorldPos = new THREE.Vector3();
 
 /**
  * Projects 3D world position of active player token onto 2D screen coordinates and repositions the bubble.
@@ -19,13 +20,12 @@ export function updateSpeechBubbleScreenPosition() {
   const activeMesh = context.playerMeshes[gameState.currentPlayerIdx];
   if (!activeMesh || !context.camera) return;
 
-  const worldPos = new THREE.Vector3();
-  activeMesh.getWorldPosition(worldPos);
-  worldPos.y += 1.85;
-  worldPos.project(context.camera);
+  activeMesh.getWorldPosition(projectedWorldPos);
+  projectedWorldPos.y += 1.85;
+  projectedWorldPos.project(context.camera);
 
-  bubble.style.left = `${(worldPos.x * 0.5 + 0.5) * window.innerWidth}px`;
-  bubble.style.top = `${(-worldPos.y * 0.5 + 0.5) * window.innerHeight}px`;
+  bubble.style.left = `${(projectedWorldPos.x * 0.5 + 0.5) * window.innerWidth}px`;
+  bubble.style.top = `${(-projectedWorldPos.y * 0.5 + 0.5) * window.innerHeight}px`;
 }
 
 /**

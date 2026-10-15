@@ -138,6 +138,8 @@ export function renderLive3DHUDPortraits(t) {
     if (!targetCanvas || !entry) return;
 
     const isTurn = (idx === gameState.currentPlayerIdx);
+    if (targetCanvas._drawnOnce && !isTurn) return;
+
     const avatar = entry.avatar;
     const ud = avatar.userData;
     const baseYaw = (idx % 2 === 0) ? 0.24 : -0.24;
@@ -160,6 +162,7 @@ export function renderLive3DHUDPortraits(t) {
     if (ctx2d) {
       ctx2d.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
       ctx2d.drawImage(portraitRenderer.domElement, 0, 0, targetCanvas.width, targetCanvas.height);
+      targetCanvas._drawnOnce = true;
     }
   });
 }

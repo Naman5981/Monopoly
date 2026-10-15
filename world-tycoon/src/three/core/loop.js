@@ -20,6 +20,7 @@ import { gameState, displayedCash } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 
 let isLoopRunning = false;
+let lastFrameTime = performance.now();
 
 /**
  * Main animation loop driven by requestAnimationFrame.
@@ -28,10 +29,12 @@ export function animateThreeLoop() {
   requestAnimationFrame(animateThreeLoop);
 
   const now = performance.now();
+  const dt = Math.min(0.05, Math.max(0.001, (now - lastFrameTime) * 0.001));
+  lastFrameTime = now;
   const t = now * 0.001;
 
   // 1. Camera damping & isometric orientation updates
-  updateCameraDamping();
+  updateCameraDamping(dt);
 
   // 2. Roadway traffic simulation
   updateRoadCarsAnimation();

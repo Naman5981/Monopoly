@@ -241,8 +241,12 @@ async function hopPlayerSteps3D(playerIdx, steps) {
       renderCornerHUDs();
     }
 
-    await new Promise(r => setTimeout(r, 75));
-    resetTokenAfterHop(playerIdx);
+    if (s < steps - 1) {
+      // Fluid transition between intermediate hops without halting momentum
+      await new Promise(r => setTimeout(r, 15));
+    } else {
+      resetTokenAfterHop(playerIdx);
+    }
   }
 
   await new Promise(r => setTimeout(r, 220));

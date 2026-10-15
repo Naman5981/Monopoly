@@ -88,8 +88,8 @@ export function buildMainDirectionalAndAmbientLights(scene) {
   context.dirLight = new THREE.DirectionalLight(0xffffff, 0.98);
   context.dirLight.position.set(22, 32, 18);
   context.dirLight.castShadow = true;
-  context.dirLight.shadow.mapSize.width = 2048;
-  context.dirLight.shadow.mapSize.height = 2048;
+  context.dirLight.shadow.mapSize.width = 1024;
+  context.dirLight.shadow.mapSize.height = 1024;
   context.dirLight.shadow.camera.near = 2.0;
   context.dirLight.shadow.camera.far = 95;
   const d = 21;
@@ -508,6 +508,7 @@ export function getSceneLighting() {
  * @param {number} t - Time in seconds
  */
 export function updateStreetLampGlow(t) {
+  if (currentBulbMode === 'day') return;
   const basePulse = Math.sin(t * 3.5) * 0.04;
   let baseIntensity = 0.50;
   let baseOpacity = 0.35;
@@ -541,6 +542,7 @@ export function updateStreetLampGlow(t) {
  * @param {number} t - Time in seconds
  */
 export function updateAvatarBreathingLights(t) {
+  if (currentBulbMode === 'day') return;
   context.playerMeshes.forEach((mesh, idx) => {
     const ud = mesh?.userData;
     if (!ud?.avatarLight) return;
@@ -567,6 +569,7 @@ export function updateTileIlluminationsAndPressLight(t) {
   const isNightBulb = (currentBulbMode === 'night');
   const isSunsetBulb = (currentBulbMode === 'sunset');
   const nightFactor = isNightBulb ? 1.0 : (isSunsetBulb ? 0.35 : 0.0);
+  if (nightFactor <= 0.001) return;
 
   let maxIllumTileId = null;
   let maxIllumVal = 0;
