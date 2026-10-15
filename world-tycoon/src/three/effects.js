@@ -380,7 +380,7 @@ export function spawnAnimatedReaction(type = 'money', startX, startY) {
   const x = startX !== undefined ? startX : window.innerWidth / 2;
   const y = startY !== undefined ? startY : window.innerHeight / 2;
 
-  const count = type === 'money' ? 8 : type === 'fire' ? 12 : 1;
+  const count = type === 'money' ? 8 : type === 'fire' ? 12 : (type === 'sweat' || type === 'hurt') ? 4 : 1;
 
   for (let i = 0; i < count; i++) {
     const el = document.createElement('div');
@@ -391,7 +391,8 @@ export function spawnAnimatedReaction(type = 'money', startX, startY) {
     el.style.pointerEvents = 'none';
     el.style.zIndex = '130';
     el.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.25))';
-    el.style.transition = 'all 0.9s cubic-bezier(0.16, 1, 0.3, 1)';
+    el.style.willChange = 'transform, opacity';
+    el.style.transition = 'transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.9s ease-out';
 
     const emojiMap = {
       tomato: '🍅',
@@ -401,7 +402,10 @@ export function spawnAnimatedReaction(type = 'money', startX, startY) {
       sunglasses: '😎',
       cry: '😭',
       rocket: '🚀',
-      star: '⭐'
+      star: '⭐',
+      sweat: '💦',
+      hurt: '💥',
+      dizzy: '😵'
     };
     el.textContent = emojiMap[type] || '✨';
     document.body.appendChild(el);

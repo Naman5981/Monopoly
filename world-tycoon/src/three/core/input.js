@@ -5,12 +5,27 @@
 
 import * as THREE from 'three';
 import { context } from './context.js';
-import { cameraState, handleMouseWheelZoom, handleCameraWindowResize } from './camera.js';
+import { cameraState, handleMouseWheelZoom, handleCameraWindowResize, updateIsometricCamera } from './camera.js';
 import { BOARD_TILES, GROUP_META, PLAYER_THEMES } from '../../game/data.js';
 import { gameState } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { calculateTileRent } from '../../game/rules.js';
 import { triggerTileButtonPress } from '../board/tilePress.js';
+import { BASE_TILE_Y } from '../board/coords.js';
+
+const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -BASE_TILE_Y);
+const panRaycaster = new THREE.Raycaster();
+const panMouseVec = new THREE.Vector2();
+const panPoint = new THREE.Vector3();
+
+function getGroundPoint(clientX, clientY) {
+  if (!context.camera) return null;
+  panMouseVec.x = (clientX / window.innerWidth) * 2 - 1;
+  panMouseVec.y = -(clientY / window.innerHeight) * 2 + 1;
+  panRaycaster.setFromCamera(panMouseVec, context.camera);
+  const hit = panRaycaster.ray.intersectPlane(groundPlane, panPoint);
+  return hit ? hit.clone() : null;
+}
 
 let lastHoverCheckTime = 0;
 
@@ -47,6 +62,13 @@ function getTileMeshes() {
   return cachedTileMeshes;
 }
 
+let cachedTargets = null;
+let lastTargetsRefresh = 0;
+
+export function invalidateRaycastTargets() {
+  cachedTargets = null;
+}
+
 /**
  * Comprehensive raycaster: tests tiles, placed building models, corner landmarks, and player tokens.
  * @returns {number|undefined}
@@ -54,15 +76,19 @@ function getTileMeshes() {
 export function findIntersectedTileId() {
   if (!context.raycaster) return undefined;
 
-  const targets = [
-    ...Object.values(context.tilesMeshMap || {}),
-    ...Object.values(context.tileBuildingGroups || {}),
-    ...Object.values(context.cornerLandmarkGroups || {}),
-    ...(context.playerMeshes || [])
-  ];
+  const now = performance.now();
+  if (!cachedTargets || now - lastTargetsRefresh > 600) {
+    lastTargetsRefresh = now;
+    cachedTargets = [
+      ...Object.values(context.tilesMeshMap || {}),
+      ...Object.values(context.tileBuildingGroups || {}),
+      ...Object.values(context.cornerLandmarkGroups || {}),
+      ...(context.playerMeshes || [])
+    ];
+  }
 
-  if (targets.length > 0) {
-    const intersects = context.raycaster.intersectObjects(targets, true);
+  if (cachedTargets.length > 0) {
+    const intersects = context.raycaster.intersectObjects(cachedTargets, true);
     if (intersects.length > 0) {
       const tileId = getIntersectedTileId(intersects);
       if (tileId !== undefined) return tileId;
@@ -149,7 +175,8 @@ export function handleCanvasHover(event) {
   });
 
   tooltip.classList.add('hidden');
-  if (context.renderer?.domElement) context.renderer.domElement.style.cursor = 'default';
+  const isZoomed = (cameraState.targetCameraZoom > 1.05 || cameraState.cameraZoom > 1.05);
+  if (context.renderer?.domElement) context.renderer.domElement.style.cursor = isZoomed ? 'grab' : 'default';
 }
 
 /**
@@ -165,8 +192,8 @@ export function handleCanvasClick(event) {
 
   const clickedTileId = findIntersectedTileId();
   if (clickedTileId !== undefined) {
-    // Tactile button animation: punchy mechanical push-down
-    triggerTileButtonPress(clickedTileId, -0.32, 240);
+    // Tactile button animation: punchy mechanical push-down (safely kept above diorama rim)
+    triggerTileButtonPress(clickedTileId, -0.11, 220);
     if (typeof context.onTileClick === 'function') {
       context.onTileClick(clickedTileId);
     }
@@ -189,22 +216,71 @@ export function initInputHandlers(domElement, onTileClickCb) {
 
   let isDragging = false;
   let dragStartX = 0;
+  let dragStartY = 0;
+  let lastDragX = 0;
+  let lastDragY = 0;
+  let dragButton = 0;
+  let isPanningMode = false;
   let pointerMoved = false;
+
+  domElement.addEventListener('contextmenu', e => e.preventDefault());
 
   domElement.addEventListener('pointerdown', e => {
     isDragging = true;
     dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    lastDragX = e.clientX;
+    lastDragY = e.clientY;
+    dragButton = e.button;
     pointerMoved = false;
+
+    const isZoomed = (cameraState.targetCameraZoom > 1.05 || cameraState.cameraZoom > 1.05);
+    // Left-click while zoomed in or middle-click pans; otherwise left-click when zoomed out or right-click rotates
+    isPanningMode = (e.button === 1) || (e.button === 0 && isZoomed);
+
+    if (isPanningMode) {
+      domElement.style.cursor = 'grabbing';
+    }
   });
 
   window.addEventListener('pointermove', e => {
     if (isDragging) {
-      const dx = e.clientX - dragStartX;
-      if (Math.abs(dx) > 5) {
+      const totalDx = e.clientX - dragStartX;
+      const totalDy = e.clientY - dragStartY;
+
+      if (Math.hypot(totalDx, totalDy) > 4) {
         pointerMoved = true;
-        cameraState.targetCameraAzimuth += dx * 0.0045;
-        dragStartX = e.clientX;
       }
+
+      if (pointerMoved) {
+        if (isPanningMode) {
+          domElement.style.cursor = 'grabbing';
+          const prevPt = getGroundPoint(lastDragX, lastDragY);
+          const currPt = getGroundPoint(e.clientX, e.clientY);
+          if (prevPt && currPt) {
+            const delta = currPt.clone().sub(prevPt);
+            // Move camera target opposite to drag vector so world moves 1:1 with cursor
+            cameraState.targetCameraTarget.sub(delta);
+            cameraState.cameraTarget.sub(delta);
+
+            const maxPan = 13.5;
+            cameraState.targetCameraTarget.x = Math.max(-maxPan, Math.min(maxPan, cameraState.targetCameraTarget.x));
+            cameraState.targetCameraTarget.z = Math.max(-maxPan, Math.min(maxPan, cameraState.targetCameraTarget.z));
+            cameraState.cameraTarget.x = Math.max(-maxPan, Math.min(maxPan, cameraState.cameraTarget.x));
+            cameraState.cameraTarget.z = Math.max(-maxPan, Math.min(maxPan, cameraState.cameraTarget.z));
+
+            updateIsometricCamera();
+          }
+        } else {
+          // Orbit rotate azimuth
+          const dx = e.clientX - lastDragX;
+          cameraState.targetCameraAzimuth += dx * 0.0045;
+        }
+
+        lastDragX = e.clientX;
+        lastDragY = e.clientY;
+      }
+
       const tooltip = document.getElementById('tile-hover-tooltip');
       if (tooltip) tooltip.classList.add('hidden');
     } else {
@@ -219,9 +295,15 @@ export function initInputHandlers(domElement, onTileClickCb) {
   window.addEventListener('pointerup', e => {
     if (!isDragging) return;
     isDragging = false;
+
+    const isZoomed = (cameraState.targetCameraZoom > 1.05 || cameraState.cameraZoom > 1.05);
+    domElement.style.cursor = isZoomed ? 'grab' : 'default';
+
     if (!pointerMoved) {
-      handleCanvasClick(e);
-    } else {
+      if (dragButton === 0) {
+        handleCanvasClick(e);
+      }
+    } else if (!isPanningMode) {
       // Snap to nearest 45 degree angle so board layout remains crisp and squared
       const snap = Math.PI / 4;
       cameraState.targetCameraAzimuth = Math.round(cameraState.targetCameraAzimuth / snap) * snap;

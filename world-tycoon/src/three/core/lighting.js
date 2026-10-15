@@ -115,25 +115,15 @@ export function buildStreetLampsAndBulbs3D(boardGroup) {
   const socketMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.3, metalness: 0.8 });
 
   const lampPositions = [
-    // North & South Promenades
-    { x: -5.4, z: -5.5, rot: 0 },
-    { x: 0, z: -5.6, rot: 0 },
-    { x: 5.4, z: -5.5, rot: 0 },
-    { x: -5.4, z: 5.5, rot: Math.PI },
-    { x: 0, z: 5.6, rot: Math.PI },
-    { x: 5.4, z: 5.5, rot: Math.PI },
+    // 2 Elegant Garden Promenade Gateway Lanterns (Optimized from 10 overcrowded lamps down to 2 clean entrance lanterns)
+    { x: -5.6, z: 0, rot: Math.PI / 2, isGarden: true },
+    { x: 5.6, z: 0, rot: -Math.PI / 2, isGarden: true },
 
-    // West & East Promenades
-    { x: -5.6, z: -2.8, rot: Math.PI / 2 },
-    { x: -5.6, z: 2.8, rot: Math.PI / 2 },
-    { x: 5.6, z: -2.8, rot: -Math.PI / 2 },
-    { x: 5.6, z: 2.8, rot: -Math.PI / 2 },
-
-    // 4 Inner Street Corners
-    { x: -8.5, z: -8.5, rot: Math.PI / 4 },
-    { x: 8.5, z: -8.5, rot: -Math.PI / 4 },
-    { x: -8.5, z: 8.5, rot: 3 * Math.PI / 4 },
-    { x: 8.5, z: 8.5, rot: -3 * Math.PI / 4 },
+    // 4 Inner Street Corners (Lighting the inner road & tiles)
+    { x: -8.5, z: -8.5, rot: Math.PI / 4, hasPointLight: true },
+    { x: 8.5, z: -8.5, rot: -Math.PI / 4, hasPointLight: true },
+    { x: -8.5, z: 8.5, rot: 3 * Math.PI / 4, hasPointLight: true },
+    { x: 8.5, z: 8.5, rot: -3 * Math.PI / 4, hasPointLight: true },
 
     // 4 Outer Board Corners
     { x: -14.2, z: -14.2, rot: Math.PI / 4 },
@@ -280,9 +270,9 @@ export function buildStreetLampsAndBulbs3D(boardGroup) {
     streetGroundLightPools.push(poolMat);
 
     // Performance optimization: Forward-rendering shaders run dramatically faster by limiting
-    // dynamic point lights to the 4 inner courtyard corners (indices 10..13).
-    // The other 14 street lamps rely on zero-cost emissive bulbs, bloom sprites, volumetric beams, and ground pools.
-    if (idx >= 10 && idx <= 13) {
+    // dynamic point lights to the 4 inner courtyard corners.
+    // The other street lamps rely on zero-cost emissive bulbs, bloom sprites, volumetric beams, and ground pools.
+    if (pos.hasPointLight) {
       const pl = new THREE.PointLight(0xfffaed, 0, 5.5, 1.8);
       pl.position.set(0, 1.95, 0);
       pl.visible = false;
@@ -848,7 +838,7 @@ export function updateTileIlluminationsAndPressLight(t) {
     const propState = gameState.properties[tile.id] || null;
     const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
     const ownerTheme = isOwned ? PLAYER_THEMES[propState.owner] : null;
-    const lightPlayerAccent = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
+    const ownerColor = ownerTheme ? ownerTheme.colorHex : null;
 
     const frame = context.tileBorderFrames[tile.id];
     const topMat = mesh.userData?.topMat || (Array.isArray(mesh.material) ? mesh.material[2] : null);
@@ -882,29 +872,29 @@ export function updateTileIlluminationsAndPressLight(t) {
       maxIllumTileId = tile.id;
     }
 
-    // 1. Illuminate Border in Glass Light Accent for Bought Tiles
-    if (isNightBulb && isOwned && lightPlayerAccent) {
+    // 1. Illuminate Border in Owner Theme Accent for Bought Tiles
+    if (isNightBulb && isOwned && ownerColor) {
       if (frame && frame.userData?.borderMat) {
         frame.visible = true;
-        frame.userData.borderMat.color.setStyle(lightPlayerAccent);
-        frame.userData.borderMat.emissive.setStyle(lightPlayerAccent);
+        frame.userData.borderMat.color.setStyle(ownerColor);
+        frame.userData.borderMat.emissive.setStyle(ownerColor);
         frame.userData.borderMat.emissiveIntensity = 0.85 + pressRatio * 0.60;
       }
       if (sideMat) {
-        sideMat.color.setStyle(lightPlayerAccent);
-        sideMat.emissive.setStyle(lightPlayerAccent);
+        sideMat.color.setStyle(ownerColor);
+        sideMat.emissive.setStyle(ownerColor);
         sideMat.emissiveIntensity = 0.50 + pressRatio * 0.35;
       }
-    } else if (isSunsetBulb && isOwned && lightPlayerAccent) {
+    } else if (isSunsetBulb && isOwned && ownerColor) {
       if (frame && frame.userData?.borderMat) {
         frame.visible = true;
-        frame.userData.borderMat.color.setStyle(lightPlayerAccent);
-        frame.userData.borderMat.emissive.setStyle(lightPlayerAccent);
+        frame.userData.borderMat.color.setStyle(ownerColor);
+        frame.userData.borderMat.emissive.setStyle(ownerColor);
         frame.userData.borderMat.emissiveIntensity = 0.45 + pressRatio * 0.35;
       }
       if (sideMat) {
-        sideMat.color.setStyle(lightPlayerAccent);
-        sideMat.emissive.setStyle(lightPlayerAccent);
+        sideMat.color.setStyle(ownerColor);
+        sideMat.emissive.setStyle(ownerColor);
         sideMat.emissiveIntensity = 0.25 + pressRatio * 0.20;
       }
     } else {
@@ -924,8 +914,8 @@ export function updateTileIlluminationsAndPressLight(t) {
     if (pool) {
       if (illum > 0.05 && nightFactor > 0.01) {
         pool.visible = true;
-        if (isOwned && lightPlayerAccent) {
-          pool.material.color.setStyle(lightPlayerAccent);
+        if (isOwned && ownerColor) {
+          pool.material.color.setStyle(ownerColor);
         } else {
           pool.material.color.setHex(0xffeedd);
         }
@@ -948,7 +938,7 @@ export function updateTileIlluminationsAndPressLight(t) {
       const propState = gameState.properties[maxIllumTileId] || null;
       const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
       const ownerTheme = isOwned ? PLAYER_THEMES[propState.owner] : null;
-      const lightCol = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
+      const lightCol = ownerTheme ? ownerTheme.colorHex : null;
       if (lightCol) {
         context.tilePressPointLight.color.setStyle(lightCol);
       } else {

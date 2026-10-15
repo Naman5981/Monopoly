@@ -16,14 +16,20 @@ export function setMovingHopDestTileId(id) {
 
 /**
  * Triggers a spring push-down depression on a specific tile.
+ * Clamps maximum downward travel to -0.11 so the top face card markings
+ * NEVER sink beneath the diorama rim slab (which is at y = 0.30).
  * @param {number} tileId
- * @param {number} depth - Negative offset in world units (default -0.32)
- * @param {number} duration - Hold duration before spring release (default 240ms)
+ * @param {number} depth - Negative offset in world units (clamped to max -0.11)
+ * @param {number} duration - Hold duration before spring release (default 220ms)
  */
-export function triggerTileButtonPress(tileId, depth = -0.32, duration = 240) {
+export function triggerTileButtonPress(tileId, depth = -0.11, duration = 220) {
   const st = context.activeTileDepressions[tileId];
   if (!st) return;
-  st.targetOffset = depth;
+  // Safety clamp: Tile resting top is at 0.46, diorama rim slab is at 0.30.
+  // Maximum depression must not exceed -0.11 so the top face card markings
+  // NEVER sink below the rim or get occluded by the baseboard slab.
+  const safeDepth = Math.max(-0.11, depth);
+  st.targetOffset = safeDepth;
   if (st._timer) clearTimeout(st._timer);
   st._timer = setTimeout(() => {
     st.targetOffset = 0;

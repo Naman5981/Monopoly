@@ -41,15 +41,16 @@ export function build3DDicePair(boardGroup) {
     materials.push(new THREE.MeshLambertMaterial({ map: tex }));
   }
 
-  const restingCoords = [{ x: -2.25, z: -0.95 }, { x: -0.95, z: -2.25 }];
+  const restingCoords = [{ x: -1.45, z: -0.65 }, { x: 0.75, z: -1.75 }];
   context.diceMeshes = [];
   for (let i = 0; i < 2; i++) {
     const dieGroup = new THREE.Group();
-    const dieMesh = new THREE.Mesh(new THREE.BoxGeometry(1.38, 1.38, 1.38), materials);
+    const dieMesh = new THREE.Mesh(new THREE.BoxGeometry(1.30, 1.30, 1.30), materials);
     dieMesh.castShadow = true;
     dieMesh.receiveShadow = true;
     dieGroup.add(dieMesh);
-    dieGroup.position.set(restingCoords[i].x, 1.05, restingCoords[i].z);
+    dieGroup.position.set(restingCoords[i].x, 1.02, restingCoords[i].z);
+    dieGroup.rotation.y = (i === 0 ? 0.28 : -0.22);
     boardGroup.add(dieGroup);
     context.diceMeshes.push(dieGroup);
   }
@@ -79,8 +80,10 @@ export function getCSSDiceRotationForFace(faceVal) {
   }
 }
 
+import { matchSettings } from '../../game/state.js';
+
 /**
- * Triggers full 3D tumbling physics and screen overlay animation for a dice roll.
+ * Triggers full 3D tumbling physics on the board and screen overlay for a dice roll.
  * @param {number} d1 - Die 1 result (1 to 6)
  * @param {number} d2 - Die 2 result (1 to 6)
  * @returns {Promise<void>} Resolves when dice animation settles
@@ -88,6 +91,29 @@ export function getCSSDiceRotationForFace(faceVal) {
 export function animate3DDiceTumble(d1, d2) {
   return new Promise(resolve => {
     playSFX('diceShuffle');
+
+    const speed = matchSettings?.gameSpeed || 1;
+    const baseDuration = 1150;
+    const duration = Math.max(220, Math.round(baseDuration / speed));
+    const startTime = performance.now();
+
+    const rot1 = getTargetRotationForDieFace(d1);
+    const rot2 = getTargetRotationForDieFace(d2);
+    const startPos = [{ x: -1.25, z: -0.45 }, { x: 0.95, z: -1.55 }];
+    const endPos = [{ x: -1.45, z: -0.65 }, { x: 0.75, z: -1.75 }];
+
+    // Prepare 3D board dice meshes for dynamic bouncing toss
+    const dieMesh1 = context.diceMeshes && context.diceMeshes[0];
+    const dieMesh2 = context.diceMeshes && context.diceMeshes[1];
+
+    if (dieMesh1) {
+      dieMesh1.visible = true;
+      dieMesh1.position.set(startPos[0].x, 4.5, startPos[0].z);
+    }
+    if (dieMesh2) {
+      dieMesh2.visible = true;
+      dieMesh2.position.set(startPos[1].x, 4.8, startPos[1].z);
+    }
 
     const overlay = document.getElementById('screen-dice-overlay');
     const backdrop = document.getElementById('dice-overlay-backdrop');
@@ -110,16 +136,6 @@ export function animate3DDiceTumble(d1, d2) {
       if (resultBadge) resultBadge.style.transform = 'scale(0)';
     }
 
-    const duration = 1250;
-    const startTime = performance.now();
-
-    const rot1 = getTargetRotationForDieFace(d1);
-    const rot2 = getTargetRotationForDieFace(d2);
-    const endPos = [{ x: -2.25, z: -0.95 }, { x: -0.95, z: -2.25 }];
-
-    // Hide background dice on board while rolling overlay is active
-    context.diceMeshes.forEach(d => { d.visible = false; });
-
     const cssRot1 = getCSSDiceRotationForFace(d1);
     const cssRot2 = getCSSDiceRotationForFace(d2);
     const cssSpins1 = { x: cssRot1.x + 360 * 3, y: cssRot1.y + 360 * 4, z: 360 * 2 };
@@ -133,46 +149,75 @@ export function animate3DDiceTumble(d1, d2) {
 
       let bounceY1 = 0, shadowScale1 = 1, shadowOp1 = 0.8;
       let bounceY2 = 0, shadowScale2 = 1, shadowOp2 = 0.8;
+      let meshY1 = 1.05, meshY2 = 1.05;
 
       if (rawT < 0.44) {
         const p = rawT / 0.44;
         bounceY1 = -220 * (1 - p * p);
         shadowScale1 = 0.45 + 0.55 * p;
         shadowOp1 = 0.25 + 0.55 * p;
+        meshY1 = 1.05 + 3.4 * (1 - p * p);
       } else if (rawT < 0.76) {
         if (!bounced1) { bounced1 = true; playSFX('diceBounce'); }
         const p = (rawT - 0.44) / 0.32;
         bounceY1 = -Math.sin(p * Math.PI) * 82;
         shadowScale1 = 1 - Math.sin(p * Math.PI) * 0.45;
         shadowOp1 = 0.8 - Math.sin(p * Math.PI) * 0.4;
+        meshY1 = 1.05 + Math.sin(p * Math.PI) * 1.5;
       } else if (rawT < 0.93) {
         if (!bounced2) { bounced2 = true; playSFX('diceBounce'); }
         const p = (rawT - 0.76) / 0.17;
         bounceY1 = -Math.sin(p * Math.PI) * 18;
         shadowScale1 = 1 - Math.sin(p * Math.PI) * 0.2;
         shadowOp1 = 0.8 - Math.sin(p * Math.PI) * 0.2;
+        meshY1 = 1.05 + Math.sin(p * Math.PI) * 0.45;
       } else {
-        bounceY1 = 0; shadowScale1 = 1; shadowOp1 = 0.8;
+        bounceY1 = 0; shadowScale1 = 1; shadowOp1 = 0.8; meshY1 = 1.05;
       }
 
-      const t2 = Math.max(0, Math.min(1, (now - startTime - 35) / (duration - 35)));
+      const t2 = Math.max(0, Math.min(1, (now - startTime - 35) / Math.max(1, duration - 35)));
       if (t2 < 0.44) {
         const p = t2 / 0.44;
         bounceY2 = -240 * (1 - p * p);
         shadowScale2 = 0.45 + 0.55 * p;
         shadowOp2 = 0.25 + 0.55 * p;
+        meshY2 = 1.05 + 3.7 * (1 - p * p);
       } else if (t2 < 0.76) {
         const p = (t2 - 0.44) / 0.32;
         bounceY2 = -Math.sin(p * Math.PI) * 90;
         shadowScale2 = 1 - Math.sin(p * Math.PI) * 0.45;
         shadowOp2 = 0.8 - Math.sin(p * Math.PI) * 0.4;
+        meshY2 = 1.05 + Math.sin(p * Math.PI) * 1.7;
       } else if (t2 < 0.93) {
         const p = (t2 - 0.76) / 0.17;
         bounceY2 = -Math.sin(p * Math.PI) * 20;
         shadowScale2 = 1 - Math.sin(p * Math.PI) * 0.2;
         shadowOp2 = 0.8 - Math.sin(p * Math.PI) * 0.2;
+        meshY2 = 1.05 + Math.sin(p * Math.PI) * 0.5;
       } else {
-        bounceY2 = 0; shadowScale2 = 1; shadowOp2 = 0.8;
+        bounceY2 = 0; shadowScale2 = 1; shadowOp2 = 0.8; meshY2 = 1.05;
+      }
+
+      // 3D Three.js Mesh Bouncing & Settling
+      if (dieMesh1) {
+        const curX = startPos[0].x + (endPos[0].x - startPos[0].x) * rawT;
+        const curZ = startPos[0].z + (endPos[0].z - startPos[0].z) * rawT;
+        dieMesh1.position.set(curX, meshY1, curZ);
+        dieMesh1.rotation.set(
+          rot1.x + (1 - rawT) * Math.PI * 4,
+          0.28 + (1 - rawT) * Math.PI * 5,
+          rot1.z + (1 - rawT) * Math.PI * 3
+        );
+      }
+      if (dieMesh2) {
+        const curX = startPos[1].x + (endPos[1].x - startPos[1].x) * rawT;
+        const curZ = startPos[1].z + (endPos[1].z - startPos[1].z) * rawT;
+        dieMesh2.position.set(curX, meshY2, curZ);
+        dieMesh2.rotation.set(
+          rot2.x - (1 - rawT) * Math.PI * 4,
+          -0.22 - (1 - rawT) * Math.PI * 5,
+          rot2.z - (1 - rawT) * Math.PI * 3
+        );
       }
 
       if (actor1) actor1.style.transform = `translateY(${bounceY1}px)`;
@@ -198,6 +243,15 @@ export function animate3DDiceTumble(d1, d2) {
         if (die1) die1.style.transform = `rotateX(${cssRot1.x}deg) rotateY(${cssRot1.y}deg) rotateZ(0deg)`;
         if (die2) die2.style.transform = `rotateX(${cssRot2.x}deg) rotateY(${cssRot2.y}deg) rotateZ(0deg)`;
 
+        if (dieMesh1) {
+          dieMesh1.position.set(endPos[0].x, 1.02, endPos[0].z);
+          dieMesh1.rotation.set(rot1.x, 0.28, rot1.z);
+        }
+        if (dieMesh2) {
+          dieMesh2.position.set(endPos[1].x, 1.02, endPos[1].z);
+          dieMesh2.rotation.set(rot2.x, -0.22, rot2.z);
+        }
+
         const resultStr = `🎲 ${d1} + ${d2} = ${d1 + d2}${d1 === d2 ? ' (DOUBLES!)' : ''}`;
         if (resultText) resultText.textContent = resultStr;
         if (resultBadge) resultBadge.style.transform = 'scale(1)';
@@ -208,6 +262,7 @@ export function animate3DDiceTumble(d1, d2) {
           sumBadge.classList.remove('hidden');
         }
 
+        const settlePause = Math.max(120, Math.round(550 / speed));
         setTimeout(() => {
           if (overlay) {
             overlay.style.opacity = '0';
@@ -215,22 +270,12 @@ export function animate3DDiceTumble(d1, d2) {
             setTimeout(() => {
               overlay.classList.add('hidden');
               overlay.classList.remove('flex');
-              if (context.diceMeshes[0]) {
-                context.diceMeshes[0].position.set(endPos[0].x, 1.05, endPos[0].z);
-                context.diceMeshes[0].rotation.set(rot1.x, Math.PI / 4, rot1.z);
-              }
-              if (context.diceMeshes[1]) {
-                context.diceMeshes[1].position.set(endPos[1].x, 1.05, endPos[1].z);
-                context.diceMeshes[1].rotation.set(rot2.x, -Math.PI / 4, rot2.z);
-              }
-              context.diceMeshes.forEach(d => { d.visible = true; d.scale.set(1, 1, 1); });
               resolve();
-            }, 280);
+            }, Math.max(80, Math.round(240 / speed)));
           } else {
-            context.diceMeshes.forEach(d => { d.visible = true; });
             resolve();
           }
-        }, 650);
+        }, settlePause);
       }
     }
     requestAnimationFrame(stepDice);

@@ -21,6 +21,7 @@ import {
   animatedBuildingPopups
 } from '../assets/buildings.js';
 import { disposeHierarchy } from '../core/dispose.js';
+import { updateDioramaCenterForEdition } from './diorama.js';
 
 /**
  * Renders an offscreen canvas texture for a specific tile.
@@ -50,24 +51,25 @@ export function createTileTexture(tile, propState) {
 
   const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
   const ownerTheme = isOwned ? PLAYER_THEMES[propState.owner] : null;
-  const lightPlayerAccent = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
+  const ownerName = isOwned ? (gameState.players[propState.owner]?.name || 'PLAYER').toUpperCase() : '';
 
   if (isOwned) {
-    ctx.strokeStyle = lightPlayerAccent;
-    ctx.lineWidth = 14;
-    ctx.strokeRect(7, 7, 498, 498);
+    // Bold outer frame in owner's true theme color
+    ctx.strokeStyle = ownerTheme.colorHex;
+    ctx.lineWidth = 18;
+    ctx.strokeRect(9, 9, 494, 494);
 
-    ctx.fillStyle = isCyber ? 'rgba(0, 245, 255, 0.25)' : (isElegant ? 'rgba(212, 175, 55, 0.25)' : 'rgba(255, 255, 255, 0.85)');
-    ctx.fillRect(14, 14, 484, 8);
-    ctx.fillRect(14, 14, 8, 484);
+    ctx.fillStyle = isCyber ? 'rgba(0, 245, 255, 0.25)' : (isElegant ? 'rgba(212, 175, 55, 0.25)' : 'rgba(255, 255, 255, 0.90)');
+    ctx.fillRect(18, 18, 476, 6);
+    ctx.fillRect(18, 18, 6, 476);
 
     ctx.fillStyle = isCyber ? 'rgba(0, 0, 0, 0.6)' : 'rgba(15, 23, 42, 0.22)';
-    ctx.fillRect(14, 490, 484, 8);
-    ctx.fillRect(490, 14, 8, 484);
+    ctx.fillRect(18, 488, 476, 6);
+    ctx.fillRect(488, 18, 6, 476);
 
-    ctx.strokeStyle = ownerTheme.colorHex;
-    ctx.lineWidth = 4;
-    ctx.strokeRect(20, 20, 472, 472);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(21, 21, 470, 470);
   } else {
     if (isCyber) {
       ctx.strokeStyle = '#00f5ff';
@@ -113,40 +115,101 @@ export function createTileTexture(tile, propState) {
   ctx.translate(-256, -256);
 
   if (tile.type === 'city' && tile.group) {
+    // 1. Group color header bar
     ctx.fillStyle = GROUP_META[tile.group].hex;
-    ctx.fillRect(12, 12, 488, 106);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.32)';
-    ctx.fillRect(12, 12, 488, 10);
+    ctx.fillRect(16, 16, 480, 72);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.fillRect(16, 16, 480, 8);
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(12, 118, 488, 6);
-    if (propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner]) {
-      ctx.fillStyle = PLAYER_THEMES[propState.owner].colorHex;
-      ctx.fillRect(12, 464, 488, 36);
-    }
+    ctx.fillRect(16, 88, 480, 4);
   }
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   if (tile.type === 'city') {
-    const fontSize = tile.name.length > 10 ? 42 : (tile.name.length > 7 ? 48 : 56);
-    ctx.font = `900 ${fontSize}px Inter, sans-serif`;
+    // 2. City Title: Crisp Rubik with optical hierarchy
+    const fontSize = tile.name.length > 10 ? 38 : (tile.name.length > 7 ? 44 : 50);
+    ctx.font = `800 ${fontSize}px Rubik, system-ui, sans-serif`;
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    ctx.fillText(tile.name, 256, 215);
+    ctx.fillText(tile.name, 256, 155);
 
-    const displayAmt = (propState?.owner !== null && propState?.owner !== undefined && !propState?.mortgaged)
-      ? calculateTileRent(tile.id)
-      : tile.price;
-    ctx.font = '900 94px Inter, sans-serif';
-    ctx.fillStyle = (propState?.owner !== null && propState?.owner !== undefined)
-      ? (isCyber ? '#38bdf8' : '#047857')
-      : (isCyber ? '#00f5ff' : '#0f172a');
-    ctx.fillText(fmtMoney(displayAmt), 256, 375);
+    if (isOwned) {
+      // 3. Bold Owner Plaque in solid player theme color
+      const pillY = 222;
+      const pillH = 58;
+      const pillW = 420;
+      const pillX = (512 - pillW) / 2;
+      const pillR = 29;
 
-    if (propState?.festivalBoost) {
-      ctx.fillStyle = isCyber ? '#ec4899' : '#6d28d9';
-      ctx.font = '900 34px Inter, sans-serif';
-      ctx.fillText('★ 2X RENT ★', 256, 286);
+      ctx.save();
+      ctx.fillStyle = ownerTheme.colorHex;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 3;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, pillR);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      } else {
+        ctx.fillRect(pillX, pillY, pillW, pillH);
+      }
+      ctx.shadowColor = 'transparent';
+
+      ctx.font = '800 28px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`👑 ${ownerName}`, 256, pillY + pillH / 2);
+      ctx.restore();
+
+      // 4. Rent Section with clear overline label
+      const rentAmt = propState?.mortgaged ? 0 : calculateTileRent(tile.id);
+      ctx.font = '800 22px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
+      ctx.fillText('RENT', 256, 328);
+
+      ctx.font = '900 74px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
+      ctx.fillText(fmtMoney(rentAmt), 256, 390);
+
+      if (propState?.festivalBoost) {
+        ctx.fillStyle = isCyber ? '#ec4899' : '#6d28d9';
+        ctx.font = '800 24px Rubik, system-ui, sans-serif';
+        ctx.fillText('★ 2X RENT ★', 256, 452);
+      }
+    } else {
+      // Unowned: Clear semantic PRICE overline and FOR SALE footer badge
+      ctx.font = '800 24px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
+      ctx.fillText('PRICE', 256, 260);
+
+      ctx.font = '900 80px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#00f5ff' : '#0f172a';
+      ctx.fillText(fmtMoney(tile.price), 256, 335);
+
+      const pillY = 418;
+      const pillH = 46;
+      const pillW = 200;
+      const pillX = (512 - pillW) / 2;
+      const pillR = 23;
+      ctx.save();
+      ctx.fillStyle = isCyber ? '#0e1726' : '#f1f5f9';
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, pillR);
+        ctx.fill();
+        ctx.strokeStyle = isCyber ? '#1e293b' : '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else {
+        ctx.fillRect(pillX, pillY, pillW, pillH);
+      }
+      ctx.font = '800 20px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#475569';
+      ctx.fillText('FOR SALE', 256, pillY + pillH / 2);
+      ctx.restore();
     }
   } else if (tile.type === 'chance') {
     const colors = ['#ef4444', '#facc15', '#22c55e', '#38bdf8', '#a855f7', '#fb923c'];
@@ -163,7 +226,7 @@ export function createTileTexture(tile, propState) {
       ctx.stroke();
     }
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    ctx.font = '900 54px Inter, sans-serif';
+    ctx.font = '900 52px Rubik, system-ui, sans-serif';
     ctx.fillText('CHANCE', 256, 405);
   } else if (tile.type === 'tax') {
     ctx.fillStyle = isCyber ? '#111827' : '#f1f5f9';
@@ -172,46 +235,104 @@ export function createTileTexture(tile, propState) {
     ctx.fillRect(166, 70, 180, 190);
     ctx.strokeRect(166, 70, 180, 190);
     ctx.fillStyle = '#dc2626';
-    ctx.font = '900 84px Inter, sans-serif';
+    ctx.font = '900 80px Rubik, system-ui, sans-serif';
     ctx.fillText('%', 256, 170);
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    ctx.font = '900 62px Inter, sans-serif';
+    ctx.font = '900 56px Rubik, system-ui, sans-serif';
     ctx.fillText('TAX', 256, 345);
-    ctx.font = '800 46px Inter, sans-serif';
+    ctx.font = '800 46px Rubik, system-ui, sans-serif';
     ctx.fillStyle = '#dc2626';
     ctx.fillText(`-${fmtMoney(tile.amount)}`, 256, 425);
   } else if (tile.type === 'resort') {
     ctx.fillStyle = '#0ea5e9';
-    ctx.fillRect(12, 12, 488, 90);
+    ctx.fillRect(16, 16, 480, 68);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.32)';
-    ctx.fillRect(12, 12, 488, 10);
+    ctx.fillRect(16, 16, 480, 8);
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(12, 102, 488, 6);
+    ctx.fillRect(16, 84, 480, 4);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 42px Inter, sans-serif';
-    ctx.fillText('RESORT', 256, 58);
+    ctx.font = '900 32px Rubik, system-ui, sans-serif';
+    ctx.fillText('RESORT', 256, 50);
+
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    const resortFontSize = tile.name.length > 8 ? 44 : 52;
-    ctx.font = `900 ${resortFontSize}px Inter, sans-serif`;
-    ctx.fillText(tile.name, 256, 210);
+    const resortFontSize = tile.name.length > 8 ? 38 : 46;
+    ctx.font = `800 ${resortFontSize}px Rubik, system-ui, sans-serif`;
+    ctx.fillText(tile.name, 256, 155);
 
-    const isOwnedResort = (propState?.owner !== null && propState?.owner !== undefined && !propState?.mortgaged);
-    const displayAmt = isOwnedResort ? calculateTileRent(tile.id) : tile.price;
-    ctx.font = '900 90px Inter, sans-serif';
-    ctx.fillStyle = isOwnedResort ? (isCyber ? '#38bdf8' : '#047857') : (isCyber ? '#00f5ff' : '#0f172a');
-    ctx.fillText(fmtMoney(displayAmt), 256, 380);
+    if (isOwned) {
+      const pillY = 222;
+      const pillH = 58;
+      const pillW = 420;
+      const pillX = (512 - pillW) / 2;
+      const pillR = 29;
 
-    if (propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner]) {
-      ctx.fillStyle = PLAYER_THEMES[propState.owner].colorHex;
-      ctx.fillRect(12, 464, 488, 36);
+      ctx.save();
+      ctx.fillStyle = ownerTheme.colorHex;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 3;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, pillR);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      } else {
+        ctx.fillRect(pillX, pillY, pillW, pillH);
+      }
+      ctx.shadowColor = 'transparent';
+      ctx.font = '800 28px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`👑 ${ownerName}`, 256, pillY + pillH / 2);
+      ctx.restore();
+
+      const rentAmt = propState?.mortgaged ? 0 : calculateTileRent(tile.id);
+      ctx.font = '800 22px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
+      ctx.fillText('RENT', 256, 328);
+
+      ctx.font = '900 74px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
+      ctx.fillText(fmtMoney(rentAmt), 256, 390);
+    } else {
+      ctx.font = '800 24px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
+      ctx.fillText('PRICE', 256, 260);
+
+      ctx.font = '900 80px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#00f5ff' : '#0f172a';
+      ctx.fillText(fmtMoney(tile.price), 256, 335);
+
+      const pillY = 418;
+      const pillH = 46;
+      const pillW = 200;
+      const pillX = (512 - pillW) / 2;
+      const pillR = 23;
+      ctx.save();
+      ctx.fillStyle = isCyber ? '#0e1726' : '#f1f5f9';
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, pillR);
+        ctx.fill();
+        ctx.strokeStyle = isCyber ? '#1e293b' : '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else {
+        ctx.fillRect(pillX, pillY, pillW, pillH);
+      }
+      ctx.font = '800 20px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#475569';
+      ctx.fillText('FOR SALE', 256, pillY + pillH / 2);
+      ctx.restore();
     }
   } else {
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    ctx.font = '900 54px Inter, sans-serif';
+    ctx.font = '900 52px Rubik, system-ui, sans-serif';
     ctx.fillText(tile.name, 256, 395);
     ctx.fillStyle = isCyber ? '#94a3b8' : '#334155';
-    ctx.font = '800 34px Inter, sans-serif';
+    ctx.font = '800 32px Rubik, system-ui, sans-serif';
     ctx.fillText(tile.subtitle || '', 256, 452);
   }
 
@@ -222,7 +343,7 @@ export function createTileTexture(tile, propState) {
     ctx.lineWidth = 5;
     ctx.strokeRect(26, 215, 460, 92);
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 52px Inter, sans-serif';
+    ctx.font = '900 50px Rubik, system-ui, sans-serif';
     ctx.fillText('MORTGAGED', 256, 262);
   }
 
@@ -287,7 +408,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     const isElegant = (boardStyle === 'elegant');
 
     const sideColor = isOwned
-      ? new THREE.Color(lightPlayerAccent)
+      ? new THREE.Color(ownerTheme.colorHex)
       : (isCyber ? new THREE.Color(0x0b1220) : (isElegant ? new THREE.Color(0xfafaf9) : new THREE.Color(0xe2e8f0)));
 
     const sideMat = new THREE.MeshStandardMaterial({
@@ -309,7 +430,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     tileMesh.castShadow = true;
     tileMesh.userData = { tileId: tile.id, topMat, sideMat };
 
-    const borderFrame = createTileBorderFrame(lightPlayerAccent || '#e2e8f0');
+    const borderFrame = createTileBorderFrame(ownerTheme ? ownerTheme.colorHex : '#e2e8f0');
     borderFrame.visible = false;
     tileMesh.add(borderFrame);
     context.tileBorderFrames[tile.id] = borderFrame;
@@ -380,7 +501,7 @@ export function refreshTileTextureAndBuildings(tileId) {
   const isElegant = (boardStyle === 'elegant');
 
   const sideColor = isOwned
-    ? new THREE.Color(lightPlayerAccent)
+    ? new THREE.Color(ownerTheme.colorHex)
     : (isCyber ? new THREE.Color(0x0b1220) : (isElegant ? new THREE.Color(0xfafaf9) : new THREE.Color(0xe2e8f0)));
 
   const isNight = (currentBulbMode === 'night');
@@ -392,11 +513,11 @@ export function refreshTileTextureAndBuildings(tileId) {
         mesh.material[idx].color.copy(sideColor);
         mesh.material[idx].roughness = isCyber ? 0.28 : (isElegant ? 0.18 : 0.42);
         mesh.material[idx].metalness = isCyber ? 0.85 : (isElegant ? 0.25 : 0.04);
-        if (isOwned && isNight && lightPlayerAccent) {
-          mesh.material[idx].emissive.setStyle(lightPlayerAccent);
+        if (isOwned && isNight && ownerTheme) {
+          mesh.material[idx].emissive.setStyle(ownerTheme.colorHex);
           mesh.material[idx].emissiveIntensity = 0.50;
-        } else if (isOwned && isSunset && lightPlayerAccent) {
-          mesh.material[idx].emissive.setStyle(lightPlayerAccent);
+        } else if (isOwned && isSunset && ownerTheme) {
+          mesh.material[idx].emissive.setStyle(ownerTheme.colorHex);
           mesh.material[idx].emissiveIntensity = 0.25;
         } else {
           mesh.material[idx].emissive.setHex(0x000000);
@@ -409,9 +530,9 @@ export function refreshTileTextureAndBuildings(tileId) {
 
   const frame = context.tileBorderFrames[tileId];
   if (frame && frame.userData?.borderMat) {
-    if (isOwned && lightPlayerAccent) {
-      frame.userData.borderMat.color.setStyle(lightPlayerAccent);
-      frame.userData.borderMat.emissive.setStyle(lightPlayerAccent);
+    if (isOwned && ownerTheme) {
+      frame.userData.borderMat.color.setStyle(ownerTheme.colorHex);
+      frame.userData.borderMat.emissive.setStyle(ownerTheme.colorHex);
       if (isNight) {
         frame.visible = true;
         frame.userData.borderMat.emissiveIntensity = 0.85;
@@ -450,19 +571,20 @@ export function refreshTileTextureAndBuildings(tileId) {
 
   if (lvl === 0) {
     const flagMesh = createDetailedFlagMesh(ownerColor);
-    flagMesh.position.set(-0.18, 0, -0.75);
+    // Position flag in corner sidewalk so it never occludes card text
+    flagMesh.position.set(0.95, 0, -0.92);
     flagMesh.scale.set(0.01, 0.01, 0.01);
     bGroup.add(flagMesh);
     animatedBuildingPopups.push({ mesh: flagMesh, startTime: performance.now(), duration: 400 });
   } else if (lvl >= 1 && lvl <= 3) {
     const hGroup = createDetailedHouseMesh(ownerColor, lvl);
-    hGroup.position.set(0, 0, -0.78);
+    hGroup.position.set(0, 0, -0.88);
     hGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(hGroup);
     animatedBuildingPopups.push({ mesh: hGroup, startTime: performance.now(), duration: 420 });
   } else if (lvl >= 4) {
     const towerGroup = createDetailedSkyscraperMesh(ownerColor);
-    towerGroup.position.set(0, 0, -0.68);
+    towerGroup.position.set(0, 0, -0.85);
     towerGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(towerGroup);
     animatedBuildingPopups.push({ mesh: towerGroup, startTime: performance.now(), duration: 500 });
@@ -478,4 +600,5 @@ export function refreshAllTileTexturesAndMaterials() {
   BOARD_TILES.forEach(tile => {
     refreshTileTextureAndBuildings(tile.id);
   });
+  updateDioramaCenterForEdition(matchSettings?.boardEdition || 'world');
 }

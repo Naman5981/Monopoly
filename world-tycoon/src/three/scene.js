@@ -138,6 +138,7 @@ export {
   applyBoardStyle,
   BOARD_STYLES
 } from './board/skins.js';
+export { updateDioramaCenterForEdition } from './board/diorama.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Re-exports: Highlights, Beacons & Flight Rings
@@ -174,7 +175,8 @@ export { animate3DDiceTumble } from './assets/dice.js';
 // ──────────────────────────────────────────────────────────────────────────────
 export {
   spawnAllPlayerTokens3D,
-  updatePlayerTokenPositions3D
+  updatePlayerTokenPositions3D,
+  triggerTokenHurtAnimation
 } from './pawns/tokens.js';
 export {
   hopPlayerStepAnimation,

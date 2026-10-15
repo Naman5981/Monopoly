@@ -8,6 +8,8 @@
 import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { buildFestivalBalloon3D } from '../environment/clouds.js';
+import { buildRajasthanCenterpiece3D, createRajasthanDesertTexture } from './rajasthanCenter.js';
+import { matchSettings } from '../../game/state.js';
 
 /**
  * Generates an authentic high-resolution procedural mahogany wood grain canvas texture.
@@ -161,6 +163,69 @@ export function createParkFountain3D() {
   return g;
 }
 
+/**
+ * Creates the authentic manicured green lawn and roadway procedural canvas texture for World Edition.
+ * @returns {THREE.CanvasTexture}
+ */
+export function createWorldParkTexture() {
+  const roadCanvas = document.createElement('canvas');
+  roadCanvas.width = 1024;
+  roadCanvas.height = 1024;
+  const rctx = roadCanvas.getContext('2d');
+
+  rctx.fillStyle = '#334155';
+  rctx.fillRect(0, 0, 1024, 1024);
+
+  rctx.strokeStyle = '#ffffff';
+  rctx.lineWidth = 10;
+  rctx.strokeRect(5, 5, 1014, 1014);
+
+  rctx.strokeStyle = '#f8fafc';
+  rctx.lineWidth = 7;
+  rctx.setLineDash([28, 22]);
+  rctx.strokeRect(52, 52, 920, 920);
+  rctx.setLineDash([]);
+
+  const crossWalks = [
+    { x: 30, y: 30, w: 70, h: 70 },
+    { x: 924, y: 30, w: 70, h: 70 },
+    { x: 30, y: 924, w: 70, h: 70 },
+    { x: 924, y: 924, w: 70, h: 70 }
+  ];
+  rctx.fillStyle = '#f8fafc';
+  crossWalks.forEach(cwk => {
+    for (let s = 6; s < cwk.w - 6; s += 14) {
+      rctx.fillRect(cwk.x + s, cwk.y + 4, 8, cwk.h - 8);
+    }
+  });
+
+  const pm = 104, ps = 1024 - pm * 2, gc = 6, cw = ps / gc;
+  rctx.fillStyle = '#e2e8f0';
+  rctx.fillRect(pm - 8, pm - 8, ps + 16, ps + 16);
+  rctx.strokeStyle = '#cbd5e1';
+  rctx.lineWidth = 4;
+  rctx.strokeRect(pm - 8, pm - 8, ps + 16, ps + 16);
+
+  for (let gx = 0; gx < gc; gx++) {
+    for (let gz = 0; gz < gc; gz++) {
+      rctx.fillStyle = (gx + gz) % 2 === 0 ? '#4ade80' : '#22c55e';
+      rctx.fillRect(pm + gx * cw, pm + gz * cw, cw, cw);
+      rctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      rctx.lineWidth = 3;
+      rctx.strokeRect(pm + gx * cw, pm + gz * cw, cw, cw);
+    }
+  }
+
+  rctx.strokeStyle = '#fef08a';
+  rctx.lineWidth = 8;
+  rctx.strokeRect(pm, pm, ps, ps);
+
+  const parkTex = new THREE.CanvasTexture(roadCanvas);
+  parkTex.colorSpace = THREE.SRGBColorSpace;
+  parkTex.anisotropy = 4;
+  return parkTex;
+}
+
 export const dioramaMeshes = {
   plinthMesh: null,
   earthMesh: null,
@@ -170,7 +235,11 @@ export const dioramaMeshes = {
   innerMesh: null,
   treeClusters: [],
   fountain: null,
-  shadowPlane: null
+  shadowPlane: null,
+  worldCenterGroup: null,
+  rajasthanCenterGroup: null,
+  worldParkTex: null,
+  rajasthanDesertTex: null
 };
 
 export function buildDioramaBaseAndPark(boardGroup) {
@@ -253,70 +322,21 @@ export function buildDioramaBaseAndPark(boardGroup) {
   boardGroup.add(rimMesh);
   dioramaMeshes.rimMesh = rimMesh;
 
-  // Inner park road and lawn
-  const roadCanvas = document.createElement('canvas');
-  roadCanvas.width = 1024;
-  roadCanvas.height = 1024;
-  const rctx = roadCanvas.getContext('2d');
-
-  rctx.fillStyle = '#334155';
-  rctx.fillRect(0, 0, 1024, 1024);
-
-  rctx.strokeStyle = '#ffffff';
-  rctx.lineWidth = 10;
-  rctx.strokeRect(5, 5, 1014, 1014);
-
-  rctx.strokeStyle = '#f8fafc';
-  rctx.lineWidth = 7;
-  rctx.setLineDash([28, 22]);
-  rctx.strokeRect(52, 52, 920, 920);
-  rctx.setLineDash([]);
-
-  const crossWalks = [
-    { x: 30, y: 30, w: 70, h: 70 },
-    { x: 924, y: 30, w: 70, h: 70 },
-    { x: 30, y: 924, w: 70, h: 70 },
-    { x: 924, y: 924, w: 70, h: 70 }
-  ];
-  rctx.fillStyle = '#f8fafc';
-  crossWalks.forEach(cwk => {
-    for (let s = 6; s < cwk.w - 6; s += 14) {
-      rctx.fillRect(cwk.x + s, cwk.y + 4, 8, cwk.h - 8);
-    }
-  });
-
-  const pm = 104, ps = 1024 - pm * 2, gc = 6, cw = ps / gc;
-  rctx.fillStyle = '#e2e8f0';
-  rctx.fillRect(pm - 8, pm - 8, ps + 16, ps + 16);
-  rctx.strokeStyle = '#cbd5e1';
-  rctx.lineWidth = 4;
-  rctx.strokeRect(pm - 8, pm - 8, ps + 16, ps + 16);
-
-  for (let gx = 0; gx < gc; gx++) {
-    for (let gz = 0; gz < gc; gz++) {
-      rctx.fillStyle = (gx + gz) % 2 === 0 ? '#4ade80' : '#22c55e';
-      rctx.fillRect(pm + gx * cw, pm + gz * cw, cw, cw);
-      rctx.strokeStyle = 'rgba(255,255,255,0.22)';
-      rctx.lineWidth = 3;
-      rctx.strokeRect(pm + gx * cw, pm + gz * cw, cw, cw);
-    }
-  }
-
-  rctx.strokeStyle = '#fef08a';
-  rctx.lineWidth = 8;
-  rctx.strokeRect(pm, pm, ps, ps);
-
-  const parkTex = new THREE.CanvasTexture(roadCanvas);
-  parkTex.colorSpace = THREE.SRGBColorSpace;
-  parkTex.anisotropy = 4;
+  dioramaMeshes.worldParkTex = createWorldParkTexture();
   const innerMesh = new THREE.Mesh(
     new THREE.BoxGeometry(20.6, 0.15, 20.6),
-    new THREE.MeshStandardMaterial({ map: parkTex, roughness: 0.65, metalness: 0.05 })
+    new THREE.MeshStandardMaterial({ map: dioramaMeshes.worldParkTex, roughness: 0.65, metalness: 0.05 })
   );
   innerMesh.position.y = 0.28;
   innerMesh.receiveShadow = true;
   boardGroup.add(innerMesh);
   dioramaMeshes.innerMesh = innerMesh;
+
+  // World Center Group: manicured park, pine trees, fountain, benches, moss stones
+  const worldCenterGroup = new THREE.Group();
+  worldCenterGroup.name = 'world-centerpiece';
+  boardGroup.add(worldCenterGroup);
+  dioramaMeshes.worldCenterGroup = worldCenterGroup;
 
   const treeClusters = [
     { x: -4.6, z: 1.5 },
@@ -327,21 +347,22 @@ export function buildDioramaBaseAndPark(boardGroup) {
   treeClusters.forEach(pos => {
     const cluster = createPineTreeCluster3D();
     cluster.position.set(pos.x, 0.35, pos.z);
-    boardGroup.add(cluster);
+    worldCenterGroup.add(cluster);
     dioramaMeshes.treeClusters.push(cluster);
   });
 
   const fountain = createParkFountain3D();
-  fountain.position.set(-3.2, 0.36, -2.2);
-  boardGroup.add(fountain);
+  fountain.position.set(-3.6, 0.36, -3.2);
+  worldCenterGroup.add(fountain);
   dioramaMeshes.fountain = fountain;
 }
 
 export function buildLowPolyParkDecor3D(boardGroup) {
+  const worldCenterGroup = dioramaMeshes.worldCenterGroup || boardGroup;
   const stoneMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.55, flatShading: true });
   const mossMat = new THREE.MeshLambertMaterial({ color: 0x4ade80, flatShading: true });
   [
-    { x: -4.8, z: -3.8, s: 0.42 },
+    { x: -5.0, z: -4.2, s: 0.42 },
     { x: 4.2, z: 3.8, s: 0.45 },
     { x: -2.8, z: 4.6, s: 0.38 },
     { x: 4.6, z: -2.8, s: 0.40 }
@@ -358,7 +379,7 @@ export function buildLowPolyParkDecor3D(boardGroup) {
     moss.castShadow = true;
     rg.add(moss);
     rg.position.set(rp.x, 0.35, rp.z);
-    boardGroup.add(rg);
+    worldCenterGroup.add(rg);
   });
 
   const bushMat = new THREE.MeshLambertMaterial({ color: 0x22c55e, flatShading: true });
@@ -381,8 +402,50 @@ export function buildLowPolyParkDecor3D(boardGroup) {
     bench.add(bush);
     bench.position.set(bs.x, 0.35, bs.z);
     bench.rotation.y = bs.rot;
-    boardGroup.add(bench);
+    worldCenterGroup.add(bench);
   });
 
+  // Festival hot-air balloon floats above the board
   buildFestivalBalloon3D(boardGroup);
+
+  // Rajasthan Centerpiece: Hill Fort, Oasis Lake, Thar Desert Dunes, Date Palms & Camels
+  dioramaMeshes.rajasthanCenterGroup = buildRajasthanCenterpiece3D(boardGroup);
+
+  // Apply active board edition center
+  updateDioramaCenterForEdition(matchSettings?.boardEdition || 'world');
+}
+
+/**
+ * Dynamically switches the central diorama assets and ground texture between World and Rajasthan editions.
+ * @param {string} editionId - 'world' | 'rajasthan'
+ */
+export function updateDioramaCenterForEdition(editionId = 'world') {
+  const isRajasthan = editionId === 'rajasthan';
+
+  if (dioramaMeshes.worldCenterGroup) {
+    dioramaMeshes.worldCenterGroup.visible = !isRajasthan;
+  }
+  if (dioramaMeshes.rajasthanCenterGroup) {
+    dioramaMeshes.rajasthanCenterGroup.visible = isRajasthan;
+  }
+
+  if (dioramaMeshes.innerMesh) {
+    if (isRajasthan) {
+      if (!dioramaMeshes.rajasthanDesertTex) {
+        dioramaMeshes.rajasthanDesertTex = createRajasthanDesertTexture();
+      }
+      dioramaMeshes.innerMesh.material.map = dioramaMeshes.rajasthanDesertTex;
+      dioramaMeshes.innerMesh.material.roughness = 0.72;
+      dioramaMeshes.innerMesh.material.metalness = 0.04;
+      dioramaMeshes.innerMesh.material.needsUpdate = true;
+    } else {
+      if (!dioramaMeshes.worldParkTex) {
+        dioramaMeshes.worldParkTex = createWorldParkTexture();
+      }
+      dioramaMeshes.innerMesh.material.map = dioramaMeshes.worldParkTex;
+      dioramaMeshes.innerMesh.material.roughness = 0.65;
+      dioramaMeshes.innerMesh.material.metalness = 0.05;
+      dioramaMeshes.innerMesh.material.needsUpdate = true;
+    }
+  }
 }

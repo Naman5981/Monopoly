@@ -8,6 +8,7 @@ import { context } from '../core/context.js';
 import { getTileFacingAngle, BASE_BUILDING_Y } from '../board/coords.js';
 import { triggerTileButtonPress, setMovingHopDestTileId } from '../board/tilePress.js';
 import { updateSpeechBubbleScreenPosition } from './speech.js';
+import { matchSettings } from '../../game/state.js';
 
 /**
  * Animates a single tile-to-tile parabolic hopping jump.
@@ -31,7 +32,8 @@ export function hopPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
       { x: 0.52, z: 0.0 }
     ];
     const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
-    const hopDuration = 340;
+    const speed = matchSettings.gameSpeed || 1;
+    const hopDuration = Math.max(85, Math.round(340 / speed));
     const hopStart = performance.now();
     let pressedTriggered = false;
 
@@ -47,10 +49,10 @@ export function hopPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
       }
       if (isFinalTouchdown && rawT >= 0.82 && !pressedTriggered) {
         pressedTriggered = true;
-        triggerTileButtonPress(destTileId, -0.30, 260);
+        triggerTileButtonPress(destTileId, -0.11, 220);
       } else if (!isFinalTouchdown && rawT >= 0.88 && !pressedTriggered) {
         pressedTriggered = true;
-        triggerTileButtonPress(destTileId, -0.10, 140);
+        triggerTileButtonPress(destTileId, -0.05, 120);
       }
 
       const tilePressOffset = context.activeTileDepressions[destTileId]?.currentOffset ?? 0;
@@ -146,7 +148,9 @@ export function flyPlayerDirectFlightAnimation(playerIdx, startTileId, destTileI
     const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
 
     const totalSteps = (destTileId - startTileId + 32) % 32;
-    const flyDuration = Math.max(1400, Math.min(2600, 1100 + totalSteps * 45));
+    const speed = matchSettings.gameSpeed || 1;
+    const baseFlyDuration = Math.max(1400, Math.min(2600, 1100 + totalSteps * 45));
+    const flyDuration = Math.max(350, Math.round(baseFlyDuration / speed));
     const flyStart = performance.now();
     let pressedTriggered = false;
     let startCrossedTriggered = false;
@@ -175,7 +179,7 @@ export function flyPlayerDirectFlightAnimation(playerIdx, startTileId, destTileI
 
       if (rawT >= 0.88 && !pressedTriggered) {
         pressedTriggered = true;
-        triggerTileButtonPress(destTileId, -0.35, 300);
+        triggerTileButtonPress(destTileId, -0.11, 220);
       }
 
       const tilePressOffset = context.activeTileDepressions[destTileId]?.currentOffset ?? 0;
@@ -290,7 +294,7 @@ export function flyPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
       }
       if (isFinalTouchdown && rawT >= 0.82 && !pressedTriggered) {
         pressedTriggered = true;
-        triggerTileButtonPress(destTileId, -0.32, 280);
+        triggerTileButtonPress(destTileId, -0.11, 220);
       }
 
       const tilePressOffset = context.activeTileDepressions[destTileId]?.currentOffset ?? 0;

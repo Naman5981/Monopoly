@@ -138,8 +138,8 @@ export function handleMouseWheelZoom(e) {
         cameraState.targetCameraTarget.lerp(new THREE.Vector3(0, 0, 0), outFactor * 0.4);
       }
 
-      cameraState.targetCameraTarget.x = Math.max(-9.2, Math.min(9.2, cameraState.targetCameraTarget.x));
-      cameraState.targetCameraTarget.z = Math.max(-9.2, Math.min(9.2, cameraState.targetCameraTarget.z));
+      cameraState.targetCameraTarget.x = Math.max(-13.5, Math.min(13.5, cameraState.targetCameraTarget.x));
+      cameraState.targetCameraTarget.z = Math.max(-13.5, Math.min(13.5, cameraState.targetCameraTarget.z));
     }
   }
 
