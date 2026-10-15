@@ -17,6 +17,7 @@ import {
   copyRoomInviteLink,
   copyRoomCodeOnly,
   broadcastStartOnlineMatch,
+  broadcastLobbySettings,
   registerNetworkCallbacks,
   broadcastAction
 } from '../network/p2p.js';
@@ -384,12 +385,28 @@ export function stepDecisionTime(delta) {
   playSFX('hop');
 }
 
-export function stepMatchLength(delta) {
+export const MATCH_DURATION_OPTIONS = [15, 30, 45, 60, 75];
+
+export function stepMatchDuration(delta) {
+  const cur = matchSettings.matchDurationMinutes || 15;
+  const idx = MATCH_DURATION_OPTIONS.indexOf(cur);
+  const nextIdx = Math.max(0, Math.min(MATCH_DURATION_OPTIONS.length - 1, (idx === -1 ? 0 : idx) + delta));
+  matchSettings.matchDurationMinutes = MATCH_DURATION_OPTIONS[nextIdx];
+  renderMatchSettingButtons();
+  playSFX('hop');
+  if (networkState.isMultiplayer && networkState.isHost) {
+    broadcastLobbySettings();
+  }
+}
+
+export function stepAtmosphere(delta) {
   const modes = ['day', 'sunset', 'night'];
   const curIdx = modes.indexOf(matchSettings.lightingTheme || 'day');
   const nextIdx = (curIdx + delta + modes.length) % modes.length;
   setAtmosphereMode(modes[nextIdx]);
 }
+
+export const stepMatchLength = stepAtmosphere;
 
 export function setTurnTimerDuration(sec) {
   matchSettings.turnDuration = sec;
@@ -465,8 +482,20 @@ export function renderMatchSettingButtons() {
     timerTextEl.textContent = `${matchSettings.turnDuration || 20} s`;
   }
 
+  // Match Duration text (15 min steps up to 1.25 hr)
+  const durationTextEl = document.getElementById('setup-match-duration-text');
+  if (durationTextEl) {
+    const mins = matchSettings.matchDurationMinutes || 15;
+    if (mins >= 60) {
+      const hours = (mins / 60).toFixed(2).replace(/\.?0+$/, '');
+      durationTextEl.textContent = `${hours} hr (${mins}m)`;
+    } else {
+      durationTextEl.textContent = `${mins} min`;
+    }
+  }
+
   // Match length / atmosphere text
-  const atmoTextEl = document.getElementById('setup-match-length-text');
+  const atmoTextEl = document.getElementById('setup-atmosphere-text') || document.getElementById('setup-match-length-text');
   if (atmoTextEl) {
     const theme = matchSettings.lightingTheme || 'day';
     atmoTextEl.textContent = theme === 'night' ? 'Night' : (theme === 'sunset' ? 'Sunset' : 'Morning');

@@ -7,7 +7,7 @@ import { PLAYER_THEMES, GROUP_META } from '../game/data.js';
 import { gameState, displayedCash, matchSettings } from '../game/state.js';
 import { fmtMoney } from '../game/utils.js';
 import { ownsFullColorGroup } from '../game/rules.js';
-import { showSpeechBubble } from '../three/scene.js';
+import { showSpeechBubble, triggerTokenHurtAnimation } from '../three/scene.js';
 import { networkState } from '../network/p2p.js';
 import { playSFX } from '../game/audio.js';
 
@@ -76,6 +76,30 @@ export function renderCornerHUDs() {
   const targetSets = matchSettings.monopolySetsToWin || 3;
   const bonusEl = document.getElementById('hud-bonus-counter');
   if (bonusEl) bonusEl.textContent = `${mySets}/${targetSets} Sets`;
+
+  // Auto-refresh leaderboard modal if open
+  const lbModal = document.getElementById('modal-leaderboard');
+  if (lbModal && !lbModal.classList.contains('hidden') && window.renderLeaderboardModal) {
+    window.renderLeaderboardModal();
+  }
+}
+
+export function updateGameSpeedUI() {
+  const speed = matchSettings.gameSpeed || 1;
+  const label = document.getElementById('game-speed-label');
+  const btn = document.getElementById('btn-game-speed');
+  if (label) {
+    if (speed === 4) {
+      label.textContent = '🚀 4× Turbo';
+      if (btn) btn.className = 'hud-capsule-btn px-2 py-0.5 rounded-full text-rose-600 bg-rose-50 hover:bg-rose-100 font-black cursor-pointer animate-pulse transition';
+    } else if (speed === 2) {
+      label.textContent = '⚡ 2× Fast';
+      if (btn) btn.className = 'hud-capsule-btn px-2 py-0.5 rounded-full text-amber-600 bg-amber-50 hover:bg-amber-100 font-black cursor-pointer transition';
+    } else {
+      label.textContent = '⚡ 1×';
+      if (btn) btn.className = 'hud-capsule-btn px-2 py-0.5 rounded-full text-slate-700 hover:text-sky-600 hover:bg-slate-100 font-black cursor-pointer transition';
+    }
+  }
 }
 
 function getIsometricCashPileSVG() {
@@ -146,56 +170,83 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
     const endX = toRect.left + toRect.width / 2;
     const endY = toRect.top + toRect.height / 2;
 
-    // 1. Shake payer card and pop deduction text
+    // 1. Shake payer card, trigger 3D token hurt recoil, and pop deduction text
     fromCard.classList.add('hud-card-deduct');
     spawnFloatingCashOnHUD(fromIdx, `-${fmtMoney(amount)} Rent`, false);
-    playSFX('hop');
+    triggerTokenHurtAnimation(fromIdx);
+
+    // Update bottom-center status pill in real-time
+    setStatusPill(`💸 <strong>${fromPlayer.name}</strong> transferred <strong>${fmtMoney(amount)}</strong> rent to <strong>${toPlayer.name}</strong>`, { isThinking: false, durationMs: 4500 });
 
     // 2. Display rent payment game placard at center
     showRentTransferBanner(fromPlayer.name, toPlayer.name, amount, fromIdx, toIdx);
 
-    // 3. Staggered flying cash bills / coins from payer card to owner card
-    const billCount = 12;
-    const duration = 650;
+    // 3. Staggered flying cash bills & coins from payer card to owner card
+    // Slower, graceful transfer duration (~1.45s per note) so bills are clearly tracked across screen
+    const billCount = 16;
+    const duration = 1450;
+    let landedCount = 0;
 
     for (let i = 0; i < billCount; i++) {
       setTimeout(() => {
         const bill = document.createElement('div');
         bill.className = 'flying-cash-bill';
-        bill.innerHTML = i % 2 === 0 ? '💵' : (i % 3 === 0 ? '🪙' : '💸');
+        if (i % 4 === 0) {
+          bill.innerHTML = `<div class="flying-cash-coin">🪙</div>`;
+        } else {
+          bill.innerHTML = `
+            <div class="flying-cash-note">
+              <span class="cash-note-icon">💵</span>
+              <span class="cash-note-curr">$</span>
+            </div>
+          `;
+        }
+        bill.style.left = '0px';
+        bill.style.top = '0px';
         document.body.appendChild(bill);
 
         const startTime = performance.now();
-        const midX = (startX + endX) / 2 + (Math.random() - 0.5) * 120;
-        const midY = Math.min(startY, endY) - 90 - Math.random() * 80;
+        const arcDistance = Math.abs(endX - startX);
+        const arcPeak = Math.max(140, arcDistance * 0.28) + (Math.random() - 0.5) * 60;
+        const midX = (startX + endX) / 2 + (Math.random() - 0.5) * 90;
+        const midY = Math.min(startY, endY) - arcPeak;
 
         function stepBill(now) {
           const t = Math.min(1, (now - startTime) / duration);
           const bx = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * midX + t * t * endX;
           const by = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * midY + t * t * endY;
-          const scale = 1 + Math.sin(t * Math.PI) * 0.6;
-          const rot = (now - startTime) * 0.75;
+          const scale = 0.85 + Math.sin(t * Math.PI) * 0.42;
+          const rot = (now - startTime) * 0.16 + Math.sin(t * Math.PI * 4) * 16;
 
-          bill.style.left = `${bx}px`;
-          bill.style.top = `${by}px`;
-          bill.style.transform = `translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`;
-          bill.style.opacity = t < 0.88 ? '1' : `${(1 - t) * 8}`;
+          // Pure compositor translate3d avoids layout recalcs and paint thrash
+          bill.style.transform = `translate3d(${bx}px, ${by}px, 0) translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`;
+          // Fully visible across the board, fades out only on final contact with card
+          bill.style.opacity = t < 0.94 ? '1' : `${Math.max(0, (1 - t) * 16)}`;
 
           if (t < 1) {
             requestAnimationFrame(stepBill);
           } else {
             bill.remove();
+            landedCount++;
+
+            if (landedCount === 1) {
+              toCard.classList.add('hud-card-receive');
+              playSFX('cash');
+            }
+            if (landedCount % 3 === 0) {
+              playSFX('hop', 0.25);
+            }
           }
         }
         requestAnimationFrame(stepBill);
-      }, i * 46);
+      }, i * 75);
     }
 
-    // 4. When bills stream into the receiver card
+    // 4. When bills stream into receiver card
+    const totalFlightTime = billCount * 75 + duration;
+
     setTimeout(() => {
       fromCard.classList.remove('hud-card-deduct');
-      toCard.classList.add('hud-card-receive');
-      playSFX('cash');
       spawnFloatingCashOnHUD(toIdx, `+${fmtMoney(amount)} Rent`, true);
 
       // Smooth count numbers
@@ -215,8 +266,8 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
         if (fromEl) fromEl.classList.remove('text-rose-600');
         if (toEl) toEl.classList.remove('text-emerald-600');
         resolve();
-      }, 550);
-    }, billCount * 46 + duration * 0.65);
+      }, 650);
+    }, totalFlightTime - 80);
   });
 }
 
@@ -298,11 +349,11 @@ export function showRentTransferBanner(fromName, toName, amount, fromIdx = null,
 
   banner._exitTimer = setTimeout(() => {
     banner.classList.add('exit');
-  }, 2700);
+  }, 3100);
 
   banner._hideTimer = setTimeout(() => {
     banner.classList.remove('active', 'exit');
-  }, 3050);
+  }, 3450);
 }
 window.showRentTransferBanner = showRentTransferBanner;
 
@@ -319,13 +370,120 @@ export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') 
   toast._timer = setTimeout(() => toast.classList.add('hidden'), 2200);
 }
 
-/** Log an event to the event log drawer. */
+let statusPillResetTimer = null;
+let currentThinkingState = null;
+
+/**
+ * Updates the bottom-center pill shape status bar.
+ * Acts as a single source of truth for player thinking states and realtime event logs.
+ * @param {string} htmlContent
+ * @param {{ isThinking?: boolean, playerIdx?: number, icon?: string, durationMs?: number }} options
+ */
+export function setStatusPill(htmlContent, options = {}) {
+  const wrap = document.getElementById('hud-bottom-status-wrap');
+  const pill = document.getElementById('hud-status-pill');
+  const textEl = document.getElementById('hud-status-pill-text');
+  const dotEl = document.getElementById('hud-status-pill-dot');
+  const iconEl = document.getElementById('hud-status-pill-icon');
+  if (!pill || !textEl) return;
+
+  if (wrap) wrap.classList.remove('hidden');
+
+  const { isThinking = false, playerIdx = null, icon = null, durationMs = 3800 } = options;
+
+  if (isThinking) {
+    currentThinkingState = { htmlContent, options };
+  }
+
+  textEl.innerHTML = htmlContent;
+
+  if (playerIdx !== null && playerIdx !== undefined && PLAYER_THEMES[playerIdx]) {
+    if (dotEl) {
+      dotEl.style.backgroundColor = PLAYER_THEMES[playerIdx].colorHex;
+      dotEl.className = isThinking ? 'w-2.5 h-2.5 rounded-full animate-ping' : 'w-2.5 h-2.5 rounded-full';
+    }
+  } else if (dotEl) {
+    dotEl.style.backgroundColor = isThinking ? '#38bdf8' : '#fbbf24';
+    dotEl.className = isThinking ? 'w-2.5 h-2.5 rounded-full animate-pulse' : 'w-2.5 h-2.5 rounded-full';
+  }
+
+  if (iconEl) {
+    if (icon) {
+      iconEl.innerHTML = icon;
+      iconEl.classList.remove('hidden');
+    } else if (isThinking) {
+      iconEl.innerHTML = '<span class="inline-block animate-spin text-sky-400 text-xs">⚡</span>';
+      iconEl.classList.remove('hidden');
+    } else {
+      iconEl.classList.add('hidden');
+    }
+  }
+
+  pill.classList.toggle('pill-thinking', isThinking);
+  pill.classList.remove('pill-event-pop');
+  void pill.offsetWidth;
+  pill.classList.add('pill-event-pop');
+
+  if (statusPillResetTimer) {
+    clearTimeout(statusPillResetTimer);
+    statusPillResetTimer = null;
+  }
+
+  if (!isThinking && durationMs > 0) {
+    statusPillResetTimer = setTimeout(() => {
+      statusPillResetTimer = null;
+      if (currentThinkingState) {
+        setStatusPill(currentThinkingState.htmlContent, currentThinkingState.options);
+      } else {
+        refreshActivePlayerTurnStatus();
+      }
+    }, durationMs);
+  }
+}
+
+/**
+ * Refreshes the active player's thinking / actionable state on the status pill.
+ */
+export function refreshActivePlayerTurnStatus() {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') {
+    setStatusPill('Welcome to World Tycoon! Roll to start.', { isThinking: false });
+    return;
+  }
+  const curIdx = gameState.currentPlayerIdx;
+  const p = gameState.players[curIdx];
+  if (!p) return;
+
+  const isLocalHuman = (curIdx === (networkState.isMultiplayer ? networkState.localPlayerIdx : 0)) && !p.isAI;
+
+  if (isLocalHuman) {
+    if (p.inIsland) {
+      setStatusPill(`🏝️ <strong>Your Turn</strong> — Roll doubles to escape or pay bail!`, { isThinking: false, playerIdx: curIdx });
+    } else if (gameState.phase === 'ROLL') {
+      setStatusPill(`🎲 <strong>Your Turn</strong> — Roll the dice or press Space!`, { isThinking: false, playerIdx: curIdx });
+    } else if (gameState.phase === 'END') {
+      setStatusPill(`✨ <strong>Turn ending</strong>...`, { isThinking: false, playerIdx: curIdx });
+    }
+  } else if (p.isAI) {
+    if (p.inIsland) {
+      setStatusPill(`🤔 <strong>${p.name}</strong> is rolling for doubles to leave the Island...`, { isThinking: true, playerIdx: curIdx });
+    } else {
+      setStatusPill(`🤔 <strong>${p.name}</strong> is thinking...`, { isThinking: true, playerIdx: curIdx });
+    }
+  } else {
+    setStatusPill(`⏳ Waiting for <strong>${p.name}</strong>'s move...`, { isThinking: true, playerIdx: curIdx });
+  }
+}
+
+/** Log an event to the event log drawer and display on real-time bottom-center pill. */
 export function logEvent(html) {
   const log = document.getElementById('activity-log');
-  const div = document.createElement('div');
-  div.className = 'border-l-2 border-indigo-400 pl-2 py-0.5';
-  div.innerHTML = html;
-  log.prepend(div);
+  if (log) {
+    const div = document.createElement('div');
+    div.className = 'border-l-2 border-indigo-400 pl-2 py-0.5';
+    div.innerHTML = html;
+    log.prepend(div);
+  }
+  setStatusPill(html, { isThinking: false, durationMs: 4200 });
 }
 
 /** Update the roll / end-turn buttons and manage-cities / trade pill locks. */

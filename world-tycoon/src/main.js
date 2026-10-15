@@ -4,8 +4,9 @@
  */
 
 import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
-import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable } from './game/state.js';
-import { updateMasterVolume, playSFX } from './game/audio.js';
+import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed } from './game/state.js';
+import { updateMasterVolume, playSFX, initAudioUnlock } from './game/audio.js';
+import { updateGameSpeedUI } from './ui/hud.js';
 import { initThreeScene, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
 import { context } from './three/core/context.js';
 import { checkVictoryConditions } from './game/rules.js';
@@ -16,7 +17,9 @@ import {
   executeWorldTourFlight,
   handlePayIslandBail,
   terminateMatchAndReturnToLobby,
-  cancelAllGameTimers
+  cancelAllGameTimers,
+  resumeActiveTurn,
+  executePlayerRoll
 } from './game/engine.js';
 import {
   initLandingSetup,
@@ -45,6 +48,8 @@ import {
   cycleAvatarNext,
   setLocalPlayerColor,
   stepDecisionTime,
+  stepMatchDuration,
+  stepAtmosphere,
   stepMatchLength,
   renderPlayerCards,
   renderMatchSettingButtons,
@@ -89,6 +94,14 @@ import {
   closeTradeModal,
   populateTradePartnerProps,
   executeTradeOffer,
+  acceptTradeCounterOffer,
+  rejectTradeCounterOffer,
+  showIncomingTradeOfferModal,
+  acceptIncomingTrade,
+  counterIncomingTrade,
+  declineIncomingTrade,
+  closeIncomingTradeModal,
+  renderNetWorthTimelineChart,
   openRulesModal,
   closeRulesModal,
   toggleEmotePopover,
@@ -104,7 +117,11 @@ import {
   openConfirmExitLobbyModal,
   closeConfirmExitLobbyModal,
   handleLobbyButtonClick,
-  confirmExitToLobbyAction
+  confirmExitToLobbyAction,
+  openLeaderboardModal,
+  closeLeaderboardModal,
+  toggleLeaderboardModal,
+  renderLeaderboardModal
 } from './ui/modals.js';
 import {
   fireConfettiBurst,
@@ -180,6 +197,8 @@ window.cycleAvatarPrev = cycleAvatarPrev;
 window.cycleAvatarNext = cycleAvatarNext;
 window.setLocalPlayerColor = setLocalPlayerColor;
 window.stepDecisionTime = stepDecisionTime;
+window.stepMatchDuration = stepMatchDuration;
+window.stepAtmosphere = stepAtmosphere;
 window.stepMatchLength = stepMatchLength;
 window.selectSetupPlayer = selectSetupPlayer;
 window.removePlayerAt = removePlayerAt;
@@ -200,6 +219,16 @@ window.openTradeModal = openTradeModal;
 window.closeTradeModal = closeTradeModal;
 window.populateTradePartnerProps = populateTradePartnerProps;
 window.executeTradeOffer = executeTradeOffer;
+window.acceptTradeCounterOffer = acceptTradeCounterOffer;
+window.rejectTradeCounterOffer = rejectTradeCounterOffer;
+window.showIncomingTradeOfferModal = showIncomingTradeOfferModal;
+window.acceptIncomingTrade = acceptIncomingTrade;
+window.counterIncomingTrade = counterIncomingTrade;
+window.declineIncomingTrade = declineIncomingTrade;
+window.closeIncomingTradeModal = closeIncomingTradeModal;
+window.renderNetWorthTimelineChart = renderNetWorthTimelineChart;
+window.cycleGameSpeed = cycleGameSpeed;
+window.updateGameSpeedUI = updateGameSpeedUI;
 window.resetCameraView = resetCameraView;
 window.rotateBoardLeft = rotateBoardLeft;
 window.rotateBoardRight = rotateBoardRight;
@@ -208,6 +237,7 @@ window.closeRulesModal = closeRulesModal;
 window.toggleEventLogDrawer = toggleEventLogDrawer;
 window.toggleEmotePopover = toggleEmotePopover;
 window.sendQuickEmote = sendQuickEmote;
+window.openBuyCityModal = openBuyCityModal;
 window.confirmBuyCity = confirmBuyCity;
 window.passBuyCity = passBuyCity;
 window.openUpgradeCityModal = openUpgradeCityModal;
@@ -225,9 +255,18 @@ window.upgradeCityLevel = upgradeCityLevel;
 window.downgradeCityLevel = downgradeCityLevel;
 window.toggleCityMortgage = toggleCityMortgage;
 window.closeMonopolyModal = closeMonopolyModal;
+window.openLeaderboardModal = openLeaderboardModal;
+window.closeLeaderboardModal = closeLeaderboardModal;
+window.toggleLeaderboardModal = toggleLeaderboardModal;
+window.renderLeaderboardModal = renderLeaderboardModal;
 
 // Resume & Disconnect Handlers
-window.resumeLastSavedMatch = resumeSavedMatch;
+window.resumeLastSavedMatch = () => {
+  const success = resumeSavedMatch();
+  if (success) {
+    resumeActiveTurn();
+  }
+};
 window.discardSavedMatch = () => {
   clearSavedMatch();
   closeResumeModal();
@@ -341,8 +380,10 @@ function initApp() {
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
 
   // Apply initial sound volume and UI state
+  initAudioUnlock();
   updateSoundUI();
   updateMasterVolume(soundEnabled ? soundVolume : 0);
+  updateGameSpeedUI();
 
   // Check if an unfinished match exists to offer resume
   checkAndPromptResumeMatch();
@@ -363,6 +404,12 @@ function initApp() {
       return;
     }
 
+    // Live refresh leaderboard if open
+    const lbEl = document.getElementById('modal-leaderboard');
+    if (lbEl && !lbEl.classList.contains('hidden')) {
+      renderLeaderboardModal();
+    }
+
     const currentPlayer = gameState.players && gameState.players[gameState.currentPlayerIdx];
     if (gameState.phase === 'ROLL' && currentPlayer) {
       gameState.turnTimeLeft = Math.max(0, gameState.turnTimeLeft - 1);
@@ -373,12 +420,29 @@ function initApp() {
       const ring = document.getElementById('turn-timer-ring');
       if (ring) ring.style.strokeDashoffset = offset;
 
-      if (gameState.turnTimeLeft === 0 && isHumanTurnActionable()) {
+      if (gameState.turnTimeLeft === 0) {
         gameState.turnTimeLeft = turnMax;
-        handleRollButtonClick();
+        if (isHumanTurnActionable()) {
+          handleRollButtonClick();
+        } else if (currentPlayer.isAI && (!networkState.isMultiplayer || networkState.isHost)) {
+          executePlayerRoll();
+        }
       }
     }
   }, 1000);
+
+  // Keyboard hotkeys for Leaderboard (Tab or L) and Esc
+  window.addEventListener('keydown', (e) => {
+    if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+    if (e.key === 'Tab' || e.key === 'l' || e.key === 'L') {
+      if (gameState.gameStarted && gameState.phase !== 'SETUP') {
+        e.preventDefault();
+        toggleLeaderboardModal();
+      }
+    } else if (e.key === 'Escape') {
+      closeLeaderboardModal();
+    }
+  });
 }
 
 if (document.readyState === 'loading') {

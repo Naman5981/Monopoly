@@ -137,11 +137,11 @@ Monopoly/
 
 ## 📜 Release Notes & Architecture History
 
-For detailed architectural specifications, performance benchmarks, and version histories, see the [release-notes/](file:///c:/Users/karti/OneDrive/Desktop/Anti%20Gravity/Monopoly/Monopoly/release-notes/) directory:
+For detailed architectural specifications, performance benchmarks, and version histories, see the [release-notes/](release-notes/) directory:
 
-- [Release Notes Master Registry](file:///c:/Users/karti/OneDrive/Desktop/Anti%20Gravity/Monopoly/Monopoly/release-notes/README.md)
-- [v2.1.0 — CPU & Rendering Pipeline Performance Optimization](file:///c:/Users/karti/OneDrive/Desktop/Anti%20Gravity/Monopoly/Monopoly/release-notes/v2.1.0-performance-optimization.md) (Fixes 70–90% CPU usage, adds 60 FPS limiter, lobby background bypass, on-demand shadows, and eliminates GPU readback stalls)
-- [v2.0.0 — Three.js Architecture Modularization](file:///c:/Users/karti/OneDrive/Desktop/Anti%20Gravity/Monopoly/Monopoly/release-notes/v2.0.0-architecture-modularization.md) (Modularizes 4,504-line monolith into 19 submodules under the Facade pattern)
+- [Release Notes Master Registry](file:///release-notes/README.md)
+- [v2.1.0 — CPU & Rendering Pipeline Performance Optimization](file:///release-notes/v2.1.0-performance-optimization.md) (Fixes 70–90% CPU usage, adds 60 FPS limiter, lobby background bypass, on-demand shadows, and eliminates GPU readback stalls)
+- [v2.0.0 — Three.js Architecture Modularization](file:///release-notes/v2.0.0-architecture-modularization.md) (Modularizes 4,504-line monolith into 19 submodules under the Facade pattern)
 
 ---
 
