@@ -309,6 +309,16 @@ export function getLightPlayerAccent(hex, amount = 0.40) {
 export function updateTileBordersForCurrentMode() {
   const isNight = (currentBulbMode === 'night');
   const isSunset = (currentBulbMode === 'sunset');
+  const boardStyle = matchSettings?.boardStyle || 'wood';
+  const isCyber = (boardStyle === 'cyberpunk');
+  const isElegant = (boardStyle === 'elegant');
+
+  const unownedSideColor = isCyber
+    ? new THREE.Color(0x0b1220)
+    : (isElegant ? new THREE.Color(0xfafaf9) : new THREE.Color(0xe2e8f0));
+
+  const roughness = isCyber ? 0.28 : (isElegant ? 0.18 : 0.42);
+  const metalness = isCyber ? 0.85 : (isElegant ? 0.25 : 0.04);
 
   BOARD_TILES.forEach(tile => {
     const frame = context.tileBorderFrames[tile.id];
@@ -321,17 +331,29 @@ export function updateTileBordersForCurrentMode() {
     if (Array.isArray(mesh?.material)) {
       [0, 1, 3, 4, 5].forEach(idx => {
         if (mesh.material[idx]) {
-          if (isNight && isOwned && lightPlayerAccent) {
+          mesh.material[idx].roughness = roughness;
+          mesh.material[idx].metalness = metalness;
+          if (isOwned && lightPlayerAccent) {
             mesh.material[idx].color.setStyle(lightPlayerAccent);
-            mesh.material[idx].emissive.setStyle(lightPlayerAccent);
-            mesh.material[idx].emissiveIntensity = 0.50;
-          } else if (isSunset && isOwned && lightPlayerAccent) {
-            mesh.material[idx].color.setStyle(lightPlayerAccent);
-            mesh.material[idx].emissive.setStyle(lightPlayerAccent);
-            mesh.material[idx].emissiveIntensity = 0.25;
+            if (isNight) {
+              mesh.material[idx].emissive.setStyle(lightPlayerAccent);
+              mesh.material[idx].emissiveIntensity = 0.50;
+            } else if (isSunset) {
+              mesh.material[idx].emissive.setStyle(lightPlayerAccent);
+              mesh.material[idx].emissiveIntensity = 0.25;
+            } else {
+              mesh.material[idx].emissive.setHex(0x000000);
+              mesh.material[idx].emissiveIntensity = 0;
+            }
           } else {
-            mesh.material[idx].emissive.setHex(0x000000);
-            mesh.material[idx].emissiveIntensity = 0;
+            mesh.material[idx].color.copy(unownedSideColor);
+            if (isCyber && (isNight || isSunset)) {
+              mesh.material[idx].emissive.setHex(0x002233);
+              mesh.material[idx].emissiveIntensity = 0.20;
+            } else {
+              mesh.material[idx].emissive.setHex(0x000000);
+              mesh.material[idx].emissiveIntensity = 0;
+            }
           }
           mesh.material[idx].needsUpdate = true;
         }
@@ -339,16 +361,24 @@ export function updateTileBordersForCurrentMode() {
     }
 
     if (frame && frame.userData?.borderMat) {
-      if (isNight && isOwned && lightPlayerAccent) {
-        frame.visible = true;
+      if (isOwned && lightPlayerAccent) {
         frame.userData.borderMat.color.setStyle(lightPlayerAccent);
         frame.userData.borderMat.emissive.setStyle(lightPlayerAccent);
-        frame.userData.borderMat.emissiveIntensity = 0.85;
-      } else if (isSunset && isOwned && lightPlayerAccent) {
+        if (isNight) {
+          frame.visible = true;
+          frame.userData.borderMat.emissiveIntensity = 0.85;
+        } else if (isSunset) {
+          frame.visible = true;
+          frame.userData.borderMat.emissiveIntensity = 0.45;
+        } else {
+          frame.visible = false;
+          frame.userData.borderMat.emissiveIntensity = 0;
+        }
+      } else if (isCyber && (isNight || isSunset)) {
         frame.visible = true;
-        frame.userData.borderMat.color.setStyle(lightPlayerAccent);
-        frame.userData.borderMat.emissive.setStyle(lightPlayerAccent);
-        frame.userData.borderMat.emissiveIntensity = 0.45;
+        frame.userData.borderMat.color.setHex(0x00f5ff);
+        frame.userData.borderMat.emissive.setHex(0x00f5ff);
+        frame.userData.borderMat.emissiveIntensity = isNight ? 0.65 : 0.35;
       } else {
         frame.visible = false;
         frame.userData.borderMat.emissiveIntensity = 0;
@@ -383,107 +413,297 @@ export function updateAvatarLightingForCurrentMode() {
 }
 
 /**
- * Applies lighting mode changes: 'day', 'sunset', or 'night'.
+ * Applies lighting mode changes: 'day', 'sunset', or 'night', tailored to the active board style.
  * Adjusts street lamps, filaments, glowing bulbs, ground pools, avatar auras, and tile borders.
  */
-export function setBulbLightingTheme(mode) {
+export function setBulbLightingTheme(mode, boardStyle = matchSettings?.boardStyle || 'wood') {
   currentBulbMode = mode;
   const isNight = (mode === 'night');
   const isSunset = (mode === 'sunset');
+  const isCyber = (boardStyle === 'cyberpunk');
+  const isElegant = (boardStyle === 'elegant');
 
-  if (isNight) {
-    streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffffff));
-    streetBulbMaterials.forEach(mat => {
-      mat.emissive.setHex(0xffeedd);
-      mat.emissiveIntensity = 2.6;
-      mat.opacity = 0.92;
-    });
-    streetGlassMaterials.forEach(mat => {
-      mat.emissive.setHex(0xffeedd);
-      mat.emissiveIntensity = 0.35;
-      mat.opacity = 0.42;
-    });
-    streetGlowSprites.forEach(mat => {
-      mat.color.setHex(0xfffaed);
-      mat.opacity = 0.70;
-    });
-    streetGroundLightPools.forEach(mat => {
-      mat.color.setHex(0xffeedd);
-      mat.opacity = 0.45;
-    });
-    streetLightBeams.forEach(mat => {
-      mat.color.setHex(0xfffaed);
-      mat.opacity = 0.08;
-    });
-    streetPointLights.forEach(pl => {
-      pl.visible = true;
-      pl.color.setHex(0xffeedd);
-      pl.intensity = 1.5;
-      pl.distance = 7.5;
-      pl.decay = 1.8;
-    });
-  } else if (isSunset) {
-    streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffedd5));
-    streetBulbMaterials.forEach(mat => {
-      mat.emissive.setHex(0xffe29a);
-      mat.emissiveIntensity = 2.0;
-      mat.opacity = 0.88;
-    });
-    streetGlassMaterials.forEach(mat => {
-      mat.emissive.setHex(0xffe29a);
-      mat.emissiveIntensity = 0.25;
-      mat.opacity = 0.35;
-    });
-    streetGlowSprites.forEach(mat => {
-      mat.color.setHex(0xffe29a);
-      mat.opacity = 0.55;
-    });
-    streetGroundLightPools.forEach(mat => {
-      mat.color.setHex(0xffe29a);
-      mat.opacity = 0.30;
-    });
-    streetLightBeams.forEach(mat => {
-      mat.color.setHex(0xffe29a);
-      mat.opacity = 0.06;
-    });
-    streetPointLights.forEach(pl => {
-      pl.visible = true;
-      pl.color.setHex(0xffe29a);
-      pl.intensity = 1.1;
-      pl.distance = 6.0;
-      pl.decay = 1.8;
-    });
+  if (isCyber) {
+    if (isNight) {
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0x00f5ff));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0x00f5ff);
+        mat.emissiveIntensity = 2.8;
+        mat.opacity = 0.95;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0xd946ef);
+        mat.emissiveIntensity = 0.45;
+        mat.opacity = 0.45;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0x00f5ff);
+        mat.opacity = 0.85;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0x00f5ff);
+        mat.opacity = 0.55;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0x00f5ff);
+        mat.opacity = 0.12;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = true;
+        pl.color.setHex(0x00f5ff);
+        pl.intensity = 1.8;
+        pl.distance = 8.5;
+        pl.decay = 1.8;
+      });
+    } else if (isSunset) {
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0xec4899));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0xd946ef);
+        mat.emissiveIntensity = 2.2;
+        mat.opacity = 0.90;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0x00f5ff);
+        mat.emissiveIntensity = 0.35;
+        mat.opacity = 0.40;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0xec4899);
+        mat.opacity = 0.65;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0xd946ef);
+        mat.opacity = 0.38;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0xec4899);
+        mat.opacity = 0.08;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = true;
+        pl.color.setHex(0xd946ef);
+        pl.intensity = 1.3;
+        pl.distance = 7.0;
+        pl.decay = 1.8;
+      });
+    } else {
+      // Cyberpunk Day: Tech glow on lamp posts
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0x00f5ff));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0x00f5ff);
+        mat.emissiveIntensity = 1.2;
+        mat.opacity = 0.85;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0x00f5ff);
+        mat.emissiveIntensity = 0.20;
+        mat.opacity = 0.30;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0x00f5ff);
+        mat.opacity = 0.25;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0x00f5ff);
+        mat.opacity = 0.15;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0x00f5ff);
+        mat.opacity = 0.04;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = true;
+        pl.color.setHex(0x00f5ff);
+        pl.intensity = 0.6;
+        pl.distance = 5.0;
+        pl.decay = 2.0;
+      });
+    }
+  } else if (isElegant) {
+    if (isNight) {
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffd700));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0xffd700);
+        mat.emissiveIntensity = 2.6;
+        mat.opacity = 0.92;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0xfef08a);
+        mat.emissiveIntensity = 0.35;
+        mat.opacity = 0.40;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0xfef08a);
+        mat.opacity = 0.70;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0xffd700);
+        mat.opacity = 0.45;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0xfef08a);
+        mat.opacity = 0.08;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = true;
+        pl.color.setHex(0xffd700);
+        pl.intensity = 1.5;
+        pl.distance = 7.5;
+        pl.decay = 1.8;
+      });
+    } else if (isSunset) {
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0xfde047));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0xfacc15);
+        mat.emissiveIntensity = 2.2;
+        mat.opacity = 0.90;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0xfde047);
+        mat.emissiveIntensity = 0.25;
+        mat.opacity = 0.35;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0xfde047);
+        mat.opacity = 0.55;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0xfde047);
+        mat.opacity = 0.32;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0xfde047);
+        mat.opacity = 0.06;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = true;
+        pl.color.setHex(0xfacc15);
+        pl.intensity = 1.2;
+        pl.distance = 6.5;
+        pl.decay = 1.8;
+      });
+    } else {
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffedd5));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0x000000);
+        mat.emissiveIntensity = 0;
+        mat.opacity = 0.65;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0x000000);
+        mat.emissiveIntensity = 0;
+        mat.opacity = 0.20;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0xfffaed);
+        mat.opacity = 0;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0xfffaed);
+        mat.opacity = 0;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0xfffaed);
+        mat.opacity = 0;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = false;
+        pl.intensity = 0;
+      });
+    }
   } else {
-    streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffedd5));
-    streetBulbMaterials.forEach(mat => {
-      mat.emissive.setHex(0xffecc7);
-      mat.emissiveIntensity = 1.8;
-      mat.opacity = 0.90;
-    });
-    streetGlassMaterials.forEach(mat => {
-      mat.emissive.setHex(0xffecc7);
-      mat.emissiveIntensity = 0.20;
-      mat.opacity = 0.35;
-    });
-    streetGlowSprites.forEach(mat => {
-      mat.color.setHex(0xffecc7);
-      mat.opacity = 0.35;
-    });
-    streetGroundLightPools.forEach(mat => {
-      mat.color.setHex(0xffecc7);
-      mat.opacity = 0.12;
-    });
-    streetLightBeams.forEach(mat => {
-      mat.color.setHex(0xffecc7);
-      mat.opacity = 0.03;
-    });
-    streetPointLights.forEach(pl => {
-      pl.visible = false;
-      pl.color.setHex(0xffecc7);
-      pl.intensity = 0;
-      pl.distance = 5.0;
-      pl.decay = 2.0;
-    });
+    // Default: 'wood'
+    if (isNight) {
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffffff));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0xffeedd);
+        mat.emissiveIntensity = 2.6;
+        mat.opacity = 0.92;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0xffeedd);
+        mat.emissiveIntensity = 0.35;
+        mat.opacity = 0.42;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0xfffaed);
+        mat.opacity = 0.70;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0xffeedd);
+        mat.opacity = 0.45;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0xfffaed);
+        mat.opacity = 0.08;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = true;
+        pl.color.setHex(0xffeedd);
+        pl.intensity = 1.5;
+        pl.distance = 7.5;
+        pl.decay = 1.8;
+      });
+    } else if (isSunset) {
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffedd5));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0xffe29a);
+        mat.emissiveIntensity = 2.0;
+        mat.opacity = 0.88;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0xffe29a);
+        mat.emissiveIntensity = 0.25;
+        mat.opacity = 0.35;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0xffe29a);
+        mat.opacity = 0.55;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0xffe29a);
+        mat.opacity = 0.30;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0xffe29a);
+        mat.opacity = 0.06;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = true;
+        pl.color.setHex(0xffe29a);
+        pl.intensity = 1.1;
+        pl.distance = 6.0;
+        pl.decay = 1.8;
+      });
+    } else {
+      streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffedd5));
+      streetBulbMaterials.forEach(mat => {
+        mat.emissive.setHex(0xffecc7);
+        mat.emissiveIntensity = 0;
+        mat.opacity = 0.65;
+      });
+      streetGlassMaterials.forEach(mat => {
+        mat.emissive.setHex(0x000000);
+        mat.emissiveIntensity = 0;
+        mat.opacity = 0.20;
+      });
+      streetGlowSprites.forEach(mat => {
+        mat.color.setHex(0xffecc7);
+        mat.opacity = 0;
+      });
+      streetGroundLightPools.forEach(mat => {
+        mat.color.setHex(0xffecc7);
+        mat.opacity = 0;
+      });
+      streetLightBeams.forEach(mat => {
+        mat.color.setHex(0xffecc7);
+        mat.opacity = 0;
+      });
+      streetPointLights.forEach(pl => {
+        pl.visible = false;
+        pl.intensity = 0;
+      });
+    }
   }
 
   updateAvatarLightingForCurrentMode();
@@ -493,7 +713,7 @@ export function setBulbLightingTheme(mode) {
     context.tilePressPointLight.intensity = 0;
     context.tilePressPointLight.visible = false;
   }
-  if (!isNight && !isSunset) {
+  if (!isNight && !isSunset && !isCyber) {
     Object.values(context.tileGroundLightPools).forEach(pool => {
       if (pool) { pool.visible = false; pool.material.opacity = 0; }
     });

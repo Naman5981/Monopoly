@@ -228,6 +228,7 @@ window.addEventListener('beforeunload', (e) => {
 
 window.cycleLightingMode = () => {
   cycleLightingMode(getSceneLighting());
+  renderMatchSettingButtons();
 };
 
 window.triggerReaction = (type) => {

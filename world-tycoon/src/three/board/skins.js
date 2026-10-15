@@ -11,6 +11,8 @@ import { context } from '../core/context.js';
 import { matchSettings } from '../../game/state.js';
 import { dioramaMeshes, createProceduralWoodTexture } from './diorama.js';
 import { refreshAllTileTexturesAndMaterials } from './tiles.js';
+import { applyLightingMode } from '../effects.js';
+import { getSceneLighting } from '../core/lighting.js';
 
 export const BOARD_STYLES = ['wood', 'cyberpunk', 'elegant'];
 
@@ -695,14 +697,7 @@ export function applyBoardStyle(styleName = 'wood') {
   // 2. Refresh all 32 tiles with new textures and block side styling
   refreshAllTileTexturesAndMaterials();
 
-  // 3. Update scene background gradient to complement theme
-  if (typeof document !== 'undefined' && document.body) {
-    if (style === 'cyberpunk') {
-      document.body.style.background = 'radial-gradient(circle at 50% 40%, #1e1b4b 0%, #0f172a 50%, #020617 100%)';
-    } else if (style === 'elegant') {
-      document.body.style.background = 'radial-gradient(circle at 50% 40%, #fdfbf7 0%, #f3eee6 50%, #e2d9cc 100%)';
-    } else {
-      document.body.style.background = 'radial-gradient(circle at 50% 40%, #cce0ff 0%, #a8c8f8 50%, #82aef2 100%)';
-    }
-  }
+  // 3. Re-apply composite lighting and atmosphere matching the new board style
+  const lighting = getSceneLighting();
+  applyLightingMode(matchSettings.lightingTheme || 'day', lighting);
 }
