@@ -48,35 +48,24 @@ function getTileMeshes() {
 }
 
 /**
- * Fast multi-tier raycaster: tests primary tile collision boxes non-recursively first (O(1)),
- * falling back to avatars or landmarks only if necessary.
+ * Comprehensive raycaster: tests tiles, placed building models, corner landmarks, and player tokens.
  * @returns {number|undefined}
  */
 export function findIntersectedTileId() {
-  const tileMeshes = getTileMeshes();
-  if (tileMeshes.length > 0) {
-    const tileIntersects = context.raycaster.intersectObjects(tileMeshes, false);
-    if (tileIntersects.length > 0 && tileIntersects[0].object.userData?.tileId !== undefined) {
-      return tileIntersects[0].object.userData.tileId;
-    }
-  }
+  if (!context.raycaster) return undefined;
 
-  // Fallback 1: Avatar meshes
-  if (context.playerMeshes && context.playerMeshes.length > 0) {
-    const playerIntersects = context.raycaster.intersectObjects(context.playerMeshes, true);
-    if (playerIntersects.length > 0) {
-      const pTileId = getIntersectedTileId(playerIntersects);
-      if (pTileId !== undefined) return pTileId;
-    }
-  }
+  const targets = [
+    ...Object.values(context.tilesMeshMap || {}),
+    ...Object.values(context.tileBuildingGroups || {}),
+    ...Object.values(context.cornerLandmarkGroups || {}),
+    ...(context.playerMeshes || [])
+  ];
 
-  // Fallback 2: Corner landmark groups
-  const landmarkGroups = Object.values(context.cornerLandmarkGroups);
-  if (landmarkGroups.length > 0) {
-    const landmarkIntersects = context.raycaster.intersectObjects(landmarkGroups, true);
-    if (landmarkIntersects.length > 0) {
-      const lTileId = getIntersectedTileId(landmarkIntersects);
-      if (lTileId !== undefined) return lTileId;
+  if (targets.length > 0) {
+    const intersects = context.raycaster.intersectObjects(targets, true);
+    if (intersects.length > 0) {
+      const tileId = getIntersectedTileId(intersects);
+      if (tileId !== undefined) return tileId;
     }
   }
 
@@ -84,7 +73,7 @@ export function findIntersectedTileId() {
 }
 
 /**
- * Handles hover events to render the property inspector tooltip or highlight World Tour tiles.
+ * Handles hover events to render the property inspector tooltip and tactile tile hover lifts.
  * @param {PointerEvent|MouseEvent} event
  */
 export function handleCanvasHover(event) {
@@ -96,61 +85,68 @@ export function handleCanvasHover(event) {
   context.raycaster.setFromCamera(context.mouseVec, context.camera);
 
   const tileId = findIntersectedTileId();
-    if (tileId !== undefined) {
-      const tile = BOARD_TILES[tileId];
-      if (tile) {
-        if (gameState.phase === 'WORLD_TOUR') {
-          BOARD_TILES.forEach(t => {
-            if (context.activeTileDepressions[t.id]) {
-              context.activeTileDepressions[t.id].targetOffset = (t.id === tileId) ? 0.22 : 0;
-            }
-          });
-          tooltip.innerHTML = `
-            <div class="flex items-center gap-2 border-b border-indigo-400 pb-1">
-              <span class="text-sm">✈️</span>
-              <span class="font-extrabold text-xs tracking-wide text-white">WORLD TOUR DESTINATION</span>
-            </div>
-            <div class="text-xs font-bold text-amber-300 mt-1">${tile.name}</div>
-            <div class="text-[10px] text-slate-300">Click to fly here immediately!</div>
-          `;
-          tooltip.style.left = `${event.clientX}px`;
-          tooltip.style.top = `${event.clientY}px`;
-          tooltip.classList.remove('hidden');
-          if (context.renderer?.domElement) context.renderer.domElement.style.cursor = 'pointer';
-          return;
+  if (tileId !== undefined) {
+    const tile = BOARD_TILES[tileId];
+    if (tile) {
+      // Tactile button hover response: elevate hovered tile (0.24 in World Tour, 0.08 in standard play)
+      BOARD_TILES.forEach(t => {
+        if (context.activeTileDepressions[t.id]) {
+          const isTarget = (t.id === tileId);
+          if (isTarget) {
+            context.activeTileDepressions[t.id].targetOffset = (gameState.phase === 'WORLD_TOUR') ? 0.24 : 0.08;
+          } else if (context.activeTileDepressions[t.id].targetOffset > 0) {
+            context.activeTileDepressions[t.id].targetOffset = 0;
+          }
         }
+      });
 
-        const st = gameState.properties[tileId];
-        const groupColor = tile.group ? GROUP_META[tile.group].hex : '#38bdf8';
-        const ownerText = (st?.owner !== null && st?.owner !== undefined)
-          ? `<span style="color:${PLAYER_THEMES[st.owner].colorHex}">${gameState.players[st.owner]?.name}</span>`
-          : 'Unowned';
-
-        let detailsHtml = '';
-        if (tile.type === 'city' || tile.type === 'resort') {
-          const curRent = (st?.owner !== null && st?.owner !== undefined && !st.mortgaged)
-            ? fmtMoney(calculateTileRent(tileId))
-            : fmtMoney(tile.rent[0]);
-          detailsHtml = `<div class="flex justify-between gap-4 text-[11px] text-slate-300 mt-1"><span>Price: <strong class="text-white">${fmtMoney(tile.price)}</strong></span><span>Rent: <strong class="text-emerald-400">${curRent}</strong></span></div><div class="text-[11px] text-slate-300 mt-0.5">Owner: <strong class="text-white">${ownerText}</strong></div>`;
-        } else {
-          detailsHtml = `<div class="text-[11px] text-slate-300 mt-1">${tile.subtitle || 'Special Board Tile'}</div>`;
-        }
-
-        tooltip.innerHTML = `<div class="flex items-center gap-2 border-b border-slate-700 pb-1"><span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${groupColor}"></span><span class="font-extrabold text-xs tracking-wide text-white">${tile.name}</span></div>${detailsHtml}`;
+      if (gameState.phase === 'WORLD_TOUR') {
+        tooltip.innerHTML = `
+          <div class="flex items-center gap-2 border-b border-indigo-400 pb-1">
+            <span class="text-sm">✈️</span>
+            <span class="font-extrabold text-xs tracking-wide text-white">WORLD TOUR DESTINATION</span>
+          </div>
+          <div class="text-xs font-bold text-amber-300 mt-1">${tile.name}</div>
+          <div class="text-[10px] text-slate-300">Click to fly here immediately!</div>
+        `;
         tooltip.style.left = `${event.clientX}px`;
         tooltip.style.top = `${event.clientY}px`;
         tooltip.classList.remove('hidden');
         if (context.renderer?.domElement) context.renderer.domElement.style.cursor = 'pointer';
         return;
       }
+
+      const st = gameState.properties[tileId];
+      const groupColor = tile.group ? GROUP_META[tile.group].hex : '#38bdf8';
+      const ownerText = (st?.owner !== null && st?.owner !== undefined)
+        ? `<span style="color:${PLAYER_THEMES[st.owner].colorHex}">${gameState.players[st.owner]?.name}</span>`
+        : 'Unowned';
+
+      let detailsHtml = '';
+      if (tile.type === 'city' || tile.type === 'resort') {
+        const curRent = (st?.owner !== null && st?.owner !== undefined && !st.mortgaged)
+          ? fmtMoney(calculateTileRent(tileId))
+          : fmtMoney(tile.rent[0]);
+        detailsHtml = `<div class="flex justify-between gap-4 text-[11px] text-slate-300 mt-1"><span>Price: <strong class="text-white">${fmtMoney(tile.price)}</strong></span><span>Rent: <strong class="text-emerald-400">${curRent}</strong></span></div><div class="text-[11px] text-slate-300 mt-0.5">Owner: <strong class="text-white">${ownerText}</strong></div>`;
+      } else {
+        detailsHtml = `<div class="text-[11px] text-slate-300 mt-1">${tile.subtitle || 'Special Board Tile'}</div>`;
+      }
+
+      tooltip.innerHTML = `<div class="flex items-center gap-2 border-b border-slate-700 pb-1"><span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${groupColor}"></span><span class="font-extrabold text-xs tracking-wide text-white">${tile.name}</span></div>${detailsHtml}`;
+      tooltip.style.left = `${event.clientX}px`;
+      tooltip.style.top = `${event.clientY}px`;
+      tooltip.classList.remove('hidden');
+      if (context.renderer?.domElement) context.renderer.domElement.style.cursor = 'pointer';
+      return;
     }
-
-
-  if (gameState.phase === 'WORLD_TOUR') {
-    BOARD_TILES.forEach(t => {
-      if (context.activeTileDepressions[t.id]) context.activeTileDepressions[t.id].targetOffset = 0;
-    });
   }
+
+  // Pointer moved away: smoothly reset hover elevation offsets
+  BOARD_TILES.forEach(t => {
+    if (context.activeTileDepressions[t.id] && context.activeTileDepressions[t.id].targetOffset > 0) {
+      context.activeTileDepressions[t.id].targetOffset = 0;
+    }
+  });
 
   tooltip.classList.add('hidden');
   if (context.renderer?.domElement) context.renderer.domElement.style.cursor = 'default';
@@ -169,7 +165,8 @@ export function handleCanvasClick(event) {
 
   const clickedTileId = findIntersectedTileId();
   if (clickedTileId !== undefined) {
-    triggerTileButtonPress(clickedTileId, -0.18, 180);
+    // Tactile button animation: punchy mechanical push-down
+    triggerTileButtonPress(clickedTileId, -0.32, 240);
     if (typeof context.onTileClick === 'function') {
       context.onTileClick(clickedTileId);
     }

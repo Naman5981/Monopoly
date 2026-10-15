@@ -23,12 +23,14 @@ export function hopPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
   return new Promise(resolveHop => {
     const mesh = context.playerMeshes[playerIdx];
     const offsets = [
-      { x: -0.42, z: 0.42 },
-      { x: 0.42, z: 0.42 },
-      { x: -0.42, z: -0.42 },
-      { x: 0.42, z: -0.42 }
+      { x: -0.48, z: 0.45 },
+      { x: 0.48, z: 0.45 },
+      { x: -0.48, z: -0.45 },
+      { x: 0.48, z: -0.45 },
+      { x: -0.52, z: 0.0 },
+      { x: 0.52, z: 0.0 }
     ];
-    const off = offsets[playerIdx] || { x: 0, z: 0 };
+    const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
     const hopDuration = 340;
     const hopStart = performance.now();
     let pressedTriggered = false;
@@ -45,10 +47,10 @@ export function hopPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
       }
       if (isFinalTouchdown && rawT >= 0.82 && !pressedTriggered) {
         pressedTriggered = true;
-        triggerTileButtonPress(destTileId, -0.20, 240);
+        triggerTileButtonPress(destTileId, -0.30, 260);
       } else if (!isFinalTouchdown && rawT >= 0.88 && !pressedTriggered) {
         pressedTriggered = true;
-        triggerTileButtonPress(destTileId, -0.05, 120);
+        triggerTileButtonPress(destTileId, -0.10, 140);
       }
 
       const tilePressOffset = context.activeTileDepressions[destTileId]?.currentOffset ?? 0;
@@ -121,7 +123,128 @@ export function resetTokenAfterHop(playerIdx) {
 }
 
 /**
- * Animates high-speed aerial flight across tiles for World Tour.
+ * Animates a direct high-altitude soaring flight across the diorama for World Tour.
+ * @param {number} playerIdx
+ * @param {number} startTileId
+ * @param {number} destTileId
+ * @param {Function} [onCrossStartCb] - Triggered when passing START midway through flight
+ * @returns {Promise<void>}
+ */
+export function flyPlayerDirectFlightAnimation(playerIdx, startTileId, destTileId, onCrossStartCb) {
+  return new Promise(resolveFly => {
+    const mesh = context.playerMeshes[playerIdx];
+    const startPos = getTileWorldPosition(startTileId);
+    const endPos = getTileWorldPosition(destTileId);
+    const offsets = [
+      { x: -0.48, z: 0.45 },
+      { x: 0.48, z: 0.45 },
+      { x: -0.48, z: -0.45 },
+      { x: 0.48, z: -0.45 },
+      { x: -0.52, z: 0.0 },
+      { x: 0.52, z: 0.0 }
+    ];
+    const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
+
+    const totalSteps = (destTileId - startTileId + 32) % 32;
+    const flyDuration = Math.max(1400, Math.min(2600, 1100 + totalSteps * 45));
+    const flyStart = performance.now();
+    let pressedTriggered = false;
+    let startCrossedTriggered = false;
+
+    const dx = endPos.x - startPos.x;
+    const dz = endPos.z - startPos.z;
+    const heading = Math.atan2(dx, dz);
+
+    setMovingHopDestTileId(destTileId);
+
+    function stepFly(now) {
+      const rawT = Math.min(1, (now - flyStart) / flyDuration);
+      // Smooth sinusoidal trajectory
+      const easeT = -(Math.cos(Math.PI * rawT) - 1) / 2;
+
+      const curX = startPos.x + dx * easeT + off.x;
+      const curZ = startPos.z + dz * easeT + off.z;
+
+      // High-altitude parabolic flight arc reaching ~3.8 units above diorama
+      const flightAltitude = Math.sin(rawT * Math.PI) * 3.8;
+
+      if (onCrossStartCb && !startCrossedTriggered && rawT >= 0.48) {
+        startCrossedTriggered = true;
+        onCrossStartCb();
+      }
+
+      if (rawT >= 0.88 && !pressedTriggered) {
+        pressedTriggered = true;
+        triggerTileButtonPress(destTileId, -0.35, 300);
+      }
+
+      const tilePressOffset = context.activeTileDepressions[destTileId]?.currentOffset ?? 0;
+
+      if (mesh) {
+        mesh.position.set(curX, BASE_BUILDING_Y + flightAltitude + (rawT > 0.86 ? tilePressOffset : 0), curZ);
+
+        const ud = mesh.userData;
+        if (rawT < 0.86) {
+          // In flight: bank toward flight vector, pitch along climb/descent
+          mesh.rotation.y = heading;
+          const pitch = (1 - rawT * 2) * 0.32;
+          mesh.rotation.x = pitch;
+          mesh.rotation.z = Math.sin(rawT * Math.PI * 4) * 0.08;
+
+          if (ud?.armGroupL && ud?.armGroupR) {
+            // Swept airplane wing pose
+            ud.armGroupL.rotation.z = Math.PI * 0.45;
+            ud.armGroupR.rotation.z = -Math.PI * 0.45;
+            ud.armGroupL.rotation.x = 0;
+            ud.armGroupR.rotation.x = 0;
+            if (ud.legGroupL && ud.legGroupR) {
+              ud.legGroupL.rotation.x = -0.35;
+              ud.legGroupR.rotation.x = -0.35;
+            }
+          }
+        } else {
+          // Touchdown deceleration: smoothly align with destination facing
+          const landT = (rawT - 0.86) / 0.14;
+          const destFacing = getTileFacingAngle(destTileId);
+          mesh.rotation.y = heading + (destFacing - heading) * landT;
+          mesh.rotation.x = (1 - landT) * -0.28;
+          mesh.rotation.z = 0;
+
+          if (ud?.armGroupL && ud?.armGroupR) {
+            ud.armGroupL.rotation.z = Math.PI * 0.45 * (1 - landT);
+            ud.armGroupR.rotation.z = -Math.PI * 0.45 * (1 - landT);
+            if (ud.legGroupL && ud.legGroupR) {
+              ud.legGroupL.rotation.x = -0.35 * (1 - landT);
+              ud.legGroupR.rotation.x = -0.35 * (1 - landT);
+            }
+          }
+        }
+      }
+
+      updateSpeechBubbleScreenPosition();
+
+      if (rawT < 1) {
+        requestAnimationFrame(stepFly);
+      } else {
+        if (mesh) {
+          mesh.position.set(endPos.x + off.x, BASE_BUILDING_Y + tilePressOffset, endPos.z + off.z);
+          mesh.rotation.y = getTileFacingAngle(destTileId);
+          mesh.rotation.x = 0;
+          mesh.rotation.z = 0;
+        }
+        setTimeout(() => {
+          setMovingHopDestTileId(null);
+        }, 150);
+        resolveFly();
+      }
+    }
+
+    requestAnimationFrame(stepFly);
+  });
+}
+
+/**
+ * Animates high-speed aerial flight across tiles for World Tour (step-by-step fallback).
  * @param {number} playerIdx
  * @param {{x: number, z: number}} startPos
  * @param {{x: number, z: number}} endPos
@@ -134,12 +257,14 @@ export function flyPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
   return new Promise(resolveFly => {
     const mesh = context.playerMeshes[playerIdx];
     const offsets = [
-      { x: -0.42, z: 0.42 },
-      { x: 0.42, z: 0.42 },
-      { x: -0.42, z: -0.42 },
-      { x: 0.42, z: -0.42 }
+      { x: -0.48, z: 0.45 },
+      { x: 0.48, z: 0.45 },
+      { x: -0.48, z: -0.45 },
+      { x: 0.48, z: -0.45 },
+      { x: -0.52, z: 0.0 },
+      { x: 0.52, z: 0.0 }
     ];
-    const off = offsets[playerIdx] || { x: 0, z: 0 };
+    const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
     const flyDuration = totalSteps > 14 ? 145 : (totalSteps > 7 ? 175 : 215);
     const flyStart = performance.now();
     let pressedTriggered = false;
@@ -165,7 +290,7 @@ export function flyPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
       }
       if (isFinalTouchdown && rawT >= 0.82 && !pressedTriggered) {
         pressedTriggered = true;
-        triggerTileButtonPress(destTileId, -0.22, 240);
+        triggerTileButtonPress(destTileId, -0.32, 280);
       }
 
       const tilePressOffset = context.activeTileDepressions[destTileId]?.currentOffset ?? 0;

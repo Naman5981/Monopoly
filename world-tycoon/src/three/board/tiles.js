@@ -339,6 +339,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     if (pos.side === 1) bGroup.rotation.y = -Math.PI / 2;
     else if (pos.side === 2) bGroup.rotation.y = Math.PI;
     else if (pos.side === 3) bGroup.rotation.y = Math.PI / 2;
+    bGroup.userData = { tileId: tile.id };
     boardGroup.add(bGroup);
     context.tileBuildingGroups[tile.id] = bGroup;
     context.activeTileDepressions[tile.id] = { currentOffset: 0, targetOffset: 0 };

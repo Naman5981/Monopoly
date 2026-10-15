@@ -179,7 +179,8 @@ export {
 export {
   hopPlayerStepAnimation,
   resetTokenAfterHop,
-  flyPlayerStepAnimation
+  flyPlayerStepAnimation,
+  flyPlayerDirectFlightAnimation
 } from './pawns/movement.js';
 export { showSpeechBubble } from './pawns/speech.js';
 

@@ -17,10 +17,10 @@ export function setMovingHopDestTileId(id) {
 /**
  * Triggers a spring push-down depression on a specific tile.
  * @param {number} tileId
- * @param {number} depth - Negative offset in world units (default -0.2)
- * @param {number} duration - Hold duration before spring release (default 220ms)
+ * @param {number} depth - Negative offset in world units (default -0.32)
+ * @param {number} duration - Hold duration before spring release (default 240ms)
  */
-export function triggerTileButtonPress(tileId, depth = -0.2, duration = 220) {
+export function triggerTileButtonPress(tileId, depth = -0.32, duration = 240) {
   const st = context.activeTileDepressions[tileId];
   if (!st) return;
   st.targetOffset = depth;
@@ -43,12 +43,19 @@ export function updateTileDepressionsAnimation(updatePlayerTokensPosCb) {
     if (!state || !mesh) return;
 
     if (Math.abs(state.targetOffset - state.currentOffset) > 0.001) {
-      state.currentOffset += (state.targetOffset - state.currentOffset) * 0.24;
+      // Snappy down-press (0.36) and bouncy spring release (0.24)
+      const springRate = state.targetOffset < state.currentOffset ? 0.36 : 0.24;
+      state.currentOffset += (state.targetOffset - state.currentOffset) * springRate;
       mesh.position.y = BASE_TILE_Y + state.currentOffset;
       if (bGroup) bGroup.position.y = BASE_BUILDING_Y + state.currentOffset;
       if (landmark) landmark.position.y = BASE_BUILDING_Y + state.currentOffset;
+
+      // Only reposition tokens if a player is physically situated on this specific depressed tile
       if (gameState.phase !== 'MOVING' && updatePlayerTokensPosCb) {
-        updatePlayerTokensPosCb();
+        const hasPlayerOnTile = gameState.players?.some(p => p.position === tile.id && !p.bankrupt);
+        if (hasPlayerOnTile) {
+          updatePlayerTokensPosCb();
+        }
       }
     } else if (state.currentOffset !== state.targetOffset) {
       state.currentOffset = state.targetOffset;

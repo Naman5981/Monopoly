@@ -3,9 +3,10 @@
  * Web-Audio-API sound-effect synthesizer.
  */
 
-import { soundEnabled } from './state.js';
+import { soundEnabled, soundVolume } from './state.js';
 
 let audioCtx = null;
+let masterGainNode = null;
 
 function getCtx() {
   if (!audioCtx) {
@@ -25,16 +26,38 @@ function getCtx() {
   return audioCtx;
 }
 
+export function getAudioDestination() {
+  const ctx = getCtx();
+  if (!masterGainNode) {
+    masterGainNode = ctx.createGain();
+    const effectiveVol = soundEnabled ? soundVolume : 0;
+    masterGainNode.gain.setValueAtTime(effectiveVol, ctx.currentTime);
+    masterGainNode.connect(ctx.destination);
+  }
+  return masterGainNode;
+}
+
+export function updateMasterVolume(vol) {
+  try {
+    const ctx = getCtx();
+    const dest = getAudioDestination();
+    const target = soundEnabled ? Math.max(0, Math.min(1, parseFloat(vol))) : 0;
+    dest.gain.cancelScheduledValues(ctx.currentTime);
+    dest.gain.setValueAtTime(target, ctx.currentTime);
+  } catch (_) {}
+}
+
 /**
  * Play a synthesized SFX.
  * @param {'dice'|'hop'|'cash'|'build'|'win'|'victory'|'gameStart'} type
  * @param {number} [volumeMultiplier=1.0]
  */
 export function playSFX(type, volumeMultiplier = 1.0) {
-  if (!soundEnabled) return;
+  if (!soundEnabled || soundVolume <= 0) return;
   try {
     const ctx = getCtx();
     const now = ctx.currentTime;
+    const dest = getAudioDestination();
     const vol = Math.max(0.01, volumeMultiplier);
 
     if (type === 'dice' || type === 'diceShuffle') {
@@ -59,7 +82,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
         gain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.04);
         noise.connect(filter);
         filter.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(dest);
         noise.start(now + t);
 
         // Resonant wood/acrylic clack
@@ -71,7 +94,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
         oscGain.gain.setValueAtTime(0.14, now + t);
         oscGain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.035);
         osc.connect(oscGain);
-        oscGain.connect(ctx.destination);
+        oscGain.connect(dest);
         osc.start(now + t);
         osc.stop(now + t + 0.035);
       });
@@ -85,7 +108,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
       oscGain.gain.setValueAtTime(0.22, now);
       oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
       osc.connect(oscGain);
-      oscGain.connect(ctx.destination);
+      oscGain.connect(dest);
       osc.start(now);
       osc.stop(now + 0.05);
     } else if (type === 'hop') {
@@ -96,7 +119,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
       o.frequency.exponentialRampToValueAtTime(580, now + 0.08);
       g.gain.setValueAtTime(0.08, now);
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-      o.connect(g); g.connect(ctx.destination);
+      o.connect(g); g.connect(dest);
       o.start(now); o.stop(now + 0.09);
     } else if (type === 'flight' || type === 'whoosh') {
       // Aerodynamic jet whoosh for tile-by-tile flight
@@ -108,7 +131,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
       o.frequency.exponentialRampToValueAtTime(440, now + 0.12);
       g.gain.setValueAtTime(0.06, now);
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-      o.connect(g); g.connect(ctx.destination);
+      o.connect(g); g.connect(dest);
       o.start(now); o.stop(now + 0.12);
     } else if (type === 'cash') {
       [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
@@ -118,7 +141,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
         o.frequency.setValueAtTime(f, now + i * 0.055);
         g.gain.setValueAtTime(0.1, now + i * 0.055);
         g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.055 + 0.16);
-        o.connect(g); g.connect(ctx.destination);
+        o.connect(g); g.connect(dest);
         o.start(now + i * 0.055); o.stop(now + i * 0.055 + 0.16);
       });
     } else if (type === 'build') {
@@ -129,7 +152,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
         o.frequency.setValueAtTime(f, now + i * 0.065);
         g.gain.setValueAtTime(0.12, now + i * 0.065);
         g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + 0.14);
-        o.connect(g); g.connect(ctx.destination);
+        o.connect(g); g.connect(dest);
         o.start(now + i * 0.065); o.stop(now + i * 0.065 + 0.14);
       });
     } else if (type === 'gavel') {
@@ -140,7 +163,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
       o.frequency.exponentialRampToValueAtTime(40, now + 0.08);
       g.gain.setValueAtTime(0.18, now);
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      o.connect(g); g.connect(ctx.destination);
+      o.connect(g); g.connect(dest);
       o.start(now); o.stop(now + 0.08);
     } else if (type === 'win' || type === 'victory' || type === 'gameStart' || type === 'start') {
       // 1. Grand Royal Brass Herald Fanfare (Reduced by 20% in volume for balanced audio)
@@ -187,7 +210,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
           oscSaw.connect(filter);
           oscTri.connect(filter);
           filter.connect(gain);
-          gain.connect(ctx.destination);
+          gain.connect(dest);
 
           oscSaw.start(now + chord.t);
           oscSaw.stop(now + chord.t + chord.dur);
@@ -208,7 +231,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
         g.gain.linearRampToValueAtTime(0.096 * vol, now + chimeT + 0.015);
         g.gain.exponentialRampToValueAtTime(0.0001, now + chimeT + 0.65);
         o.connect(g);
-        g.connect(ctx.destination);
+        g.connect(dest);
         o.start(now + chimeT);
         o.stop(now + chimeT + 0.65);
       });
@@ -238,7 +261,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
 
       cheerSource.connect(cheerFilter);
       cheerFilter.connect(cheerGain);
-      cheerGain.connect(ctx.destination);
+      cheerGain.connect(dest);
       cheerSource.start(now + 0.2);
 
     } else if (type === 'fireworkLaunch') {
@@ -252,7 +275,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
       g.gain.linearRampToValueAtTime(0.07, now + 0.04);
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
       o.connect(g);
-      g.connect(ctx.destination);
+      g.connect(dest);
       o.start(now);
       o.stop(now + 0.26);
 
@@ -266,7 +289,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
       subGain.gain.setValueAtTime(0.28, now);
       subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
       subOsc.connect(subGain);
-      subGain.connect(ctx.destination);
+      subGain.connect(dest);
       subOsc.start(now);
       subOsc.stop(now + 0.30);
 
@@ -292,7 +315,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
 
       noise.connect(nFilter);
       nFilter.connect(nGain);
-      nGain.connect(ctx.destination);
+      nGain.connect(dest);
       noise.start(now);
 
     } else if (type === 'pop') {
@@ -303,7 +326,7 @@ export function playSFX(type, volumeMultiplier = 1.0) {
       o.frequency.exponentialRampToValueAtTime(120, now + 0.06);
       g.gain.setValueAtTime(0.12, now);
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-      o.connect(g); g.connect(ctx.destination);
+      o.connect(g); g.connect(dest);
       o.start(now); o.stop(now + 0.06);
     }
   } catch (_) { /* silently ignore audio errors */ }

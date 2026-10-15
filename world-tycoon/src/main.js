@@ -4,7 +4,8 @@
  */
 
 import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
-import { gameState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, matchSettings, isHumanTurnActionable } from './game/state.js';
+import { gameState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable } from './game/state.js';
+import { updateMasterVolume, playSFX } from './game/audio.js';
 import { initThreeScene, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting } from './three/scene.js';
 import {
   initEngine,
@@ -111,8 +112,10 @@ import {
   startVictoryCelebration,
   stopVictoryCelebration
 } from './three/effects.js';
+import { initDebugSuite, toggleDebugPanel } from './game/debug.js';
 
-// Expose handlers to window for HTML onclick attributes
+window.gameState = gameState;
+window.threeContext = context;
 window.showVictoryModal = showVictoryModal;
 window.closeVictoryAndPlayAgain = closeVictoryAndPlayAgain;
 window.handlePlayAgainAction = handlePlayAgainAction;
@@ -211,6 +214,8 @@ window.startCityAuction = startCityAuction;
 window.placeAuctionBid = placeAuctionBid;
 window.passAuctionBid = passAuctionBid;
 window.spinChanceWheel = spinChanceWheel;
+window.executeWorldTourFlight = executeWorldTourFlight;
+window.triggerTileButtonPress = triggerTileButtonPress;
 window.closeInspectorModal = closeInspectorModal;
 window.upgradeCityLevel = upgradeCityLevel;
 window.downgradeCityLevel = downgradeCityLevel;
@@ -257,19 +262,48 @@ window.fireConfetti = (x, y) => {
   fireConfettiBurst(x, y);
 };
 
+export function updateSoundUI() {
+  const percent = soundEnabled ? Math.round(soundVolume * 100) : 0;
+
+  // In-game HUD slider & percentage label
+  const slider = document.getElementById('sound-volume-slider');
+  if (slider) slider.value = percent;
+  const valText = document.getElementById('sound-volume-val');
+  if (valText) valText.textContent = `${percent}%`;
+
+  // Lobby setup slider & percentage label
+  const setupSlider = document.getElementById('setup-sound-slider');
+  if (setupSlider) setupSlider.value = percent;
+  const setupValText = document.getElementById('setup-sound-volume-val');
+  if (setupValText) setupValText.textContent = `${percent}%`;
+
+  // Icon classes based on volume level
+  const isMuted = !soundEnabled || soundVolume <= 0;
+  const iconClass = isMuted
+    ? 'fa-solid fa-volume-xmark text-rose-500'
+    : soundVolume < 0.5
+      ? 'fa-solid fa-volume-low text-sky-600'
+      : 'fa-solid fa-volume-high text-sky-600';
+
+  const btnIcon = document.getElementById('btn-sound-icon');
+  if (btnIcon) btnIcon.className = `${iconClass} text-xs`;
+
+  const setupBtnIcon = document.getElementById('setup-btn-sound-icon');
+  if (setupBtnIcon) setupBtnIcon.className = `${iconClass} text-sm`;
+}
+
+window.setGameVolume = (val) => {
+  setSoundVolume(val);
+  updateMasterVolume(soundEnabled ? soundVolume : 0);
+  updateSoundUI();
+};
+
 window.toggleSound = () => {
   toggleSoundEnabled();
-  const btn = document.getElementById('btn-sound');
-  if (btn) {
-    btn.innerHTML = soundEnabled
-      ? '<i class="fa-solid fa-volume-high text-xs"></i>'
-      : '<i class="fa-solid fa-volume-xmark text-xs text-rose-400"></i>';
-  }
-  const setupBtn = document.getElementById('setup-btn-sound');
-  if (setupBtn) {
-    setupBtn.innerHTML = soundEnabled
-      ? '<i class="fa-solid fa-volume-high text-sm"></i>'
-      : '<i class="fa-solid fa-volume-xmark text-sm text-rose-400"></i>';
+  updateMasterVolume(soundEnabled ? soundVolume : 0);
+  updateSoundUI();
+  if (soundEnabled) {
+    playSFX('hop', 0.5);
   }
 };
 
@@ -297,9 +331,14 @@ function initApp() {
   initEngine();
   initThreeScene(onTileClick);
   initLandingSetup();
+  initDebugSuite();
 
   // Apply initial lighting mode
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
+
+  // Apply initial sound volume and UI state
+  updateSoundUI();
+  updateMasterVolume(soundEnabled ? soundVolume : 0);
 
   // Check if an unfinished match exists to offer resume
   checkAndPromptResumeMatch();

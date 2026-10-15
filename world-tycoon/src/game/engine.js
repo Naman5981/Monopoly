@@ -4,7 +4,7 @@
  */
 
 import { BOARD_TILES } from './data.js';
-import { gameState, displayedCash, isHumanTurnActionable, resetGameStateForNewMatch, lobbyPlayerCount, matchSettings } from './state.js';
+import { gameState, displayedCash, isHumanTurnActionable, resetGameStateForNewMatch, lobbyPlayerCount, matchSettings, debugState } from './state.js';
 import { fmtMoney } from './utils.js';
 import { playSFX } from './audio.js';
 import { calculateTileRent, checkAndHandleNegativeCash } from './rules.js';
@@ -20,6 +20,7 @@ import {
   setTileHighlightRing,
   setFlightModeHighlights,
   flyPlayerStepAnimation,
+  flyPlayerDirectFlightAnimation,
   resetLocalCarAnimationClock
 } from '../three/scene.js';
 import { renderCornerHUDs, spawnFloatingCashOnHUD, updateRollButtonsUI, logEvent, showTurnLockToast, animateRentTransferOnHUD } from '../ui/hud.js';
@@ -242,7 +243,7 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
   await evaluateTileLanding(pIdx, isDoubles);
 }
 
-async function hopPlayerSteps3D(playerIdx, steps) {
+export async function hopPlayerSteps3D(playerIdx, steps) {
   const p = gameState.players[playerIdx];
   if (!p) return;
 
@@ -430,43 +431,36 @@ export async function executeWorldTourFlight(destTileId, isRemote = false, expli
   const p = gameState.players[pIdx];
   if (!p) return;
 
+  // IMPORTANT: Lock phase to MOVING so background loops/shadow throttling and tile depression resets never override flight position
+  gameState.phase = 'MOVING';
+
   if (networkState.isMultiplayer && !isRemote) {
     broadcastAction('ACTION_WORLD_TOUR', { playerIdx: pIdx, destTileId });
   }
 
   showSpeechBubble(`✈️ Flying to ${BOARD_TILES[destTileId].name}...`, 3500);
-  logEvent(`✈️ <strong>${p.name}</strong> took off via World Tour toward <strong>${BOARD_TILES[destTileId].name}</strong>!`);
+  logEvent(`✈️ <strong>${p.name}</strong> took off on flight toward <strong>${BOARD_TILES[destTileId].name}</strong>!`);
+
+  playSFX('flight');
+  setTileHighlightRing(destTileId, true);
 
   const startPos = p.position;
-  const totalSteps = (destTileId - startPos + 32) % 32;
+  const crossesStart = (destTileId < startPos) || (startPos === 24 && destTileId === 0);
 
-  if (totalSteps > 0) {
-    for (let s = 0; s < totalSteps; s++) {
-      const stepStartPos = getTileWorldPosition(p.position);
-      p.position = (p.position + 1) % 32;
-      const currentTileId = p.position;
-      const stepEndPos = getTileWorldPosition(currentTileId);
-
-      playSFX('flight');
-      setTileHighlightRing(currentTileId, true);
-      await flyPlayerStepAnimation(pIdx, stepStartPos, stepEndPos, s, totalSteps, currentTileId);
-
-      // Passing START bonus (+300K) — only on intermediate fly-bys
-      if (p.position === 0 && s < totalSteps - 1) {
+  if (startPos !== destTileId) {
+    await flyPlayerDirectFlightAnimation(pIdx, startPos, destTileId, () => {
+      if (crossesStart) {
         p.cash += 300000;
         playSFX('cash');
         spawnAnimatedReaction('cash');
         spawnFloatingCashOnHUD(pIdx, '+300K Passed START', true);
-        logEvent(`🚩 <strong>${p.name}</strong> flew past START and collected <strong>300K</strong>!`);
+        logEvent(`🚩 <strong>${p.name}</strong> flew past START and collected <strong>300K</strong> bonus!`);
         renderCornerHUDs();
       }
-
-      await new Promise(r => setTimeout(r, 20));
-    }
-  } else {
-    p.position = destTileId;
+    });
   }
 
+  p.position = destTileId;
   resetTokenAfterHop(pIdx);
   updatePlayerTokenPositions3D();
   playSFX('hop');
@@ -592,6 +586,10 @@ export function concludeActionPhase(isDoubles) {
     gameState.turnTimeLeft = 15;
     updateRollButtonsUI(isHumanTurnActionable());
     if (p.isAI) {
+      if (debugState?.freezeAI) {
+        logEvent(`⏸️ <strong>[DEBUG]</strong> AI roll paused for <strong>${p.name}</strong> (AI Frozen).`);
+        return;
+      }
       if (aiRollTimer) clearTimeout(aiRollTimer);
       aiRollTimer = setTimeout(() => {
         aiRollTimer = null;
@@ -605,6 +603,10 @@ export function concludeActionPhase(isDoubles) {
   cancelAllGameTimers();
 
   if (p.isAI) {
+    if (debugState?.freezeAI) {
+      logEvent(`⏸️ <strong>[DEBUG]</strong> AI turn end paused for <strong>${p.name}</strong> (AI Frozen).`);
+      return;
+    }
     autoEndTurnTimer = setTimeout(() => {
       autoEndTurnTimer = null;
       if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
@@ -657,6 +659,10 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
 
   if (nextP.isAI) {
     if (!networkState.isMultiplayer || networkState.isHost) {
+      if (debugState?.freezeAI) {
+        logEvent(`⏸️ <strong>[DEBUG]</strong> AI turn start paused for <strong>${nextP.name}</strong> (AI Frozen).`);
+        return;
+      }
       aiRollTimer = setTimeout(() => {
         aiRollTimer = null;
         if (!gameState.gameStarted || gameState.phase === 'SETUP') return;

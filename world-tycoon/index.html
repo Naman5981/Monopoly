@@ -86,13 +86,21 @@
 
       <!-- Right: Rules, Audio & Quick Action Buttons -->
       <div class="flex items-center gap-2.5">
+        <button onclick="window.toggleDebugPanel()" class="top-pill px-3 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5" title="Open Debug & QA Suite [Key: ~ or F2]">
+          <i class="fa-solid fa-bug text-slate-900"></i>
+          <span>DEBUG</span>
+        </button>
         <button onclick="window.openRulesModal()" class="top-pill px-4 py-2 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-2" title="How to Play & Rules">
           <i class="fa-solid fa-book-open text-sky-600"></i>
           <span>RULES</span>
         </button>
-        <button onclick="window.toggleSound()" id="setup-btn-sound" class="game-circle-btn bg-slate-900 hover:bg-slate-800 text-white" title="Toggle Sound">
-          <i class="fa-solid fa-volume-high text-sm"></i>
-        </button>
+        <div class="flex items-center gap-2 bg-white/95 backdrop-blur-md py-1 px-3 rounded-full shadow-md border-2 border-white" title="Adjust Sound Volume">
+          <button onclick="window.toggleSound()" id="setup-btn-sound" class="text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center p-1" title="Mute / Unmute Sound">
+            <i id="setup-btn-sound-icon" class="fa-solid fa-volume-high text-sm text-sky-600"></i>
+          </button>
+          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-20 sm:w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume">
+          <span id="setup-sound-volume-val" class="text-xs font-black tabular-nums text-slate-700 w-7">75%</span>
+        </div>
         <button onclick="if(confirm('Reset match settings to defaults?')) window.location.reload()" class="game-circle-btn bg-rose-500 hover:bg-rose-600 text-white" title="Reset Lobby">
           <i class="fa-solid fa-rotate-left text-sm font-black"></i>
         </button>
@@ -375,6 +383,10 @@
       <span id="hud-multiplayer-text" class="font-extrabold text-xs">Room: ----</span>
       <i class="fa-regular fa-copy text-xs text-indigo-500"></i>
     </button>
+    <button onclick="window.toggleDebugPanel()" class="top-pill !bg-amber-400 hover:!bg-amber-300 text-slate-950 font-black border border-amber-300 shadow-sm flex items-center gap-1.5 cursor-pointer" title="Open Debug & QA Suite [Key: ~ or F2]">
+      <i class="fa-solid fa-bug text-xs"></i>
+      <span>DEBUG</span>
+    </button>
     <button onclick="window.openRulesModal()" class="top-pill !px-3" title="Game Rules">
       <i class="fa-regular fa-circle-question text-slate-700 text-sm"></i>
     </button>
@@ -398,9 +410,13 @@
       <i class="fa-solid fa-link text-slate-500 text-[11px]"></i>
       <span id="hud-bonus-counter" class="tabular-nums">+0</span>
     </div>
-    <button onclick="window.toggleSound()" id="btn-sound" class="w-9 h-9 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-md flex items-center justify-center transition cursor-pointer">
-      <i class="fa-solid fa-volume-high text-xs"></i>
-    </button>
+    <div class="top-pill flex items-center gap-2 px-2.5 py-1" title="Adjust Sound Volume">
+      <button onclick="window.toggleSound()" id="btn-sound" class="text-slate-700 hover:text-slate-950 transition cursor-pointer flex items-center justify-center p-0.5" title="Mute / Unmute Sound">
+        <i id="btn-sound-icon" class="fa-solid fa-volume-high text-xs text-sky-600"></i>
+      </button>
+      <input type="range" id="sound-volume-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-16 sm:w-20 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume">
+      <span id="sound-volume-val" class="text-[11px] font-black tabular-nums text-slate-600 w-6">75%</span>
+    </div>
   </div>
 
   <!-- 6. EVENT LOG FLOATING POPOVER DRAWER -->

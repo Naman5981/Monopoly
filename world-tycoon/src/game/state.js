@@ -23,6 +23,15 @@ export const matchSettings = {
 
 export const setupPlayers = matchSettings.customPlayers;
 
+export const debugState = {
+  enabled: false,
+  freezeAI: false,
+  forcedD1: 3,
+  forcedD2: 4,
+  selectedTileId: 1,
+  selectedPlayerIdx: 0,
+};
+
 export const gameState = {
   gameStarted: false,
   players: [],
@@ -47,8 +56,36 @@ export const displayedCash = [2000000, 2000000, 2000000, 2000000, 2000000, 20000
 export let lobbyPlayerCount = 2;
 export function setLobbyPlayerCount(n) { lobbyPlayerCount = n; }
 
-export let soundEnabled = true;
-export function toggleSoundEnabled() { soundEnabled = !soundEnabled; }
+const SAVED_VOLUME = (typeof localStorage !== 'undefined') ? localStorage.getItem('WORLD_TYCOON_SOUND_VOLUME') : null;
+const INITIAL_VOL = SAVED_VOLUME !== null ? Math.max(0, Math.min(1, parseFloat(SAVED_VOLUME))) : 0.75;
+
+export let soundVolume = isNaN(INITIAL_VOL) ? 0.75 : INITIAL_VOL;
+export let lastNonZeroVolume = soundVolume > 0 ? soundVolume : 0.75;
+export let soundEnabled = soundVolume > 0;
+
+export function toggleSoundEnabled() {
+  soundEnabled = !soundEnabled;
+  if (soundEnabled) {
+    if (soundVolume === 0) soundVolume = lastNonZeroVolume || 0.75;
+  }
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('WORLD_TYCOON_SOUND_VOLUME', (soundEnabled ? soundVolume : 0).toString());
+  }
+}
+
+export function setSoundVolume(v) {
+  const num = Math.max(0, Math.min(1, parseFloat(v)));
+  soundVolume = isNaN(num) ? 0.75 : num;
+  if (soundVolume > 0) {
+    lastNonZeroVolume = soundVolume;
+    soundEnabled = true;
+  } else {
+    soundEnabled = false;
+  }
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('WORLD_TYCOON_SOUND_VOLUME', soundVolume.toString());
+  }
+}
 
 export let tomatoThrows = 0;
 export function incrementTomato() { tomatoThrows++; }
