@@ -399,20 +399,25 @@ function handleGuestReceivedMessage(msg) {
     }
 
     case 'RETURN_TO_LOBBY': {
-      stopVictoryCelebration();
-      document.getElementById('modal-victory')?.classList.add('hidden');
-      document.getElementById('modal-victory')?.classList.remove('flex');
-      gameState.gameStarted = false;
-      if (window.closeAllGameModals) window.closeAllGameModals();
+      if (window.terminateMatchAndReturnToLobby) {
+        window.terminateMatchAndReturnToLobby();
+      } else {
+        stopVictoryCelebration();
+        document.getElementById('modal-victory')?.classList.add('hidden');
+        document.getElementById('modal-victory')?.classList.remove('flex');
+        gameState.gameStarted = false;
+        gameState.phase = 'SETUP';
+        if (window.closeAllGameModals) window.closeAllGameModals();
+        if (window.openLandingSetupScreen) {
+          window.openLandingSetupScreen();
+        }
+      }
       if (msg.lobbyPlayerCount) setLobbyPlayerCount(msg.lobbyPlayerCount);
       if (msg.matchSettings) Object.assign(matchSettings, msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
       }
       logEvent('👑 Table Host brought all room players back to the lobby.');
-      if (window.openLandingSetupScreen) {
-        window.openLandingSetupScreen();
-      }
       break;
     }
 

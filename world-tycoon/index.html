@@ -291,20 +291,20 @@
   <!-- 2C. TURN LOCK NOTIFICATION TOAST -->
   <div id="turn-lock-toast" class="turn-lock-toast hidden">
     <i class="fa-solid fa-lock text-amber-400"></i>
-    <span id="turn-lock-toast-text">Wait for your turn to manage cities!</span>
+    <span id="turn-lock-toast-text">Wait for your turn!</span>
   </div>
 
   <!-- 3. WORLD TOUR DESTINATION SELECTION BANNER -->
-  <div id="world-tour-banner" class="world-tour-banner fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-2.5 rounded-full font-extrabold text-sm shadow-xl border-2 border-white items-center gap-2.5">
+  <div id="world-tour-banner" class="world-tour-banner fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-5 py-2 rounded-full font-extrabold text-xs shadow-xl border-2 border-white items-center gap-2">
     <i class="fa-solid fa-plane-departure animate-bounce"></i>
-    <span>WORLD TOUR ACTIVE! Click any tile on the 3D board to fly there immediately!</span>
+    <span>WORLD TOUR! Click any tile to fly.</span>
   </div>
 
   <!-- 4. TOP-LEFT PILL NAVIGATION BAR -->
   <div class="fixed top-3.5 left-4 z-30 flex flex-wrap items-center gap-2">
-    <button onclick="window.openLandingSetupScreen()" class="top-pill">
-      <i class="fa-solid fa-user-plus text-indigo-600"></i>
-      <span>Add Players</span>
+    <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="top-pill text-indigo-950 font-bold" title="Return to Lobby">
+      <i class="fa-solid fa-house text-indigo-600"></i>
+      <span>Lobby</span>
     </button>
     <button id="btn-manage-cities" onclick="window.openPortfolioModal()" class="top-pill text-indigo-950">
       <i id="icon-manage-cities" class="fa-solid fa-city text-indigo-600"></i>
@@ -899,33 +899,30 @@
 
   <!-- 10. RESUME UNFINISHED MATCH MODAL -->
   <div id="modal-resume-match" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md">
-    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border-3 border-indigo-200 overflow-hidden flex flex-col">
-      <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-5 text-white text-center">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-wider mb-1">
-          <i class="fa-solid fa-floppy-disk"></i> Saved Game Detected
-        </div>
-        <h2 class="font-rounded font-black text-2xl drop-shadow">RESUME LAST MATCH?</h2>
-        <p class="text-xs font-extrabold text-emerald-100 mt-0.5">Pick up right where you left off in your previous tycoon session!</p>
+    <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl border-3 border-indigo-200 overflow-hidden flex flex-col">
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 text-white text-center">
+        <h2 class="font-rounded font-black text-xl drop-shadow">RESUME MATCH?</h2>
+        <p class="text-xs font-bold text-emerald-100 mt-0.5">Unfinished game found</p>
       </div>
 
-      <div class="p-5 space-y-3.5">
-        <div id="resume-match-meta" class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+      <div class="p-4 space-y-3">
+        <div id="resume-match-meta" class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
           <!-- Populated dynamically -->
         </div>
 
         <div>
-          <div class="text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Player Standings</div>
-          <div id="resume-player-roster" class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+          <div class="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1">Players</div>
+          <div id="resume-player-roster" class="space-y-1 max-h-36 overflow-y-auto pr-1">
             <!-- Populated dynamically -->
           </div>
         </div>
 
-        <div class="flex gap-3 pt-2">
-          <button onclick="window.discardSavedMatch()" class="game-btn game-btn-slate flex-1 py-3 text-xs font-black">
-            Start New Game
+        <div class="flex gap-2.5 pt-1">
+          <button onclick="window.discardSavedMatch()" class="game-btn game-btn-slate flex-1 py-2.5 text-xs font-black">
+            New Game
           </button>
-          <button onclick="window.resumeLastSavedMatch()" class="game-btn game-btn-green flex-1 py-3 text-xs font-black">
-            <i class="fa-solid fa-play"></i> Resume Match
+          <button onclick="window.resumeLastSavedMatch()" class="game-btn game-btn-green flex-1 py-2.5 text-xs font-black">
+            <i class="fa-solid fa-play"></i> Resume
           </button>
         </div>
       </div>
@@ -934,23 +931,50 @@
 
   <!-- 11. MATCH DISCONNECTED NOTICE MODAL -->
   <div id="modal-disconnect-notice" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border-3 border-rose-300 overflow-hidden flex flex-col text-center">
-      <div class="bg-gradient-to-r from-rose-500 to-amber-500 p-5 text-white">
-        <div class="w-12 h-12 rounded-full bg-white/20 mx-auto flex items-center justify-center text-2xl mb-2">
+    <div class="relative w-full max-w-xs bg-white rounded-3xl shadow-2xl border-2 border-rose-300 overflow-hidden flex flex-col text-center">
+      <div class="bg-gradient-to-r from-rose-500 to-amber-500 p-4 text-white">
+        <div class="w-10 h-10 rounded-full bg-white/20 mx-auto flex items-center justify-center text-xl mb-1.5">
           <i class="fa-solid fa-plug-circle-xmark"></i>
         </div>
-        <h2 class="font-rounded font-black text-2xl drop-shadow">MATCH DISCONNECTED</h2>
+        <h2 class="font-rounded font-black text-xl drop-shadow">DISCONNECTED</h2>
       </div>
 
-      <div class="p-5 space-y-4">
-        <p id="disconnect-notice-text" class="text-sm font-bold text-slate-700 leading-relaxed">
-          A player disconnected or refreshed their browser. The match has ended and all participants have been returned to the lobby.
+      <div class="p-4 space-y-3">
+        <p id="disconnect-notice-text" class="text-xs font-bold text-slate-600 leading-snug">
+          Player disconnected. Returning to lobby.
         </p>
 
-        <button onclick="window.returnToLobbyFromDisconnect()" class="game-btn game-btn-blue w-full py-3.5 text-sm font-black">
+        <button onclick="window.returnToLobbyFromDisconnect()" class="game-btn game-btn-blue w-full py-2.5 text-xs font-black">
           <i class="fa-solid fa-house"></i>
-          <span>RETURN TO LOBBY</span>
+          <span>Return to Lobby</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. CONFIRM EXIT TO LOBBY MODAL -->
+  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md" onclick="if(event.target===this) window.closeConfirmExitLobbyModal()">
+    <div class="relative w-full max-w-xs bg-white rounded-3xl shadow-2xl border-2 border-rose-200 overflow-hidden flex flex-col text-center">
+      <div class="bg-gradient-to-r from-rose-500 to-amber-500 p-4 text-white">
+        <div class="w-10 h-10 rounded-full bg-white/20 mx-auto flex items-center justify-center text-xl mb-1.5">
+          <i class="fa-solid fa-door-open"></i>
+        </div>
+        <h2 class="font-rounded font-black text-xl drop-shadow">EXIT TO LOBBY?</h2>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <p class="text-xs font-bold text-slate-600 leading-snug">
+          End current game and return to lobby?
+        </p>
+
+        <div class="flex gap-2 pt-1">
+          <button onclick="window.closeConfirmExitLobbyModal()" class="game-btn game-btn-slate flex-1 py-2.5 text-xs font-black">
+            Cancel
+          </button>
+          <button onclick="window.confirmExitToLobbyAction()" class="game-btn game-btn-red flex-1 py-2.5 text-xs font-black">
+            End Game
+          </button>
+        </div>
       </div>
     </div>
   </div>

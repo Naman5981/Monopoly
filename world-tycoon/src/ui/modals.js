@@ -1075,7 +1075,8 @@ export function closeAllGameModals() {
     'modal-rules',
     'modal-disconnect-notice',
     'modal-setup',
-    'modal-monopoly-celebration'
+    'modal-monopoly-celebration',
+    'modal-confirm-exit-lobby'
   ];
   modalIds.forEach(id => {
     const el = document.getElementById(id);
@@ -1365,6 +1366,49 @@ export function checkAndTriggerMonopoly(playerIdx, groupKey) {
     openMonopolyCelebrationModal(playerIdx, groupKey);
     if (networkState.isMultiplayer) {
       broadcastAction('ACTION_MONOPOLY', { playerIdx, groupKey });
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   J. EXIT TO LOBBY CONFIRMATION MODAL
+───────────────────────────────────────────────────────────────────────────── */
+export function openConfirmExitLobbyModal() {
+  const m = document.getElementById('modal-confirm-exit-lobby');
+  if (m) {
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+  }
+}
+
+export function closeConfirmExitLobbyModal() {
+  const m = document.getElementById('modal-confirm-exit-lobby');
+  if (m) {
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+  }
+}
+
+export function handleLobbyButtonClick() {
+  if (gameState && gameState.gameStarted) {
+    openConfirmExitLobbyModal();
+  } else {
+    if (window.openLandingSetupScreen) {
+      window.openLandingSetupScreen();
+    }
+  }
+}
+
+export function confirmExitToLobbyAction() {
+  closeConfirmExitLobbyModal();
+  if (window.terminateMatchAndReturnToLobby) {
+    window.terminateMatchAndReturnToLobby();
+  } else {
+    gameState.gameStarted = false;
+    gameState.phase = 'SETUP';
+    closeAllGameModals();
+    if (window.openLandingSetupScreen) {
+      window.openLandingSetupScreen();
     }
   }
 }

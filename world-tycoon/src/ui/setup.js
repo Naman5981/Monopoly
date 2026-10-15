@@ -456,8 +456,8 @@ export function startGameFromLandingPage() {
 
   const landingScreen = document.getElementById('landing-setup-screen');
 
-  // Play celebratory sound & burst confetti
-  playSFX('win');
+  // Play celebratory sound (start audio reduced by 20%) & burst confetti
+  playSFX('gameStart');
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.45, 120);
 
   // Smooth exit animation

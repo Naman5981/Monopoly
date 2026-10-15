@@ -11,7 +11,8 @@ import {
   startNewMatch,
   handleRollButtonClick,
   executeWorldTourFlight,
-  handlePayIslandBail
+  handlePayIslandBail,
+  terminateMatchAndReturnToLobby
 } from './game/engine.js';
 import {
   initLandingSetup,
@@ -89,7 +90,11 @@ import {
   handlePlayAgainAction,
   handleReturnToLobbyFromVictory,
   closeAllGameModals,
-  openSetupModal
+  openSetupModal,
+  openConfirmExitLobbyModal,
+  closeConfirmExitLobbyModal,
+  handleLobbyButtonClick,
+  confirmExitToLobbyAction
 } from './ui/modals.js';
 import {
   fireConfettiBurst,
@@ -108,6 +113,11 @@ window.handleReturnToLobbyFromVictory = handleReturnToLobbyFromVictory;
 window.closeAllGameModals = closeAllGameModals;
 window.startNewMatch = startNewMatch;
 window.openSetupModal = openSetupModal;
+window.openConfirmExitLobbyModal = openConfirmExitLobbyModal;
+window.closeConfirmExitLobbyModal = closeConfirmExitLobbyModal;
+window.handleLobbyButtonClick = handleLobbyButtonClick;
+window.confirmExitToLobbyAction = confirmExitToLobbyAction;
+window.terminateMatchAndReturnToLobby = terminateMatchAndReturnToLobby;
 window.startVictoryCelebration = startVictoryCelebration;
 window.stopVictoryCelebration = stopVictoryCelebration;
 window.triggerVictoryTest = () => {

@@ -15,13 +15,15 @@ function getCtx() {
 
 /**
  * Play a synthesized SFX.
- * @param {'dice'|'hop'|'cash'|'build'} type
+ * @param {'dice'|'hop'|'cash'|'build'|'win'|'victory'|'gameStart'} type
+ * @param {number} [volumeMultiplier=1.0]
  */
-export function playSFX(type) {
+export function playSFX(type, volumeMultiplier = 1.0) {
   if (!soundEnabled) return;
   try {
     const ctx = getCtx();
     const now = ctx.currentTime;
+    const vol = Math.max(0.01, volumeMultiplier);
 
     if (type === 'dice' || type === 'diceShuffle') {
       // Realistic wooden/plastic shaker cup dice rattle
@@ -128,21 +130,22 @@ export function playSFX(type) {
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
       o.connect(g); g.connect(ctx.destination);
       o.start(now); o.stop(now + 0.08);
-    } else if (type === 'win' || type === 'victory') {
-      // 1. Grand Royal Brass Herald Fanfare
+    } else if (type === 'win' || type === 'victory' || type === 'gameStart' || type === 'start') {
+      // 1. Grand Royal Brass Herald Fanfare (Reduced by 20% in volume for balanced audio)
+      const brassGainScale = 0.80 * vol;
       const brassChords = [
         // Chord 1 (Staccato trumpet blast)
-        { t: 0.00, dur: 0.14, notes: [261.63, 392.00, 523.25], gain: 0.16 },
+        { t: 0.00, dur: 0.14, notes: [261.63, 392.00, 523.25], gain: 0.128 * brassGainScale },
         // Chord 2
-        { t: 0.16, dur: 0.14, notes: [261.63, 392.00, 523.25], gain: 0.16 },
+        { t: 0.16, dur: 0.14, notes: [261.63, 392.00, 523.25], gain: 0.128 * brassGainScale },
         // Chord 3
-        { t: 0.32, dur: 0.14, notes: [261.63, 392.00, 523.25], gain: 0.18 },
+        { t: 0.32, dur: 0.14, notes: [261.63, 392.00, 523.25], gain: 0.144 * brassGainScale },
         // Chord 4 (Dominant step)
-        { t: 0.48, dur: 0.34, notes: [196.00, 293.66, 392.00, 587.33], gain: 0.20 },
+        { t: 0.48, dur: 0.34, notes: [196.00, 293.66, 392.00, 587.33], gain: 0.160 * brassGainScale },
         // Chord 5 (Subdominant rise)
-        { t: 0.85, dur: 0.36, notes: [220.00, 329.63, 440.00, 523.25, 659.25], gain: 0.22 },
+        { t: 0.85, dur: 0.36, notes: [220.00, 329.63, 440.00, 523.25, 659.25], gain: 0.176 * brassGainScale },
         // Chord 6 (Grand Majestic Finale)
-        { t: 1.25, dur: 2.50, notes: [130.81, 196.00, 261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50], gain: 0.26 }
+        { t: 1.25, dur: 2.50, notes: [130.81, 196.00, 261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50], gain: 0.208 * brassGainScale }
       ];
 
       brassChords.forEach(chord => {
@@ -181,7 +184,7 @@ export function playSFX(type) {
         });
       });
 
-      // 2. Crystal Victory Chimes & Glockenspiel Arpeggio
+      // 2. Crystal Victory Chimes & Glockenspiel Arpeggio (Reduced by 20%)
       const chimes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
       chimes.forEach((freq, idx) => {
         const chimeT = 1.35 + idx * 0.07;
@@ -190,7 +193,7 @@ export function playSFX(type) {
         o.type = 'sine';
         o.frequency.setValueAtTime(freq, now + chimeT);
         g.gain.setValueAtTime(0.001, now + chimeT);
-        g.gain.linearRampToValueAtTime(0.12, now + chimeT + 0.015);
+        g.gain.linearRampToValueAtTime(0.096 * vol, now + chimeT + 0.015);
         g.gain.exponentialRampToValueAtTime(0.0001, now + chimeT + 0.65);
         o.connect(g);
         g.connect(ctx.destination);
@@ -198,7 +201,7 @@ export function playSFX(type) {
         o.stop(now + chimeT + 0.65);
       });
 
-      // 3. Swelling Celebratory Crowd Applause / Cheering Noise
+      // 3. Swelling Celebratory Crowd Applause / Cheering Noise (Reduced by 20%)
       const cheerDur = 3.2;
       const cheerBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * cheerDur), ctx.sampleRate);
       const cheerData = cheerBuffer.getChannelData(0);
@@ -217,8 +220,8 @@ export function playSFX(type) {
 
       const cheerGain = ctx.createGain();
       cheerGain.gain.setValueAtTime(0.001, now);
-      cheerGain.gain.exponentialRampToValueAtTime(0.14, now + 0.6);
-      cheerGain.gain.setValueAtTime(0.14, now + 1.8);
+      cheerGain.gain.exponentialRampToValueAtTime(0.112 * vol, now + 0.6);
+      cheerGain.gain.setValueAtTime(0.112 * vol, now + 1.8);
       cheerGain.gain.exponentialRampToValueAtTime(0.001, now + cheerDur);
 
       cheerSource.connect(cheerFilter);

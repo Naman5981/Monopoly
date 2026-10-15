@@ -34,10 +34,22 @@ import {
   closeAllGameModals
 } from '../ui/modals.js';
 import { spawnAnimatedReaction, fireConfettiBurst, stopVictoryCelebration } from '../three/effects.js';
-import { networkState, broadcastAction, registerNetworkCallbacks } from '../network/p2p.js';
+import { networkState, broadcastAction, registerNetworkCallbacks, broadcastReturnToLobby } from '../network/p2p.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from './persistence.js';
 
 let autoEndTurnTimer = null;
+let aiRollTimer = null;
+
+export function cancelAllGameTimers() {
+  if (autoEndTurnTimer) {
+    clearTimeout(autoEndTurnTimer);
+    autoEndTurnTimer = null;
+  }
+  if (aiRollTimer) {
+    clearTimeout(aiRollTimer);
+    aiRollTimer = null;
+  }
+}
 
 export function initEngine() {
   registerEngineCallbacks({
@@ -133,10 +145,7 @@ export function startNewMatch() {
   document.getElementById('modal-setup')?.classList.add('hidden');
   document.getElementById('modal-setup')?.classList.remove('flex');
 
-  if (autoEndTurnTimer) {
-    clearTimeout(autoEndTurnTimer);
-    autoEndTurnTimer = null;
-  }
+  cancelAllGameTimers();
   clearSavedMatch();
   resetGameStateForNewMatch(lobbyPlayerCount);
 
@@ -162,10 +171,7 @@ export async function handleRollButtonClick() {
   }
 
   if (gameState.phase === 'END') {
-    if (autoEndTurnTimer) {
-      clearTimeout(autoEndTurnTimer);
-      autoEndTurnTimer = null;
-    }
+    cancelAllGameTimers();
     advanceTurn();
     return;
   }
@@ -175,6 +181,7 @@ export async function handleRollButtonClick() {
 }
 
 export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
+  if (!gameState.gameStarted) return;
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   gameState.phase = 'MOVING';
@@ -550,6 +557,7 @@ export function concludeActionPhase(isDoubles) {
     return;
   }
 
+  if (!gameState.gameStarted) return;
   saveCurrentMatchToStorage();
 
   if (isDoubles && !p.inIsland && !p.bankrupt && gameState.doublesCount < 2) {
@@ -557,21 +565,31 @@ export function concludeActionPhase(isDoubles) {
     gameState.phase = 'ROLL';
     gameState.turnTimeLeft = 15;
     updateRollButtonsUI(isHumanTurnActionable());
-    if (p.isAI) setTimeout(() => executePlayerRoll(), 1350);
+    if (p.isAI) {
+      if (aiRollTimer) clearTimeout(aiRollTimer);
+      aiRollTimer = setTimeout(() => {
+        aiRollTimer = null;
+        if (!gameState.gameStarted) return;
+        executePlayerRoll();
+      }, 1350);
+    }
     return;
   }
 
-  if (autoEndTurnTimer) {
-    clearTimeout(autoEndTurnTimer);
-    autoEndTurnTimer = null;
-  }
+  cancelAllGameTimers();
 
   if (p.isAI) {
-    autoEndTurnTimer = setTimeout(() => advanceTurn(), 1150);
+    autoEndTurnTimer = setTimeout(() => {
+      autoEndTurnTimer = null;
+      if (!gameState.gameStarted) return;
+      advanceTurn();
+    }, 1150);
   } else {
     gameState.phase = 'END';
     updateRollButtonsUI(isHumanTurnActionable());
     autoEndTurnTimer = setTimeout(() => {
+      autoEndTurnTimer = null;
+      if (!gameState.gameStarted) return;
       if (gameState.phase === 'END') {
         advanceTurn();
       }
@@ -580,10 +598,9 @@ export function concludeActionPhase(isDoubles) {
 }
 
 export function advanceTurn(isRemote = false, forcedNextIdx = null) {
-  if (autoEndTurnTimer) {
-    clearTimeout(autoEndTurnTimer);
-    autoEndTurnTimer = null;
-  }
+  if (!gameState.gameStarted) return;
+  cancelAllGameTimers();
+
   const total = gameState.players.length;
   let next = forcedNextIdx !== null ? forcedNextIdx : (gameState.currentPlayerIdx + 1) % total;
   let guard = 0;
@@ -611,7 +628,11 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
 
   if (nextP.isAI) {
     if (!networkState.isMultiplayer || networkState.isHost) {
-      setTimeout(() => executePlayerRoll(), 1350);
+      aiRollTimer = setTimeout(() => {
+        aiRollTimer = null;
+        if (!gameState.gameStarted) return;
+        executePlayerRoll();
+      }, 1350);
     }
   }
 }
@@ -630,4 +651,45 @@ export function handlePayIslandBail() {
   renderCornerHUDs();
   updateRollButtonsUI(isHumanTurnActionable());
   saveCurrentMatchToStorage();
+}
+
+/**
+ * Cleanly terminate the active match and return to the lobby.
+ * Ensures the match does NOT keep running in the background.
+ */
+export function terminateMatchAndReturnToLobby() {
+  cancelAllGameTimers();
+
+  gameState.gameStarted = false;
+  gameState.phase = 'SETUP';
+  gameState.activeInspectorTile = null;
+
+  clearSavedMatch();
+  stopVictoryCelebration();
+  closeAllGameModals();
+
+  try {
+    setTileHighlightRing(0, false);
+  } catch (_) {}
+
+  const turnToast = document.getElementById('turn-lock-toast');
+  if (turnToast) turnToast.classList.add('hidden');
+  const flightBanner = document.getElementById('world-tour-banner');
+  if (flightBanner) flightBanner.classList.add('hidden');
+
+  if (networkState.isMultiplayer) {
+    if (networkState.isHost) {
+      broadcastReturnToLobby();
+      logEvent('👑 Host returned table to lobby.');
+    } else {
+      broadcastAction('ACTION_GUEST_LOBBY', {
+        senderIdx: networkState.localPlayerIdx
+      });
+      logEvent('🚪 Exited to lobby.');
+    }
+  }
+
+  if (window.openLandingSetupScreen) {
+    window.openLandingSetupScreen();
+  }
 }
