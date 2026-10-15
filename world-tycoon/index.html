@@ -104,9 +104,9 @@
 
       <!-- LEFT COLUMN: PLAYERS AT THE TABLE -->
       <div class="col-span-12 lg:col-span-4 game-panel-card p-5 sm:p-6 flex flex-col justify-between shadow-xl min-h-[580px]">
-        <div>
+        <div class="flex-1 flex flex-col">
           <!-- Header -->
-          <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3 mb-4">
+          <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3 mb-3 flex-shrink-0">
             <div class="flex items-center gap-2.5 font-black text-sm sm:text-base text-[#0284c7] uppercase tracking-wide">
               <i class="fa-solid fa-users text-sky-500 text-lg"></i> TABLE PLAYERS
             </div>
@@ -115,14 +115,14 @@
             </div>
           </div>
 
-          <!-- Roster list with generous sizing -->
-          <div id="setup-players-roster" class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+          <!-- Roster list with generous expanded layout (no scrollbar) -->
+          <div id="setup-players-roster" class="space-y-2.5 flex-1">
             <!-- Dynamically populated with large player cards -->
           </div>
         </div>
 
         <!-- Add bot / Remove bot / Randomize actions -->
-        <div class="pt-4 border-t-2 border-sky-100 space-y-2">
+        <div class="pt-3.5 border-t-2 border-sky-100 space-y-2 flex-shrink-0 mt-3">
           <div class="flex gap-2.5">
             <button onclick="window.addBotOrSlot()" class="flex-1 py-3.5 rounded-full font-rounded font-black text-sm text-white game-btn game-btn-blue shadow-md">
               <i class="fa-solid fa-plus text-xs"></i> Add Player / Bot

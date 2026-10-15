@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { context } from './context.js';
 import { BOARD_TILES, PLAYER_THEMES } from '../../game/data.js';
-import { gameState } from '../../game/state.js';
+import { gameState, matchSettings } from '../../game/state.js';
 import { BASE_TILE_Y, getTileWorldPosition } from '../board/coords.js';
 import { movingHopDestTileId } from '../board/tilePress.js';
 

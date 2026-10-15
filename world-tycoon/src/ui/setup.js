@@ -117,16 +117,50 @@ export function addBotOrSlot() {
   }
 }
 
-export function removeBotOrSlot() {
-  if (lobbyPlayerCount > 2) {
-    setLobbyPlayerCount(lobbyPlayerCount - 1);
-    if (selectedSetupPlayerIdx >= lobbyPlayerCount) {
-      selectedSetupPlayerIdx = 0;
-      const cp = matchSettings.customPlayers[0];
-      if (cp) updateLobbyHeroAvatar(cp.hatStyle || 0, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6);
+export function removePlayerAt(idx) {
+  if (idx <= 0 || idx >= lobbyPlayerCount) return;
+
+  matchSettings.customPlayers.splice(idx, 1);
+
+  const defaultThemes = [
+    { name: 'YOU', isAI: false, charColor: 0xef4444, colorHex: '#6c5ce7', hatColor: 0x334155, hatStyle: 0 },
+    { name: 'BIDIK', isAI: true, charColor: 0xf97316, colorHex: '#f39c12', hatColor: 0xfde047, hatStyle: 1 },
+    { name: 'ATLAS', isAI: true, charColor: 0x10b981, colorHex: '#10b981', hatColor: 0x1e293b, hatStyle: 2 },
+    { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3 },
+    { name: 'PHOENIX', isAI: true, charColor: 0xef4444, colorHex: '#ef4444', hatColor: 0xf97316, hatStyle: 0 },
+    { name: 'CYBER', isAI: true, charColor: 0x06b6d4, colorHex: '#06b6d4', hatColor: 0x38bdf8, hatStyle: 3 }
+  ];
+  const fallback = defaultThemes[matchSettings.customPlayers.length % defaultThemes.length];
+  matchSettings.customPlayers.push({ ...fallback });
+
+  matchSettings.customPlayers.forEach((cp, k) => {
+    if (PLAYER_THEMES[k]) {
+      PLAYER_THEMES[k].name = cp.name;
+      PLAYER_THEMES[k].colorHex = cp.colorHex;
+      PLAYER_THEMES[k].charColor = cp.charColor;
+      PLAYER_THEMES[k].hatColor = cp.hatColor;
+      PLAYER_THEMES[k].isAI = cp.isAI;
     }
-    renderPlayerCards();
-    playSFX('hop');
+  });
+
+  setLobbyPlayerCount(Math.max(1, lobbyPlayerCount - 1));
+
+  if (selectedSetupPlayerIdx >= lobbyPlayerCount) {
+    selectedSetupPlayerIdx = Math.max(0, lobbyPlayerCount - 1);
+  }
+  const curP = matchSettings.customPlayers[selectedSetupPlayerIdx];
+  if (curP) {
+    updateLobbyHeroAvatar(curP.hatStyle || 0, curP.colorHex || '#3b82f6', curP.charColor || 0x3b82f6);
+  }
+
+  renderPlayerCards();
+  renderMatchSettingButtons();
+  playSFX('hop');
+}
+
+export function removeBotOrSlot() {
+  if (lobbyPlayerCount > 1) {
+    removePlayerAt(lobbyPlayerCount - 1);
   }
 }
 
@@ -205,16 +239,16 @@ export function renderPlayerCards() {
     const row = document.createElement('div');
     row.className = `bg-white/95 border-2 ${
       isSelected ? 'border-sky-500 ring-2 ring-sky-300 shadow-md bg-sky-50/50' : 'border-slate-200/80 hover:border-sky-300 shadow-xs'
-    } rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 transition cursor-pointer`;
+    } rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2.5 transition cursor-pointer`;
     row.onclick = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
       window.selectSetupPlayer(i);
     };
 
     row.innerHTML = `
-      <div class="flex items-center gap-3 min-w-0 flex-1">
+      <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <!-- Colored avatar initial circle -->
-        <div class="w-11 h-11 rounded-full border-3 border-white shadow-md flex items-center justify-center font-black text-sm text-white flex-shrink-0" style="background:${cp.colorHex}">
+        <div class="w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center font-black text-sm text-white flex-shrink-0" style="background:${cp.colorHex}">
           ${initial}
         </div>
         <div class="min-w-0 flex-1">
@@ -223,20 +257,26 @@ export function renderPlayerCards() {
             <input type="text" value="${cp.name}" oninput="window.setPlayerSetupName(${i}, this.value)" class="bg-transparent font-black text-sm sm:text-base text-slate-800 uppercase focus:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-400 rounded-lg px-1.5 py-0.5 w-24 sm:w-32 truncate transition">
             ${isSelected ? '<span class="text-[10px] font-black bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-xs">PODIUM</span>' : ''}
           </div>
-          <div class="text-xs font-bold text-slate-400 pl-1 mt-0.5">
+          <div class="text-[11px] font-bold text-slate-400 pl-1 mt-0.5">
             ${i === 0 ? 'Table Host' : (isHuman ? 'Human Player' : 'AI Tycoon Bot')}
           </div>
         </div>
       </div>
 
-      <!-- Quick role toggle -->
-      <div class="flex items-center gap-1.5">
-        <button onclick="window.togglePlayerRole(${i})" class="text-xs font-black px-3 py-1.5 rounded-xl border-2 transition cursor-pointer ${
+      <!-- Quick role toggle and Remove bot/player button -->
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <button onclick="window.togglePlayerRole(${i})" class="text-xs font-black px-2.5 py-1.5 rounded-xl border-2 transition cursor-pointer ${
           isHuman ? 'bg-sky-50 border-sky-300 text-sky-700 hover:bg-sky-100 shadow-xs' : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
         }" title="Toggle Human / Bot">
           <i class="${isHuman ? 'fa-solid fa-user' : 'fa-solid fa-robot'} mr-1 text-xs"></i>
           ${isHuman ? 'Player' : 'Bot'}
         </button>
+        ${i > 0 ? `
+        <button onclick="window.removePlayerAt(${i})" class="text-xs font-black px-2.5 py-1.5 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:border-rose-300 transition cursor-pointer shadow-xs flex items-center gap-1" title="Remove this bot / player">
+          <i class="fa-solid fa-xmark text-xs font-black"></i>
+          <span>Remove</span>
+        </button>
+        ` : ''}
       </div>
     `;
 
@@ -246,16 +286,16 @@ export function renderPlayerCards() {
   // Render open slots (up to 6)
   for (let s = lobbyPlayerCount; s < 6; s++) {
     const slot = document.createElement('div');
-    slot.className = 'game-slot-dashed p-3.5 flex items-center justify-between cursor-pointer transition hover:scale-[1.01]';
+    slot.className = 'game-slot-dashed p-2.5 sm:p-3 flex items-center justify-between cursor-pointer transition hover:scale-[1.01]';
     slot.onclick = () => window.addBotOrSlot();
     slot.innerHTML = `
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-full border-2 border-dashed border-sky-300 flex items-center justify-center text-sky-400 text-sm">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-full border-2 border-dashed border-sky-300 flex items-center justify-center text-sky-400 text-sm">
           <i class="fa-solid fa-user-plus"></i>
         </div>
         <span class="font-extrabold text-sm text-sky-700">Open Slot ${s + 1}</span>
       </div>
-      <span class="text-xs font-black text-sky-500 uppercase tracking-wider bg-white/80 px-3 py-1 rounded-full shadow-xs border border-sky-200">+ Add</span>
+      <span class="text-xs font-black text-sky-500 uppercase tracking-wider bg-white/80 px-3 py-1 rounded-full shadow-xs border border-sky-200">+ Add Bot</span>
     `;
     container.appendChild(slot);
   }
@@ -533,6 +573,11 @@ export function startGameFromLandingPage() {
   if (networkState.isMultiplayer && !networkState.isHost) {
     alert('Only the Table Host can start the match. Waiting for host...');
     return;
+  }
+
+  // Ensure match has at least 2 players
+  if (lobbyPlayerCount < 2) {
+    addBotOrSlot();
   }
 
   // If in P2P multiplayer as host, broadcast match start to all connected clients!

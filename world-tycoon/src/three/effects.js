@@ -8,8 +8,8 @@
  */
 
 import * as THREE from 'three';
-
 import { playSFX } from '../game/audio.js';
+import { matchSettings } from '../game/state.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    1. FULLSCREEN CONFETTI & FIREWORKS CANNON
@@ -418,48 +418,116 @@ export function spawnAnimatedReaction(type = 'money', startX, startY) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   3. DAY / SUNSET / CYBER NIGHT LIGHTING CONTROLS
+   3. HARMONIOUS THEME COMBINATIONS: (BOARD STYLE x ATMOSPHERE)
 ───────────────────────────────────────────────────────────────────────────── */
-export const LIGHTING_MODES = {
-  day: {
+export const THEME_COMBINATIONS = {
+  // ── 🪵 WOOD BOARD STYLE ───────────────────────────────────────────────────
+  'wood:day': {
     bg: 'radial-gradient(circle at 50% 28%, #f0f9ff 0%, #e0f2fe 32%, #bae6fd 65%, #7dd3fc 100%)',
     ambientColor: 0xffffff,
-    ambientIntensity: 0.38,
+    ambientIntensity: 0.40,
     sunColor: 0xffffff,
     sunIntensity: 0.98,
-    sunPos: { x: 22, y: 32, z: 18 },
-    bodyTheme: 'day'
+    sunPos: { x: 22, y: 32, z: 18 }
   },
-  sunset: {
+  'wood:sunset': {
     bg: 'radial-gradient(ellipse 125% 95% at 50% 20%, #fffbeb 0%, #fde68a 12%, #fbbf24 24%, #f97316 44%, #ea580c 60%, #c2410c 76%, #7c2d12 90%, #291008 100%)',
     ambientColor: 0xffedd5,
     ambientIntensity: 0.52,
     sunColor: 0xffaa5e,
     sunIntensity: 0.88,
-    sunPos: { x: 28, y: 14, z: 18 },
-    bodyTheme: 'sunset'
+    sunPos: { x: 28, y: 14, z: 18 }
   },
-  night: {
+  'wood:night': {
     bg: 'radial-gradient(circle at 50% 40%, #0f172a 0%, #080d1a 55%, #020617 100%)',
     ambientColor: 0x475569,
     ambientIntensity: 0.24,
     sunColor: 0xa5b4fc,
     sunIntensity: 0.28,
-    sunPos: { x: 14, y: 32, z: 18 },
-    bodyTheme: 'night'
+    sunPos: { x: 14, y: 32, z: 18 }
+  },
+
+  // ── ⚡ CYBERPUNK BOARD STYLE ──────────────────────────────────────────────
+  'cyberpunk:day': {
+    // High-tech neo-city daylight: sleek overcast slate with electric cyan glow
+    bg: 'radial-gradient(ellipse 130% 90% at 50% 25%, #1e293b 0%, #0f172a 42%, #080d1a 75%, #020617 100%)',
+    ambientColor: 0x38bdf8,
+    ambientIntensity: 0.38,
+    sunColor: 0xe0f2fe,
+    sunIntensity: 0.90,
+    sunPos: { x: 22, y: 32, z: 18 }
+  },
+  'cyberpunk:sunset': {
+    // 80s Synthwave / Outrun Sunset: vibrant magenta, violet & neon amber horizon
+    bg: 'radial-gradient(ellipse 135% 95% at 50% 20%, #f472b6 0%, #d946ef 18%, #9333ea 38%, #4c1d95 62%, #1e1b4b 82%, #090514 100%)',
+    ambientColor: 0xd946ef,
+    ambientIntensity: 0.48,
+    sunColor: 0xf43f5e,
+    sunIntensity: 0.92,
+    sunPos: { x: 28, y: 14, z: 18 }
+  },
+  'cyberpunk:night': {
+    // Pure Cyberpunk Neon Night: deepest obsidian space with glowing electric cyan & magenta nodes
+    bg: 'radial-gradient(circle at 50% 40%, #1e1b4b 0%, #0f172a 45%, #020617 80%, #000000 100%)',
+    ambientColor: 0x1e1b4b,
+    ambientIntensity: 0.28,
+    sunColor: 0x00f5ff,
+    sunIntensity: 0.35,
+    sunPos: { x: 14, y: 32, z: 18 }
+  },
+
+  // ── ✨ ELEGANT BOARD STYLE ────────────────────────────────────────────────
+  'elegant:day': {
+    // Pristine French palace morning: luminous warm pearl champagne
+    bg: 'radial-gradient(circle at 50% 30%, #ffffff 0%, #fbfaf8 35%, #f4ede4 70%, #e8decb 100%)',
+    ambientColor: 0xfffaed,
+    ambientIntensity: 0.45,
+    sunColor: 0xffffff,
+    sunIntensity: 0.96,
+    sunPos: { x: 22, y: 32, z: 18 }
+  },
+  'elegant:sunset': {
+    // Golden hour in Paris: warm 24K gold, honey and champagne dusk
+    bg: 'radial-gradient(ellipse 120% 90% at 50% 22%, #fffbeb 0%, #fef3c7 15%, #fde68a 32%, #f59e0b 55%, #b45309 76%, #451a03 100%)',
+    ambientColor: 0xfef3c7,
+    ambientIntensity: 0.55,
+    sunColor: 0xfde047,
+    sunIntensity: 0.92,
+    sunPos: { x: 28, y: 14, z: 18 }
+  },
+  'elegant:night': {
+    // Royal gala starlight: velvet midnight sapphire and sparkling 24K gold
+    bg: 'radial-gradient(circle at 50% 35%, #1e1b4b 0%, #0f172a 50%, #030712 100%)',
+    ambientColor: 0x1e1b4b,
+    ambientIntensity: 0.28,
+    sunColor: 0xe0e7ff,
+    sunIntensity: 0.32,
+    sunPos: { x: 14, y: 32, z: 18 }
   }
+};
+
+export const LIGHTING_MODES = {
+  day: THEME_COMBINATIONS['wood:day'],
+  sunset: THEME_COMBINATIONS['wood:sunset'],
+  night: THEME_COMBINATIONS['wood:night']
 };
 
 let currentLightingKey = 'day';
 
 export function applyLightingMode(key, threeSceneObjects) {
   if (key === 'morning') key = 'day';
-  if (!LIGHTING_MODES[key]) key = 'day';
+  if (!['day', 'sunset', 'night'].includes(key)) key = 'day';
   currentLightingKey = key;
-  const cfg = LIGHTING_MODES[key];
+  if (matchSettings) matchSettings.lightingTheme = key;
 
-  // Update HTML body background
-  document.body.style.background = cfg.bg;
+  const boardStyle = matchSettings?.boardStyle || 'wood';
+  const comboKey = `${boardStyle}:${key}`;
+  const cfg = THEME_COMBINATIONS[comboKey] || THEME_COMBINATIONS[`wood:${key}`] || THEME_COMBINATIONS['wood:day'];
+
+  // Update HTML body background with composite gradient
+  if (typeof document !== 'undefined' && document.body) {
+    document.body.style.background = cfg.bg;
+  }
 
   if (threeSceneObjects) {
     const { ambientLight, dirLight, setBulbLightingTheme } = threeSceneObjects;
@@ -473,7 +541,7 @@ export function applyLightingMode(key, threeSceneObjects) {
       dirLight.position.set(cfg.sunPos.x, cfg.sunPos.y, cfg.sunPos.z);
     }
     if (typeof setBulbLightingTheme === 'function') {
-      setBulbLightingTheme(key);
+      setBulbLightingTheme(key, boardStyle);
     }
   }
 
@@ -487,10 +555,17 @@ export function applyLightingMode(key, threeSceneObjects) {
     };
     btn.innerHTML = icons[key] || icons.day;
   }
+
+  // Update lobby match length / atmosphere text
+  const atmoTextEl = document.getElementById('setup-match-length-text');
+  if (atmoTextEl) {
+    atmoTextEl.textContent = key === 'night' ? 'Night' : (key === 'sunset' ? 'Sunset' : 'Morning');
+  }
 }
 
 export function cycleLightingMode(threeSceneObjects) {
   const modes = ['day', 'sunset', 'night'];
-  const nextIdx = (modes.indexOf(currentLightingKey) + 1) % modes.length;
+  const cur = matchSettings?.lightingTheme || currentLightingKey || 'day';
+  const nextIdx = (modes.indexOf(cur) + 1) % modes.length;
   applyLightingMode(modes[nextIdx], threeSceneObjects);
 }

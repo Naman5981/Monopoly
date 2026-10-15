@@ -42,7 +42,8 @@ import {
   stepMatchLength,
   renderPlayerCards,
   renderMatchSettingButtons,
-  selectSetupPlayer
+  selectSetupPlayer,
+  removePlayerAt
 } from './ui/setup.js';
 import {
   networkState,
@@ -165,6 +166,7 @@ window.setLocalPlayerColor = setLocalPlayerColor;
 window.stepDecisionTime = stepDecisionTime;
 window.stepMatchLength = stepMatchLength;
 window.selectSetupPlayer = selectSetupPlayer;
+window.removePlayerAt = removePlayerAt;
 
 // P2P Multiplayer Window Handlers
 window.selectMatchMode = selectMatchMode;
