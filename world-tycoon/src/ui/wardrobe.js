@@ -378,13 +378,13 @@ export function updateAllPointsBadges() {
   if (lobbyStarsEl) lobbyStarsEl.textContent = fmt;
 
   const btnStarsBadge = document.getElementById('wardrobe-button-stars-badge');
-  if (btnStarsBadge) btnStarsBadge.textContent = `⭐ ${fmt}`;
+  if (btnStarsBadge) btnStarsBadge.textContent = fmt;
 
   const modalStarsEl = document.getElementById('wardrobe-stars-balance');
   if (modalStarsEl) modalStarsEl.textContent = fmt;
 
   const victoryBalEl = document.getElementById('victory-profile-balance');
-  if (victoryBalEl) victoryBalEl.textContent = `${fmt} ⭐`;
+  if (victoryBalEl) victoryBalEl.innerHTML = `${fmt} <svg class="ui-icon w-3.5 h-3.5 text-amber-400 inline ml-1" aria-hidden="true"><use href="#icon-star"></use></svg>`;
 }
 
 /**

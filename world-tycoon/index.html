@@ -53,6 +53,154 @@
 </head>
 <body class="h-screen w-screen relative select-none overflow-hidden">
 
+  <!-- ═══ CONSOLIDATED SVG VECTOR SPRITE LIBRARY (clean-code / better-ui) ═══ -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;" id="game-svg-symbols">
+    <defs>
+      <!-- Crown / Royalty / Victory -->
+      <symbol id="icon-crown" viewBox="0 0 24 24">
+        <path d="M2.5 19.5h19a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-19a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm19.3-13.6a1 1 0 0 0-1.2.2L16 9.3 12.8 3.5a1 1 0 0 0-1.6 0L8 9.3 3.4 5.6a1 1 0 0 0-1.2-.2 1 1 0 0 0-.4 1.1l2.5 10.5h15.4l2.5-10.5a1 1 0 0 0-.4-1.1z"/>
+      </symbol>
+
+      <!-- City Skyline / Real Estate -->
+      <symbol id="icon-city" viewBox="0 0 24 24">
+        <path d="M3 21h18v-2h-2v-6h-4v-4h-4v-4H7v16H5v-8H3v8zm6-12h2v2H9V9zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm4-8h2v2h-2V5zm0 4h2v2h-2V9zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+      </symbol>
+
+      <!-- Classical Edifice / Bank / Landmark -->
+      <symbol id="icon-building" viewBox="0 0 24 24">
+        <path d="M12 1.5 1 7v2h2v10H1v2h22v-2h-2V9h2V7L12 1.5zM5 9h2v10H5V9zm4 0h2v10H9V9zm4 0h2v10h-2V9zm4 0h2v10h-2V9zm-5-4.5 6 3H6l6-3z"/>
+      </symbol>
+
+      <!-- Handshake / Trade Deal -->
+      <symbol id="icon-handshake" viewBox="0 0 24 24">
+        <path d="M21.7 8.3a2.5 2.5 0 0 0-3.5 0L16 10.5l-1.3-1.3a2.5 2.5 0 0 0-3.5 0L9.8 10.6 8 8.8a2.5 2.5 0 0 0-3.5 0L2.3 11a1 1 0 0 0 0 1.4l5.3 5.3a2.5 2.5 0 0 0 3.5 0l1.2-1.2 1.3 1.3a2.5 2.5 0 0 0 3.5 0l4.6-4.6a2.5 2.5 0 0 0 0-3.5l-.7-.7 1.4-1.4a2.5 2.5 0 0 0 0-3.5l-.7-.8zm-6.4 7.8-1.3-1.3 2.1-2.1 1.3 1.3-2.1 2.1zm-3.6-.8-1.2 1.2a1 1 0 0 1-1.4 0L4.4 11.8l1.4-1.4a1 1 0 0 1 1.4 0l2.5 2.5-1.1 1.1 1.4 1.4 2.3-2.3 1.2 1.2a1 1 0 0 1 0 1.4z"/>
+      </symbol>
+
+      <!-- Scales of Justice / Auction -->
+      <symbol id="icon-scales" viewBox="0 0 24 24">
+        <path d="M11 3V1h2v2h6l-3.5 8H20a6 6 0 0 1-6 6v3h3v2H7v-2h3v-3a6 6 0 0 1-6-6h4.5L5 3h6zm-4.7 6h3.4L8 5.1 6.3 9zm11.4 0h-3.4L16 5.1 17.7 9z"/>
+      </symbol>
+
+      <!-- Scroll / Deed / Rules -->
+      <symbol id="icon-scroll" viewBox="0 0 24 24">
+        <path d="M19.5 3A2.5 2.5 0 0 0 17 5.5V17H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11V2H6A4 4 0 0 0 2 6v9a4 4 0 0 0 4 4h12.5a2.5 2.5 0 0 0 2.5-2.5V5.5A2.5 2.5 0 0 0 19.5 3zM7 8h8v2H7V8zm0 4h8v2H7v-2z"/>
+      </symbol>
+
+      <!-- Dice -->
+      <symbol id="icon-dice" viewBox="0 0 24 24">
+        <rect width="18" height="18" x="3" y="3" rx="3.5" ry="3.5"/>
+        <circle cx="8" cy="8" r="1.5" fill="#fff"/>
+        <circle cx="16" cy="8" r="1.5" fill="#fff"/>
+        <circle cx="12" cy="12" r="1.5" fill="#fff"/>
+        <circle cx="8" cy="16" r="1.5" fill="#fff"/>
+        <circle cx="16" cy="16" r="1.5" fill="#fff"/>
+      </symbol>
+
+      <!-- Save / Diskette -->
+      <symbol id="icon-save" viewBox="0 0 24 24">
+        <path d="M19 2H5a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V6l-3-4zm-7 18a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-12H6V4h9v4z"/>
+      </symbol>
+
+      <!-- Wardrobe / Cosmetics -->
+      <symbol id="icon-wardrobe" viewBox="0 0 24 24">
+        <path d="M6 3 2 9l4 2V3zm12 0 4 6-4 2V3zm-6 0-3 3 2 6-2 9 3 1 3-1-2-9 2-6-3-3z"/>
+      </symbol>
+
+      <!-- Warning Triangle -->
+      <symbol id="icon-warning" viewBox="0 0 24 24">
+        <path d="M12 2 1 21h22L12 2zm0 4.5 7.5 13h-15L12 6.5zM11 11h2v4h-2v-4zm0 5h2v2h-2v-2z"/>
+      </symbol>
+
+      <!-- Door Open / Exit -->
+      <symbol id="icon-door" viewBox="0 0 24 24">
+        <path d="M19 2H5v20h14V2zm-2 18H7V4h10v16zm-3-9h2v2h-2v-2z"/>
+      </symbol>
+
+      <!-- Trophy / Accolade -->
+      <symbol id="icon-trophy" viewBox="0 0 24 24">
+        <path d="M18 2H6v3H2v6a5 5 0 0 0 5 5h.2A6 6 0 0 0 11 19.8V21H8v2h8v-2h-3v-1.2A6 6 0 0 0 16.8 16H17a5 5 0 0 0 5-5V5h-4V2zM4 10V7h2v4.8A3 3 0 0 1 4 10zm16 0a3 3 0 0 1-2 1.8V7h2v3z"/>
+      </symbol>
+
+      <!-- Sparkle / Starburst -->
+      <symbol id="icon-sparkle" viewBox="0 0 24 24">
+        <path d="M12 2c.5 4.5 4.5 8.5 9 9-4.5.5-8.5 4.5-9 9-.5-4.5-4.5-8.5-9-9 4.5-.5 8.5-4.5 9-9z"/>
+      </symbol>
+
+      <!-- Globe / World -->
+      <symbol id="icon-globe" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" fill="none" stroke="currentColor" stroke-width="2"/>
+      </symbol>
+
+      <!-- Money / Banknote -->
+      <symbol id="icon-money" viewBox="0 0 24 24">
+        <rect width="20" height="12" x="2" y="6" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M6 10h.01M18 14h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+
+      <!-- Lightning / Action -->
+      <symbol id="icon-lightning" viewBox="0 0 24 24">
+        <path d="M13 2 3 14h8l-2 8 10-12h-8l2-8z"/>
+      </symbol>
+
+      <!-- Airplane / World Tour -->
+      <symbol id="icon-airplane" viewBox="0 0 24 24">
+        <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+      </symbol>
+
+      <!-- Lock -->
+      <symbol id="icon-lock" viewBox="0 0 24 24">
+        <path d="M17 9V7a5 5 0 0 0-10 0v2H5v13h14V9h-2zm-8-2a3 3 0 0 1 6 0v2H9V7zm3 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+      </symbol>
+
+      <!-- Checkmark -->
+      <symbol id="icon-check" viewBox="0 0 24 24">
+        <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+      </symbol>
+
+      <!-- Xmark / Close -->
+      <symbol id="icon-xmark" viewBox="0 0 24 24">
+        <path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4l5.6 5.6L5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6L19 6.4z"/>
+      </symbol>
+
+      <!-- Play Triangle -->
+      <symbol id="icon-play" viewBox="0 0 24 24">
+        <path d="M6 3v18l14-9L6 3z"/>
+      </symbol>
+
+      <!-- Star -->
+      <symbol id="icon-star" viewBox="0 0 24 24">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </symbol>
+
+      <!-- Cloud -->
+      <symbol id="icon-cloud" viewBox="0 0 24 24">
+        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+      </symbol>
+
+      <!-- Envelope / Message -->
+      <symbol id="icon-envelope" viewBox="0 0 24 24">
+        <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+      </symbol>
+
+      <!-- Pin / Location -->
+      <symbol id="icon-pin" viewBox="0 0 24 24">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+      </symbol>
+
+      <!-- Top Hat / Headwear -->
+      <symbol id="icon-hat" viewBox="0 0 24 24">
+        <path d="M6 3h12v9H6V3zm15 11h-1.4V14H4.4v0H3a2 2 0 0 0-2 2c0 1.1.9 2 2 2h18a2 2 0 0 0 2-2c0-1.1-.9-2-2-2z"/>
+      </symbol>
+
+      <!-- Pedestal / Monument -->
+      <symbol id="icon-pedestal" viewBox="0 0 24 24">
+        <path d="M4 20h16v2H4v-2zm2-2h12v-2H6v2zm1-4h10V8H7v6zm-2-8h14V4H5v2zm-2-4h18V0H3v2z"/>
+      </symbol>
+    </defs>
+  </svg>
+
   <!-- 0. FULL-SCREEN CASUAL 3D GAME LOBBY: WORLD TYCOON ORIGINAL INTERFACE -->
   <div id="landing-setup-screen" class="fixed inset-0 z-50 flex flex-col justify-between p-4 sm:p-6 lg:p-7 overflow-y-auto overflow-x-hidden">
 
@@ -61,10 +209,10 @@
     <div class="diamond-watermark" style="bottom:12%; left:3%;"></div>
     <div class="diamond-watermark" style="top:18%; right:4%;"></div>
     <div class="diamond-watermark" style="bottom:10%; right:6%;"></div>
-    <div id="setup-atmosphere-sky-elements" class="absolute bottom-0 left-0 right-0 pointer-events-none opacity-45 flex justify-between select-none transition-opacity duration-700">
-      <div class="text-9xl cloud-float-1 transform -translate-y-6 select-none pointer-events-none">☁️</div>
-      <div class="text-8xl cloud-float-2 transform -translate-y-3 select-none pointer-events-none">☁️</div>
-      <div class="text-9xl cloud-float-1 transform -translate-y-8 select-none pointer-events-none">☁️</div>
+    <div id="setup-atmosphere-sky-elements" class="absolute bottom-0 left-0 right-0 pointer-events-none opacity-45 flex justify-between select-none transition-opacity duration-700 px-6">
+      <svg class="w-36 h-24 text-white/50 cloud-float-1 transform -translate-y-6 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
+      <svg class="w-28 h-20 text-white/40 cloud-float-2 transform -translate-y-3 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
+      <svg class="w-36 h-24 text-white/50 cloud-float-1 transform -translate-y-8 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
     </div>
 
     <!-- TOP HEADER BAR: WORLD TYCOON BRANDING & PROFILE -->
@@ -80,7 +228,7 @@
               <span id="setup-profile-name" class="text-sm font-black uppercase text-slate-800 leading-tight">
                 NAMAN
               </span>
-              <span class="text-xs">👑</span>
+              <svg class="ui-icon w-3.5 h-3.5 text-amber-500" aria-hidden="true"><use href="#icon-crown"></use></svg>
             </div>
             <div class="flex items-center gap-2 mt-0.5">
               <div class="text-xs font-black text-emerald-600 flex items-center gap-1">
@@ -88,7 +236,7 @@
                 <span id="setup-profile-cash">$2.0M</span>
               </div>
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-300 text-[11px] font-black text-amber-900 shadow-2xs" title="Persistent Tycoon Stars">
-                <span class="text-amber-500">⭐</span>
+                <svg class="ui-icon w-3 h-3 text-amber-500" aria-hidden="true"><use href="#icon-star"></use></svg>
                 <span id="setup-profile-stars" class="tabular-nums">500</span>
               </span>
             </div>
@@ -98,8 +246,8 @@
 
       <!-- Center: Original World Tycoon 3D Game Logo -->
       <div class="flex flex-col items-center">
-        <div class="game-logo-3d cursor-default">
-          <span class="logo-globe-icon">🌐</span>
+        <div class="game-logo-3d cursor-default flex items-center gap-2">
+          <svg class="ui-icon w-8 h-8 text-sky-400 logo-globe-icon drop-shadow" aria-hidden="true"><use href="#icon-globe"></use></svg>
           <span class="logo-brand-world">WORLD</span>
           <span class="logo-brand-tycoon">TYCOON</span>
         </div>
@@ -196,10 +344,11 @@
         <div class="relative z-20 flex flex-col items-center gap-2.5 w-full">
           <!-- Wardrobe & Outfits Button -->
           <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-5 py-2 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs sm:text-sm shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-2.5 cursor-pointer transition-all duration-150 hover:scale-105 active:scale-95" title="Customize Outfits, Hats, Dice & Pedestals">
-            <span class="text-base select-none">👔</span>
+            <svg class="ui-icon w-4 h-4 text-amber-600" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
             <span class="tracking-wide">WARDROBE</span>
-            <span class="ml-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] shadow-2xs border border-amber-500/20 tabular-nums">
-              <span id="wardrobe-button-stars-badge">⭐ 500</span>
+            <span class="ml-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] shadow-2xs border border-amber-500/20 tabular-nums inline-flex items-center gap-1">
+              <svg class="ui-icon w-3 h-3 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
+              <span id="wardrobe-button-stars-badge">500</span>
             </span>
           </button>
 
@@ -362,7 +511,7 @@
         <!-- Board Edition Info Badge -->
         <div class="pt-2 border-t border-sky-100 flex items-center justify-between text-xs text-slate-500 font-bold">
           <span>Board Map: <strong id="lobby-edition-badge-text" class="text-sky-700">World Tour Edition</strong></span>
-          <span>Tiles: <strong id="lobby-edition-tiles-text" class="text-slate-700">32 Cities & Landmarks</strong></span>
+          <span>Tiles: <strong id="lobby-edition-tiles-text" class="text-slate-700">32 Cities</strong></span>
         </div>
       </div>
 
@@ -647,8 +796,8 @@
     <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-md w-full">
       <div id="buy-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🏛️</div>
-        <div class="absolute -left-2 -bottom-2 text-6xl opacity-15 select-none pointer-events-none">✨</div>
+        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
+        <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <span id="buy-modal-country" class="modal-badge-pill">GLOBAL METROPOLIS</span>
         <canvas id="buy-city-3d-canvas" width="220" height="110" class="w-[180px] h-[90px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
@@ -700,8 +849,8 @@
       <!-- Header with group color banner, country/status pill, 3D rotating model canvas, and city name -->
       <div id="upgrade-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🏰</div>
-        <div class="absolute -left-2 -bottom-2 text-6xl opacity-15 select-none pointer-events-none">✨</div>
+        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-city"></use></svg>
+        <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <div class="relative z-10 flex items-center gap-2">
           <span id="upgrade-modal-country" class="modal-badge-pill">
@@ -771,8 +920,8 @@
     <div class="game-modal-shell modal-shell-amber max-w-md w-full">
       <div class="game-modal-header bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-4 text-white flex items-center justify-between relative shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">⚖️</div>
-        <div class="absolute -left-2 -bottom-2 text-6xl opacity-15 select-none pointer-events-none">💎</div>
+        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-scales"></use></svg>
+        <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <div class="relative z-10 flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-xl shadow-inner border border-white/30">
@@ -814,8 +963,8 @@
       <!-- Glossy 3D Header -->
       <div class="game-modal-header p-4 flex flex-col items-center justify-center text-center text-white relative shadow-md" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🎲</div>
-        <div class="absolute -left-2 -bottom-2 text-6xl opacity-15 select-none pointer-events-none">✨</div>
+        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-dice"></use></svg>
+        <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <div class="modal-badge-pill relative z-10">
           <i class="fa-solid fa-dice text-amber-300 mr-1"></i> GLOBAL FORTUNE
@@ -855,16 +1004,16 @@
   <div id="modal-chance-result" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
     <div class="game-modal-shell modal-shell-amber max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative overflow-hidden">
       <!-- Floating Watermark Icons -->
-      <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🎲</div>
-      <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">✨</div>
+      <svg class="ui-watermark absolute -right-3 -top-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-dice"></use></svg>
+      <svg class="ui-watermark absolute -left-3 -bottom-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
       <!-- Icon Badge -->
-      <div id="chance-result-icon" class="relative z-10 w-20 h-20 mx-auto rounded-2xl flex items-center justify-center text-4xl shadow-md border-2 border-amber-200 bg-amber-50">
-        💰
+      <div id="chance-result-icon" class="relative z-10 w-20 h-20 mx-auto rounded-2xl flex items-center justify-center text-4xl shadow-md border-2 border-amber-200 bg-amber-50 text-amber-600">
+        <svg class="ui-icon w-10 h-10" aria-hidden="true"><use href="#icon-money"></use></svg>
       </div>
       <div class="relative z-10 space-y-1">
         <div id="chance-result-tag" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100 text-amber-950 font-black text-xs uppercase tracking-wider border border-amber-300 shadow-2xs">
-          <span>✨</span> CHANCE REWARD
+          <svg class="ui-icon w-3 h-3 text-amber-700" aria-hidden="true"><use href="#icon-sparkle"></use></svg> CHANCE REWARD
         </div>
         <h3 id="chance-result-title" class="font-display font-black text-2xl text-slate-900 leading-tight">
           +400,000 GRANT!
@@ -889,7 +1038,7 @@
     <div id="modal-tile-inspector-card" class="pointer-events-auto game-modal-shell w-92 max-w-[calc(100vw-32px)] overflow-hidden shadow-2xl">
       <div id="insp-header" class="game-modal-header min-h-[144px] p-3 flex flex-col justify-between items-center text-center text-white relative overflow-hidden">
         <!-- Floating Watermark Icon -->
-        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🏛️</div>
+        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
         <button onclick="window.closeInspectorModal()" class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close tile card">
           <i class="fa-solid fa-xmark text-sm"></i>
         </button>
@@ -911,16 +1060,16 @@
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🏙️</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">👑</div>
+        <svg class="ui-watermark absolute -right-3 -top-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-city"></use></svg>
+        <svg class="ui-watermark absolute -left-3 -bottom-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-crown"></use></svg>
 
         <div class="relative z-10 flex items-center gap-3.5">
           <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
-            <i class="fa-solid fa-city text-white drop-shadow"></i>
+            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-city"></use></svg>
           </div>
           <div>
             <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
-              <span>🏛️</span> REAL ESTATE PORTFOLIO
+              <svg class="ui-icon w-3 h-3 text-emerald-200" aria-hidden="true"><use href="#icon-building"></use></svg> REAL ESTATE PORTFOLIO
             </div>
             <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
               MANAGE YOUR GLOBAL CITIES
@@ -946,10 +1095,17 @@
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🤝</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">⚖️</div>
+        <svg class="ui-watermark absolute -right-3 -top-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-handshake"></use></svg>
+        <svg class="ui-watermark absolute -left-3 -bottom-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-scales"></use></svg>
 
         <div class="relative z-10 flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
+            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-handshake"></use></svg>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
+              <svg class="ui-icon w-3 h-3 text-emerald-200" aria-hidden="true"><use href="#icon-globe"></use></svg> GLOBAL DIPLOMACY
+            </div>
           <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
             <i class="fa-solid fa-handshake text-white drop-shadow"></i>
           </div>
@@ -1037,16 +1193,16 @@
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🤝</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">📜</div>
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-handshake"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-scroll"></use></svg>
 
         <div class="relative z-10 flex items-center gap-3.5">
           <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
-            🤝
+            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-handshake"></use></svg>
           </div>
           <div>
             <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-indigo-100 shadow-xs mb-1 border border-white/20">
-              <span>📨</span> DIPLOMATIC PROPOSAL
+              <svg class="ui-icon w-3 h-3 text-sky-200" aria-hidden="true"><use href="#icon-envelope"></use></svg> DIPLOMATIC PROPOSAL
             </div>
             <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md flex items-center gap-2">
               <span id="incoming-trade-bot-name">BIDIK</span>
@@ -1059,7 +1215,7 @@
         </div>
 
         <button onclick="window.declineIncomingTrade()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Decline trade">
-          <i class="fa-solid fa-xmark text-base"></i>
+          <svg class="ui-icon w-4 h-4 text-white" aria-hidden="true"><use href="#icon-xmark"></use></svg>
         </button>
       </div>
 
@@ -1068,7 +1224,7 @@
           <!-- They Offer -->
           <div class="victory-accolade-box victory-accolade-box-emerald flex-col !items-start text-left p-3.5">
             <span class="text-[10px] font-black tracking-wider uppercase text-emerald-950 flex items-center gap-1.5">
-              <i class="fa-solid fa-hand-holding-dollar text-emerald-600"></i> THEY OFFER
+              <svg class="ui-icon w-3.5 h-3.5 text-emerald-600" aria-hidden="true"><use href="#icon-money"></use></svg> THEY OFFER
             </span>
             <div id="incoming-they-offer-cash" class="text-emerald-800 font-display font-black text-base my-0.5"></div>
             <div id="incoming-they-offer-props" class="w-full space-y-1 pt-1 font-bold text-slate-800"></div>
@@ -1077,7 +1233,7 @@
           <!-- They Request -->
           <div class="victory-accolade-box victory-accolade-box-sky flex-col !items-start text-left p-3.5">
             <span class="text-[10px] font-black tracking-wider uppercase text-sky-950 flex items-center gap-1.5">
-              <i class="fa-solid fa-bullseye text-sky-600"></i> THEY REQUEST
+              <svg class="ui-icon w-3.5 h-3.5 text-sky-600" aria-hidden="true"><use href="#icon-building"></use></svg> THEY REQUEST
             </span>
             <div id="incoming-they-req-cash" class="text-slate-600 font-display font-bold text-xs my-0.5"></div>
             <div id="incoming-they-req-props" class="w-full space-y-1 pt-1 font-bold text-slate-800"></div>
@@ -1090,10 +1246,10 @@
 
         <div class="flex gap-2.5 pt-1">
           <button onclick="window.acceptIncomingTrade()" class="game-btn game-btn-green flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
-            <i class="fa-solid fa-check mr-1"></i> Accept Deal
+            <svg class="ui-icon w-3.5 h-3.5 mr-1 text-white" aria-hidden="true"><use href="#icon-check"></use></svg> Accept Deal
           </button>
           <button onclick="window.counterIncomingTrade()" class="game-btn game-btn-orange flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
-            <i class="fa-solid fa-handshake mr-1"></i> Counter-Offer
+            <svg class="ui-icon w-3.5 h-3.5 mr-1 text-white" aria-hidden="true"><use href="#icon-handshake"></use></svg> Counter-Offer
           </button>
           <button onclick="window.declineIncomingTrade()" class="game-btn game-btn-slate px-4 py-3 text-xs sm:text-sm font-black">
             Decline
@@ -1109,15 +1265,15 @@
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🌍</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">🎲</div>
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-globe"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-dice"></use></svg>
 
         <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10">
-          🌍
+          <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-globe"></use></svg>
         </div>
         <div class="relative z-10">
           <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-sky-100 shadow-xs mb-1 border border-white/20">
-            <span>🎲</span> MULTIPLAYER LOBBY
+            <svg class="ui-icon w-3 h-3 text-sky-200" aria-hidden="true"><use href="#icon-dice"></use></svg> MULTIPLAYER LOBBY
           </div>
           <h2 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
             WORLD TYCOON LOBBY
@@ -1139,7 +1295,7 @@
         </div>
         <div id="lobby-players-list" class="space-y-2"></div>
         <button onclick="window.startNewMatch()" class="game-btn game-btn-green w-full py-4 text-sm font-black shadow-md">
-          <i class="fa-solid fa-play mr-1.5"></i> START MATCH (2M STARTING CASH)
+          <svg class="ui-icon w-4 h-4 mr-1.5 text-white" aria-hidden="true"><use href="#icon-play"></use></svg> START MATCH (2M STARTING CASH)
         </button>
       </div>
     </div>
@@ -1151,16 +1307,16 @@
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">📜</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">🌐</div>
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-scroll"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-globe"></use></svg>
 
         <div class="relative z-10 flex items-center gap-3.5">
           <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
-            <i class="fa-solid fa-book-open text-white drop-shadow"></i>
+            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-scroll"></use></svg>
           </div>
           <div>
             <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-sky-100 shadow-xs mb-1 border border-white/20">
-              <span>👑</span> OFFICIAL RULEBOOK
+              <svg class="ui-icon w-3 h-3 text-sky-200" aria-hidden="true"><use href="#icon-crown"></use></svg> OFFICIAL RULEBOOK
             </div>
             <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
               WORLD TYCOON RULES
@@ -1172,14 +1328,14 @@
         </div>
 
         <button onclick="window.closeRulesModal()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close rules">
-          <i class="fa-solid fa-xmark text-base"></i>
+          <svg class="ui-icon w-4 h-4 text-white" aria-hidden="true"><use href="#icon-xmark"></use></svg>
         </button>
       </div>
 
       <!-- Rulebook Accolade Cards -->
       <div class="p-5 overflow-y-auto space-y-3.5 bg-gradient-to-b from-white to-slate-50/70 text-sm leading-relaxed">
         <div class="victory-accolade-box victory-accolade-box-emerald">
-          <span class="text-3xl select-none">💵</span>
+          <svg class="ui-icon w-8 h-8 text-emerald-600 flex-shrink-0" aria-hidden="true"><use href="#icon-money"></use></svg>
           <div>
             <div class="text-xs font-black text-emerald-950 uppercase tracking-wider">STARTING CAPITAL & SALARY</div>
             <div class="text-xs font-semibold text-emerald-900 mt-0.5">Every player starts with <strong>2,000K (2M)</strong> and collects <strong>+300K</strong> every time they pass START.</div>
@@ -1187,7 +1343,7 @@
         </div>
 
         <div class="victory-accolade-box victory-accolade-box-sky">
-          <span class="text-3xl select-none">🏙️</span>
+          <svg class="ui-icon w-8 h-8 text-sky-600 flex-shrink-0" aria-hidden="true"><use href="#icon-city"></use></svg>
           <div>
             <div class="text-xs font-black text-sky-950 uppercase tracking-wider">CITIES & SKYSCRAPERS</div>
             <div class="text-xs font-semibold text-sky-900 mt-0.5">Buy world cities and erect 3D Houses & Megatowers. Owning a full color set doubles base rent!</div>
@@ -1195,9 +1351,9 @@
         </div>
 
         <div class="victory-accolade-box victory-accolade-box-purple">
-          <span class="text-3xl select-none">📍</span>
+          <svg class="ui-icon w-8 h-8 text-purple-600 flex-shrink-0" aria-hidden="true"><use href="#icon-pin"></use></svg>
           <div>
-            <div class="text-xs font-black text-purple-950 uppercase tracking-wider">4 CORNER LANDMARKS</div>
+            <div class="text-xs font-black text-purple-950 uppercase tracking-wider">4 CORNER TILES</div>
             <div class="text-xs font-semibold text-purple-900 mt-0.5">
               <strong>1. START:</strong> +300K Salary &bull; <strong>2. ISLAND:</strong> Roll doubles or pay 150K bail &bull; <strong>3. FESTIVAL:</strong> Tax Jackpot & 2× rent &bull; <strong>4. WORLD TOUR:</strong> Direct flight to any tile!
             </div>
@@ -1205,7 +1361,7 @@
         </div>
 
         <div class="victory-accolade-box">
-          <span class="text-3xl select-none">🏆</span>
+          <svg class="ui-icon w-8 h-8 text-amber-500 flex-shrink-0" aria-hidden="true"><use href="#icon-trophy"></use></svg>
           <div>
             <div class="text-xs font-black text-amber-950 uppercase tracking-wider">4 WAYS TO WIN THE CROWN</div>
             <div class="text-xs font-semibold text-amber-900 mt-0.5">
@@ -1229,12 +1385,14 @@
       <!-- Grand Banner Header -->
       <div class="relative p-6 pb-5 text-center text-white overflow-hidden bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 shadow-md">
         <!-- Background watermark icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">👑</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">✨</div>
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-crown"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <!-- Pill badge -->
         <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-black/20 backdrop-blur-md text-xs font-black uppercase tracking-widest text-amber-100 shadow-xs mb-2 border border-white/20">
-          <span>🏆</span> VICTORY ROYALE <span>🏆</span>
+          <svg class="ui-icon w-3.5 h-3.5 text-amber-300" aria-hidden="true"><use href="#icon-trophy"></use></svg>
+          <span>VICTORY ROYALE</span>
+          <svg class="ui-icon w-3.5 h-3.5 text-amber-300" aria-hidden="true"><use href="#icon-trophy"></use></svg>
         </div>
 
         <!-- Giant Animated Trophy with Sparkles -->
@@ -1389,15 +1547,15 @@
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">💾</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">🎮</div>
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-save"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-dice"></use></svg>
 
         <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10">
-          💾
+          <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-save"></use></svg>
         </div>
         <div class="relative z-10">
           <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
-            <span>⚡</span> SAVED GAME SESSION
+            <svg class="ui-icon w-3 h-3 text-emerald-200" aria-hidden="true"><use href="#icon-lightning"></use></svg> SAVED GAME SESSION
           </div>
           <h2 class="font-rounded font-black text-xl text-white tracking-wide drop-shadow">RESUME MATCH?</h2>
           <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">Unfinished game state detected</p>
@@ -1421,7 +1579,7 @@
             New Game
           </button>
           <button onclick="window.resumeLastSavedMatch()" class="game-btn game-btn-green flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
-            <i class="fa-solid fa-play mr-1"></i> Resume
+            <svg class="ui-icon w-3.5 h-3.5 mr-1 text-white" aria-hidden="true"><use href="#icon-play"></use></svg> Resume
           </button>
         </div>
       </div>
@@ -1433,12 +1591,12 @@
     <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400">
       <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
         <!-- Floating Watermark Icon -->
-        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">⚠️</div>
+        <svg class="ui-watermark -right-2 -top-2 w-24 h-24 text-white/10" aria-hidden="true"><use href="#icon-warning"></use></svg>
         <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl mb-2 text-white shadow-inner relative z-10">
-          <i class="fa-solid fa-plug-circle-xmark"></i>
+          <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-warning"></use></svg>
         </div>
         <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-rose-100 shadow-xs mb-1 border border-white/20 relative z-10">
-          <span>⚠️</span> CONNECTION LOST
+          <svg class="ui-icon w-3 h-3 text-rose-200" aria-hidden="true"><use href="#icon-warning"></use></svg> CONNECTION LOST
         </div>
         <h2 class="font-rounded font-black text-xl text-white tracking-wide drop-shadow relative z-10">DISCONNECTED</h2>
       </div>
@@ -1449,7 +1607,7 @@
         </p>
 
         <button onclick="window.returnToLobbyFromDisconnect()" class="game-btn game-btn-blue w-full py-3 text-xs font-black shadow-xs">
-          <i class="fa-solid fa-house mr-1"></i>
+          <svg class="ui-icon w-3.5 h-3.5 mr-1 text-white" aria-hidden="true"><use href="#icon-door"></use></svg>
           <span>Return to Lobby</span>
         </button>
       </div>
@@ -1461,12 +1619,12 @@
     <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400">
       <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
         <!-- Floating Watermark Icon -->
-        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🚪</div>
+        <svg class="ui-watermark -right-2 -top-2 w-24 h-24 text-white/10" aria-hidden="true"><use href="#icon-door"></use></svg>
         <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl mb-2 text-white shadow-inner relative z-10">
-          <i class="fa-solid fa-door-open"></i>
+          <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-door"></use></svg>
         </div>
         <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-rose-100 shadow-xs mb-1 border border-white/20 relative z-10">
-          <span>🚪</span> QUIT MATCH
+          <svg class="ui-icon w-3 h-3 text-rose-200" aria-hidden="true"><use href="#icon-door"></use></svg> QUIT MATCH
         </div>
         <h2 class="font-rounded font-black text-xl text-white tracking-wide drop-shadow relative z-10">EXIT TO LOBBY?</h2>
       </div>
@@ -1481,7 +1639,7 @@
             Cancel
           </button>
           <button onclick="window.confirmExitToLobbyAction()" class="game-btn game-btn-red flex-1 py-3 text-xs font-black shadow-xs">
-            <i class="fa-solid fa-door-open mr-1"></i> End Game
+            <svg class="ui-icon w-3.5 h-3.5 mr-1 text-white" aria-hidden="true"><use href="#icon-door"></use></svg> End Game
           </button>
         </div>
       </div>
@@ -1495,16 +1653,16 @@
       <!-- Leaderboard Header with Grand Gradient & Trophy Icon -->
       <div class="game-modal-header bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-700 px-5 py-4 text-white flex items-center justify-between shadow-md relative overflow-hidden">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🏆</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">✨</div>
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-trophy"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <div class="relative z-10 flex items-center gap-3.5">
           <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
-            🏆
+            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-trophy"></use></svg>
           </div>
           <div>
             <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs mb-1 border border-white/20">
-              <span>👑</span> EMPIRE STANDINGS
+              <svg class="ui-icon w-3 h-3 text-amber-200" aria-hidden="true"><use href="#icon-crown"></use></svg> EMPIRE STANDINGS
             </div>
             <h2 class="font-rounded font-black text-xl sm:text-2xl tracking-wide drop-shadow-sm flex items-center gap-2">
               <span>TYCOON LEADERBOARD</span>
@@ -1518,7 +1676,7 @@
           </div>
         </div>
         <button onclick="window.closeLeaderboardModal()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition text-base shadow-xs border border-white/20" title="Close Leaderboard [Esc]">
-          <i class="fa-solid fa-xmark"></i>
+          <svg class="ui-icon w-4 h-4 text-white" aria-hidden="true"><use href="#icon-xmark"></use></svg>
         </button>
       </div>
 
@@ -1564,12 +1722,12 @@
       <!-- Header Banner -->
       <div class="game-modal-header relative p-5 pb-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white flex items-center justify-between shadow-sm overflow-hidden">
         <!-- Floating Watermark Icons -->
-        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">👔</div>
-        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">✨</div>
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <div class="relative z-10 flex items-center gap-3">
           <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/30 select-none">
-            👔
+            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
           </div>
           <div>
             <div class="flex items-center gap-2">
@@ -1577,7 +1735,7 @@
                 TYCOON WARDROBE
               </h2>
               <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs border border-white/20">
-                <span>✨</span> COSMETICS
+                <svg class="ui-icon w-3 h-3 text-amber-200" aria-hidden="true"><use href="#icon-sparkle"></use></svg> COSMETICS
               </span>
             </div>
             <p class="text-xs font-semibold text-amber-100 mt-0.5">
@@ -1589,11 +1747,11 @@
         <!-- Right: Star Balance Badge & Accessible Close Button -->
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-950/40 backdrop-blur-md border border-amber-300/40 text-amber-300 font-black text-xs sm:text-sm shadow-inner" title="Your Tycoon Stars balance">
-            <span class="text-amber-400">⭐</span>
+            <svg class="ui-icon w-3.5 h-3.5 text-amber-400" aria-hidden="true"><use href="#icon-star"></use></svg>
             <span id="wardrobe-stars-balance" class="tabular-nums">500</span>
           </div>
           <button id="btn-close-wardrobe" onclick="window.closeWardrobeModal()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center cursor-pointer transition text-base" title="Close Wardrobe [Esc]" aria-label="Close Wardrobe">
-            <i class="fa-solid fa-xmark"></i>
+            <svg class="ui-icon w-4 h-4 text-white" aria-hidden="true"><use href="#icon-xmark"></use></svg>
           </button>
         </div>
       </div>
@@ -1601,13 +1759,13 @@
       <!-- Category Filter Tabs -->
       <div class="bg-slate-100/80 border-b border-slate-200 px-5 py-2.5 flex items-center gap-2 select-none overflow-x-auto" role="tablist" aria-label="Wardrobe Categories">
         <button onclick="window.setWardrobeCategory('hat')" data-category="hat" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer bg-amber-400 text-slate-950 shadow-sm flex items-center gap-1.5" role="tab" aria-selected="true">
-          <span>🎩</span> <span>Hats & Headwear</span>
+          <svg class="ui-icon w-4 h-4" aria-hidden="true"><use href="#icon-hat"></use></svg> <span>Hats & Headwear</span>
         </button>
         <button onclick="window.setWardrobeCategory('dice')" data-category="dice" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5" role="tab" aria-selected="false">
-          <span>🎲</span> <span>Dice Skins</span>
+          <svg class="ui-icon w-4 h-4" aria-hidden="true"><use href="#icon-dice"></use></svg> <span>Dice Skins</span>
         </button>
         <button onclick="window.setWardrobeCategory('pedestal')" data-category="pedestal" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5" role="tab" aria-selected="false">
-          <span>🏛️</span> <span>Token Pedestals</span>
+          <svg class="ui-icon w-4 h-4" aria-hidden="true"><use href="#icon-pedestal"></use></svg> <span>Token Pedestals</span>
         </button>
       </div>
 

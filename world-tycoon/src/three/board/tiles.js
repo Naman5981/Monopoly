@@ -128,89 +128,245 @@ export function createTileTexture(tile, propState) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  if (tile.type === 'city') {
-    // 2. City Title: Crisp Rubik with optical hierarchy
-    const fontSize = tile.name.length > 10 ? 38 : (tile.name.length > 7 ? 44 : 50);
-    ctx.font = `800 ${fontSize}px Rubik, system-ui, sans-serif`;
-    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    ctx.fillText(tile.name, 256, 155);
-
-    if (isOwned) {
-      // 3. Bold Owner Plaque in solid player theme color
-      const pillY = 222;
-      const pillH = 58;
-      const pillW = 420;
-      const pillX = (512 - pillW) / 2;
-      const pillR = 29;
-
-      ctx.save();
-      ctx.fillStyle = ownerTheme.colorHex;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetY = 3;
-      if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillW, pillH, pillR);
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
+  function fillRoundRect(x, y, w, h, r, fillStyle, strokeStyle = null, lineWidth = 0) {
+    ctx.save();
+    ctx.fillStyle = fillStyle;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      ctx.fill();
+      if (strokeStyle && lineWidth > 0) {
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = lineWidth;
         ctx.stroke();
-      } else {
-        ctx.fillRect(pillX, pillY, pillW, pillH);
-      }
-      ctx.shadowColor = 'transparent';
-
-      ctx.font = '800 28px Rubik, system-ui, sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(`👑 ${ownerName}`, 256, pillY + pillH / 2);
-      ctx.restore();
-
-      // 4. Rent Section with clear overline label
-      const rentAmt = propState?.mortgaged ? 0 : calculateTileRent(tile.id);
-      ctx.font = '800 22px Rubik, system-ui, sans-serif';
-      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
-      ctx.fillText('RENT', 256, 328);
-
-      ctx.font = '900 74px Rubik, system-ui, sans-serif';
-      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
-      ctx.fillText(fmtMoney(rentAmt), 256, 390);
-
-      if (propState?.festivalBoost) {
-        ctx.fillStyle = isCyber ? '#ec4899' : '#6d28d9';
-        ctx.font = '800 24px Rubik, system-ui, sans-serif';
-        ctx.fillText('★ 2X RENT ★', 256, 452);
       }
     } else {
-      // Unowned: Clear semantic PRICE overline and FOR SALE footer badge
-      ctx.font = '800 24px Rubik, system-ui, sans-serif';
-      ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
-      ctx.fillText('PRICE', 256, 260);
-
-      ctx.font = '900 80px Rubik, system-ui, sans-serif';
-      ctx.fillStyle = isCyber ? '#00f5ff' : '#0f172a';
-      ctx.fillText(fmtMoney(tile.price), 256, 335);
-
-      const pillY = 418;
-      const pillH = 46;
-      const pillW = 200;
-      const pillX = (512 - pillW) / 2;
-      const pillR = 23;
-      ctx.save();
-      ctx.fillStyle = isCyber ? '#0e1726' : '#f1f5f9';
-      if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillW, pillH, pillR);
-        ctx.fill();
-        ctx.strokeStyle = isCyber ? '#1e293b' : '#cbd5e1';
-        ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fill();
+      if (strokeStyle && lineWidth > 0) {
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = lineWidth;
         ctx.stroke();
-      } else {
-        ctx.fillRect(pillX, pillY, pillW, pillH);
       }
-      ctx.font = '800 20px Rubik, system-ui, sans-serif';
-      ctx.fillStyle = isCyber ? '#38bdf8' : '#475569';
-      ctx.fillText('FOR SALE', 256, pillY + pillH / 2);
+    }
+    ctx.restore();
+  }
+
+  if (tile.type === 'city') {
+    // -------------------------------------------------------------------------
+    // ZONE 1: HERO CITY NAME (y: 96 to 176, center: 136)
+    // -------------------------------------------------------------------------
+    const nameLen = tile.name.length;
+    const fontSize = nameLen <= 6 ? 64 : (nameLen <= 9 ? 54 : (nameLen <= 11 ? 46 : 40));
+    ctx.font = `900 ${fontSize}px Rubik, system-ui, sans-serif`;
+    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
+    ctx.fillText(tile.name, 256, 136);
+
+    // -------------------------------------------------------------------------
+    // ZONE 2: HOUSE / BUILDING PROGRESSION TRACK (y: 180 to 280)
+    // -------------------------------------------------------------------------
+    const lvl = propState?.level || 0;
+
+    if (isOwned) {
+      // 2A. Owner Plaque Banner (y: 180..226, h: 46)
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.24)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 2;
+      fillRoundRect(36, 180, 440, 46, 14, ownerTheme.colorHex, '#ffffff', 2);
+      ctx.shadowColor = 'transparent';
+      ctx.font = '800 24px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`👑 ${ownerName}`, 256, 203);
       ctx.restore();
+
+      // 2B. House Upgrade Track (4 Tier Slots across 440px: 36, 148, 260, 372)
+      for (let i = 0; i < 3; i++) {
+        const slotX = 36 + i * 112;
+        const isActive = lvl >= i + 1;
+        if (isActive) {
+          fillRoundRect(slotX, 236, 104, 42, 10, '#10b981', '#ffffff', 2);
+          ctx.font = '800 19px Rubik, system-ui, sans-serif';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(`🏠 H${i + 1}`, slotX + 52, 257);
+        } else {
+          fillRoundRect(
+            slotX,
+            236,
+            104,
+            42,
+            10,
+            isCyber ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9',
+            isCyber ? 'rgba(255, 255, 255, 0.16)' : '#cbd5e1',
+            1.5
+          );
+          ctx.font = '700 18px Rubik, system-ui, sans-serif';
+          ctx.fillStyle = isCyber ? '#64748b' : '#94a3b8';
+          ctx.fillText('🏠', slotX + 52, 257);
+        }
+      }
+
+      // Slot 4: Skyscraper / Landmark
+      const skyX = 372;
+      const isSkyActive = lvl >= 4;
+      if (isSkyActive) {
+        fillRoundRect(skyX, 236, 104, 42, 10, '#8b5cf6', '#ffffff', 2);
+        ctx.font = '900 19px Rubik, system-ui, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('🏢 SKY', skyX + 52, 257);
+      } else {
+        fillRoundRect(
+          skyX,
+          236,
+          104,
+          42,
+          10,
+          isCyber ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9',
+          isCyber ? 'rgba(255, 255, 255, 0.16)' : '#cbd5e1',
+          1.5
+        );
+        ctx.font = '700 18px Rubik, system-ui, sans-serif';
+        ctx.fillStyle = isCyber ? '#64748b' : '#94a3b8';
+        ctx.fillText('🏢', skyX + 52, 257);
+      }
+    } else {
+      // 2C. Unowned: House Potential & Build Cost Container (y: 180..278, h: 98)
+      fillRoundRect(
+        36,
+        180,
+        440,
+        98,
+        16,
+        isCyber ? 'rgba(15, 23, 42, 0.75)' : '#f8fafc',
+        isCyber ? '#1e293b' : '#e2e8f0',
+        2
+      );
+
+      // Header: Build House Cost
+      ctx.font = '800 22px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#0284c7';
+      ctx.fillText(`🏗️ BUILD HOUSE: +${fmtMoney(tile.houseCost || 0)}`, 256, 207);
+
+      // 4 Preview Tier Slots
+      const previewPills = ['🏠 H1', '🏠 H2', '🏠 H3', '🏢 SKY'];
+      for (let i = 0; i < 4; i++) {
+        const pX = 52 + i * 104;
+        fillRoundRect(
+          pX,
+          234,
+          96,
+          32,
+          8,
+          isCyber ? 'rgba(30, 41, 59, 0.65)' : '#e2e8f0',
+          isCyber ? '#334155' : '#cbd5e1',
+          1
+        );
+        ctx.font = '800 15px Rubik, system-ui, sans-serif';
+        ctx.fillStyle = isCyber ? '#94a3b8' : '#475569';
+        ctx.fillText(previewPills[i], pX + 48, 250);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ZONE 3: RENT & PRICE SHOWCASE (y: 288 to 494)
+    // -------------------------------------------------------------------------
+    if (isOwned) {
+      const rentAmt = propState?.mortgaged ? 0 : calculateTileRent(tile.id);
+
+      ctx.font = '800 22px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
+      ctx.fillText('CURRENT RENT', 256, 314);
+
+      const rentStr = fmtMoney(rentAmt);
+      const rentFontSize = rentStr.length > 8 ? 72 : 84;
+      ctx.font = `900 ${rentFontSize}px Rubik, system-ui, sans-serif`;
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
+      ctx.fillText(rentStr, 256, 382);
+
+      // Footer Status Pill
+      if (propState?.festivalBoost) {
+        fillRoundRect(
+          36,
+          436,
+          440,
+          50,
+          14,
+          isCyber ? 'rgba(236, 72, 153, 0.22)' : '#fdf2f8',
+          '#ec4899',
+          2
+        );
+        ctx.font = '800 21px Rubik, system-ui, sans-serif';
+        ctx.fillStyle = '#db2777';
+        ctx.fillText('★ FESTIVAL 2X RENT ACTIVE ★', 256, 461);
+      } else if (propState?.mortgaged) {
+        fillRoundRect(36, 436, 440, 50, 14, '#fef2f2', '#ef4444', 2);
+        ctx.font = '800 21px Rubik, system-ui, sans-serif';
+        ctx.fillStyle = '#dc2626';
+        ctx.fillText('MORTGAGED — NO RENT', 256, 461);
+      } else if (lvl === 4) {
+        fillRoundRect(
+          36,
+          436,
+          440,
+          50,
+          14,
+          isCyber ? 'rgba(168, 85, 247, 0.22)' : '#faf5ff',
+          '#a855f7',
+          2
+        );
+        ctx.font = '800 21px Rubik, system-ui, sans-serif';
+        ctx.fillStyle = '#7c3aed';
+        ctx.fillText('★ MAX LEVEL SKYSCRAPER ★', 256, 461);
+      } else {
+        fillRoundRect(
+          36,
+          436,
+          440,
+          50,
+          14,
+          isCyber ? 'rgba(30, 41, 59, 0.7)' : '#f1f5f9',
+          isCyber ? '#334155' : '#cbd5e1',
+          1.5
+        );
+        ctx.font = '800 21px Rubik, system-ui, sans-serif';
+        ctx.fillStyle = isCyber ? '#94a3b8' : '#475569';
+        ctx.fillText(`TIER ${lvl} OF 4 HOUSES`, 256, 461);
+      }
+    } else {
+      ctx.font = '800 22px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
+      ctx.fillText('PURCHASE PRICE', 256, 310);
+
+      const priceStr = fmtMoney(tile.price);
+      const priceFontSize = priceStr.length > 8 ? 74 : 86;
+      ctx.font = `900 ${priceFontSize}px Rubik, system-ui, sans-serif`;
+      ctx.fillStyle = isCyber ? '#00f5ff' : '#0f172a';
+      ctx.fillText(priceStr, 256, 376);
+
+      // Base Rent & ROI Pill
+      fillRoundRect(
+        36,
+        432,
+        440,
+        54,
+        16,
+        isCyber ? 'rgba(30, 41, 59, 0.85)' : '#f1f5f9',
+        isCyber ? '#334155' : '#cbd5e1',
+        2
+      );
+      ctx.font = '800 24px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#0f172a';
+      ctx.fillText(`BASE RENT: ${fmtMoney(tile.rent?.[0] || 0)}`, 256, 459);
     }
   } else if (tile.type === 'chance') {
     const colors = ['#ef4444', '#facc15', '#22c55e', '#38bdf8', '#a855f7', '#fb923c'];
@@ -256,77 +412,110 @@ export function createTileTexture(tile, propState) {
     ctx.font = '900 32px Rubik, system-ui, sans-serif';
     ctx.fillText('RESORT', 256, 50);
 
+    const resortFontSize = tile.name.length > 8 ? 44 : 54;
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    const resortFontSize = tile.name.length > 8 ? 38 : 46;
-    ctx.font = `800 ${resortFontSize}px Rubik, system-ui, sans-serif`;
-    ctx.fillText(tile.name, 256, 155);
+    ctx.font = `900 ${resortFontSize}px Rubik, system-ui, sans-serif`;
+    ctx.fillText(tile.name, 256, 136);
 
     if (isOwned) {
-      const pillY = 222;
-      const pillH = 58;
-      const pillW = 420;
-      const pillX = (512 - pillW) / 2;
-      const pillR = 29;
-
+      // Owner Plaque
       ctx.save();
-      ctx.fillStyle = ownerTheme.colorHex;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.24)';
       ctx.shadowBlur = 8;
-      ctx.shadowOffsetY = 3;
-      if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillW, pillH, pillR);
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-      } else {
-        ctx.fillRect(pillX, pillY, pillW, pillH);
-      }
+      ctx.shadowOffsetY = 2;
+      fillRoundRect(36, 180, 440, 46, 14, ownerTheme.colorHex, '#ffffff', 2);
       ctx.shadowColor = 'transparent';
-      ctx.font = '800 28px Rubik, system-ui, sans-serif';
+      ctx.font = '800 24px Rubik, system-ui, sans-serif';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(`👑 ${ownerName}`, 256, pillY + pillH / 2);
+      ctx.fillText(`👑 ${ownerName}`, 256, 203);
       ctx.restore();
 
+      // Multiplier feature pill
+      fillRoundRect(
+        36,
+        236,
+        440,
+        42,
+        10,
+        isCyber ? 'rgba(30, 41, 59, 0.65)' : '#f1f5f9',
+        isCyber ? '#334155' : '#cbd5e1',
+        1.5
+      );
+      ctx.font = '800 18px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#0284c7';
+      ctx.fillText('🏝️ VACATION MULTIPLIER (1X–5X)', 256, 257);
+
+      // Rent
       const rentAmt = propState?.mortgaged ? 0 : calculateTileRent(tile.id);
       ctx.font = '800 22px Rubik, system-ui, sans-serif';
       ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
-      ctx.fillText('RENT', 256, 328);
+      ctx.fillText('RESORT RENT', 256, 314);
 
-      ctx.font = '900 74px Rubik, system-ui, sans-serif';
+      const rentStr = fmtMoney(rentAmt);
+      const rentFontSize = rentStr.length > 8 ? 72 : 84;
+      ctx.font = `900 ${rentFontSize}px Rubik, system-ui, sans-serif`;
       ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
-      ctx.fillText(fmtMoney(rentAmt), 256, 390);
+      ctx.fillText(rentStr, 256, 382);
+
+      // Status pill
+      fillRoundRect(
+        36,
+        436,
+        440,
+        50,
+        14,
+        isCyber ? 'rgba(30, 41, 59, 0.7)' : '#f1f5f9',
+        isCyber ? '#334155' : '#cbd5e1',
+        1.5
+      );
+      ctx.font = '800 21px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#94a3b8' : '#475569';
+      ctx.fillText('★ SCALES WITH OWNED RESORTS ★', 256, 461);
     } else {
-      ctx.font = '800 24px Rubik, system-ui, sans-serif';
+      // Unowned Resort feature box
+      fillRoundRect(
+        36,
+        180,
+        440,
+        98,
+        16,
+        isCyber ? 'rgba(15, 23, 42, 0.75)' : '#f8fafc',
+        isCyber ? '#1e293b' : '#e2e8f0',
+        2
+      );
+      ctx.font = '800 22px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#0284c7';
+      ctx.fillText('🏝️ VACATION DESTINATION', 256, 207);
+
+      ctx.font = '800 18px Rubik, system-ui, sans-serif';
       ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
-      ctx.fillText('PRICE', 256, 260);
+      ctx.fillText('RENT MULTIPLIER: 1X → 2X → 4X → 8X', 256, 248);
 
-      ctx.font = '900 80px Rubik, system-ui, sans-serif';
+      // Price
+      ctx.font = '800 22px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
+      ctx.fillText('PURCHASE PRICE', 256, 310);
+
+      const priceStr = fmtMoney(tile.price);
+      const priceFontSize = priceStr.length > 8 ? 74 : 86;
+      ctx.font = `900 ${priceFontSize}px Rubik, system-ui, sans-serif`;
       ctx.fillStyle = isCyber ? '#00f5ff' : '#0f172a';
-      ctx.fillText(fmtMoney(tile.price), 256, 335);
+      ctx.fillText(priceStr, 256, 376);
 
-      const pillY = 418;
-      const pillH = 46;
-      const pillW = 200;
-      const pillX = (512 - pillW) / 2;
-      const pillR = 23;
-      ctx.save();
-      ctx.fillStyle = isCyber ? '#0e1726' : '#f1f5f9';
-      if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillW, pillH, pillR);
-        ctx.fill();
-        ctx.strokeStyle = isCyber ? '#1e293b' : '#cbd5e1';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      } else {
-        ctx.fillRect(pillX, pillY, pillW, pillH);
-      }
-      ctx.font = '800 20px Rubik, system-ui, sans-serif';
-      ctx.fillStyle = isCyber ? '#38bdf8' : '#475569';
-      ctx.fillText('FOR SALE', 256, pillY + pillH / 2);
-      ctx.restore();
+      // Base Rent Pill
+      fillRoundRect(
+        36,
+        432,
+        440,
+        54,
+        16,
+        isCyber ? 'rgba(30, 41, 59, 0.85)' : '#f1f5f9',
+        isCyber ? '#334155' : '#cbd5e1',
+        2
+      );
+      ctx.font = '800 24px Rubik, system-ui, sans-serif';
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#0f172a';
+      ctx.fillText(`BASE RENT: ${fmtMoney(tile.rent?.[0] || 0)}`, 256, 459);
     }
   } else {
     ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
@@ -362,28 +551,28 @@ export function createTileBorderFrame(colorHex) {
   const mat = new THREE.MeshStandardMaterial({
     color: new THREE.Color(colorHex),
     emissive: new THREE.Color(colorHex),
-    emissiveIntensity: 0.85,
-    roughness: 0.15,
-    metalness: 0.25,
+    emissiveIntensity: 0.30,
+    roughness: 0.28,
+    metalness: 0.35,
     transparent: true,
-    opacity: 0.92
+    opacity: 0.96
   });
 
   const rimW = 2.96;
-  const rimThick = 0.10;
-  const rimH = 0.024;
+  const rimThick = 0.14;
+  const rimH = 0.045;
 
   const barNSGeo = new THREE.BoxGeometry(rimW, rimH, rimThick);
   const barN = new THREE.Mesh(barNSGeo, mat);
-  barN.position.set(0, 0.121, -(rimW - rimThick) / 2);
+  barN.position.set(0, 0.125, -(rimW - rimThick) / 2);
   const barS = new THREE.Mesh(barNSGeo, mat);
-  barS.position.set(0, 0.121, (rimW - rimThick) / 2);
+  barS.position.set(0, 0.125, (rimW - rimThick) / 2);
 
   const barEWGeo = new THREE.BoxGeometry(rimThick, rimH, rimW - rimThick * 2);
   const barE = new THREE.Mesh(barEWGeo, mat);
-  barE.position.set((rimW - rimThick) / 2, 0.121, 0);
+  barE.position.set((rimW - rimThick) / 2, 0.125, 0);
   const barW = new THREE.Mesh(barEWGeo, mat);
-  barW.position.set(-(rimW - rimThick) / 2, 0.121, 0);
+  barW.position.set(-(rimW - rimThick) / 2, 0.125, 0);
 
   frameGroup.add(barN, barS, barE, barW);
   frameGroup.userData = { borderMat: mat };
@@ -432,7 +621,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     tileMesh.userData = { tileId: tile.id, topMat, sideMat };
 
     const borderFrame = createTileBorderFrame(ownerTheme ? ownerTheme.colorHex : '#e2e8f0');
-    borderFrame.visible = false;
+    borderFrame.visible = !!isOwned;
     tileMesh.add(borderFrame);
     context.tileBorderFrames[tile.id] = borderFrame;
 
@@ -442,9 +631,9 @@ export function buildAllBoardTiles3D(boardGroup) {
     const poolGeo = new THREE.PlaneGeometry(4.8, 4.8);
     const poolMat = new THREE.MeshBasicMaterial({
       map: getGroundPoolTexture(),
-      color: 0xffeedd,
+      color: ownerTheme ? new THREE.Color(ownerTheme.colorHex) : 0xffeedd,
       transparent: true,
-      opacity: 0.0,
+      opacity: isOwned ? 0.26 : 0.0,
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
       depthWrite: false
@@ -452,7 +641,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     const groundPool = new THREE.Mesh(poolGeo, poolMat);
     groundPool.rotation.x = -Math.PI / 2;
     groundPool.position.set(pos.x, 0.04, pos.z);
-    groundPool.visible = false;
+    groundPool.visible = !!isOwned;
     boardGroup.add(groundPool);
     context.tileGroundLightPools[tile.id] = groundPool;
 
@@ -532,21 +721,31 @@ export function refreshTileTextureAndBuildings(tileId) {
   const frame = context.tileBorderFrames[tileId];
   if (frame && frame.userData?.borderMat) {
     if (isOwned && ownerTheme) {
+      frame.visible = true;
       frame.userData.borderMat.color.setStyle(ownerTheme.colorHex);
       frame.userData.borderMat.emissive.setStyle(ownerTheme.colorHex);
       if (isNight) {
-        frame.visible = true;
         frame.userData.borderMat.emissiveIntensity = 0.85;
       } else if (isSunset) {
-        frame.visible = true;
-        frame.userData.borderMat.emissiveIntensity = 0.45;
+        frame.userData.borderMat.emissiveIntensity = 0.50;
       } else {
-        frame.visible = false;
-        frame.userData.borderMat.emissiveIntensity = 0;
+        frame.userData.borderMat.emissiveIntensity = 0.28;
       }
     } else {
       frame.visible = false;
       frame.userData.borderMat.emissiveIntensity = 0;
+    }
+  }
+
+  const pool = context.tileGroundLightPools[tileId];
+  if (pool && pool.material) {
+    if (isOwned && ownerTheme) {
+      pool.visible = true;
+      pool.material.color.setStyle(ownerTheme.colorHex);
+      pool.material.opacity = isNight ? 0.45 : (isSunset ? 0.35 : 0.25);
+    } else {
+      pool.visible = false;
+      pool.material.opacity = 0;
     }
   }
 

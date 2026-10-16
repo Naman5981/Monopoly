@@ -149,7 +149,7 @@ export const BOARD_EDITIONS = {
     id: 'world',
     name: 'World Cities',
     badge: 'World Tour Edition',
-    tilesLabel: '32 Global Cities & Landmarks',
+    tilesLabel: '32 Global Cities',
     groupMeta: WORLD_GROUP_META,
     tiles: WORLD_BOARD_TILES,
     chancePrizes: WORLD_CHANCE_WHEEL_PRIZES
@@ -158,7 +158,7 @@ export const BOARD_EDITIONS = {
     id: 'rajasthan',
     name: 'Rajasthan, India',
     badge: 'Rajasthan Edition',
-    tilesLabel: '32 Royal Cities & Heritage Landmarks',
+    tilesLabel: '32 Royal Cities & Heritage',
     groupMeta: RAJASTHAN_GROUP_META,
     tiles: RAJASTHAN_BOARD_TILES,
     chancePrizes: RAJASTHAN_CHANCE_WHEEL_PRIZES
@@ -192,9 +192,9 @@ export function applyBoardEdition(editionId) {
 }
 
 export const PLAYER_THEMES = [
-  { name: 'YOU',     colorHex: '#6c5ce7', charColor: 0xef4444, hatColor: 0x334155, isAI: false },
-  { name: 'BIDIK',   colorHex: '#f39c12', charColor: 0xf97316, hatColor: 0xfde047, isAI: true  },
-  { name: 'ATLAS',   colorHex: '#10b981', charColor: 0x10b981, hatColor: 0x1e293b, isAI: true  },
+  { name: 'YOU',     colorHex: '#3b82f6', charColor: 0x3b82f6, hatColor: 0x334155, isAI: false },
+  { name: 'BIDIK',   colorHex: '#fb923c', charColor: 0xf97316, hatColor: 0xfde047, isAI: true  },
+  { name: 'ATLAS',   colorHex: '#22c55e', charColor: 0x22c55e, hatColor: 0x1e293b, isAI: true  },
   { name: 'NOVA',    colorHex: '#ec4899', charColor: 0xec4899, hatColor: 0xffffff, isAI: true  },
   { name: 'PHOENIX', colorHex: '#ef4444', charColor: 0xef4444, hatColor: 0xf97316, isAI: true  },
   { name: 'CYBER',   colorHex: '#06b6d4', charColor: 0x06b6d4, hatColor: 0x38bdf8, isAI: true  },

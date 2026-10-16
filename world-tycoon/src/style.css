@@ -800,6 +800,85 @@ body {
   }
 }
 
+/* ═══ LOBBY COLOR SWATCH BUTTONS (better-ui) ═══ */
+.color-swatch-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition-property: transform, opacity, filter, box-shadow, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .color-swatch-btn:not(:disabled):hover {
+    transform: scale(1.14);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+    z-index: 2;
+  }
+}
+
+.color-swatch-btn:not(:disabled):active {
+  transform: scale(0.96);
+  transition-duration: 75ms;
+}
+
+.color-swatch-btn.swatch-selected {
+  border-color: #0f172a !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.8), 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+  z-index: 3;
+}
+
+.color-swatch-btn:disabled,
+.color-swatch-btn.swatch-disabled {
+  cursor: not-allowed !important;
+  opacity: 0.32 !important;
+  filter: blur(1.5px) grayscale(0.7) !important;
+  transform: scale(0.88) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  border-style: dashed !important;
+  box-shadow: none !important;
+  pointer-events: auto !important; /* Keep cursor: not-allowed and title tooltip responsive */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .color-swatch-btn {
+    transition-property: opacity, filter !important;
+    transform: none !important;
+  }
+  .color-swatch-btn:not(:disabled):hover,
+  .color-swatch-btn:not(:disabled):active,
+  .color-swatch-btn.swatch-selected,
+  .color-swatch-btn.swatch-disabled {
+    transform: none !important;
+  }
+}
+
+/* ═══ CLEAN VECTOR ICON SYSTEM (clean-code & better-ui) ═══ */
+.ui-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.14em;
+  fill: currentColor;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.ui-watermark {
+  fill: currentColor;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
 /* Sleek custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;

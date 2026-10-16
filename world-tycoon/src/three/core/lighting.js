@@ -890,12 +890,25 @@ export function updateTileIlluminationsAndPressLight(t) {
         frame.visible = true;
         frame.userData.borderMat.color.setStyle(ownerColor);
         frame.userData.borderMat.emissive.setStyle(ownerColor);
-        frame.userData.borderMat.emissiveIntensity = 0.45 + pressRatio * 0.35;
+        frame.userData.borderMat.emissiveIntensity = 0.50 + pressRatio * 0.35;
       }
       if (sideMat) {
         sideMat.color.setStyle(ownerColor);
         sideMat.emissive.setStyle(ownerColor);
-        sideMat.emissiveIntensity = 0.25 + pressRatio * 0.20;
+        sideMat.emissiveIntensity = 0.28 + pressRatio * 0.20;
+      }
+    } else if (isOwned && ownerColor) {
+      // Day mode: keep 3D anodized satin frame visible and crisp across the board!
+      if (frame && frame.userData?.borderMat) {
+        frame.visible = true;
+        frame.userData.borderMat.color.setStyle(ownerColor);
+        frame.userData.borderMat.emissive.setStyle(ownerColor);
+        frame.userData.borderMat.emissiveIntensity = 0.28 + pressRatio * 0.30;
+      }
+      if (sideMat) {
+        sideMat.color.setStyle(ownerColor);
+        sideMat.emissive.setStyle(ownerColor);
+        sideMat.emissiveIntensity = 0.15 + pressRatio * 0.20;
       }
     } else {
       if (frame) frame.visible = false;
@@ -912,13 +925,16 @@ export function updateTileIlluminationsAndPressLight(t) {
 
     // 2. Soft Ground Halo Light Pool (around perimeter on street/grass)
     if (pool) {
-      if (illum > 0.05 && nightFactor > 0.01) {
+      if (isOwned && ownerColor) {
         pool.visible = true;
-        if (isOwned && ownerColor) {
-          pool.material.color.setStyle(ownerColor);
-        } else {
-          pool.material.color.setHex(0xffeedd);
-        }
+        pool.material.color.setStyle(ownerColor);
+        const baseOpacity = isNightBulb ? 0.45 : (isSunsetBulb ? 0.35 : 0.25);
+        pool.material.opacity = baseOpacity + pressRatio * 0.20;
+        const poolScale = 1.0 + pressRatio * 0.08;
+        pool.scale.set(poolScale, poolScale, 1);
+      } else if (illum > 0.05 && nightFactor > 0.01) {
+        pool.visible = true;
+        pool.material.color.setHex(0xffeedd);
         pool.material.opacity = (0.12 + pressRatio * 0.38) * nightFactor;
         const poolScale = 1.0 + pressRatio * 0.10;
         pool.scale.set(poolScale, poolScale, 1);

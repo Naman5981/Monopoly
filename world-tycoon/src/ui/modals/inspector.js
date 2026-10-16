@@ -64,7 +64,7 @@ export function openInspectorModal(tileId) {
       ownerPill.innerHTML = `Unowned • Price: <strong class="text-emerald-700">${fmtMoney(tile.price)}</strong>`;
     } else {
       ownerPill.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs';
-      ownerPill.textContent = tile.subtitle || 'Special Landmark';
+      ownerPill.textContent = tile.subtitle || 'Special Tile';
     }
   }
 

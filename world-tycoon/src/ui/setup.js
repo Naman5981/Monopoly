@@ -105,7 +105,29 @@ export function setPlayerCount(n) {
   if (selectedSetupPlayerIdx >= lobbyPlayerCount) {
     selectedSetupPlayerIdx = 0;
   }
+  // Ensure no active players share duplicate colors
+  const used = new Set();
+  for (let i = 0; i < lobbyPlayerCount; i++) {
+    const p = matchSettings.customPlayers[i];
+    if (!p) continue;
+    const norm = (p.colorHex || '').toLowerCase();
+    if (!norm || used.has(norm)) {
+      const free = CANDY_PALETTE.find(c => !used.has(c.hex.toLowerCase()));
+      if (free) {
+        p.colorHex = free.hex;
+        p.charColor = free.charColor;
+        if (PLAYER_THEMES[i]) {
+          PLAYER_THEMES[i].colorHex = free.hex;
+          PLAYER_THEMES[i].charColor = free.charColor;
+        }
+        used.add(free.hex.toLowerCase());
+      }
+    } else {
+      used.add(norm);
+    }
+  }
   renderPlayerCards();
+  renderMatchSettingButtons();
   playSFX('hop');
 }
 
@@ -117,8 +139,24 @@ export function addBotOrSlot() {
       matchSettings.customPlayers[newIdx].isAI = true;
       const list = FUN_NAMES[newIdx % FUN_NAMES.length];
       matchSettings.customPlayers[newIdx].name = list[Math.floor(Math.random() * list.length)];
+      // Ensure the new player has a unique color not already taken by existing active players
+      const usedColors = new Set(
+        matchSettings.customPlayers
+          .slice(0, newIdx)
+          .map(p => (p.colorHex || '').toLowerCase())
+      );
+      const free = CANDY_PALETTE.find(c => !usedColors.has(c.hex.toLowerCase()));
+      if (free) {
+        matchSettings.customPlayers[newIdx].colorHex = free.hex;
+        matchSettings.customPlayers[newIdx].charColor = free.charColor;
+        if (PLAYER_THEMES[newIdx]) {
+          PLAYER_THEMES[newIdx].colorHex = free.hex;
+          PLAYER_THEMES[newIdx].charColor = free.charColor;
+        }
+      }
     }
     renderPlayerCards();
+    renderMatchSettingButtons();
     playSFX('hop');
   }
 }
@@ -129,9 +167,9 @@ export function removePlayerAt(idx) {
   matchSettings.customPlayers.splice(idx, 1);
 
   const defaultThemes = [
-    { name: 'YOU', isAI: false, charColor: 0xef4444, colorHex: '#6c5ce7', hatColor: 0x334155, hatStyle: 0 },
-    { name: 'BIDIK', isAI: true, charColor: 0xf97316, colorHex: '#f39c12', hatColor: 0xfde047, hatStyle: 1 },
-    { name: 'ATLAS', isAI: true, charColor: 0x10b981, colorHex: '#10b981', hatColor: 0x1e293b, hatStyle: 2 },
+    { name: 'YOU', isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0 },
+    { name: 'BIDIK', isAI: true, charColor: 0xf97316, colorHex: '#fb923c', hatColor: 0xfde047, hatStyle: 1 },
+    { name: 'ATLAS', isAI: true, charColor: 0x22c55e, colorHex: '#22c55e', hatColor: 0x1e293b, hatStyle: 2 },
     { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3 },
     { name: 'PHOENIX', isAI: true, charColor: 0xef4444, colorHex: '#ef4444', hatColor: 0xf97316, hatStyle: 0 },
     { name: 'CYBER', isAI: true, charColor: 0x06b6d4, colorHex: '#06b6d4', hatColor: 0x38bdf8, hatStyle: 3 }
@@ -196,11 +234,13 @@ export function cycleAvatarNext() {
 
 export function setLocalPlayerColor(hex, charColor) {
   const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
-  setPlayerColor(curIdx, hex, charColor);
-  const p = matchSettings.customPlayers[curIdx];
-  updateLobbyHeroAvatar(p?.hatStyle || 0, hex, charColor);
-  renderPlayerCards();
-  renderMatchSettingButtons();
+  const success = setPlayerColor(curIdx, hex, charColor);
+  if (success) {
+    const p = matchSettings.customPlayers[curIdx];
+    if (p) {
+      updateLobbyHeroAvatar(p.hatStyle || 0, hex, charColor);
+    }
+  }
 }
 
 export function renderPlayerCards() {
@@ -343,17 +383,31 @@ export function setPlayerArchetype(playerIdx, archIdx) {
 }
 
 export function setPlayerColor(playerIdx, hex, charColor) {
+  const normHex = (hex || '').toLowerCase();
+  const isTaken = matchSettings.customPlayers.some((p, idx) => 
+    idx !== playerIdx && idx < lobbyPlayerCount && (p.colorHex || '').toLowerCase() === normHex
+  );
+  if (isTaken) {
+    playSFX('flinch');
+    return false;
+  }
+
   if (matchSettings.customPlayers[playerIdx]) {
     matchSettings.customPlayers[playerIdx].colorHex = hex;
     matchSettings.customPlayers[playerIdx].charColor = charColor;
-    PLAYER_THEMES[playerIdx].colorHex = hex;
-    PLAYER_THEMES[playerIdx].charColor = charColor;
-    if (playerIdx === 0) {
-      updateLobbyHeroAvatar(matchSettings.customPlayers[0].hatStyle, hex, charColor);
+    if (PLAYER_THEMES[playerIdx]) {
+      PLAYER_THEMES[playerIdx].colorHex = hex;
+      PLAYER_THEMES[playerIdx].charColor = charColor;
+    }
+    if (playerIdx === selectedSetupPlayerIdx) {
+      updateLobbyHeroAvatar(matchSettings.customPlayers[playerIdx].hatStyle || 0, hex, charColor);
     }
     renderPlayerCards();
-    playSFX('hop');
+    renderMatchSettingButtons();
+    playSFX('click');
+    return true;
   }
+  return false;
 }
 
 export function randomizeAllNames() {
@@ -535,7 +589,7 @@ export function renderMatchSettingButtons() {
   }
   const tilesText = document.getElementById('lobby-edition-tiles-text');
   if (tilesText) {
-    tilesText.textContent = (matchSettings.boardEdition === 'rajasthan') ? '32 Royal Cities & Heritage' : '32 Cities & Landmarks';
+    tilesText.textContent = (matchSettings.boardEdition === 'rajasthan') ? '32 Royal Cities' : '32 Cities';
   }
 
   // HUD Board Style text
@@ -555,14 +609,38 @@ export function renderMatchSettingButtons() {
   const colorContainer = document.getElementById('setup-color-swatches');
   if (colorContainer) {
     const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
-    const curHex = matchSettings.customPlayers[curIdx]?.colorHex || '#3b82f6';
-    colorContainer.innerHTML = CANDY_PALETTE.map(c => `
-      <button onclick="window.setLocalPlayerColor('${c.hex}', ${c.charColor})" class="w-8 h-8 rounded-full border-2 transition transform hover:scale-115 cursor-pointer flex items-center justify-center ${
-        curHex === c.hex ? 'border-slate-900 ring-3 ring-sky-400 scale-110 shadow-md' : 'border-white shadow-xs'
-      }" style="background:${c.hex}" title="${c.name}">
-        ${curHex === c.hex ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
-      </button>
-    `).join('');
+    const curPlayer = matchSettings.customPlayers[curIdx];
+    const curHex = (curPlayer?.colorHex || '#3b82f6').toLowerCase();
+
+    colorContainer.innerHTML = CANDY_PALETTE.map(c => {
+      const cHex = c.hex.toLowerCase();
+      const isSelected = (curHex === cHex);
+      const otherOwner = matchSettings.customPlayers.find((p, idx) => 
+        idx !== curIdx && idx < lobbyPlayerCount && (p.colorHex || '').toLowerCase() === cHex
+      );
+      const isTaken = Boolean(otherOwner);
+
+      if (isTaken) {
+        return `
+          <button type="button" disabled aria-disabled="true" class="color-swatch-btn swatch-disabled" style="background:${c.hex}" title="${c.name} (Taken by ${otherOwner.name})" aria-label="${c.name} - Taken by ${otherOwner.name}">
+            <i class="fa-solid fa-lock text-[9px] text-white/90 drop-shadow"></i>
+          </button>
+        `;
+      }
+
+      if (isSelected) {
+        return `
+          <button type="button" aria-selected="true" class="color-swatch-btn swatch-selected" style="background:${c.hex}" title="${c.name} (Selected by ${curPlayer?.name || 'You'})" aria-label="${c.name} (Selected)">
+            <i class="fa-solid fa-check text-white text-xs drop-shadow"></i>
+          </button>
+        `;
+      }
+
+      return `
+        <button type="button" onclick="window.setLocalPlayerColor('${c.hex}', ${c.charColor})" class="color-swatch-btn" style="background:${c.hex}" title="Choose ${c.name}" aria-label="Choose ${c.name}">
+        </button>
+      `;
+    }).join('');
   }
 }
 
