@@ -102,14 +102,14 @@ export function openInspectorModal(tileId) {
       rentList.innerHTML = `
         <div class="game-tier-card py-2 px-3">
           <div class="flex items-center gap-2">
-            <div class="tier-level-badge tier-house">🌴</div>
+            <div class="tier-level-badge tier-house"><svg class="ui-icon w-3.5 h-3.5 text-sky-600" aria-hidden="true"><use href="#icon-pin"></use></svg></div>
             <span class="font-display font-bold text-xs text-slate-800">1 Resort Owned</span>
           </div>
           <div class="tier-val-pill text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[0])}</div>
         </div>
         <div class="game-tier-card tier-card-skyscraper py-2 px-3">
           <div class="flex items-center gap-2">
-            <div class="tier-level-badge tier-skyscraper-badge">🏖️</div>
+            <div class="tier-level-badge tier-skyscraper-badge"><svg class="ui-icon w-3.5 h-3.5 text-amber-600" aria-hidden="true"><use href="#icon-sparkle"></use></svg></div>
             <span class="font-display font-bold text-xs text-amber-950">2 Resorts Owned (2×)</span>
           </div>
           <div class="tier-val-pill tier-val-skyscraper text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[1])}</div>

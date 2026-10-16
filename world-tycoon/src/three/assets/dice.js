@@ -16,8 +16,12 @@ export const DICE_SKIN_PALETTES = {
 };
 
 let activeDiceSkin = 'dice_classic';
+const diceMaterialCache = new Map();
 
 export function createDiceMaterialsForSkin(skinId = 'dice_classic') {
+  if (diceMaterialCache.has(skinId)) {
+    return diceMaterialCache.get(skinId);
+  }
   const palette = DICE_SKIN_PALETTES[skinId] || DICE_SKIN_PALETTES.dice_classic;
   const materials = [];
   for (let face = 1; face <= 6; face++) {
@@ -51,6 +55,7 @@ export function createDiceMaterialsForSkin(skinId = 'dice_classic') {
     if (context.maxAnisotropy) tex.anisotropy = context.maxAnisotropy;
     materials.push(new THREE.MeshLambertMaterial({ map: tex }));
   }
+  diceMaterialCache.set(skinId, materials);
   return materials;
 }
 

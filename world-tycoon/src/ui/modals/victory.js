@@ -54,10 +54,15 @@ export function showVictoryModal(winner, victoryDetails = null) {
     accoladeDesc.textContent = victoryDetails?.desc || 'All rival tycoons bankrupted. You rule the entire global real estate empire!';
   }
   if (accoladeIcon) {
-    if (victoryDetails?.type === 'triple_monopoly') accoladeIcon.textContent = '🏰';
-    else if (victoryDetails?.type === 'line_monopoly') accoladeIcon.textContent = '🌐';
-    else if (victoryDetails?.type === 'net_worth_time') accoladeIcon.textContent = '⏱️';
-    else accoladeIcon.textContent = '👑';
+    if (victoryDetails?.type === 'triple_monopoly') {
+      accoladeIcon.innerHTML = `<svg class="ui-icon w-8 h-8 text-amber-500" aria-hidden="true"><use href="#icon-city"></use></svg>`;
+    } else if (victoryDetails?.type === 'line_monopoly') {
+      accoladeIcon.innerHTML = `<svg class="ui-icon w-8 h-8 text-sky-500" aria-hidden="true"><use href="#icon-globe"></use></svg>`;
+    } else if (victoryDetails?.type === 'net_worth_time') {
+      accoladeIcon.innerHTML = `<svg class="ui-icon w-8 h-8 text-emerald-500" aria-hidden="true"><use href="#icon-money"></use></svg>`;
+    } else {
+      accoladeIcon.innerHTML = `<svg class="ui-icon w-8 h-8 text-amber-500" aria-hidden="true"><use href="#icon-crown"></use></svg>`;
+    }
   }
 
   const cashEl = document.getElementById('victory-stat-cash');
@@ -278,7 +283,7 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
         <div class="monopoly-deed-card">
           <div class="monopoly-deed-header" style="background-color: ${group.hex}">
             <div class="monopoly-deed-check" style="background-color: ${p.colorHex || '#ef4444'}">
-              <i class="fa-solid fa-check text-xs"></i>
+              <svg class="ui-icon w-3 h-3 text-white" aria-hidden="true"><use href="#icon-check"></use></svg>
             </div>
           </div>
           <div class="monopoly-deed-name" title="${t.name}">${t.name}</div>

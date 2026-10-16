@@ -32,12 +32,12 @@ export function isLobbyScreenActive() {
  */
 export function getTierBadgeHTML(level) {
   if (level === 0) {
-    return `<div class="tier-level-badge tier-house"><span class="text-xs">🚩</span><span class="text-[11px] font-black text-emerald-800">Base</span></div>`;
+    return `<div class="tier-level-badge tier-house"><svg class="ui-icon w-3 h-3 text-emerald-700 mr-1" aria-hidden="true"><use href="#icon-pin"></use></svg><span class="text-[11px] font-black text-emerald-800">Base</span></div>`;
   }
   if (level === 4) {
-    return `<div class="tier-level-badge tier-skyscraper-badge"><span class="text-xs">🏙️</span><span class="text-[10px] font-black text-amber-900 tracking-tight">MAX</span></div>`;
+    return `<div class="tier-level-badge tier-skyscraper-badge"><svg class="ui-icon w-3 h-3 text-amber-700 mr-1" aria-hidden="true"><use href="#icon-city"></use></svg><span class="text-[10px] font-black text-amber-900 tracking-tight">MAX</span></div>`;
   }
-  return `<div class="tier-level-badge tier-house"><span class="text-xs">🏠</span><span class="text-[11px] font-black text-emerald-800">${level}</span></div>`;
+  return `<div class="tier-level-badge tier-house"><svg class="ui-icon w-3 h-3 text-emerald-700 mr-1" aria-hidden="true"><use href="#icon-building"></use></svg><span class="text-[11px] font-black text-emerald-800">${level}</span></div>`;
 }
 
 /**
