@@ -71,16 +71,16 @@ export let lobbyPlayerCount = 2;
 export function setLobbyPlayerCount(n) { lobbyPlayerCount = n; }
 
 const SAVED_VOLUME = (typeof localStorage !== 'undefined') ? localStorage.getItem('WORLD_TYCOON_SOUND_VOLUME') : null;
-const INITIAL_VOL = SAVED_VOLUME !== null ? Math.max(0, Math.min(1, parseFloat(SAVED_VOLUME))) : 0.75;
+const INITIAL_VOL = SAVED_VOLUME !== null ? Math.max(0, Math.min(1, parseFloat(SAVED_VOLUME))) : 0.55;
 
-export let soundVolume = isNaN(INITIAL_VOL) ? 0.75 : INITIAL_VOL;
-export let lastNonZeroVolume = soundVolume > 0 ? soundVolume : 0.75;
+export let soundVolume = isNaN(INITIAL_VOL) ? 0.55 : INITIAL_VOL;
+export let lastNonZeroVolume = soundVolume > 0 ? soundVolume : 0.55;
 export let soundEnabled = soundVolume > 0;
 
 export function toggleSoundEnabled() {
   soundEnabled = !soundEnabled;
   if (soundEnabled) {
-    if (soundVolume === 0) soundVolume = lastNonZeroVolume || 0.75;
+    if (soundVolume === 0) soundVolume = lastNonZeroVolume || 0.55;
   }
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem('WORLD_TYCOON_SOUND_VOLUME', (soundEnabled ? soundVolume : 0).toString());

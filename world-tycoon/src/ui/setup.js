@@ -21,12 +21,16 @@ import {
   registerNetworkCallbacks,
   broadcastAction
 } from '../network/p2p.js';
+import { updateAllPointsBadges } from './wardrobe.js';
 
-const ARCHETYPES = [
+export const ARCHETYPES = [
   { id: 0, name: 'Aviator', icon: '✈️', hatColor: 0x334155, desc: 'Sky Captain Goggles' },
   { id: 1, name: 'Banker', icon: '🎩', hatColor: 0xfde047, desc: 'Golden Monocle & Top Hat' },
   { id: 2, name: 'Explorer', icon: '🧭', hatColor: 0x1e293b, desc: 'Safari Pith Helmet' },
-  { id: 3, name: 'Cyber Nova', icon: '👑', hatColor: 0xffffff, desc: 'Neon Cyber Visor' }
+  { id: 3, name: 'Cyber Nova', icon: '⚡', hatColor: 0xffffff, desc: 'Neon Cyber Visor' },
+  { id: 4, name: 'Imperator', icon: '👑', hatColor: 0xfacc15, desc: 'Imperial 24K Crown' },
+  { id: 5, name: 'High Roller', icon: '💎', hatColor: 0x1e293b, desc: 'Diamond Fedora' },
+  { id: 6, name: 'Admiral', icon: '⚓', hatColor: 0x0f172a, desc: 'Royal Navy Bicorn' }
 ];
 
 const CANDY_PALETTE = [
@@ -170,8 +174,8 @@ export function cycleAvatarPrev() {
   const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
   const p = matchSettings.customPlayers[curIdx];
   if (!p) return;
-  p.hatStyle = (p.hatStyle + 3) % 4;
-  p.hatColor = ARCHETYPES[p.hatStyle].hatColor;
+  p.hatStyle = (p.hatStyle + ARCHETYPES.length - 1) % ARCHETYPES.length;
+  p.hatColor = ARCHETYPES[p.hatStyle]?.hatColor || 0xfde047;
   if (PLAYER_THEMES[curIdx]) PLAYER_THEMES[curIdx].hatColor = p.hatColor;
   updateLobbyHeroAvatar(p.hatStyle, p.colorHex, p.charColor);
   renderPlayerCards();
@@ -182,8 +186,8 @@ export function cycleAvatarNext() {
   const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
   const p = matchSettings.customPlayers[curIdx];
   if (!p) return;
-  p.hatStyle = (p.hatStyle + 1) % 4;
-  p.hatColor = ARCHETYPES[p.hatStyle].hatColor;
+  p.hatStyle = (p.hatStyle + 1) % ARCHETYPES.length;
+  p.hatColor = ARCHETYPES[p.hatStyle]?.hatColor || 0xfde047;
   if (PLAYER_THEMES[curIdx]) PLAYER_THEMES[curIdx].hatColor = p.hatColor;
   updateLobbyHeroAvatar(p.hatStyle, p.colorHex, p.charColor);
   renderPlayerCards();
@@ -218,6 +222,7 @@ export function renderPlayerCards() {
     profileAvatarEl.style.borderColor = p0.colorHex || '#10b981';
     profileAvatarEl.style.color = p0.colorHex || '#10b981';
   }
+  updateAllPointsBadges();
 
   // Update center hero archetype pill indicator based on selected player
   const curPlayer = matchSettings.customPlayers[selectedSetupPlayerIdx] || p0;
@@ -239,8 +244,8 @@ export function renderPlayerCards() {
     const initial = (cp.name || `P${i + 1}`)[0].toUpperCase();
 
     const row = document.createElement('div');
-    row.className = `bg-white/95 border-2 ${
-      isSelected ? 'border-sky-500 ring-2 ring-sky-300 shadow-md bg-sky-50/50' : 'border-slate-200/80 hover:border-sky-300 shadow-xs'
+    row.className = `player-setup-card bg-white/95 border-2 ${
+      isSelected ? 'border-amber-400 ring-2 ring-amber-300/80 shadow-[0_8px_24px_rgba(245,158,11,0.22)] bg-gradient-to-r from-amber-50/80 via-yellow-50/50 to-white' : 'border-slate-200/90 hover:border-amber-300 shadow-xs'
     } rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2.5 transition cursor-pointer`;
     row.onclick = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
@@ -250,14 +255,14 @@ export function renderPlayerCards() {
     row.innerHTML = `
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <!-- Colored avatar initial circle -->
-        <div class="w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center font-black text-sm text-white flex-shrink-0" style="background:${cp.colorHex}">
+        <div class="w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center font-black text-sm text-white flex-shrink-0" style="background:${cp.colorHex}; ${isSelected ? 'box-shadow: 0 0 12px rgba(245,158,11,0.6);' : ''}">
           ${initial}
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5 flex-wrap">
             ${i === 0 ? '<span class="text-sm">👑</span>' : ''}
-            <input type="text" value="${cp.name}" oninput="window.setPlayerSetupName(${i}, this.value)" class="bg-transparent font-black text-sm sm:text-base text-slate-800 uppercase focus:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-400 rounded-lg px-1.5 py-0.5 w-24 sm:w-32 truncate transition">
-            ${isSelected ? '<span class="text-xs font-black bg-sky-500 text-white px-2.5 py-0.5 rounded-full shadow-xs">PODIUM</span>' : ''}
+            <input type="text" value="${cp.name}" oninput="window.setPlayerSetupName(${i}, this.value)" class="bg-transparent font-black text-sm sm:text-base text-slate-800 uppercase focus:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-lg px-1.5 py-0.5 w-24 sm:w-32 truncate transition">
+            ${isSelected ? '<span class="text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-2.5 py-0.5 rounded-full shadow-xs border border-amber-300 flex items-center gap-1"><span>👑</span> PODIUM</span>' : ''}
           </div>
           <div class="text-xs font-semibold text-slate-500 pl-1 mt-0.5">
             ${i === 0 ? 'Table Host' : (isHuman ? 'Human Player' : 'AI Tycoon Bot')}
@@ -268,7 +273,7 @@ export function renderPlayerCards() {
       <!-- Quick role toggle and Remove bot/player button -->
       <div class="flex items-center gap-1.5 flex-shrink-0">
         <button onclick="window.togglePlayerRole(${i})" class="text-xs font-black px-2.5 py-1.5 rounded-xl border-2 transition cursor-pointer ${
-          isHuman ? 'bg-sky-50 border-sky-300 text-sky-700 hover:bg-sky-100 shadow-xs' : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+          isHuman ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 shadow-xs' : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
         }" title="Toggle Human / Bot">
           <i class="${isHuman ? 'fa-solid fa-user' : 'fa-solid fa-robot'} mr-1 text-xs"></i>
           ${isHuman ? 'Player' : 'Bot'}

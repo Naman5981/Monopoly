@@ -374,9 +374,38 @@ export function renderPortfolioGrid() {
   const grid = document.getElementById('portfolio-grid');
   if (!grid) return;
   const owned = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === 0);
+  const summaryBar = document.getElementById('portfolio-summary-bar');
+
+  if (summaryBar) {
+    const totalCities = owned.length;
+    const totalRent = owned.reduce((sum, t) => sum + (gameState.properties[t.id]?.mortgaged ? 0 : calculateTileRent(t.id)), 0);
+    const mortgagedCount = owned.filter(t => gameState.properties[t.id]?.mortgaged).length;
+    summaryBar.innerHTML = `
+      <div class="flex items-center gap-1.5">
+        <span class="text-slate-500 font-extrabold uppercase text-[10px]">Cities Owned:</span>
+        <span class="text-indigo-800 font-black text-sm">${totalCities}</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-slate-500 font-extrabold uppercase text-[10px]">Total Rent Yield:</span>
+        <span class="text-emerald-700 font-black text-sm">${fmtMoney(totalRent)}</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-slate-500 font-extrabold uppercase text-[10px]">Mortgaged:</span>
+        <span class="${mortgagedCount > 0 ? 'text-rose-600' : 'text-slate-600'} font-black text-sm">${mortgagedCount}</span>
+      </div>
+    `;
+  }
 
   if (owned.length === 0) {
-    grid.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-700 text-sm font-black">You haven't bought any cities yet! Roll the dice to start your empire.</div>`;
+    grid.innerHTML = `
+      <div class="col-span-2 text-center py-10 px-4 flex flex-col items-center justify-center space-y-3">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-sky-100 flex items-center justify-center text-3xl shadow-inner border border-indigo-200">
+          🏙️
+        </div>
+        <div class="font-rounded font-black text-base text-slate-800">NO EMPIRE CITIES YET</div>
+        <div class="text-xs font-semibold text-slate-500 max-w-sm">Roll the dice to travel the board, purchase world properties, and build houses and skyscrapers!</div>
+      </div>
+    `;
     return;
   }
 

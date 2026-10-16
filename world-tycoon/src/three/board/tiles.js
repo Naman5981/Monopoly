@@ -54,22 +54,23 @@ export function createTileTexture(tile, propState) {
   const ownerName = isOwned ? (gameState.players[propState.owner]?.name || 'PLAYER').toUpperCase() : '';
 
   if (isOwned) {
-    // Bold outer frame in owner's true theme color
+    // Bold outer frame in owner's true theme color (increased from 18 to 26px for crisp distance glanceability)
     ctx.strokeStyle = ownerTheme.colorHex;
-    ctx.lineWidth = 18;
-    ctx.strokeRect(9, 9, 494, 494);
+    ctx.lineWidth = 26;
+    ctx.strokeRect(13, 13, 486, 486);
+
+    // Inner crisp contrast pinstripe separating owner color from group header and sidewalk
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.lineWidth = 3.5;
+    ctx.strokeRect(27, 27, 458, 458);
 
     ctx.fillStyle = isCyber ? 'rgba(0, 245, 255, 0.25)' : (isElegant ? 'rgba(212, 175, 55, 0.25)' : 'rgba(255, 255, 255, 0.90)');
-    ctx.fillRect(18, 18, 476, 6);
-    ctx.fillRect(18, 18, 6, 476);
+    ctx.fillRect(29, 29, 454, 6);
+    ctx.fillRect(29, 29, 6, 454);
 
     ctx.fillStyle = isCyber ? 'rgba(0, 0, 0, 0.6)' : 'rgba(15, 23, 42, 0.22)';
-    ctx.fillRect(18, 488, 476, 6);
-    ctx.fillRect(488, 18, 6, 476);
-
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(21, 21, 470, 470);
+    ctx.fillRect(29, 477, 454, 6);
+    ctx.fillRect(477, 29, 6, 454);
   } else {
     if (isCyber) {
       ctx.strokeStyle = '#00f5ff';

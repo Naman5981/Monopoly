@@ -168,7 +168,7 @@ export {
   createDetailedHouseMesh,
   createDetailedSkyscraperMesh
 } from './assets/buildings.js';
-export { animate3DDiceTumble } from './assets/dice.js';
+export { animate3DDiceTumble, applyEquippedDiceSkin } from './assets/dice.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Re-exports: Player Pawns & Movement

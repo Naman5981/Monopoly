@@ -1286,6 +1286,97 @@ body {
   position: relative;
 }
 
+/* Victory-Inspired Modal Shell Theming */
+.modal-shell-amber {
+  border-color: #fbbf24 !important;
+  box-shadow: 
+    0 24px 60px -10px rgba(15, 23, 42, 0.45),
+    0 0 45px rgba(245, 158, 11, 0.35),
+    0 0 0 2px rgba(251, 191, 36, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.modal-shell-sky {
+  border-color: #38bdf8 !important;
+  box-shadow: 
+    0 24px 60px -10px rgba(15, 23, 42, 0.45),
+    0 0 45px rgba(14, 165, 233, 0.3),
+    0 0 0 2px rgba(56, 189, 248, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.modal-shell-emerald {
+  border-color: #34d399 !important;
+  box-shadow: 
+    0 24px 60px -10px rgba(15, 23, 42, 0.45),
+    0 0 45px rgba(16, 185, 129, 0.32),
+    0 0 0 2px rgba(52, 211, 153, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.modal-shell-purple {
+  border-color: #c084fc !important;
+  box-shadow: 
+    0 24px 60px -10px rgba(15, 23, 42, 0.45),
+    0 0 45px rgba(168, 85, 247, 0.35),
+    0 0 0 2px rgba(192, 132, 252, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.modal-shell-indigo {
+  border-color: #818cf8 !important;
+  box-shadow: 
+    0 24px 60px -10px rgba(15, 23, 42, 0.45),
+    0 0 45px rgba(99, 102, 241, 0.35),
+    0 0 0 2px rgba(129, 140, 248, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Victory-Grade Accolade Boxes */
+.victory-accolade-box {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
+  border: 2px solid #fcd34d;
+  border-radius: 20px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.victory-accolade-box-sky {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
+  border: 2px solid #7dd3fc;
+  border-radius: 20px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.victory-accolade-box-emerald {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+  border: 2px solid #6ee7b7;
+  border-radius: 20px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.victory-accolade-box-purple {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #e9d5ff 100%);
+  border: 2px solid #d8b4fe;
+  border-radius: 20px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
 /* 2. Juicy Gloss Header */
 .game-modal-header {
   position: relative;
@@ -1570,6 +1661,272 @@ body {
   box-shadow: 
     0 3px 0 #0284c7,
     0 6px 14px rgba(2, 132, 199, 0.15);
+}
+
+/* ═══ CINEMATIC MONOPOLY CELEBRATION SHOWCASE (better-ui) ═══ */
+
+/* Rotating Sunburst God Rays */
+.monopoly-sunburst-rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1100px;
+  height: 1100px;
+  margin-left: -550px;
+  margin-top: -550px;
+  background: repeating-conic-gradient(
+    rgba(255, 255, 255, 0.08) 0deg 12deg,
+    transparent 12deg 24deg
+  );
+  border-radius: 50%;
+  animation: sunburstRotate 60s linear infinite;
+  mask-image: radial-gradient(circle at center, black 0%, transparent 68%);
+  -webkit-mask-image: radial-gradient(circle at center, black 0%, transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes sunburstRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Avatar Hero Medallion */
+.monopoly-avatar-disc {
+  width: 104px;
+  height: 104px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 4px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4), 0 16px 36px rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 20;
+  margin-bottom: -24px;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Cards Row */
+.monopoly-cards-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  z-index: 10;
+  padding: 18px 24px 28px;
+  max-width: 90vw;
+  flex-wrap: wrap;
+}
+
+/* Tangible Real Estate Deed Card (concentric radius: outer 18px = inner 10px + padding 8px) */
+.monopoly-deed-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 8px;
+  width: 130px;
+  min-height: 140px;
+  box-shadow: 0 18px 36px -4px rgba(15, 23, 42, 0.32), 0 6px 14px -2px rgba(15, 23, 42, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease-out;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .monopoly-deed-card:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 24px 44px -4px rgba(15, 23, 42, 0.4);
+  }
+}
+
+.monopoly-deed-header {
+  width: 100%;
+  height: 42px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.monopoly-deed-check {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: #ef4444;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.monopoly-deed-name {
+  font-family: var(--game-font);
+  font-weight: 800;
+  font-size: 13px;
+  color: #0f172a;
+  text-align: center;
+  line-height: 1.25;
+  margin-top: 6px;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monopoly-deed-rent {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 3px;
+  text-align: center;
+}
+
+/* Folded Ribbon Banner */
+.monopoly-ribbon-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+  margin-top: -24px;
+  z-index: 25;
+  filter: drop-shadow(0 16px 30px rgba(15, 23, 42, 0.38));
+}
+
+.monopoly-ribbon-plate {
+  position: relative;
+  z-index: 2;
+  background: #fefdfa;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 6px;
+  padding: 16px 40px 14px;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12), inset 0 1px 0 #ffffff;
+}
+
+.monopoly-ribbon-headline {
+  font-family: var(--game-font);
+  font-weight: 900;
+  font-size: 34px;
+  letter-spacing: 0.05em;
+  color: #1e3a8a;
+  line-height: 1.05;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.monopoly-ribbon-subline {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 13px;
+  color: #334155;
+  margin-top: 5px;
+  line-height: 1.35;
+}
+
+/* Ribbon 3D Fold Triangles */
+.monopoly-ribbon-fold-left,
+.monopoly-ribbon-fold-right {
+  position: absolute;
+  bottom: -9px;
+  border-style: solid;
+  z-index: 1;
+}
+
+.monopoly-ribbon-fold-left {
+  left: 8px;
+  border-width: 9px 9px 0 0;
+  border-color: #94a3b8 transparent transparent transparent;
+}
+
+.monopoly-ribbon-fold-right {
+  right: 8px;
+  border-width: 9px 0 0 9px;
+  border-color: #94a3b8 transparent transparent transparent;
+}
+
+/* Ribbon Swallowtail Tails */
+.monopoly-ribbon-tail-left,
+.monopoly-ribbon-tail-right {
+  position: absolute;
+  top: 8px;
+  bottom: -9px;
+  width: 36px;
+  background: #f1ede4;
+  z-index: 0;
+  border: 1px solid rgba(203, 213, 225, 0.8);
+}
+
+.monopoly-ribbon-tail-left {
+  left: -20px;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 35% 50%);
+}
+
+.monopoly-ribbon-tail-right {
+  right: -20px;
+  clip-path: polygon(0% 0%, 100% 0%, 65% 50%, 100% 100%, 0% 100%);
+}
+
+/* Dismiss pill button */
+.monopoly-dismiss-pill {
+  margin-top: 18px;
+  padding: 8px 22px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 150ms ease-out, background-color 150ms ease-out;
+}
+
+@media (hover: hover) {
+  .monopoly-dismiss-pill:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1.5px);
+  }
+}
+
+.monopoly-dismiss-pill:not(:disabled):active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .monopoly-sunburst-rays {
+    animation: none !important;
+  }
+  .monopoly-deed-card,
+  .monopoly-avatar-disc,
+  .monopoly-ribbon-wrapper {
+    transition: opacity 150ms ease-out !important;
+    transform: none !important;
+  }
 }
 
 

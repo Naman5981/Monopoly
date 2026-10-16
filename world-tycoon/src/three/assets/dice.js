@@ -7,19 +7,30 @@ import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { playSFX } from '../../game/audio.js';
 
-export function build3DDicePair(boardGroup) {
+export const DICE_SKIN_PALETTES = {
+  dice_classic: { bg: '#ffffff', stroke: '#cbd5e1', pipSpecial: '#ef4444', pipNormal: '#0f172a' },
+  dice_ruby: { bg: '#b91c1c', stroke: '#f87171', pipSpecial: '#fef08a', pipNormal: '#fde047' },
+  dice_midas: { bg: '#eab308', stroke: '#ca8a04', pipSpecial: '#451a03', pipNormal: '#451a03' },
+  dice_neon: { bg: '#0b0f19', stroke: '#06b6d4', pipSpecial: '#38bdf8', pipNormal: '#38bdf8' },
+  dice_obsidian: { bg: '#18181b', stroke: '#a855f7', pipSpecial: '#c084fc', pipNormal: '#e9d5ff' }
+};
+
+let activeDiceSkin = 'dice_classic';
+
+export function createDiceMaterialsForSkin(skinId = 'dice_classic') {
+  const palette = DICE_SKIN_PALETTES[skinId] || DICE_SKIN_PALETTES.dice_classic;
   const materials = [];
   for (let face = 1; face <= 6; face++) {
     const c = document.createElement('canvas');
     c.width = 256;
     c.height = 256;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = palette.bg;
     ctx.fillRect(0, 0, 256, 256);
-    ctx.strokeStyle = '#cbd5e1';
+    ctx.strokeStyle = palette.stroke;
     ctx.lineWidth = 14;
     ctx.strokeRect(7, 7, 242, 242);
-    ctx.fillStyle = (face === 1 || face === 4) ? '#ef4444' : '#0f172a';
+    ctx.fillStyle = (face === 1 || face === 4) ? palette.pipSpecial : palette.pipNormal;
 
     const pips = {
       1: [[128, 128]],
@@ -37,9 +48,26 @@ export function build3DDicePair(boardGroup) {
     });
 
     const tex = new THREE.CanvasTexture(c);
-    tex.anisotropy = context.maxAnisotropy;
+    if (context.maxAnisotropy) tex.anisotropy = context.maxAnisotropy;
     materials.push(new THREE.MeshLambertMaterial({ map: tex }));
   }
+  return materials;
+}
+
+export function applyEquippedDiceSkin(skinId = 'dice_classic') {
+  activeDiceSkin = skinId;
+  if (!context.diceMeshes || context.diceMeshes.length === 0) return;
+  const newMaterials = createDiceMaterialsForSkin(skinId);
+  context.diceMeshes.forEach(dieGroup => {
+    const mesh = dieGroup.children[0];
+    if (mesh) {
+      mesh.material = newMaterials;
+    }
+  });
+}
+
+export function build3DDicePair(boardGroup) {
+  const materials = createDiceMaterialsForSkin(activeDiceSkin);
 
   const restingCoords = [{ x: -1.45, z: -0.65 }, { x: 0.75, z: -1.75 }];
   context.diceMeshes = [];

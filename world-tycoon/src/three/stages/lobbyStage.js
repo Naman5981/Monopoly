@@ -93,7 +93,7 @@ export function initLobbyHeroStage() {
   updateLobbyHeroAvatar(0, '#6c5ce7', 0x6c5ce7);
 }
 
-export function updateLobbyHeroAvatar(hatStyle = 0, colorHex = '#6c5ce7', charColor = 0x6c5ce7) {
+export function updateLobbyHeroAvatar(hatStyle = 0, colorHex = '#6c5ce7', charColor = 0x6c5ce7, pedestalStyle = null) {
   if (!lobbyHeroAvatarGroup) return;
   while (lobbyHeroAvatarGroup.children.length > 0) {
     lobbyHeroAvatarGroup.remove(lobbyHeroAvatarGroup.children[0]);
@@ -101,7 +101,7 @@ export function updateLobbyHeroAvatar(hatStyle = 0, colorHex = '#6c5ce7', charCo
   const mockIdx = (hatStyle || 0) % 4;
   PLAYER_THEMES[mockIdx].charColor = (typeof charColor === 'number') ? charColor : 0x6c5ce7;
   PLAYER_THEMES[mockIdx].colorHex = colorHex || '#6c5ce7';
-  const avatarMesh = createDetailed3DAvatarMesh(mockIdx, false);
+  const avatarMesh = createDetailed3DAvatarMesh(mockIdx, false, hatStyle, pedestalStyle);
   avatarMesh.scale.setScalar(1.25);
   lobbyHeroAvatarGroup.add(avatarMesh);
 }

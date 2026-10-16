@@ -442,6 +442,8 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
     renderCornerHUDs();
   } else if (tile.type === 'worldtour') {
     if (p.isAI) {
+      showSpeechBubble(`✈️ ${p.name} landed on World Tour! Planning flight...`, 2500);
+      await new Promise(r => setTimeout(r, Math.max(200, Math.round(900 / (matchSettings.gameSpeed || 1)))));
       const unowned = BOARD_TILES.filter(t => (t.type === 'city' || t.type === 'resort') && !gameState.properties[t.id]?.owner);
       const dest = unowned.length > 0 ? unowned[Math.floor(Math.random() * unowned.length)].id : 0;
       await executeWorldTourFlight(dest, false, playerIdx);

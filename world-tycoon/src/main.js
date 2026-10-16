@@ -121,7 +121,8 @@ import {
   openLeaderboardModal,
   closeLeaderboardModal,
   toggleLeaderboardModal,
-  renderLeaderboardModal
+  renderLeaderboardModal,
+  openMonopolyCelebrationModal
 } from './ui/modals.js';
 import {
   fireConfettiBurst,
@@ -132,6 +133,14 @@ import {
   stopVictoryCelebration
 } from './three/effects.js';
 import { initDebugSuite, toggleDebugPanel } from './game/debug.js';
+import {
+  initWardrobeSystem,
+  openWardrobeModal,
+  closeWardrobeModal,
+  setWardrobeCategory,
+  equipItem as equipWardrobeItem,
+  unlockItem as unlockWardrobeItem
+} from './ui/wardrobe.js';
 
 window.gameState = gameState;
 window.debugState = debugState;
@@ -150,6 +159,8 @@ window.confirmExitToLobbyAction = confirmExitToLobbyAction;
 window.terminateMatchAndReturnToLobby = terminateMatchAndReturnToLobby;
 window.startVictoryCelebration = startVictoryCelebration;
 window.stopVictoryCelebration = stopVictoryCelebration;
+window.openMonopolyCelebrationModal = openMonopolyCelebrationModal;
+window.triggerMonopolyTest = (grp = 'brown') => openMonopolyCelebrationModal(0, grp);
 window.triggerVictoryTest = () => {
   const p = (gameState.players && gameState.players[0]) || { id: 0, name: 'Player 1', cash: 5400000, isAI: false };
   showVictoryModal(p);
@@ -260,6 +271,13 @@ window.closeLeaderboardModal = closeLeaderboardModal;
 window.toggleLeaderboardModal = toggleLeaderboardModal;
 window.renderLeaderboardModal = renderLeaderboardModal;
 
+// Wardrobe & Cosmetics System
+window.openWardrobeModal = openWardrobeModal;
+window.closeWardrobeModal = closeWardrobeModal;
+window.setWardrobeCategory = setWardrobeCategory;
+window.equipWardrobeItem = equipWardrobeItem;
+window.unlockWardrobeItem = unlockWardrobeItem;
+
 // Resume & Disconnect Handlers
 window.resumeLastSavedMatch = () => {
   const success = resumeSavedMatch();
@@ -346,7 +364,7 @@ window.toggleSound = () => {
   updateMasterVolume(soundEnabled ? soundVolume : 0);
   updateSoundUI();
   if (soundEnabled) {
-    playSFX('hop', 0.5);
+    playSFX('click', 0.8);
   }
 };
 
@@ -374,6 +392,7 @@ function initApp() {
   initEngine();
   initThreeScene(onTileClick);
   initLandingSetup();
+  initWardrobeSystem();
   initDebugSuite();
 
   // Apply initial lighting mode
@@ -440,7 +459,19 @@ function initApp() {
         toggleLeaderboardModal();
       }
     } else if (e.key === 'Escape') {
-      closeLeaderboardModal();
+      if (!document.getElementById('modal-leaderboard')?.classList.contains('hidden')) {
+        closeLeaderboardModal();
+      } else if (!document.getElementById('modal-wardrobe')?.classList.contains('hidden')) {
+        closeWardrobeModal();
+      } else if (!document.getElementById('modal-rules')?.classList.contains('hidden')) {
+        closeRulesModal();
+      } else if (!document.getElementById('modal-portfolio')?.classList.contains('hidden')) {
+        closePortfolioModal();
+      } else if (!document.getElementById('modal-trade')?.classList.contains('hidden')) {
+        closeTradeModal();
+      } else if (!document.getElementById('modal-tile-inspector')?.classList.contains('hidden')) {
+        closeInspectorModal();
+      }
     }
   });
 }

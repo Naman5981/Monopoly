@@ -82,9 +82,15 @@
               </span>
               <span class="text-xs">👑</span>
             </div>
-            <div class="text-xs font-black text-emerald-600 mt-0.5 flex items-center gap-1">
-              <i class="fa-solid fa-coins text-xs text-amber-500"></i>
-              <span id="setup-profile-cash">$2.0M</span>
+            <div class="flex items-center gap-2 mt-0.5">
+              <div class="text-xs font-black text-emerald-600 flex items-center gap-1">
+                <i class="fa-solid fa-coins text-xs text-amber-500"></i>
+                <span id="setup-profile-cash">$2.0M</span>
+              </div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-300 text-[11px] font-black text-amber-900 shadow-2xs" title="Persistent Tycoon Stars">
+                <span class="text-amber-500">⭐</span>
+                <span id="setup-profile-stars" class="tabular-nums">500</span>
+              </span>
             </div>
           </div>
         </div>
@@ -186,8 +192,17 @@
           <canvas id="lobby-avatar-3d-canvas" width="380" height="400" class="w-[320px] h-[340px] sm:w-[360px] sm:h-[380px] pointer-events-auto filter drop-shadow-2xl relative z-10"></canvas>
         </div>
 
-        <!-- Bottom Controls: Color Swatches & Massive Juicy Green Play Button -->
-        <div class="relative z-20 flex flex-col items-center gap-3 w-full">
+        <!-- Bottom Controls: Wardrobe, Color Swatches & Massive Juicy Green Play Button -->
+        <div class="relative z-20 flex flex-col items-center gap-2.5 w-full">
+          <!-- Wardrobe & Outfits Button -->
+          <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-5 py-2 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs sm:text-sm shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-2.5 cursor-pointer transition-all duration-150 hover:scale-105 active:scale-95" title="Customize Outfits, Hats, Dice & Pedestals">
+            <span class="text-base select-none">👔</span>
+            <span class="tracking-wide">WARDROBE</span>
+            <span class="ml-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] shadow-2xs border border-amber-500/20 tabular-nums">
+              <span id="wardrobe-button-stars-badge">⭐ 500</span>
+            </span>
+          </button>
+
           <!-- Color Swatches Bar -->
           <div class="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-white shadow-md flex items-center gap-2">
             <span class="text-xs font-black uppercase text-slate-600 tracking-wider mr-1">COLOR</span>
@@ -627,10 +642,14 @@
   <!-- MODALS & POPUPS                                                   -->
   <!-- ================================================================= -->
 
-  <!-- A. BUY CITY / AUCTION MODAL -->
-  <div id="modal-buy-city" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div id="modal-buy-city-card" class="game-modal-shell max-w-md w-full">
-      <div id="buy-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative">
+  <!-- A. BUY CITY / AUCTION MODAL (Victory-Inspired) -->
+  <div id="modal-buy-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-md w-full">
+      <div id="buy-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🏛️</div>
+        <div class="absolute -left-2 -bottom-2 text-6xl opacity-15 select-none pointer-events-none">✨</div>
+
         <span id="buy-modal-country" class="modal-badge-pill">GLOBAL METROPOLIS</span>
         <canvas id="buy-city-3d-canvas" width="220" height="110" class="w-[180px] h-[90px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
         <h3 id="buy-modal-name" class="modal-city-title">ISTANBUL</h3>
@@ -675,11 +694,15 @@
     </div>
   </div>
 
-  <!-- A2. UPGRADE CITY POPUP MODAL (When landing on owned property) -->
-  <div id="modal-upgrade-city" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div id="modal-upgrade-city-card" class="game-modal-shell max-w-md w-full">
+  <!-- A2. UPGRADE CITY POPUP MODAL (Victory-Inspired) -->
+  <div id="modal-upgrade-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-upgrade-city-card" class="game-modal-shell modal-shell-emerald max-w-md w-full">
       <!-- Header with group color banner, country/status pill, 3D rotating model canvas, and city name -->
-      <div id="upgrade-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative">
+      <div id="upgrade-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🏰</div>
+        <div class="absolute -left-2 -bottom-2 text-6xl opacity-15 select-none pointer-events-none">✨</div>
+
         <div class="relative z-10 flex items-center gap-2">
           <span id="upgrade-modal-country" class="modal-badge-pill">
             <i class="fa-solid fa-crown text-amber-300"></i> YOUR ESTATE
@@ -743,11 +766,15 @@
     </div>
   </div>
 
-  <!-- B. LIVE AUCTION MODAL -->
-  <div id="modal-auction" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="game-modal-shell max-w-md w-full">
-      <div class="game-modal-header bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-4 text-white flex items-center justify-between">
-        <div class="flex items-center gap-3">
+  <!-- B. LIVE AUCTION MODAL (Victory-Inspired) -->
+  <div id="modal-auction" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div class="game-modal-shell modal-shell-amber max-w-md w-full">
+      <div class="game-modal-header bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-4 text-white flex items-center justify-between relative shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">⚖️</div>
+        <div class="absolute -left-2 -bottom-2 text-6xl opacity-15 select-none pointer-events-none">💎</div>
+
+        <div class="relative z-10 flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-xl shadow-inner border border-white/30">
             <i class="fa-solid fa-gavel text-white drop-shadow"></i>
           </div>
@@ -756,7 +783,7 @@
             <p id="auction-city-name" class="text-xs font-extrabold text-amber-100">Bidding on TOKYO</p>
           </div>
         </div>
-        <span id="auction-base-val" class="modal-badge-pill bg-black/40">Value: 500K</span>
+        <span id="auction-base-val" class="modal-badge-pill bg-black/40 relative z-10">Value: 500K</span>
       </div>
       <div class="p-5 space-y-4 text-center bg-gradient-to-b from-white to-amber-50/40">
         <div class="game-stat-card stat-card-amber p-4">
@@ -781,16 +808,20 @@
     </div>
   </div>
 
-  <!-- C. INTERACTIVE RAINBOW CHANCE WHEEL MODAL -->
-  <div id="modal-chance-wheel" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-    <div class="game-modal-shell max-w-md w-full relative overflow-hidden shadow-2xl">
+  <!-- C. INTERACTIVE RAINBOW CHANCE WHEEL MODAL (Victory-Inspired) -->
+  <div id="modal-chance-wheel" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div class="game-modal-shell modal-shell-purple max-w-md w-full relative overflow-hidden shadow-2xl">
       <!-- Glossy 3D Header -->
-      <div class="game-modal-header p-4 flex flex-col items-center justify-center text-center text-white relative" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);">
-        <div class="modal-badge-pill">
+      <div class="game-modal-header p-4 flex flex-col items-center justify-center text-center text-white relative shadow-md" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🎲</div>
+        <div class="absolute -left-2 -bottom-2 text-6xl opacity-15 select-none pointer-events-none">✨</div>
+
+        <div class="modal-badge-pill relative z-10">
           <i class="fa-solid fa-dice text-amber-300 mr-1"></i> GLOBAL FORTUNE
         </div>
-        <h3 class="modal-city-title text-2xl leading-none mt-2 drop-shadow-lg">CHANCE WHEEL</h3>
-        <p class="text-xs font-bold text-white/90 drop-shadow mt-1">Spin to unlock empire grants, travel, or surprises</p>
+        <h3 class="modal-city-title text-2xl leading-none mt-2 drop-shadow-lg relative z-10">CHANCE WHEEL</h3>
+        <p class="text-xs font-bold text-white/90 drop-shadow mt-1 relative z-10">Spin to unlock empire grants, travel, or surprises</p>
       </div>
 
       <!-- Modal Body -->
@@ -820,30 +851,34 @@
     </div>
   </div>
 
-  <!-- C2. CHANCE 2-SECOND CELEBRATION POPUP (Solid, Opaque, 100% Readable) -->
-  <div id="modal-chance-result" class="fixed inset-0 bg-slate-950/80 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-[36px] max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border-4 border-amber-400 relative overflow-hidden">
+  <!-- C2. CHANCE 2-SECOND CELEBRATION POPUP (Victory-Inspired Solid & Tactile) -->
+  <div id="modal-chance-result" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+    <div class="game-modal-shell modal-shell-amber max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative overflow-hidden">
+      <!-- Floating Watermark Icons -->
+      <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🎲</div>
+      <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">✨</div>
+
       <!-- Icon Badge -->
-      <div id="chance-result-icon" class="w-20 h-20 mx-auto rounded-2xl flex items-center justify-center text-4xl shadow-md border-2 border-slate-100 bg-amber-50">
+      <div id="chance-result-icon" class="relative z-10 w-20 h-20 mx-auto rounded-2xl flex items-center justify-center text-4xl shadow-md border-2 border-amber-200 bg-amber-50">
         💰
       </div>
-      <div class="space-y-1">
-        <div id="chance-result-tag" class="inline-block text-xs font-black uppercase px-3.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
-          CHANCE REWARD
+      <div class="relative z-10 space-y-1">
+        <div id="chance-result-tag" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100 text-amber-950 font-black text-xs uppercase tracking-wider border border-amber-300 shadow-2xs">
+          <span>✨</span> CHANCE REWARD
         </div>
         <h3 id="chance-result-title" class="font-display font-black text-2xl text-slate-900 leading-tight">
           +400,000 GRANT!
         </h3>
       </div>
-      <p id="chance-result-desc" class="text-sm font-bold text-slate-600 leading-relaxed max-w-xs mx-auto">
+      <p id="chance-result-desc" class="relative z-10 text-sm font-bold text-slate-600 leading-relaxed max-w-xs mx-auto">
         World Bank Development Grant! Collect 400K!
       </p>
-      <div id="chance-result-action" class="py-2.5 px-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 bg-slate-50 border border-slate-200 text-slate-800">
+      <div id="chance-result-action" class="relative z-10 py-2.5 px-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 bg-slate-50 border border-slate-200 text-slate-800 shadow-2xs">
         <i class="fa-solid fa-bolt text-amber-500"></i>
         <span id="chance-result-action-text">Applying rewards to your empire...</span>
       </div>
       <!-- 2.0s Timer Bar -->
-      <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+      <div class="relative z-10 w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200 shadow-inner">
         <div id="chance-result-timer-bar" class="h-full bg-emerald-500 w-full transition-[width] duration-[2000ms] ease-linear"></div>
       </div>
     </div>
@@ -851,9 +886,11 @@
 
   <!-- D. TILE INSPECTOR / UPGRADE / MORTGAGE DRAWER (Bottom-Right Non-Disruptive Floating Card) -->
   <div id="modal-tile-inspector" class="fixed bottom-4 right-4 z-40 pointer-events-none hidden flex-col items-end">
-    <div id="modal-tile-inspector-card" class="pointer-events-auto game-modal-shell w-92 max-w-[calc(100vw-32px)]">
-      <div id="insp-header" class="game-modal-header min-h-[144px] p-3 flex flex-col justify-between items-center text-center text-white relative">
-        <button onclick="window.closeInspectorModal()" class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center cursor-pointer transition shadow-xs" title="Close tile card">
+    <div id="modal-tile-inspector-card" class="pointer-events-auto game-modal-shell w-92 max-w-[calc(100vw-32px)] overflow-hidden shadow-2xl">
+      <div id="insp-header" class="game-modal-header min-h-[144px] p-3 flex flex-col justify-between items-center text-center text-white relative overflow-hidden">
+        <!-- Floating Watermark Icon -->
+        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🏛️</div>
+        <button onclick="window.closeInspectorModal()" class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close tile card">
           <i class="fa-solid fa-xmark text-sm"></i>
         </button>
         <div id="insp-group" class="modal-badge-pill">TITLE DEED</div>
@@ -868,57 +905,105 @@
     </div>
   </div>
 
-  <!-- E. MANAGE CITIES PORTFOLIO MODAL -->
-  <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4" onclick="if(event.target===this) window.closePortfolioModal()">
-    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[82vh] flex flex-col overflow-hidden shadow-2xl border-3 border-indigo-200">
-      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-        <div class="flex items-center gap-2.5">
-          <i class="fa-solid fa-city text-sky-600 text-xl"></i>
+  <!-- E. MANAGE CITIES PORTFOLIO MODAL (Victory-Inspired) -->
+  <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closePortfolioModal()">
+    <div class="game-modal-shell modal-shell-emerald max-w-3xl w-full max-h-[86vh] flex flex-col overflow-hidden shadow-2xl">
+      <!-- Grand Banner Header (Victory Style) -->
+      <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🏙️</div>
+        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">👑</div>
+
+        <div class="relative z-10 flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
+            <i class="fa-solid fa-city text-white drop-shadow"></i>
+          </div>
           <div>
-            <h3 class="font-rounded font-black text-lg text-slate-800">MANAGE YOUR GLOBAL CITIES</h3>
-            <p class="text-xs font-bold text-slate-600">Upgrade cities with 3D Houses & Skyscrapers or Mortgage for 50% instant cash</p>
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
+              <span>🏛️</span> REAL ESTATE PORTFOLIO
+            </div>
+            <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
+              MANAGE YOUR GLOBAL CITIES
+            </h3>
+            <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">
+              Upgrade with Houses & Skyscrapers or Mortgage for 50% instant cash
+            </p>
           </div>
         </div>
-        <button onclick="window.closePortfolioModal()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center cursor-pointer">
-          <i class="fa-solid fa-xmark"></i>
+
+        <button onclick="window.closePortfolioModal()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close portfolio">
+          <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
-      <div id="portfolio-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+      <div id="portfolio-grid" class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-gradient-to-b from-white to-slate-50/70"></div>
     </div>
   </div>
 
-  <!-- F. DIPLOMATIC TRADE MODAL -->
-  <div id="modal-trade" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4" onclick="if(event.target===this) window.closeTradeModal()">
-    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border-3 border-emerald-200">
-      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-        <div class="flex items-center gap-2.5">
-          <i class="fa-solid fa-handshake text-emerald-600 text-xl"></i>
-          <h3 class="font-rounded font-black text-lg text-slate-800">PROPOSE CITY TRADE</h3>
+  <!-- F. DIPLOMATIC TRADE MODAL (Victory-Inspired) -->
+  <div id="modal-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeTradeModal()">
+    <div class="game-modal-shell modal-shell-emerald max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+      <!-- Grand Banner Header (Victory Style) -->
+      <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🤝</div>
+        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">⚖️</div>
+
+        <div class="relative z-10 flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
+            <i class="fa-solid fa-handshake text-white drop-shadow"></i>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
+              <span>🌐</span> GLOBAL DIPLOMACY
+            </div>
+            <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
+              PROPOSE CITY TRADE
+            </h3>
+            <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">
+              Strategic mutual exchange of cash and metropolitan deeds
+            </p>
+          </div>
         </div>
-        <button onclick="window.closeTradeModal()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center cursor-pointer">
-          <i class="fa-solid fa-xmark"></i>
+
+        <button onclick="window.closeTradeModal()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close trade">
+          <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
-      <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto">
-        <div class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-200">
-          <div class="font-black text-sm text-sky-700 mb-2">YOUR OFFER</div>
-          <label class="text-xs font-black text-slate-700">Cash Offered (K)</label>
-          <input id="trade-offer-cash" type="number" min="0" step="50" value="0" class="w-full mt-1 mb-3 px-3 py-2 rounded-xl border-2 border-slate-300 text-sm font-black text-slate-900">
-          <div class="text-xs font-black text-slate-700 mb-1.5">Your Cities:</div>
-          <div id="trade-offer-props" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
-        </div>
-        <div class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-200">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-black text-sm text-amber-700">PARTNER</span>
-            <select id="trade-partner-select" onchange="window.populateTradePartnerProps()" class="text-xs font-black bg-white border-2 border-slate-300 rounded-lg px-2.5 py-1 text-slate-800"></select>
+
+      <!-- Trade Arena Body -->
+      <div class="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto bg-gradient-to-b from-white to-slate-50/70 flex-1">
+        <!-- Left: Your Offer Column -->
+        <div class="bg-gradient-to-b from-sky-50/60 to-white p-4 rounded-2xl border-2 border-sky-300 shadow-xs flex flex-col">
+          <div class="flex items-center justify-between mb-2.5 pb-1.5 border-b border-sky-200">
+            <span class="font-rounded font-black text-sm text-sky-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-up-from-bracket text-sky-600"></i> YOUR OFFER
+            </span>
+            <span class="text-[10px] font-black uppercase text-sky-700 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-200">YOU</span>
           </div>
-          <label class="text-xs font-black text-slate-700">Cash Requested (K)</label>
-          <input id="trade-req-cash" type="number" min="0" step="50" value="0" class="w-full mt-1 mb-3 px-3 py-2 rounded-xl border-2 border-slate-300 text-sm font-black text-slate-900">
-          <div class="text-xs font-black text-slate-700 mb-1.5">Partner Cities:</div>
-          <div id="trade-req-props" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+          <label class="text-xs font-black text-slate-700">Cash Offered (K):</label>
+          <input id="trade-offer-cash" type="number" min="0" step="50" value="0" class="w-full mt-1 mb-3 px-3 py-2 rounded-xl border-2 border-sky-200 text-sm font-black text-slate-900 bg-white focus:outline-none focus:border-sky-400">
+          <div class="text-xs font-black text-slate-700 mb-1.5">Your Cities to Transfer:</div>
+          <div id="trade-offer-props" class="space-y-1.5 max-h-44 overflow-y-auto flex-1 pr-1 overscroll-contain"></div>
+        </div>
+
+        <!-- Right: Partner Request Column -->
+        <div class="bg-gradient-to-b from-amber-50/60 to-white p-4 rounded-2xl border-2 border-amber-300 shadow-xs flex flex-col">
+          <div class="flex items-center justify-between mb-2.5 pb-1.5 border-b border-amber-200">
+            <span class="font-rounded font-black text-sm text-amber-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-down-to-bracket text-amber-600"></i> YOU REQUEST
+            </span>
+            <select id="trade-partner-select" onchange="window.populateTradePartnerProps()" class="text-xs font-black bg-white border-2 border-amber-300 rounded-lg px-2.5 py-1 text-slate-800 cursor-pointer shadow-2xs"></select>
+          </div>
+          <label class="text-xs font-black text-slate-700">Cash Requested (K):</label>
+          <input id="trade-req-cash" type="number" min="0" step="50" value="0" class="w-full mt-1 mb-3 px-3 py-2 rounded-xl border-2 border-amber-200 text-sm font-black text-slate-900 bg-white focus:outline-none focus:border-amber-400">
+          <div class="text-xs font-black text-slate-700 mb-1.5">Partner Cities to Receive:</div>
+          <div id="trade-req-props" class="space-y-1.5 max-h-44 overflow-y-auto flex-1 pr-1 overscroll-contain"></div>
         </div>
       </div>
-      <div id="trade-counter-banner" class="hidden mx-4 mb-2 p-3 bg-amber-50 border-2 border-amber-300 rounded-2xl shadow-xs text-center space-y-2">
+
+      <!-- Counter banner if active -->
+      <div id="trade-counter-banner" class="hidden mx-4 mb-2 p-3.5 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-2xl shadow-xs text-center space-y-2">
         <div class="flex items-center justify-center gap-1.5 font-black text-xs text-amber-950 uppercase tracking-wide">
           <i class="fa-solid fa-comments-dollar text-amber-600"></i>
           <span id="counter-offer-title">Counter-Offer Proposed</span>
@@ -933,61 +1018,77 @@
           </button>
         </div>
       </div>
+
       <div id="trade-status-msg" class="text-center text-xs font-black py-1 hidden"></div>
-      <div class="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+
+      <!-- Action Footer -->
+      <div class="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/80">
         <button onclick="window.closeTradeModal()" class="game-btn game-btn-slate px-5 py-2.5 text-xs font-black">Cancel</button>
-        <button onclick="window.executeTradeOffer()" class="game-btn game-btn-green px-6 py-2.5 text-xs font-black">Send Trade Offer</button>
+        <button onclick="window.executeTradeOffer()" class="game-btn game-btn-green px-6 py-2.5 text-xs font-black">
+          <i class="fa-solid fa-paper-plane mr-1.5"></i> Send Trade Offer
+        </button>
       </div>
     </div>
   </div>
 
   <!-- F2. INCOMING PROACTIVE BOT TRADE PROPOSAL MODAL -->
-  <div id="modal-incoming-trade" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-    <div class="game-modal-shell max-w-lg w-full flex flex-col animate-in fade-in zoom-in-95 duration-200">
-      <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-indigo-700 p-4 text-white flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-2xl shadow-inner border border-white/30">
+  <div id="modal-incoming-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div class="game-modal-shell modal-shell-indigo max-w-lg w-full flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <!-- Grand Banner Header (Victory Style) -->
+      <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🤝</div>
+        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">📜</div>
+
+        <div class="relative z-10 flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
             🤝
           </div>
           <div>
-            <h3 class="font-display font-black text-lg drop-shadow-sm flex items-center gap-1.5">
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-indigo-100 shadow-xs mb-1 border border-white/20">
+              <span>📨</span> DIPLOMATIC PROPOSAL
+            </div>
+            <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md flex items-center gap-2">
               <span id="incoming-trade-bot-name">BIDIK</span>
-              <span class="modal-badge-pill bg-white/20 text-[10px] py-0.5 px-2">OFFER</span>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs">OFFER</span>
             </h3>
-            <p class="text-xs text-sky-100 font-bold">Incoming Strategic Trade Deal</p>
+            <p class="text-xs font-bold text-sky-100 drop-shadow mt-0.5">
+              Strategic real estate exchange proposal
+            </p>
           </div>
         </div>
-        <button onclick="window.declineIncomingTrade()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs">
-          <i class="fa-solid fa-xmark text-sm"></i>
+
+        <button onclick="window.declineIncomingTrade()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Decline trade">
+          <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
 
-      <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70 flex-1 overflow-y-auto">
+      <div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50/70 flex-1 overflow-y-auto">
         <div class="grid grid-cols-2 gap-3 text-xs">
           <!-- They Offer -->
-          <div class="game-stat-card stat-card-sky text-left items-start p-3.5">
-            <span class="stat-card-badge">
-              <i class="fa-solid fa-hand-holding-dollar text-sky-600"></i> THEY OFFER
+          <div class="victory-accolade-box victory-accolade-box-emerald flex-col !items-start text-left p-3.5">
+            <span class="text-[10px] font-black tracking-wider uppercase text-emerald-950 flex items-center gap-1.5">
+              <i class="fa-solid fa-hand-holding-dollar text-emerald-600"></i> THEY OFFER
             </span>
             <div id="incoming-they-offer-cash" class="text-emerald-800 font-display font-black text-base my-0.5"></div>
             <div id="incoming-they-offer-props" class="w-full space-y-1 pt-1 font-bold text-slate-800"></div>
           </div>
 
           <!-- They Request -->
-          <div class="game-stat-card stat-card-amber text-left items-start p-3.5">
-            <span class="stat-card-badge">
-              <i class="fa-solid fa-bullseye text-amber-600"></i> THEY REQUEST
+          <div class="victory-accolade-box victory-accolade-box-sky flex-col !items-start text-left p-3.5">
+            <span class="text-[10px] font-black tracking-wider uppercase text-sky-950 flex items-center gap-1.5">
+              <i class="fa-solid fa-bullseye text-sky-600"></i> THEY REQUEST
             </span>
             <div id="incoming-they-req-cash" class="text-slate-600 font-display font-bold text-xs my-0.5"></div>
             <div id="incoming-they-req-props" class="w-full space-y-1 pt-1 font-bold text-slate-800"></div>
           </div>
         </div>
 
-        <div id="incoming-trade-rationale" class="text-xs text-slate-700 font-semibold bg-white p-3 rounded-2xl border-2 border-slate-200/80 shadow-xs text-center">
+        <div id="incoming-trade-rationale" class="text-xs text-slate-700 font-semibold bg-white p-3.5 rounded-2xl border-2 border-slate-200/80 shadow-xs text-center">
           Fair economic property exchange proposed based on current board positions.
         </div>
 
-        <div class="flex gap-2 pt-1">
+        <div class="flex gap-2.5 pt-1">
           <button onclick="window.acceptIncomingTrade()" class="game-btn game-btn-green flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
             <i class="fa-solid fa-check mr-1"></i> Accept Deal
           </button>
@@ -1002,14 +1103,30 @@
     </div>
   </div>
 
-  <!-- G. SETUP / LOBBY MODAL -->
-  <div id="modal-setup" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border-3 border-indigo-200">
-      <div class="bg-gradient-to-r from-sky-600 to-indigo-600 p-5 text-white text-center">
-        <h2 class="font-rounded font-black text-2xl drop-shadow">WORLD TYCOON LOBBY</h2>
-        <p class="text-xs font-bold text-sky-100 mt-0.5">3D Isometric World Cities Monopoly</p>
+  <!-- G. SETUP / LOBBY MODAL (Victory-Inspired) -->
+  <div id="modal-setup" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div class="game-modal-shell modal-shell-indigo max-w-md w-full overflow-hidden shadow-2xl flex flex-col">
+      <!-- Grand Banner Header (Victory Style) -->
+      <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🌍</div>
+        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">🎲</div>
+
+        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10">
+          🌍
+        </div>
+        <div class="relative z-10">
+          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-sky-100 shadow-xs mb-1 border border-white/20">
+            <span>🎲</span> MULTIPLAYER LOBBY
+          </div>
+          <h2 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
+            WORLD TYCOON LOBBY
+          </h2>
+          <p class="text-xs font-bold text-sky-100 drop-shadow mt-0.5">3D Isometric World Cities Monopoly</p>
+        </div>
       </div>
-      <div class="p-5 space-y-4">
+
+      <div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50/70">
         <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200">
           <span class="text-xs font-black text-slate-700">Number of Players</span>
           <div class="flex gap-1.5 flex-wrap">
@@ -1021,38 +1138,81 @@
           </div>
         </div>
         <div id="lobby-players-list" class="space-y-2"></div>
-        <button onclick="window.startNewMatch()" class="game-btn game-btn-green w-full py-4 text-sm font-black">
-          START MATCH (2M STARTING CASH)
+        <button onclick="window.startNewMatch()" class="game-btn game-btn-green w-full py-4 text-sm font-black shadow-md">
+          <i class="fa-solid fa-play mr-1.5"></i> START MATCH (2M STARTING CASH)
         </button>
       </div>
     </div>
   </div>
 
-  <!-- H. RULES MODAL -->
-  <div id="modal-rules" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4" onclick="if(event.target===this) window.closeRulesModal()">
-    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl border-3 border-slate-200 space-y-3">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-        <h3 class="font-rounded font-black text-lg text-slate-800">🌍 WORLD TYCOON RULES</h3>
-        <button onclick="window.closeRulesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer">
-          <i class="fa-solid fa-xmark text-sm"></i>
+  <!-- H. RULES MODAL (Victory-Inspired) -->
+  <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeRulesModal()">
+    <div class="game-modal-shell modal-shell-sky max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+      <!-- Grand Banner Header (Victory Style) -->
+      <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">📜</div>
+        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">🌐</div>
+
+        <div class="relative z-10 flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
+            <i class="fa-solid fa-book-open text-white drop-shadow"></i>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-sky-100 shadow-xs mb-1 border border-white/20">
+              <span>👑</span> OFFICIAL RULEBOOK
+            </div>
+            <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
+              WORLD TYCOON RULES
+            </h3>
+            <p class="text-xs font-bold text-sky-100 drop-shadow mt-0.5">
+              Everything you need to build and conquer a global empire
+            </p>
+          </div>
+        </div>
+
+        <button onclick="window.closeRulesModal()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close rules">
+          <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
-      <div class="text-sm font-medium text-slate-700 space-y-2.5 leading-relaxed">
-        <p><strong>• Starting Capital:</strong> Every player starts with <strong>2M (2,000K)</strong> and collects <strong>+300K</strong> every time they pass <strong>START</strong>.</p>
-        <p><strong>• Cities & Upgrades:</strong> Buy world cities and build 3D Houses & Skyscrapers. Owning all cities of a color group doubles base rent!</p>
-        <p><strong>• 4 Corner Landmarks:</strong>
-          <br>1. <strong>START (Bottom):</strong> Collect +300K salary.
-          <br>2. <strong>ISLAND (Left):</strong> Tropical Detention—roll doubles or pay 150K bail to leave.
-          <br>3. <strong>FESTIVAL (Top):</strong> Collect accumulated tax jackpot pool & boost one city rent by 2×!
-          <br>4. <strong>WORLD TOUR (Right):</strong> Click any tile on the 3D board to fly there directly!
-        </p>
-        <p><strong>• 4 Ways to Win (Victory Conditions):</strong>
-          <br>1. 💥 <strong>Bankruptcy:</strong> Bankrupt all rival tycoons to be the last standing.
-          <br>2. 👑 <strong>Triple Monopoly:</strong> First player to complete <strong>3 full color sets</strong> wins instantly!
-          <br>3. 🌐 <strong>Line Monopoly:</strong> Conquering an <strong>entire side of the board</strong> wins instantly!
-          <br>4. ⏱️ <strong>Match Timer (Net Worth):</strong> Richest player by total Net Worth when match time expires wins.
-        </p>
-        <p><strong>• Mortgaging:</strong> Click any owned city on the board or open <em>Manage Cities</em> to mortgage for 50% cash or unmortgage for 55%.</p>
+
+      <!-- Rulebook Accolade Cards -->
+      <div class="p-5 overflow-y-auto space-y-3.5 bg-gradient-to-b from-white to-slate-50/70 text-sm leading-relaxed">
+        <div class="victory-accolade-box victory-accolade-box-emerald">
+          <span class="text-3xl select-none">💵</span>
+          <div>
+            <div class="text-xs font-black text-emerald-950 uppercase tracking-wider">STARTING CAPITAL & SALARY</div>
+            <div class="text-xs font-semibold text-emerald-900 mt-0.5">Every player starts with <strong>2,000K (2M)</strong> and collects <strong>+300K</strong> every time they pass START.</div>
+          </div>
+        </div>
+
+        <div class="victory-accolade-box victory-accolade-box-sky">
+          <span class="text-3xl select-none">🏙️</span>
+          <div>
+            <div class="text-xs font-black text-sky-950 uppercase tracking-wider">CITIES & SKYSCRAPERS</div>
+            <div class="text-xs font-semibold text-sky-900 mt-0.5">Buy world cities and erect 3D Houses & Megatowers. Owning a full color set doubles base rent!</div>
+          </div>
+        </div>
+
+        <div class="victory-accolade-box victory-accolade-box-purple">
+          <span class="text-3xl select-none">📍</span>
+          <div>
+            <div class="text-xs font-black text-purple-950 uppercase tracking-wider">4 CORNER LANDMARKS</div>
+            <div class="text-xs font-semibold text-purple-900 mt-0.5">
+              <strong>1. START:</strong> +300K Salary &bull; <strong>2. ISLAND:</strong> Roll doubles or pay 150K bail &bull; <strong>3. FESTIVAL:</strong> Tax Jackpot & 2× rent &bull; <strong>4. WORLD TOUR:</strong> Direct flight to any tile!
+            </div>
+          </div>
+        </div>
+
+        <div class="victory-accolade-box">
+          <span class="text-3xl select-none">🏆</span>
+          <div>
+            <div class="text-xs font-black text-amber-950 uppercase tracking-wider">4 WAYS TO WIN THE CROWN</div>
+            <div class="text-xs font-semibold text-amber-900 mt-0.5">
+              💥 <strong>Bankruptcy:</strong> Bankrupt all rivals &bull; 👑 <strong>Triple Monopoly:</strong> First to 3 color sets &bull; 🌐 <strong>Line Monopoly:</strong> Conquer an entire board edge &bull; ⏱️ <strong>Match Timer:</strong> Highest Net Worth when timer ends!
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1124,6 +1284,27 @@
           <div id="victory-timeline-chart" class="w-full h-36 flex items-center justify-center overflow-hidden"></div>
         </div>
 
+        <!-- Match Completion Star Reward Card (better-interface) -->
+        <div id="victory-reward-card" class="bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-100/90 border-2 border-amber-300 rounded-2xl p-3.5 shadow-sm space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black uppercase text-amber-950 tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-star text-amber-500 text-sm"></i> Tycoon Stars Earned
+            </span>
+            <span id="victory-reward-total" class="font-rounded font-black text-xl text-amber-600 tabular-nums">
+              +0 ⭐
+            </span>
+          </div>
+          <div id="victory-reward-breakdown" class="text-[11px] text-amber-900 font-bold flex flex-wrap gap-1.5">
+            <!-- Dynamically populated tags -->
+          </div>
+          <div class="pt-1.5 flex items-center justify-between border-t border-amber-200/80">
+            <span class="text-xs font-extrabold text-slate-600">Total Balance: <strong id="victory-profile-balance" class="text-slate-900 tabular-nums">500 ⭐</strong></span>
+            <button onclick="window.openWardrobeModal()" class="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-xs border border-amber-500/30 flex items-center gap-1.5 cursor-pointer transition-transform active:scale-95" title="Open Wardrobe & customize character">
+              <span>👔 Open Wardrobe</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Multiplayer Status / Notice Banner -->
         <div id="victory-multiplayer-status" class="hidden text-xs font-bold text-center py-2.5 px-3.5 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-900 shadow-xs"></div>
 
@@ -1145,80 +1326,92 @@
     </div>
   </div>
 
-  <!-- J. MONOPOLY CELEBRATION MODAL -->
-  <div id="modal-monopoly-celebration" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden items-center justify-center p-4" onclick="if(event.target===this) window.closeMonopolyModal()">
-    <div id="modal-monopoly-card" class="bg-white border-3 border-amber-300 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl transform transition-[transform,opacity] duration-300 scale-[0.96] opacity-0 flex flex-col">
-      <!-- Header with glowing gradient banner -->
-      <div id="monopoly-modal-header" class="relative p-6 pb-5 text-center text-white overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600">
-        <div class="absolute -right-4 -bottom-6 text-7xl opacity-15 pointer-events-none select-none">👑</div>
-        <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-100 shadow-xs mb-2 border border-white/20">
-          <span>🏆</span> MONOPOLY ACHIEVED! <span>🏆</span>
+  <!-- J. CINEMATIC MONOPOLY CELEBRATION SHOWCASE (better-ui) -->
+  <div id="modal-monopoly-celebration" class="fixed inset-0 z-50 hidden items-center justify-center p-4 select-none cursor-pointer overscroll-contain" onclick="window.closeMonopolyModal()">
+    <!-- 1. Deep Dimmed Backdrop with Radial Vignette & Sunburst God Rays -->
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300"></div>
+    <div class="monopoly-sunburst-rays pointer-events-none"></div>
+
+    <!-- 2. Main Floating Celebration Stage (Center Column) -->
+    <div id="modal-monopoly-card" class="relative z-10 flex flex-col items-center max-w-xl w-full pointer-events-auto transform transition-[transform,opacity] duration-300 scale-[0.96] opacity-0 cursor-default" onclick="event.stopPropagation()">
+
+      <!-- Player Avatar Hero Disc -->
+      <div id="monopoly-avatar-disc" class="monopoly-avatar-disc">
+        <canvas id="monopoly-avatar-canvas" width="128" height="128" class="w-full h-full object-cover hidden"></canvas>
+        <div id="monopoly-avatar-fallback" class="w-full h-full flex flex-col items-center justify-center text-white">
+          <span id="monopoly-avatar-icon" class="text-3xl sm:text-4xl drop-shadow">🎩</span>
+          <span id="monopoly-avatar-initial" class="text-xs sm:text-sm font-black uppercase tracking-wider drop-shadow-sm mt-0.5">YOU</span>
         </div>
-        <h2 id="monopoly-winner-name" class="font-rounded font-black text-2xl sm:text-3xl tracking-wide drop-shadow-md">
-          ALEX ACQUIRED A MONOPOLY!
-        </h2>
-        <p id="monopoly-group-name" class="font-extrabold text-sm sm:text-base text-amber-100 mt-1 drop-shadow">
-          European Capitals Set Completed
-        </p>
       </div>
 
-      <!-- Content body -->
-      <div class="p-5 sm:p-6 space-y-4">
-        <!-- 2x Rent Notification Badge -->
-        <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex items-center justify-center gap-3 text-center shadow-xs">
-          <span class="text-3xl animate-bounce">⚡</span>
-          <div>
-            <div class="text-sm font-black text-amber-950 uppercase tracking-wide">2× RENT MULTIPLIER ACTIVATED!</div>
-            <div class="text-xs sm:text-sm font-semibold text-amber-900 mt-0.5">All un-upgraded cities in this group now collect DOUBLE rent!</div>
+      <!-- Property Deed Cards Container (Side-by-Side Tangible Cards) -->
+      <div id="monopoly-cards-row" class="monopoly-cards-row">
+        <!-- Dynamically injected real estate deed cards -->
+      </div>
+
+      <!-- Folded Ribbon Banner (3D Swallowtail Banner) -->
+      <div class="relative z-20 w-full max-w-lg px-2 flex flex-col items-center">
+        <!-- 3D Ribbon Shell -->
+        <div class="monopoly-ribbon-wrapper">
+          <!-- Left Swallowtail Ribbon Tail -->
+          <div class="monopoly-ribbon-tail-left"></div>
+          <!-- Left Ribbon Fold -->
+          <div class="monopoly-ribbon-fold-left"></div>
+
+          <!-- Main Center Ribbon Plate -->
+          <div class="monopoly-ribbon-plate">
+            <h2 id="monopoly-ribbon-title" class="monopoly-ribbon-headline">
+              MONOPOLY!
+            </h2>
+            <p id="monopoly-ribbon-subtitle" class="monopoly-ribbon-subline">
+              <span id="monopoly-winner-name" class="font-black text-slate-900">Player</span> completed a color group: rents doubled!
+            </p>
           </div>
-          <span class="text-3xl animate-bounce">⚡</span>
+
+          <!-- Right Ribbon Fold -->
+          <div class="monopoly-ribbon-fold-right"></div>
+          <!-- Right Swallowtail Ribbon Tail -->
+          <div class="monopoly-ribbon-tail-right"></div>
         </div>
 
-        <!-- Tiles in this Set Container -->
-        <div>
-          <div class="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider mb-2.5 flex items-center justify-between">
-            <span>Cities in Completed Set</span>
-            <span class="text-xs text-emerald-800 font-black">All Owned & Protected</span>
-          </div>
-          <div id="monopoly-tiles-list" class="grid grid-cols-1 gap-2.5 max-h-52 overflow-y-auto pr-1">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-
-        <!-- Brief info of completed set -->
-        <div class="bg-amber-50/60 rounded-2xl p-4 border border-amber-200/80 text-[13px] font-medium text-slate-800 space-y-2 leading-relaxed">
-          <div class="font-black text-slate-900 text-sm flex items-center gap-2 mb-1">
-            <i class="fa-solid fa-crown text-amber-500 text-base"></i> Set Completion Bonus:
-          </div>
-          <div>• <strong class="font-bold text-slate-900">2× Rent Power:</strong> Any opponent landing on these properties pays double the base price.</div>
-          <div>• <strong class="font-bold text-slate-900">House Construction:</strong> Building upgrades (up to 3 Houses and Skyscraper) are now active in your Portfolio.</div>
-        </div>
-
-        <!-- Confirm button -->
-        <button onclick="window.closeMonopolyModal()" class="game-btn game-btn-orange w-full py-4 text-base font-black">
-          <span>AWESOME!</span>
-          <i class="fa-solid fa-check"></i>
+        <!-- Tap anywhere to continue hint / quick dismiss button -->
+        <button onclick="window.closeMonopolyModal()" class="monopoly-dismiss-pill">
+          Tap anywhere to continue
         </button>
       </div>
+
     </div>
   </div>
 
-  <!-- 10. RESUME UNFINISHED MATCH MODAL -->
-  <div id="modal-resume-match" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md">
-    <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl border-3 border-indigo-200 overflow-hidden flex flex-col">
-      <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 text-white text-center">
-        <h2 class="font-rounded font-black text-xl drop-shadow">RESUME MATCH?</h2>
-        <p class="text-xs font-bold text-emerald-100 mt-0.5">Unfinished game found</p>
+  <!-- 10. RESUME UNFINISHED MATCH MODAL (Victory-Inspired) -->
+  <div id="modal-resume-match" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain">
+    <div class="game-modal-shell modal-shell-emerald relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl">
+      <!-- Grand Banner Header (Victory Style) -->
+      <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">💾</div>
+        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">🎮</div>
+
+        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10">
+          💾
+        </div>
+        <div class="relative z-10">
+          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
+            <span>⚡</span> SAVED GAME SESSION
+          </div>
+          <h2 class="font-rounded font-black text-xl text-white tracking-wide drop-shadow">RESUME MATCH?</h2>
+          <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">Unfinished game state detected</p>
+        </div>
       </div>
 
-      <div class="p-4 space-y-3">
-        <div id="resume-match-meta" class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
+      <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70">
+        <div id="resume-match-meta" class="bg-white p-3 rounded-2xl border-2 border-slate-200 shadow-xs">
           <!-- Populated dynamically -->
         </div>
 
         <div>
-          <div class="text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Players</div>
-          <div id="resume-player-roster" class="space-y-1 max-h-36 overflow-y-auto pr-1">
+          <div class="text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Players in Game</div>
+          <div id="resume-player-roster" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
             <!-- Populated dynamically -->
           </div>
         </div>
@@ -1227,87 +1420,104 @@
           <button onclick="window.discardSavedMatch()" class="game-btn game-btn-slate flex-1 py-3 text-xs sm:text-sm font-black">
             New Game
           </button>
-          <button onclick="window.resumeLastSavedMatch()" class="game-btn game-btn-green flex-1 py-3 text-xs sm:text-sm font-black">
-            <i class="fa-solid fa-play"></i> Resume
+          <button onclick="window.resumeLastSavedMatch()" class="game-btn game-btn-green flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
+            <i class="fa-solid fa-play mr-1"></i> Resume
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 11. MATCH DISCONNECTED NOTICE MODAL -->
-  <div id="modal-disconnect-notice" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-    <div class="relative w-full max-w-xs bg-white rounded-3xl shadow-2xl border-2 border-rose-300 overflow-hidden flex flex-col text-center">
-      <div class="bg-gradient-to-r from-rose-500 to-amber-500 p-4 text-white">
-        <div class="w-10 h-10 rounded-full bg-white/20 mx-auto flex items-center justify-center text-xl mb-1.5">
+  <!-- 11. MATCH DISCONNECTED NOTICE MODAL (Victory-Inspired) -->
+  <div id="modal-disconnect-notice" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain">
+    <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400">
+      <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
+        <!-- Floating Watermark Icon -->
+        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">⚠️</div>
+        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl mb-2 text-white shadow-inner relative z-10">
           <i class="fa-solid fa-plug-circle-xmark"></i>
         </div>
-        <h2 class="font-rounded font-black text-xl drop-shadow">DISCONNECTED</h2>
+        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-rose-100 shadow-xs mb-1 border border-white/20 relative z-10">
+          <span>⚠️</span> CONNECTION LOST
+        </div>
+        <h2 class="font-rounded font-black text-xl text-white tracking-wide drop-shadow relative z-10">DISCONNECTED</h2>
       </div>
 
-      <div class="p-4 space-y-3">
+      <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70">
         <p id="disconnect-notice-text" class="text-xs font-bold text-slate-600 leading-snug">
           Player disconnected. Returning to lobby.
         </p>
 
-        <button onclick="window.returnToLobbyFromDisconnect()" class="game-btn game-btn-blue w-full py-2.5 text-xs font-black">
-          <i class="fa-solid fa-house"></i>
+        <button onclick="window.returnToLobbyFromDisconnect()" class="game-btn game-btn-blue w-full py-3 text-xs font-black shadow-xs">
+          <i class="fa-solid fa-house mr-1"></i>
           <span>Return to Lobby</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- 12. CONFIRM EXIT TO LOBBY MODAL -->
-  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md" onclick="if(event.target===this) window.closeConfirmExitLobbyModal()">
-    <div class="relative w-full max-w-xs bg-white rounded-3xl shadow-2xl border-2 border-rose-200 overflow-hidden flex flex-col text-center">
-      <div class="bg-gradient-to-r from-rose-500 to-amber-500 p-4 text-white">
-        <div class="w-10 h-10 rounded-full bg-white/20 mx-auto flex items-center justify-center text-xl mb-1.5">
+  <!-- 12. CONFIRM EXIT TO LOBBY MODAL (Victory-Inspired) -->
+  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeConfirmExitLobbyModal()">
+    <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400">
+      <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
+        <!-- Floating Watermark Icon -->
+        <div class="absolute -right-2 -top-2 text-6xl opacity-15 select-none pointer-events-none">🚪</div>
+        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl mb-2 text-white shadow-inner relative z-10">
           <i class="fa-solid fa-door-open"></i>
         </div>
-        <h2 class="font-rounded font-black text-xl drop-shadow">EXIT TO LOBBY?</h2>
+        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-rose-100 shadow-xs mb-1 border border-white/20 relative z-10">
+          <span>🚪</span> QUIT MATCH
+        </div>
+        <h2 class="font-rounded font-black text-xl text-white tracking-wide drop-shadow relative z-10">EXIT TO LOBBY?</h2>
       </div>
 
-      <div class="p-4 space-y-3">
+      <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70">
         <p class="text-xs font-bold text-slate-600 leading-snug">
-          End current game and return to lobby?
+          End current game session and return to lobby? Unsaved progress will be lost.
         </p>
 
-        <div class="flex gap-2 pt-1">
-          <button onclick="window.closeConfirmExitLobbyModal()" class="game-btn game-btn-slate flex-1 py-2.5 text-xs font-black">
+        <div class="flex gap-2.5 pt-1">
+          <button onclick="window.closeConfirmExitLobbyModal()" class="game-btn game-btn-slate flex-1 py-3 text-xs font-black">
             Cancel
           </button>
-          <button onclick="window.confirmExitToLobbyAction()" class="game-btn game-btn-red flex-1 py-2.5 text-xs font-black">
-            End Game
+          <button onclick="window.confirmExitToLobbyAction()" class="game-btn game-btn-red flex-1 py-3 text-xs font-black shadow-xs">
+            <i class="fa-solid fa-door-open mr-1"></i> End Game
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 13. LIVE TYCOON LEADERBOARD & NET WORTH STANDINGS MODAL -->
-  <div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md" onclick="if(event.target===this) window.closeLeaderboardModal()">
-    <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border-2 sm:border-3 border-amber-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+  <!-- 13. LIVE TYCOON LEADERBOARD & NET WORTH STANDINGS MODAL (Victory-Inspired) -->
+  <div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeLeaderboardModal()">
+    <div class="game-modal-shell modal-shell-amber relative w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       
-      <!-- Leaderboard Header with Gradient & Trophy Icon -->
-      <div class="bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-700 px-5 py-4 text-white flex items-center justify-between shadow-md">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center text-2xl shadow-inner">
+      <!-- Leaderboard Header with Grand Gradient & Trophy Icon -->
+      <div class="game-modal-header bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-700 px-5 py-4 text-white flex items-center justify-between shadow-md relative overflow-hidden">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">🏆</div>
+        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">✨</div>
+
+        <div class="relative z-10 flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
             🏆
           </div>
           <div>
-            <h2 class="font-rounded font-black text-lg sm:text-xl tracking-wide drop-shadow-sm flex items-center gap-2">
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs mb-1 border border-white/20">
+              <span>👑</span> EMPIRE STANDINGS
+            </div>
+            <h2 class="font-rounded font-black text-xl sm:text-2xl tracking-wide drop-shadow-sm flex items-center gap-2">
               <span>TYCOON LEADERBOARD</span>
               <span class="text-[10px] font-black uppercase tracking-widest bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full shadow-xs">LIVE</span>
             </h2>
             <p class="text-xs font-semibold text-amber-100 mt-0.5 flex items-center gap-1.5">
-              <span>Real-time net worth & empire standings</span>
+              <span>Real-time net worth & empire rankings</span>
               <span>•</span>
               <span id="leaderboard-match-timer" class="text-white font-bold">15m match</span>
             </p>
           </div>
         </div>
-        <button onclick="window.closeLeaderboardModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition text-sm" title="Close Leaderboard [Esc]">
+        <button onclick="window.closeLeaderboardModal()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition text-base shadow-xs border border-white/20" title="Close Leaderboard [Esc]">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -1344,6 +1554,85 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- K. WARDROBE & COSMETICS MODAL (Victory-Inspired) -->
+  <div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-3 sm:p-5 overflow-hidden">
+    <!-- Card Container -->
+    <div class="game-modal-shell modal-shell-amber relative max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Header Banner -->
+      <div class="game-modal-header relative p-5 pb-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white flex items-center justify-between shadow-sm overflow-hidden">
+        <!-- Floating Watermark Icons -->
+        <div class="absolute -right-3 -top-3 text-7xl opacity-15 select-none pointer-events-none">👔</div>
+        <div class="absolute -left-3 -bottom-3 text-7xl opacity-15 select-none pointer-events-none">✨</div>
+
+        <div class="relative z-10 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/30 select-none">
+            👔
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="wardrobe-title" class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-sm">
+                TYCOON WARDROBE
+              </h2>
+              <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs border border-white/20">
+                <span>✨</span> COSMETICS
+              </span>
+            </div>
+            <p class="text-xs font-semibold text-amber-100 mt-0.5">
+              Customize your hats, dice, and token pedestals with match completion points
+            </p>
+          </div>
+        </div>
+
+        <!-- Right: Star Balance Badge & Accessible Close Button -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-950/40 backdrop-blur-md border border-amber-300/40 text-amber-300 font-black text-xs sm:text-sm shadow-inner" title="Your Tycoon Stars balance">
+            <span class="text-amber-400">⭐</span>
+            <span id="wardrobe-stars-balance" class="tabular-nums">500</span>
+          </div>
+          <button id="btn-close-wardrobe" onclick="window.closeWardrobeModal()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center cursor-pointer transition text-base" title="Close Wardrobe [Esc]" aria-label="Close Wardrobe">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="bg-slate-100/80 border-b border-slate-200 px-5 py-2.5 flex items-center gap-2 select-none overflow-x-auto" role="tablist" aria-label="Wardrobe Categories">
+        <button onclick="window.setWardrobeCategory('hat')" data-category="hat" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer bg-amber-400 text-slate-950 shadow-sm flex items-center gap-1.5" role="tab" aria-selected="true">
+          <span>🎩</span> <span>Hats & Headwear</span>
+        </button>
+        <button onclick="window.setWardrobeCategory('dice')" data-category="dice" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5" role="tab" aria-selected="false">
+          <span>🎲</span> <span>Dice Skins</span>
+        </button>
+        <button onclick="window.setWardrobeCategory('pedestal')" data-category="pedestal" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5" role="tab" aria-selected="false">
+          <span>🏛️</span> <span>Token Pedestals</span>
+        </button>
+      </div>
+
+      <!-- Item Grid Arena -->
+      <div class="p-5 sm:p-6 overflow-y-auto flex-1 bg-slate-50/60">
+        <div id="wardrobe-items-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+          <!-- Dynamically populated via wardrobe.js -->
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="bg-white border-t border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+        <div class="flex items-center gap-3 text-slate-600 font-semibold text-[11px] sm:text-xs">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-trophy text-amber-500 text-sm"></i>
+            <span>Earn <strong>+140 ⭐</strong> on match victory, <strong>+60 ⭐</strong> for completing, plus city & monopoly bonuses!</span>
+          </div>
+          <button onclick="if(confirm('Reset Tycoon Stars and unlocked cosmetics to balanced defaults?')) window.resetTycoonProfile()" class="text-[10px] text-slate-400 hover:text-rose-500 font-bold underline cursor-pointer ml-1" title="Reset to starter wallet">
+            Reset Progress
+          </button>
+        </div>
+        <button onclick="window.closeWardrobeModal()" class="game-btn game-btn-blue px-6 py-2 text-xs font-black shadow-xs">
+          Done
+        </button>
+      </div>
     </div>
   </div>
 

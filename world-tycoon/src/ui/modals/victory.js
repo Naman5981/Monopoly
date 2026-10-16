@@ -14,6 +14,8 @@ import { fireConfettiBurst, spawnAnimatedReaction, startVictoryCelebration, stop
 import { logEvent } from '../hud.js';
 import { renderNetWorthTimelineChart } from './leaderboard.js';
 import { engineCallbacks, isLobbyScreenActive, closeAllGameModals } from './common.js';
+import { ARCHETYPES } from '../setup.js';
+import { awardMatchPoints } from '../wardrobe.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    VICTORY CELEBRATION MODAL
@@ -68,6 +70,55 @@ export function showVictoryModal(winner, victoryDetails = null) {
     const pIdx = winnerObj.id !== undefined ? winnerObj.id : gameState.players.indexOf(winnerObj);
     const ownedCount = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === pIdx).length;
     propsEl.textContent = `${ownedCount} Cities`;
+  }
+
+  // Calculate and award Tycoon Stars for match completion
+  try {
+    const humanPlayer = gameState.players?.find(p => !p.isAI) || gameState.players?.[0];
+    const humanIdx = humanPlayer ? (humanPlayer.id !== undefined ? humanPlayer.id : gameState.players.indexOf(humanPlayer)) : 0;
+    const isHumanWinner = winnerObj && (winnerObj.id === humanIdx || winnerObj === humanPlayer);
+
+    let humanOwnedCities = 0;
+    let humanMonopolies = 0;
+    if (humanPlayer && gameState.properties) {
+      humanOwnedCities = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === humanIdx).length;
+      const checkedGroups = new Set();
+      BOARD_TILES.forEach(t => {
+        if (t.type === 'city' && t.group && !checkedGroups.has(t.group)) {
+          checkedGroups.add(t.group);
+          if (ownsFullColorGroup(humanIdx, t.group)) {
+            humanMonopolies++;
+          }
+        }
+      });
+    }
+
+    const rewardResult = awardMatchPoints({
+      isWinner: isHumanWinner,
+      propertiesOwned: humanOwnedCities,
+      monopoliesCount: humanMonopolies
+    });
+
+    const rewardTotalEl = document.getElementById('victory-reward-total');
+    const rewardBreakdownEl = document.getElementById('victory-reward-breakdown');
+    const balanceEl = document.getElementById('victory-profile-balance');
+
+    if (rewardTotalEl) {
+      rewardTotalEl.textContent = `+${rewardResult.totalEarned} ⭐`;
+    }
+    if (balanceEl) {
+      balanceEl.textContent = `${rewardResult.newBalance.toLocaleString()} ⭐`;
+    }
+    if (rewardBreakdownEl) {
+      rewardBreakdownEl.innerHTML = rewardResult.breakdown.map(item => `
+        <span class="inline-flex items-center gap-1 bg-amber-100/90 text-amber-950 px-2 py-0.5 rounded-full border border-amber-200 shadow-2xs">
+          <span>${item.label}:</span>
+          <strong class="tabular-nums">+${item.pts} ⭐</strong>
+        </span>
+      `).join('');
+    }
+  } catch (err) {
+    console.warn('Failed to calculate victory rewards:', err);
   }
 
   const modal = document.getElementById('modal-victory');
@@ -179,7 +230,7 @@ export function closeVictoryAndPlayAgain() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   MONOPOLY CELEBRATION MODAL
+   MONOPOLY CELEBRATION MODAL (better-ui)
 ───────────────────────────────────────────────────────────────────────────── */
 export function openMonopolyCelebrationModal(playerIdx, groupKey) {
   if (isLobbyScreenActive()) return;
@@ -187,38 +238,59 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
   const group = GROUP_META[groupKey];
   if (!p || !group) return;
 
-  const winnerEl = document.getElementById('monopoly-winner-name');
-  const groupEl = document.getElementById('monopoly-group-name');
-  const headerEl = document.getElementById('monopoly-modal-header');
-  const tilesContainer = document.getElementById('monopoly-tiles-list');
+  // 1. Update Avatar Hero Medallion
+  const sourceCanvas = document.getElementById(`hud-avatar-canvas-${playerIdx}`);
+  const targetCanvas = document.getElementById('monopoly-avatar-canvas');
+  const fallbackDiv = document.getElementById('monopoly-avatar-fallback');
+  const disc = document.getElementById('monopoly-avatar-disc');
 
-  if (winnerEl) winnerEl.textContent = `${p.name} ACHIEVED A MONOPOLY!`;
-  if (groupEl) groupEl.textContent = `${group.name} Set Completed`;
-  if (headerEl) headerEl.style.background = `linear-gradient(135deg, ${group.hex}, #1e1b4b)`;
+  if (disc && p.colorHex) {
+    disc.style.boxShadow = `0 0 0 4px #ffffff, 0 0 0 8px ${p.colorHex}55, 0 16px 36px rgba(0, 0, 0, 0.45)`;
+  }
 
+  if (sourceCanvas && targetCanvas) {
+    const ctx = targetCanvas.getContext('2d');
+    ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+    ctx.drawImage(sourceCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
+    targetCanvas.classList.remove('hidden');
+    if (fallbackDiv) fallbackDiv.classList.add('hidden');
+  } else if (fallbackDiv) {
+    if (targetCanvas) targetCanvas.classList.add('hidden');
+    fallbackDiv.classList.remove('hidden');
+    const iconEl = document.getElementById('monopoly-avatar-icon');
+    const initialEl = document.getElementById('monopoly-avatar-initial');
+    if (iconEl) {
+      const arch = ARCHETYPES ? ARCHETYPES[p.hatStyle || 0] : null;
+      iconEl.textContent = arch?.icon || '🎩';
+    }
+    if (initialEl) initialEl.textContent = p.name || 'YOU';
+  }
+
+  // 2. Render Side-by-Side Tangible Property Deed Cards
   const groupTiles = BOARD_TILES.filter(t => t.type === 'city' && t.group === groupKey);
+  const cardsContainer = document.getElementById('monopoly-cards-row');
 
-  if (tilesContainer) {
-    tilesContainer.innerHTML = groupTiles.map(t => {
+  if (cardsContainer) {
+    cardsContainer.innerHTML = groupTiles.map(t => {
       const baseRent = t.rent[0];
       const boostedRent = baseRent * 2;
       return `
-        <div class="flex items-center justify-between p-3.5 rounded-2xl border-2 border-slate-200/90 bg-white shadow-xs">
-          <div class="flex items-center gap-3">
-            <span class="w-4 h-4 rounded-full border-2 border-white shadow-xs flex-shrink-0" style="background:${group.hex}"></span>
-            <div>
-              <div class="font-display font-extrabold text-base text-slate-900 leading-tight">${t.name}</div>
-              <div class="text-xs text-slate-600 font-bold mt-0.5">City Value: ${fmtMoney(t.price)}</div>
+        <div class="monopoly-deed-card">
+          <div class="monopoly-deed-header" style="background-color: ${group.hex}">
+            <div class="monopoly-deed-check" style="background-color: ${p.colorHex || '#ef4444'}">
+              <i class="fa-solid fa-check text-xs"></i>
             </div>
           </div>
-          <div class="text-right">
-            <div class="text-sm font-black text-emerald-700">${fmtMoney(boostedRent)} <span class="text-xs font-bold text-emerald-800">/ visit</span></div>
-            <div class="text-xs font-black text-amber-700 tracking-wider uppercase mt-0.5">⚡ 2× BOOSTED</div>
-          </div>
+          <div class="monopoly-deed-name" title="${t.name}">${t.name}</div>
+          <div class="monopoly-deed-rent">${fmtMoney(boostedRent)} / visit</div>
         </div>
       `;
     }).join('');
   }
+
+  // 3. Update Ribbon Subtitle
+  const winnerEl = document.getElementById('monopoly-winner-name');
+  if (winnerEl) winnerEl.textContent = p.name;
 
   playSFX('win');
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.45, 120);
@@ -232,10 +304,18 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
     m.classList.add('flex');
     if (card) {
       setTimeout(() => {
-        card.classList.remove('scale-90', 'opacity-0');
+        card.classList.remove('scale-[0.96]', 'opacity-0');
         card.classList.add('scale-100', 'opacity-100');
       }, 30);
     }
+  }
+
+  // Auto-dismiss after 4.8 seconds
+  if (m) {
+    if (m._autoCloseTimer) clearTimeout(m._autoCloseTimer);
+    m._autoCloseTimer = setTimeout(() => {
+      closeMonopolyModal();
+    }, 4800);
   }
 
   logEvent(`👑 <strong>${p.name}</strong> completed the <strong>${group.name}</strong> Monopoly! All cities collect <strong>2× Rent</strong>!`);
@@ -244,16 +324,20 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
 export function closeMonopolyModal() {
   const m = document.getElementById('modal-monopoly-celebration');
   const card = document.getElementById('modal-monopoly-card');
+  if (m && m._autoCloseTimer) {
+    clearTimeout(m._autoCloseTimer);
+    m._autoCloseTimer = null;
+  }
   if (card) {
     card.classList.remove('scale-100', 'opacity-100');
-    card.classList.add('scale-90', 'opacity-0');
+    card.classList.add('scale-[0.96]', 'opacity-0');
   }
   setTimeout(() => {
     if (m) {
       m.classList.add('hidden');
       m.classList.remove('flex');
     }
-  }, 250);
+  }, 180);
 }
 
 export function checkAndTriggerMonopoly(playerIdx, groupKey) {

@@ -14,7 +14,7 @@ import { currentBulbMode, getSoftBloomTexture } from '../core/lighting.js';
  * @param {boolean} isPortrait - Whether generating for miniature circular HUD portrait
  * @returns {THREE.Group}
  */
-export function createDetailed3DAvatarMesh(idx, isPortrait = false) {
+export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatStyle = null, customPedestal = null) {
   const theme = PLAYER_THEMES[idx % PLAYER_THEMES.length];
   const root = new THREE.Group();
   const skinTones = [0xf1c27d, 0xe0ac69, 0xc68642, 0xffdbac];
@@ -27,12 +27,25 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false) {
   const goldMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.25, metalness: 0.75, flatShading: true });
 
   if (!isPortrait) {
-    const pedBase = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 0.14, 16), darkMat);
+    let baseMat = darkMat;
+    let innerMat = suitMat;
+    if (customPedestal === 'pedestal_gold') {
+      baseMat = goldMat;
+      innerMat = whiteMat;
+    } else if (customPedestal === 'pedestal_emerald') {
+      baseMat = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.3, metalness: 0.2 });
+      innerMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.2, emissive: 0x047857, emissiveIntensity: 0.4 });
+    } else if (customPedestal === 'pedestal_magma') {
+      baseMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.4 });
+      innerMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.2, emissive: 0xe11d48, emissiveIntensity: 0.5 });
+    }
+
+    const pedBase = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 0.14, 16), baseMat);
     pedBase.position.y = 0.07;
     pedBase.castShadow = true;
     root.add(pedBase);
 
-    const pedInner = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.39, 0.06, 16), suitMat);
+    const pedInner = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.39, 0.06, 16), innerMat);
     pedInner.position.y = 0.15;
     root.add(pedInner);
   }
@@ -171,7 +184,9 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false) {
   const hatGroup = new THREE.Group();
   headGroup.add(hatGroup);
 
-  if (idx % 4 === 0) {
+  const effectiveHat = (typeof customHatStyle === 'number') ? customHatStyle : (idx % 4);
+
+  if (effectiveHat === 0) {
     const dome = new THREE.Mesh(new THREE.SphereGeometry(0.385, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), hatMat);
     dome.position.y = 0.02;
     hatGroup.add(dome);
@@ -198,7 +213,7 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false) {
       lens.position.set(gx, 0.25, 0.365);
       hatGroup.add(rim, lens);
     });
-  } else if (idx % 4 === 1) {
+  } else if (effectiveHat === 1) {
     const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.06, 16), darkMat);
     brim.position.y = 0.26;
     const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.3, 0.42, 16), darkMat);
@@ -210,7 +225,7 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false) {
     const monocle = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.018, 8, 16), goldMat);
     monocle.position.set(0.13, 0.06, 0.37);
     headGroup.add(monocle);
-  } else if (idx % 4 === 2) {
+  } else if (effectiveHat === 2) {
     const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.54, 0.06, 16), hatMat);
     brim.position.y = 0.22;
     const dome = new THREE.Mesh(new THREE.SphereGeometry(0.36, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), hatMat);
@@ -218,7 +233,7 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false) {
     const crest = new THREE.Mesh(new THREE.OctahedronGeometry(0.08, 0), goldMat);
     crest.position.set(0, 0.34, 0.35);
     hatGroup.add(brim, dome, crest);
-  } else {
+  } else if (effectiveHat === 3) {
     const visorMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.35, roughness: 0.15, metalness: 0.8 });
     const visor = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.13, 0.16), visorMat);
     visor.position.set(0, 0.08, 0.31);
@@ -234,6 +249,46 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false) {
       muff.position.set(hx, 0.02, 0);
       hatGroup.add(muff);
     });
+  } else if (effectiveHat === 4) {
+    // Imperial Crown: Gilded 24K spiked crown with velvet inner dome & rubies
+    const crownBase = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.34, 0.12, 16), goldMat);
+    crownBase.position.y = 0.28;
+    const velvetMat = new THREE.MeshStandardMaterial({ color: 0xbe123c, roughness: 0.65 });
+    const velvetDome = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.5), velvetMat);
+    velvetDome.position.y = 0.28;
+    hatGroup.add(crownBase, velvetDome);
+
+    const rubyMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.1, metalness: 0.85, emissive: 0x9f1239, emissiveIntensity: 0.3 });
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.065, 0.22, 4), goldMat);
+      spike.position.set(Math.sin(angle) * 0.34, 0.42, Math.cos(angle) * 0.34);
+      const ruby = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), rubyMat);
+      ruby.position.set(Math.sin(angle) * 0.36, 0.32, Math.cos(angle) * 0.36);
+      hatGroup.add(spike, ruby);
+    }
+  } else if (effectiveHat === 5) {
+    // Diamond Fedora: Wide curved brim, creased crown & cyan diamond band
+    const fedoraMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 });
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.05, 20), fedoraMat);
+    brim.position.y = 0.25;
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.33, 0.32, 16), fedoraMat);
+    crown.position.y = 0.42;
+    const diamondBandMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.15, metalness: 0.85, emissive: 0x0284c7, emissiveIntensity: 0.25 });
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.335, 0.335, 0.08, 16), diamondBandMat);
+    band.position.y = 0.31;
+    hatGroup.add(brim, crown, band);
+  } else if (effectiveHat === 6) {
+    // Royal Bicorn: Naval fleet bicorn with gold bullion trim
+    const bicornMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 });
+    const frontFlap = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.32, 0.12), bicornMat);
+    frontFlap.position.set(0, 0.36, 0.06);
+    frontFlap.rotation.y = 0.05;
+    const backFlap = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.32, 0.12), bicornMat);
+    backFlap.position.set(0, 0.36, -0.06);
+    const cockade = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.03, 8, 16), goldMat);
+    cockade.position.set(-0.16, 0.36, 0.14);
+    hatGroup.add(frontFlap, backFlap, cockade);
   }
 
   let avatarLight = null;
