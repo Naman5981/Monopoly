@@ -33,7 +33,6 @@ let networkCallbacks = {
   onDiceRoll: () => {},
   onBuyCity: () => {},
   onUpgradeCity: () => {},
-  onMortgageCity: () => {},
   onAuctionAction: () => {},
   onTradeAction: () => {},
   onReaction: () => {},
@@ -249,8 +248,9 @@ function handleHostReceivedMessage(conn, msg) {
 
     case 'ACTION_ROLL':
     case 'ACTION_BUY_CITY':
+    case 'ACTION_BUYOUT_CITY':
     case 'ACTION_UPGRADE_CITY':
-    case 'ACTION_MORTGAGE_CITY':
+    case 'ACTION_PAY_BAIL':
     case 'ACTION_AUCTION_BID':
     case 'ACTION_AUCTION_PASS':
     case 'ACTION_TRADE_OFFER':
@@ -490,8 +490,9 @@ function handleGuestReceivedMessage(msg) {
 
     case 'ACTION_ROLL':
     case 'ACTION_BUY_CITY':
+    case 'ACTION_BUYOUT_CITY':
     case 'ACTION_UPGRADE_CITY':
-    case 'ACTION_MORTGAGE_CITY':
+    case 'ACTION_PAY_BAIL':
     case 'ACTION_AUCTION_BID':
     case 'ACTION_AUCTION_PASS':
     case 'ACTION_TRADE_OFFER':
@@ -608,17 +609,47 @@ function executeIncomingNetworkAction(msg) {
       }
       break;
 
+    case 'ACTION_BUYOUT_CITY':
+      if (networkCallbacks.onBuyoutCity) {
+        networkCallbacks.onBuyoutCity(msg.playerIdx, msg.tileId, msg.prevOwnerIdx, msg.buyoutCost);
+      }
+      break;
+
     case 'ACTION_UPGRADE_CITY':
       if (networkCallbacks.onUpgradeCity) {
         networkCallbacks.onUpgradeCity(msg.playerIdx, msg.tileId);
       }
       break;
 
-    case 'ACTION_MORTGAGE_CITY':
-      if (networkCallbacks.onMortgageCity) {
-        networkCallbacks.onMortgageCity(msg.playerIdx, msg.tileId, msg.mortgaged);
+    case 'ACTION_PAY_BAIL': {
+      const p = gameState.players[msg.playerIdx];
+      if (p) {
+        p.inIsland = false;
+        p.islandTurns = 0;
+        p.cash -= 150000;
+        gameState.festivalPot += 150000;
+        renderCornerHUDs();
       }
+      logEvent(`🏝️ <strong>${p ? p.name : 'Player'}</strong> paid 150K Island Bail.`);
       break;
+    }
+
+    case 'ACTION_SELL_CITY_FOR_RENT': {
+      const p = gameState.players[msg.playerIdx];
+      const t = BOARD_TILES[msg.tileId];
+      const st = gameState.properties[msg.tileId];
+      if (st) {
+        st.owner = null;
+        st.level = 0;
+        refreshTileTextureAndBuildings(msg.tileId);
+      }
+      if (p) {
+        p.cash += (msg.saleVal || 0);
+        renderCornerHUDs();
+      }
+      logEvent(`🏷️ <strong>${p ? p.name : 'Player'}</strong> sold <strong>${t ? t.name : 'Property'}</strong> to pay rent.`);
+      break;
+    }
 
     case 'ACTION_AUCTION_BID':
     case 'ACTION_AUCTION_PASS':

@@ -3,7 +3,7 @@
  * Interactive Players Add & Match Configuration Landing Page (First Page).
  */
 
-import { matchSettings, setLobbyPlayerCount, lobbyPlayerCount } from '../game/state.js';
+import { gameState, matchSettings, setLobbyPlayerCount, lobbyPlayerCount } from '../game/state.js';
 import { PLAYER_THEMES, applyBoardEdition } from '../game/data.js';
 import { playSFX } from '../game/audio.js';
 import { fireConfettiBurst, applyLightingMode } from '../three/effects.js';
@@ -19,9 +19,12 @@ import {
   broadcastStartOnlineMatch,
   broadcastLobbySettings,
   registerNetworkCallbacks,
-  broadcastAction
+  broadcastAction,
+  updateMultiplayerUI
 } from '../network/p2p.js';
+import { closeAllGameModals } from './modals/common.js';
 import { updateAllPointsBadges } from './wardrobe.js';
+import { animateLobbyEntrance, animatePlayerJoinRadarPing } from './anim.js';
 
 export const ARCHETYPES = [
   { id: 0, name: 'Aviator', icon: '✈️', hatColor: 0x334155, desc: 'Sky Captain Goggles' },
@@ -71,6 +74,11 @@ export function selectSetupPlayer(idx) {
 export function initLandingSetup() {
   renderPlayerCards();
   renderMatchSettingButtons();
+
+  // Anime.js arcade staggered lobby entrance orchestration
+  setTimeout(() => {
+    animateLobbyEntrance();
+  }, 50);
 
   // Initialize 3D podium stage in center of lobby
   setTimeout(() => {
@@ -157,6 +165,7 @@ export function addBotOrSlot() {
     }
     renderPlayerCards();
     renderMatchSettingButtons();
+    animatePlayerJoinRadarPing(newIdx);
     playSFX('hop');
   }
 }
@@ -284,9 +293,7 @@ export function renderPlayerCards() {
     const initial = (cp.name || `P${i + 1}`)[0].toUpperCase();
 
     const row = document.createElement('div');
-    row.className = `player-setup-card bg-white/95 border-2 ${
-      isSelected ? 'border-amber-400 ring-2 ring-amber-300/80 shadow-[0_8px_24px_rgba(245,158,11,0.22)] bg-gradient-to-r from-amber-50/80 via-yellow-50/50 to-white' : 'border-slate-200/90 hover:border-amber-300 shadow-xs'
-    } rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2.5 transition cursor-pointer`;
+    row.className = `player-setup-card ${isSelected ? 'card-selected' : ''} p-2.5 sm:p-3 flex items-center justify-between gap-2.5 cursor-pointer`;
     row.onclick = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
       window.selectSetupPlayer(i);
@@ -294,8 +301,8 @@ export function renderPlayerCards() {
 
     row.innerHTML = `
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
-        <!-- Colored avatar initial circle -->
-        <div class="w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center font-black text-sm text-white flex-shrink-0" style="background:${cp.colorHex}; ${isSelected ? 'box-shadow: 0 0 12px rgba(245,158,11,0.6);' : ''}">
+        <!-- Colored avatar medallion with arcade rim -->
+        <div class="w-11 h-11 rounded-full border-2 border-white shadow-md flex items-center justify-center font-black text-sm text-white flex-shrink-0" style="background:${cp.colorHex}; box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 0 0 2px ${cp.colorHex}55${isSelected ? ', 0 0 16px rgba(245,158,11,0.6)' : ''};">
           ${initial}
         </div>
         <div class="min-w-0 flex-1">
@@ -753,12 +760,14 @@ export function startGameFromLandingPage() {
 
   // Smooth exit animation
   if (landingScreen) {
+    landingScreen.style.pointerEvents = 'none';
     landingScreen.style.transition = 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
     landingScreen.style.opacity = '0';
     landingScreen.style.transform = 'scale(0.94) translateY(-20px)';
     setTimeout(() => {
       landingScreen.classList.add('hidden');
       landingScreen.style.display = 'none';
+      landingScreen.style.pointerEvents = '';
     }, 400);
   }
 
@@ -768,3 +777,77 @@ export function startGameFromLandingPage() {
   // Initialize and start match with configured players & starting cash
   startNewMatch();
 }
+
+/**
+ * Re-opens the interactive landing lobby, resets match state,
+ * and ensures all victory/in-game modals and overlays are completely cleared.
+ */
+export function openLandingSetupScreen() {
+  if (typeof window.cancelAllGameTimers === 'function') {
+    window.cancelAllGameTimers();
+  }
+  closeAllGameModals();
+  gameState.gameStarted = false;
+  gameState.phase = 'SETUP';
+
+  const landingScreen = document.getElementById('landing-setup-screen');
+  if (landingScreen) {
+    landingScreen.classList.remove('hidden');
+    landingScreen.style.removeProperty('display');
+    landingScreen.style.display = 'flex';
+    landingScreen.style.opacity = '1';
+    landingScreen.style.transform = 'none';
+    landingScreen.style.pointerEvents = 'auto';
+  }
+
+  // Ensure victory modal and its inline styles are completely wiped
+  const victoryModal = document.getElementById('modal-victory');
+  if (victoryModal) {
+    victoryModal.classList.add('hidden');
+    victoryModal.classList.remove('flex');
+    victoryModal.style.removeProperty('display');
+    victoryModal.style.removeProperty('z-index');
+    victoryModal.style.display = 'none';
+  }
+  const victoryCard = document.getElementById('victory-card');
+  if (victoryCard) {
+    victoryCard.style.removeProperty('opacity');
+    victoryCard.style.removeProperty('pointer-events');
+  }
+
+  // Hide in-game HUD layers / badges
+  const turnToast = document.getElementById('turn-lock-toast');
+  if (turnToast) turnToast.classList.add('hidden');
+  const flightBanner = document.getElementById('world-tour-banner');
+  if (flightBanner) flightBanner.classList.add('hidden');
+  const diceOverlay = document.getElementById('screen-dice-overlay');
+  if (diceOverlay) {
+    diceOverlay.classList.add('hidden');
+    diceOverlay.style.display = 'none';
+  }
+  const speechBubble = document.getElementById('token-speech-bubble');
+  if (speechBubble) speechBubble.classList.add('hidden');
+  const diceSumBadge = document.getElementById('dice-sum-badge');
+  if (diceSumBadge) diceSumBadge.classList.add('hidden');
+  const statusWrap = document.getElementById('hud-bottom-status-wrap');
+  if (statusWrap) statusWrap.classList.add('hidden');
+
+  if (networkState.isMultiplayer) {
+    selectMatchMode('online', false);
+    updateMultiplayerUI();
+  } else {
+    selectMatchMode('local', false);
+  }
+
+  renderPlayerCards();
+  renderMatchSettingButtons();
+  updateAllPointsBadges();
+
+  const p0 = matchSettings.customPlayers[selectedSetupPlayerIdx || 0] || matchSettings.customPlayers[0];
+  if (p0) {
+    updateLobbyHeroAvatar(p0.hatStyle || 0, p0.colorHex || '#3b82f6', p0.charColor || 0x3b82f6);
+  }
+
+  applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
+}
+

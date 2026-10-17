@@ -39,7 +39,7 @@ export const debugState = {
 export const gameState = {
   gameStarted: false,
   players: [],
-  /** tileId → { owner: idx|null, level: 0..4, mortgaged: bool, festivalBoost: bool } */
+  /** tileId → { owner: idx|null, level: 0..4, festivalBoost: bool } */
   properties: {},
   currentPlayerIdx: 0,
   /** 'ROLL' | 'MOVING' | 'MODAL' | 'WORLD_TOUR' | 'END' */
@@ -146,7 +146,7 @@ export function resetGameStateForNewMatch(count) {
   gameState.properties = {};
   BOARD_TILES.forEach(t => {
     if (t.type === 'city' || t.type === 'resort') {
-      gameState.properties[t.id] = { owner: null, level: 0, mortgaged: false, festivalBoost: false };
+      gameState.properties[t.id] = { owner: null, level: 0, festivalBoost: false };
     }
   });
 

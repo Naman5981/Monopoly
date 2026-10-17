@@ -92,8 +92,8 @@ export function populateCityPreview3DScene(tile, targetCanvasId) {
       cityPreviewGroup.add(house);
     } else if (propState?.owner !== null && propState?.owner !== undefined) {
       const flag = createDetailedFlagMesh(ownerColorNum);
-      flag.scale.set(1.15, 1.15, 1.15);
-      flag.position.set(-0.15, 0, 0);
+      flag.scale.set(0.65, 0.65, 0.65);
+      flag.position.set(-0.30, 0, 0);
       cityPreviewGroup.add(flag);
     } else {
       const showcaseHouse = createDetailedHouseMesh(ownerColorNum, 1);
@@ -101,7 +101,7 @@ export function populateCityPreview3DScene(tile, targetCanvasId) {
       showcaseHouse.position.set(-0.35, 0, 0.15);
 
       const flag = createDetailedFlagMesh(ownerColorNum);
-      flag.scale.set(0.85, 0.85, 0.85);
+      flag.scale.set(0.48, 0.48, 0.48);
       flag.position.set(-0.70, 0, -0.35);
 
       const miniSkyscraper = createDetailedSkyscraperMesh(ownerColorNum);

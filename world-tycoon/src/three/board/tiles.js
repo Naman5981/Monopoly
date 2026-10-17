@@ -11,7 +11,7 @@ import { context } from '../core/context.js';
 import { BOARD_TILES, PLAYER_THEMES } from '../../game/data.js';
 import { gameState, matchSettings } from '../../game/state.js';
 import { getTileWorldPosition, BASE_TILE_Y, BASE_BUILDING_Y } from './coords.js';
-import { currentBulbMode, getLightPlayerAccent, getGroundPoolTexture } from '../core/lighting.js';
+import { currentBulbMode, getLightPlayerAccent, getGroundPoolTexture, setLightingThemeCallback } from '../core/lighting.js';
 import {
   createDetailedFlagMesh,
   createDetailedHouseMesh,
@@ -20,11 +20,11 @@ import {
 } from '../assets/buildings.js';
 import { disposeHierarchy } from '../core/dispose.js';
 import { updateDioramaCenterForEdition } from './diorama.js';
-import { generateTileSvg, drawSvgToCanvas } from './tileSvg.js';
+import { drawTileToCanvas, createTileEmissiveTexture } from './tileCanvas.js';
 
 /**
- * Renders a crisp vector texture for a tile using declarative SVG templates.
- * Conforms to Clean Code SRP: Presentation is decoupled into tileSvg.js.
+ * Renders a crisp 2D canvas texture for a tile synchronously.
+ * Conforms to Clean Code SRP: Presentation is decoupled into tileCanvas.js.
  * @param {object} tile - Tile definition object
  * @param {object} propState - Dynamic property ownership and mortgage state
  * @returns {THREE.CanvasTexture}
@@ -33,26 +33,14 @@ export function createTileTexture(tile, propState) {
   const c = document.createElement('canvas');
   c.width = 512;
   c.height = 512;
-  const ctx = c.getContext('2d');
 
-  // Immediate solid background for seamless zero-flicker frame-0 render
-  const boardStyle = matchSettings.boardStyle || 'wood';
-  const isCyber = (boardStyle === 'cyberpunk');
-  const isElegant = (boardStyle === 'elegant');
-  ctx.fillStyle = isCyber ? '#080d1a' : (isElegant ? '#fafaf9' : '#ffffff');
-  ctx.fillRect(0, 0, 512, 512);
+  // Render tile face directly to canvas context
+  drawTileToCanvas(c, tile, propState);
 
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = context.maxAnisotropy;
   tex.needsUpdate = true;
-
-  // Generate declarative SVG vector document and rasterize to canvas
-  const svgMarkup = generateTileSvg(tile, propState);
-  drawSvgToCanvas(svgMarkup, c, () => {
-    tex.needsUpdate = true;
-  });
-
   return tex;
 }
 
@@ -117,9 +105,13 @@ export function buildAllBoardTiles3D(boardGroup) {
       metalness: isCyber ? 0.85 : (isElegant ? 0.25 : 0.04)
     });
     const topTex = createTileTexture(tile, propState);
+    const emissiveTex = createTileEmissiveTexture(tile, propState);
+    const isNight = (currentBulbMode === 'night');
     const topMat = new THREE.MeshStandardMaterial({
       map: topTex,
-      color: 0xffffff,
+      emissiveMap: emissiveTex || null,
+      emissive: new THREE.Color(emissiveTex ? 0xffffff : 0x000000),
+      emissiveIntensity: emissiveTex ? (isNight ? 0.85 : 0.55) : 0,
       roughness: isCyber ? 0.20 : (isElegant ? 0.15 : 0.28),
       metalness: isCyber ? 0.15 : (isElegant ? 0.08 : 0.02)
     });
@@ -151,7 +143,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     const groundPool = new THREE.Mesh(poolGeo, poolMat);
     groundPool.rotation.x = -Math.PI / 2;
     groundPool.position.set(pos.x, 0.04, pos.z);
-    groundPool.visible = !!isOwned;
+    groundPool.visible = false;
     boardGroup.add(groundPool);
     context.tileGroundLightPools[tile.id] = groundPool;
 
@@ -184,12 +176,27 @@ export function refreshTileTextureAndBuildings(tileId) {
   const mesh = context.tilesMeshMap[tileId];
   if (!tile || !mesh) return;
 
-  const propState = gameState.properties[tileId] || null;
+  const propState = gameState.properties[tile.id] || null;
   const newTex = createTileTexture(tile, propState);
+  const newEmissiveTex = createTileEmissiveTexture(tile, propState);
+  const isNight = (currentBulbMode === 'night');
+  const isSunset = (currentBulbMode === 'sunset');
+
   if (Array.isArray(mesh.material) && mesh.material[2]) {
-    if (mesh.material[2].map) mesh.material[2].map.dispose();
-    mesh.material[2].map = newTex;
-    mesh.material[2].needsUpdate = true;
+    const topMat = mesh.material[2];
+    if (topMat.map) topMat.map.dispose();
+    topMat.map = newTex;
+
+    if (topMat.emissiveMap) topMat.emissiveMap.dispose();
+    topMat.emissiveMap = newEmissiveTex || null;
+    if (newEmissiveTex && (isNight || isSunset)) {
+      topMat.emissive.setHex(0xffffff);
+      topMat.emissiveIntensity = isNight ? 0.85 : 0.55;
+    } else {
+      topMat.emissive.setHex(0x000000);
+      topMat.emissiveIntensity = 0;
+    }
+    topMat.needsUpdate = true;
   }
 
   const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
@@ -203,9 +210,6 @@ export function refreshTileTextureAndBuildings(tileId) {
   const sideColor = isOwned
     ? new THREE.Color(ownerTheme.colorHex)
     : (isCyber ? new THREE.Color(0x0b1220) : (isElegant ? new THREE.Color(0xfafaf9) : new THREE.Color(0xe2e8f0)));
-
-  const isNight = (currentBulbMode === 'night');
-  const isSunset = (currentBulbMode === 'sunset');
 
   if (Array.isArray(mesh.material)) {
     [0, 1, 3, 4, 5].forEach(idx => {
@@ -249,14 +253,8 @@ export function refreshTileTextureAndBuildings(tileId) {
 
   const pool = context.tileGroundLightPools[tileId];
   if (pool && pool.material) {
-    if (isOwned && ownerTheme) {
-      pool.visible = true;
-      pool.material.color.setStyle(ownerTheme.colorHex);
-      pool.material.opacity = isNight ? 0.45 : (isSunset ? 0.35 : 0.25);
-    } else {
-      pool.visible = false;
-      pool.material.opacity = 0;
-    }
+    pool.visible = false;
+    pool.material.opacity = 0;
   }
 
   if ([0, 8, 16, 24].includes(tileId)) return;
@@ -268,7 +266,7 @@ export function refreshTileTextureAndBuildings(tileId) {
     disposeHierarchy(child);
     bGroup.remove(child);
   }
-  if (!propState || propState.owner === null || propState.mortgaged) return;
+  if (!propState || propState.owner === null) return;
 
   const pos = getTileWorldPosition(tileId);
   if (pos.side === 1) bGroup.rotation.y = -Math.PI / 2;
@@ -281,23 +279,25 @@ export function refreshTileTextureAndBuildings(tileId) {
 
   if (lvl === 0) {
     const flagMesh = createDetailedFlagMesh(ownerColor);
-    // Position flag in corner sidewalk so it never occludes card text
-    flagMesh.position.set(0.95, 0, -0.92);
+    // Flag placed with pole at left of color bar so the large banner waves proudly across the upper rim
+    flagMesh.position.set(-0.45, 0, -0.98);
     flagMesh.scale.set(0.01, 0.01, 0.01);
     bGroup.add(flagMesh);
-    animatedBuildingPopups.push({ mesh: flagMesh, startTime: performance.now(), duration: 400 });
+    animatedBuildingPopups.push({ mesh: flagMesh, startTime: performance.now(), duration: 400, targetScale: 1.05 });
   } else if (lvl >= 1 && lvl <= 3) {
     const hGroup = createDetailedHouseMesh(ownerColor, lvl);
-    hGroup.position.set(0, 0, -0.88);
+    // House sits comfortably on upper rim of tile with perfect proportion
+    hGroup.position.set(0, 0, -0.96);
     hGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(hGroup);
-    animatedBuildingPopups.push({ mesh: hGroup, startTime: performance.now(), duration: 420 });
+    animatedBuildingPopups.push({ mesh: hGroup, startTime: performance.now(), duration: 420, targetScale: 0.92 });
   } else if (lvl >= 4) {
     const towerGroup = createDetailedSkyscraperMesh(ownerColor);
-    towerGroup.position.set(0, 0, -0.85);
+    // Skyscraper sits at upper rim with balanced height that leaves city name fully clear
+    towerGroup.position.set(0, 0, -0.96);
     towerGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(towerGroup);
-    animatedBuildingPopups.push({ mesh: towerGroup, startTime: performance.now(), duration: 500 });
+    animatedBuildingPopups.push({ mesh: towerGroup, startTime: performance.now(), duration: 480, targetScale: 0.85 });
   }
 }
 
@@ -312,3 +312,8 @@ export function refreshAllTileTexturesAndMaterials() {
   });
   updateDioramaCenterForEdition(matchSettings?.boardEdition || 'world');
 }
+
+// Automatically re-render board tile textures when Day / Sunset / Night mode changes
+setLightingThemeCallback(() => {
+  refreshAllTileTexturesAndMaterials();
+});

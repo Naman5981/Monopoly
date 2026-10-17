@@ -19,8 +19,13 @@ import {
   terminateMatchAndReturnToLobby,
   cancelAllGameTimers,
   resumeActiveTurn,
-  executePlayerRoll
+  executePlayerRoll,
+  evaluateTileLanding
 } from './game/engine.js';
+import { BOARD_TILES } from './game/data.js';
+window.BOARD_TILES = BOARD_TILES;
+window.evaluateTileLanding = evaluateTileLanding;
+window.executePlayerRoll = executePlayerRoll;
 import {
   initLandingSetup,
   setPlayerCount,
@@ -54,7 +59,8 @@ import {
   renderPlayerCards,
   renderMatchSettingButtons,
   selectSetupPlayer,
-  removePlayerAt
+  removePlayerAt,
+  openLandingSetupScreen
 } from './ui/setup.js';
 import {
   networkState,
@@ -75,6 +81,13 @@ import {
   openBuyCityModal,
   confirmBuyCity,
   passBuyCity,
+  openBuyoutCityModal,
+  calculateBuyoutCost,
+  confirmBuyoutCity,
+  passBuyoutCity,
+  openSellCitiesModal,
+  sellPropertyForRent,
+  autoSellCheapestForRent,
   openUpgradeCityModal,
   closeUpgradeCityModal,
   confirmUpgradeFromModal,
@@ -122,7 +135,8 @@ import {
   closeLeaderboardModal,
   toggleLeaderboardModal,
   renderLeaderboardModal,
-  openMonopolyCelebrationModal
+  openMonopolyCelebrationModal,
+  setLobbyCount
 } from './ui/modals.js';
 import {
   fireConfettiBurst,
@@ -139,7 +153,8 @@ import {
   closeWardrobeModal,
   setWardrobeCategory,
   equipItem as equipWardrobeItem,
-  unlockItem as unlockWardrobeItem
+  unlockItem as unlockWardrobeItem,
+  previewWardrobeItem
 } from './ui/wardrobe.js';
 
 window.gameState = gameState;
@@ -152,6 +167,7 @@ window.handleReturnToLobbyFromVictory = handleReturnToLobbyFromVictory;
 window.closeAllGameModals = closeAllGameModals;
 window.startNewMatch = startNewMatch;
 window.openSetupModal = openSetupModal;
+window.setLobbyCount = setLobbyCount;
 window.openConfirmExitLobbyModal = openConfirmExitLobbyModal;
 window.closeConfirmExitLobbyModal = closeConfirmExitLobbyModal;
 window.handleLobbyButtonClick = handleLobbyButtonClick;
@@ -165,28 +181,7 @@ window.triggerVictoryTest = () => {
   const p = (gameState.players && gameState.players[0]) || { id: 0, name: 'Player 1', cash: 5400000, isAI: false };
   showVictoryModal(p);
 };
-window.openLandingSetupScreen = () => {
-  cancelAllGameTimers();
-  closeAllGameModals();
-  gameState.gameStarted = false;
-  gameState.phase = 'SETUP';
-  const el = document.getElementById('landing-setup-screen');
-  if (el) {
-    el.classList.remove('hidden');
-    el.style.display = 'flex';
-    el.style.opacity = '1';
-    el.style.transform = 'scale(1) translateY(0)';
-  }
-  if (networkState.isMultiplayer) {
-    selectMatchMode('online', false);
-    updateMultiplayerUI();
-  } else {
-    selectMatchMode('local', false);
-  }
-  renderPlayerCards();
-  renderMatchSettingButtons();
-  applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
-};
+window.openLandingSetupScreen = openLandingSetupScreen;
 window.setPlayerCount = setPlayerCount;
 window.setPlayerSetupName = setPlayerSetupName;
 window.togglePlayerRole = togglePlayerRole;
@@ -251,6 +246,13 @@ window.sendQuickEmote = sendQuickEmote;
 window.openBuyCityModal = openBuyCityModal;
 window.confirmBuyCity = confirmBuyCity;
 window.passBuyCity = passBuyCity;
+window.openBuyoutCityModal = openBuyoutCityModal;
+window.calculateBuyoutCost = calculateBuyoutCost;
+window.confirmBuyoutCity = confirmBuyoutCity;
+window.passBuyoutCity = passBuyoutCity;
+window.openSellCitiesModal = openSellCitiesModal;
+window.sellPropertyForRent = sellPropertyForRent;
+window.autoSellCheapestForRent = autoSellCheapestForRent;
 window.openUpgradeCityModal = openUpgradeCityModal;
 window.closeUpgradeCityModal = closeUpgradeCityModal;
 window.confirmUpgradeFromModal = confirmUpgradeFromModal;
@@ -277,6 +279,7 @@ window.closeWardrobeModal = closeWardrobeModal;
 window.setWardrobeCategory = setWardrobeCategory;
 window.equipWardrobeItem = equipWardrobeItem;
 window.unlockWardrobeItem = unlockWardrobeItem;
+window.previewWardrobeItem = previewWardrobeItem;
 
 // Resume & Disconnect Handlers
 window.resumeLastSavedMatch = () => {
@@ -370,20 +373,25 @@ window.toggleSound = () => {
 
 // Tile click delegation from 3D scene
 function onTileClick(tileId) {
+  if (typeof tileId !== 'number' || tileId < 0 || tileId > 31) return;
+
   const isHumanTurn = networkState.isMultiplayer
     ? gameState.currentPlayerIdx === networkState.localPlayerIdx
     : !gameState.players[gameState.currentPlayerIdx]?.isAI;
 
-  if (gameState.phase === 'WORLD_TOUR' && isHumanTurn) {
-    executeWorldTourFlight(tileId);
-  } else {
-    const m = document.getElementById('modal-tile-inspector');
-    if (m && !m.classList.contains('hidden') && gameState.activeInspectorTile === tileId) {
-      closeInspectorModal();
-      return;
+  if (gameState.phase === 'WORLD_TOUR') {
+    if (isHumanTurn) {
+      executeWorldTourFlight(tileId);
     }
-    openInspectorModal(tileId);
+    return;
   }
+
+  const m = document.getElementById('modal-tile-inspector');
+  if (m && !m.classList.contains('hidden') && gameState.activeInspectorTile === tileId) {
+    closeInspectorModal();
+    return;
+  }
+  openInspectorModal(tileId);
 }
 
 // Bootstrap
@@ -409,7 +417,7 @@ function initApp() {
 
   // Clock & Turn Timer Loop
   setInterval(() => {
-    if (!gameState.gameStarted) return;
+    if (!gameState.gameStarted || gameState.phase === 'VICTORY' || gameState.phase === 'SETUP') return;
     incrementMatchSeconds();
     const mins = String(Math.floor(matchSeconds / 60)).padStart(2, '0');
     const secs = String(matchSeconds % 60).padStart(2, '0');

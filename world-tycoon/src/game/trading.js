@@ -187,7 +187,7 @@ export function generateProactiveBotTrade(botIdx) {
   const botSpareProps = BOARD_TILES.filter(t => {
     if (!t.group || t.group === candidate.group) return false;
     const st = gameState.properties[t.id];
-    if (st?.owner !== botIdx || st.mortgaged || st.level > 0) return false;
+    if (st?.owner !== botIdx || st.level > 0) return false;
     const inSameGrp = BOARD_TILES.filter(other => other.group === t.group && gameState.properties[other.id]?.owner === botIdx);
     return inSameGrp.length <= 1; // Solo spare property
   });

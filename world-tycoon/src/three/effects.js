@@ -643,8 +643,8 @@ export function applyLightingMode(key, threeSceneObjects) {
     btn.innerHTML = icons[key] || icons.day;
   }
 
-  // Update lobby match length / atmosphere text
-  const atmoTextEl = document.getElementById('setup-match-length-text');
+  // Update lobby atmosphere text
+  const atmoTextEl = document.getElementById('setup-atmosphere-text') || document.getElementById('setup-match-length-text');
   if (atmoTextEl) {
     atmoTextEl.textContent = key === 'night' ? 'Night' : (key === 'sunset' ? 'Sunset' : 'Morning');
   }

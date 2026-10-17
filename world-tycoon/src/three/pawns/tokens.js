@@ -159,6 +159,12 @@ export function updateAvatarIdleAnimations(t) {
       const baseScale = 0.88;
       const breath = isTurn ? (1 + Math.sin(t * 3.4) * 0.045) : (1 + Math.sin(t * 2.0 + ph) * 0.018);
       mesh.scale.set(baseScale / Math.sqrt(breath), baseScale * breath, baseScale / Math.sqrt(breath));
+
+      // Subtle weightless micro-bob when waiting for roll
+      if (isTurn && !context.activeTileDepressions[gameState.players[idx]?.position]) {
+        const baseTilePress = context.activeTileDepressions[gameState.players[idx]?.position]?.currentOffset ?? 0;
+        mesh.position.y = BASE_BUILDING_Y + baseTilePress + Math.sin(t * 3.0) * 0.022;
+      }
     }
   });
 }

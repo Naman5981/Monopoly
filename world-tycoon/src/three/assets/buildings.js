@@ -21,74 +21,95 @@ export const animatedBuildingPopups = [];
 export function createDetailedFlagMesh(ownerColor) {
   const flagGroup = new THREE.Group();
 
-  const basePlinthMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.2 });
-  const brassMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.25, metalness: 0.85 });
-  const poleMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2, metalness: 0.8 });
-  const clothMat = new THREE.MeshStandardMaterial({ color: ownerColor, roughness: 0.45, metalness: 0.1 });
-  const goldTrimMat = new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.3, metalness: 0.7 });
+  const basePlinthMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.3 });
+  const brassMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.22, metalness: 0.88 });
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.18, metalness: 0.85 });
+  const clothMat = new THREE.MeshStandardMaterial({
+    color: ownerColor,
+    emissive: ownerColor,
+    emissiveIntensity: 0.18,
+    roughness: 0.38,
+    metalness: 0.12
+  });
+  const goldTrimMat = new THREE.MeshStandardMaterial({
+    color: 0xfde047,
+    emissive: 0xfacc15,
+    emissiveIntensity: 0.15,
+    roughness: 0.25,
+    metalness: 0.75
+  });
 
-  // 1. Plinth & mounting collar
-  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.16, 0.04, 12), basePlinthMat);
-  plinth.position.y = 0.02;
+  // 1. Plinth & mounting collar (Heavy brass/slate weighted pedestal)
+  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.08, 16), basePlinthMat);
+  plinth.position.y = 0.04;
   plinth.castShadow = true;
   plinth.receiveShadow = true;
 
-  const brassCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, 0.03, 12), brassMat);
-  brassCollar.position.y = 0.055;
+  const brassCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.19, 0.05, 16), brassMat);
+  brassCollar.position.y = 0.10;
   brassCollar.castShadow = true;
 
-  const boltRing = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.065, 0.03, 8), brassMat);
-  boltRing.position.y = 0.085;
+  const boltRing = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, 0.04, 12), brassMat);
+  boltRing.position.y = 0.14;
   flagGroup.add(plinth, brassCollar, boltRing);
 
-  // 2. Flagpole
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.032, 0.96, 12), poleMat);
-  pole.position.y = 0.58;
+  // 2. High-visibility Flagpole (Tall, solid, gleaming)
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.056, 1.80, 16), poleMat);
+  pole.position.y = 1.04;
   pole.castShadow = true;
 
-  const ringTop = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.008, 8, 12), brassMat);
-  ringTop.position.set(0, 0.94, 0);
+  const ringTop = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.014, 8, 16), brassMat);
+  ringTop.position.set(0, 1.76, 0);
   ringTop.rotation.x = Math.PI / 2;
-  const ringBtm = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.008, 8, 12), brassMat);
-  ringBtm.position.set(0, 0.58, 0);
+  const ringBtm = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.014, 8, 16), brassMat);
+  ringBtm.position.set(0, 1.05, 0);
   ringBtm.rotation.x = Math.PI / 2;
 
-  const finialBall = new THREE.Mesh(new THREE.SphereGeometry(0.058, 12, 12), brassMat);
-  finialBall.position.y = 1.07;
-  const finialTip = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.08, 8), brassMat);
-  finialTip.position.y = 1.14;
+  const finialBall = new THREE.Mesh(new THREE.SphereGeometry(0.095, 16, 16), brassMat);
+  finialBall.position.y = 1.98;
+  const finialTip = new THREE.Mesh(new THREE.ConeGeometry(0.052, 0.14, 12), brassMat);
+  finialTip.position.y = 2.09;
   flagGroup.add(pole, ringTop, ringBtm, finialBall, finialTip);
 
-  // 3. Waving cloth pennant banner with 3-joint wave ripples
+  // 3. Waving cloth pennant banner (Large, bold, 3 waving segments)
   const clothGroup = new THREE.Group();
-  clothGroup.position.set(0.02, 0.76, 0);
+  clothGroup.position.set(0.04, 1.40, 0);
 
-  const seg1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.36, 0.022), clothMat);
-  seg1.position.set(0.08, 0, 0);
+  const bannerH = 0.64;
+  const seg1W = 0.32;
+  const seg2W = 0.30;
+  const seg3W = 0.28;
+  const totalW = seg1W + seg2W + seg3W; // 0.90 width
+
+  const seg1 = new THREE.Mesh(new THREE.BoxGeometry(seg1W, bannerH, 0.032), clothMat);
+  seg1.position.set(seg1W / 2, 0, 0);
   seg1.castShadow = true;
 
   const seg2Group = new THREE.Group();
-  seg2Group.position.set(0.16, 0, 0);
+  seg2Group.position.set(seg1W, 0, 0);
   seg2Group.rotation.y = 0.16;
-  const seg2 = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.36, 0.022), clothMat);
-  seg2.position.set(0.075, 0, 0);
+  const seg2 = new THREE.Mesh(new THREE.BoxGeometry(seg2W, bannerH, 0.032), clothMat);
+  seg2.position.set(seg2W / 2, 0, 0);
   seg2.castShadow = true;
 
   const seg3Group = new THREE.Group();
-  seg3Group.position.set(0.15, 0, 0);
+  seg3Group.position.set(seg2W, 0, 0);
   seg3Group.rotation.y = -0.25;
-  const seg3 = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.32, 0.022), clothMat);
-  seg3.position.set(0.07, 0, 0);
+  const seg3 = new THREE.Mesh(new THREE.BoxGeometry(seg3W, bannerH * 0.90, 0.032), clothMat);
+  seg3.position.set(seg3W / 2, 0, 0);
   seg3.castShadow = true;
 
-  const topBorder = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.026, 0.026), goldTrimMat);
-  topBorder.position.set(0.22, 0.17, 0);
-  const btmBorder = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.026, 0.026), goldTrimMat);
-  btmBorder.position.set(0.22, -0.17, 0);
+  // Golden borders across the top and bottom
+  const borderThick = 0.036;
+  const topBorder = new THREE.Mesh(new THREE.BoxGeometry(totalW, borderThick, 0.038), goldTrimMat);
+  topBorder.position.set(totalW / 2, bannerH / 2 + borderThick / 2, 0);
+  const btmBorder = new THREE.Mesh(new THREE.BoxGeometry(totalW, borderThick, 0.038), goldTrimMat);
+  btmBorder.position.set(totalW / 2, -(bannerH / 2 + borderThick / 2), 0);
 
-  const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.055, 0), goldTrimMat);
-  star.position.set(0.18, 0, 0.016);
-  star.scale.set(1, 1, 0.3);
+  // Prominent Golden Star emblem in the center
+  const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), goldTrimMat);
+  star.position.set(0.36, 0, 0.024);
+  star.scale.set(1, 1, 0.35);
 
   seg3Group.add(seg3);
   seg2Group.add(seg2, seg3Group);
@@ -112,11 +133,12 @@ export function createDetailedHouseMesh(ownerColor, index = 0) {
 
   const foundationMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.65, metalness: 0.1 });
   const stoopMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.5, metalness: 0.1 });
+  // Wall with subtle warm tint, roof with vibrant player owner color and matching accent trim
   const wallMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35, metalness: 0.05 });
   const timberMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.45, metalness: 0.1 });
-  const roofMat = new THREE.MeshStandardMaterial({ color: ownerColor, roughness: 0.35, metalness: 0.15, flatShading: true });
+  const roofMat = new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.18, roughness: 0.35, metalness: 0.15, flatShading: true });
   const ridgeMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.2 });
-  const doorMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.5, metalness: 0.05 });
+  const doorMat = new THREE.MeshStandardMaterial({ color: ownerColor, roughness: 0.45, metalness: 0.15 });
   const brassMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.2, metalness: 0.85 });
   const windowGlowMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfbbf24, emissiveIntensity: 0.6, roughness: 0.2 });
   const frameMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
@@ -503,11 +525,12 @@ export function createDetailedSkyscraperMesh(ownerColor) {
   const pylonMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.3, metalness: 0.5 });
   const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd8dde6, roughness: 0.18, metalness: 0.85 });
   const brassMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.2, metalness: 0.85 });
-  const ownerAccentMat = new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.6, roughness: 0.25, metalness: 0.3 });
-  const glassTowerMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.15, metalness: 0.65, flatShading: true });
-  const midTowerMat = new THREE.MeshStandardMaterial({ color: 0x0369a1, roughness: 0.18, metalness: 0.55, flatShading: true });
+  const ownerAccentMat = new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.75, roughness: 0.25, metalness: 0.3 });
+  // Dynamic owner themed tower facade
+  const glassTowerMat = new THREE.MeshStandardMaterial({ color: ownerColor, roughness: 0.20, metalness: 0.55, flatShading: true });
+  const midTowerMat = new THREE.MeshStandardMaterial({ color: ownerColor, roughness: 0.25, metalness: 0.45, flatShading: true });
   const warmWindowMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xfbbf24, emissiveIntensity: 0.75, roughness: 0.2 });
-  const coolWindowMat = new THREE.MeshStandardMaterial({ color: 0x7dd3fc, emissive: 0x38bdf8, emissiveIntensity: 0.7, roughness: 0.2 });
+  const coolWindowMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: ownerColor, emissiveIntensity: 0.65, roughness: 0.2 });
   const helipadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.65, metalness: 0.15 });
   const whiteMarkMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
   const beaconMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xef4444, emissiveIntensity: 1.6, roughness: 0.1 });
@@ -674,7 +697,7 @@ export function createDetailedSkyscraperMesh(ownerColor) {
  * @param {number} t - time in seconds
  */
 export function updateBuildingAnimations(now, t) {
-  // Building elastic popup animation
+  // Building elastic popup animation with juicy squash & stretch
   for (let i = animatedBuildingPopups.length - 1; i >= 0; i--) {
     const item = animatedBuildingPopups[i];
     if (!item.mesh.parent) {
@@ -684,9 +707,20 @@ export function updateBuildingAnimations(now, t) {
     if (now < item.startTime) continue;
     const elapsed = now - item.startTime;
     const p = Math.min(1, elapsed / item.duration);
-    const scale = p === 1 ? 1 : 1 - Math.pow(2, -10 * p) * Math.cos((p * 10 - 0.75) * ((2 * Math.PI) / 3));
-    item.mesh.scale.set(scale, scale, scale);
-    if (p >= 1) animatedBuildingPopups.splice(i, 1);
+    const maxScale = item.targetScale || 1;
+
+    if (p >= 1) {
+      item.mesh.scale.set(maxScale, maxScale, maxScale);
+      animatedBuildingPopups.splice(i, 1);
+    } else {
+      // Elastic spring overshoot formula
+      const elastic = 1 - Math.pow(2, -9 * p) * Math.cos((p * 10 - 0.75) * ((2 * Math.PI) / 3));
+      // Subtle dynamic squash & stretch: stretch vertically as it launches, then settle
+      const stretch = (p < 0.6) ? (1 + (0.6 - p) * 0.28) : 1.0;
+      const scaleXZ = (maxScale * elastic) / Math.sqrt(stretch);
+      const scaleY = (maxScale * elastic) * stretch;
+      item.mesh.scale.set(scaleXZ, scaleY, scaleXZ);
+    }
   }
 
   // Waving cloth flag wind fluttering

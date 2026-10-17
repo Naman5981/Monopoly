@@ -6,6 +6,7 @@
 
 import * as THREE from 'three';
 import { PLAYER_THEMES } from '../../game/data.js';
+import { matchSettings } from '../../game/state.js';
 import { currentBulbMode, getSoftBloomTexture } from '../core/lighting.js';
 
 /**
@@ -14,14 +15,20 @@ import { currentBulbMode, getSoftBloomTexture } from '../core/lighting.js';
  * @param {boolean} isPortrait - Whether generating for miniature circular HUD portrait
  * @returns {THREE.Group}
  */
-export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatStyle = null, customPedestal = null) {
+export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatStyle = null, customPedestal = null, customCharColor = null) {
+  const customP = matchSettings?.customPlayers?.[idx] || null;
   const theme = PLAYER_THEMES[idx % PLAYER_THEMES.length];
+  const charColor = (customCharColor !== null && customCharColor !== undefined)
+    ? customCharColor
+    : (customP?.charColor ?? theme.charColor);
+  const hatColor = customP?.hatColor ?? theme.hatColor;
+
   const root = new THREE.Group();
   const skinTones = [0xf1c27d, 0xe0ac69, 0xc68642, 0xffdbac];
   const skinColor = skinTones[idx % skinTones.length];
-  const suitMat = new THREE.MeshStandardMaterial({ color: theme.charColor, roughness: 0.45, metalness: 0.1, flatShading: true });
+  const suitMat = new THREE.MeshStandardMaterial({ color: charColor, roughness: 0.45, metalness: 0.1, flatShading: true });
   const skinMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.55, metalness: 0.05, flatShading: true });
-  const hatMat = new THREE.MeshStandardMaterial({ color: theme.hatColor, roughness: 0.38, metalness: 0.2, flatShading: true });
+  const hatMat = new THREE.MeshStandardMaterial({ color: hatColor, roughness: 0.38, metalness: 0.2, flatShading: true });
   const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.25, metalness: 0.3 });
   const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
   const goldMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.25, metalness: 0.75, flatShading: true });
@@ -29,13 +36,14 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatSty
   if (!isPortrait) {
     let baseMat = darkMat;
     let innerMat = suitMat;
-    if (customPedestal === 'pedestal_gold') {
+    const effectivePedestal = customPedestal || customP?.pedestal || null;
+    if (effectivePedestal === 'pedestal_gold') {
       baseMat = goldMat;
       innerMat = whiteMat;
-    } else if (customPedestal === 'pedestal_emerald') {
+    } else if (effectivePedestal === 'pedestal_emerald') {
       baseMat = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.3, metalness: 0.2 });
       innerMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.2, emissive: 0x047857, emissiveIntensity: 0.4 });
-    } else if (customPedestal === 'pedestal_magma') {
+    } else if (effectivePedestal === 'pedestal_magma') {
       baseMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.4 });
       innerMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.2, emissive: 0xe11d48, emissiveIntensity: 0.5 });
     }
@@ -184,7 +192,9 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatSty
   const hatGroup = new THREE.Group();
   headGroup.add(hatGroup);
 
-  const effectiveHat = (typeof customHatStyle === 'number') ? customHatStyle : (idx % 4);
+  const effectiveHat = (typeof customHatStyle === 'number')
+    ? customHatStyle
+    : (typeof customP?.hatStyle === 'number' ? customP.hatStyle : (idx % 4));
 
   if (effectiveHat === 0) {
     const dome = new THREE.Mesh(new THREE.SphereGeometry(0.385, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), hatMat);
@@ -295,14 +305,14 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatSty
   let groundAura = null;
   if (!isPortrait) {
     const initIntensity = (currentBulbMode === 'night' ? 1.4 : currentBulbMode === 'sunset' ? 0.65 : 0);
-    avatarLight = new THREE.PointLight(theme.charColor, initIntensity, 5.5, 1.8);
+    avatarLight = new THREE.PointLight(charColor, initIntensity, 5.5, 1.8);
     avatarLight.position.set(0, 0.95, 0);
     root.add(avatarLight);
 
     const auraGeo = new THREE.CircleGeometry(0.72, 24);
     const auraMat = new THREE.MeshBasicMaterial({
       map: getSoftBloomTexture(),
-      color: theme.charColor,
+      color: charColor,
       transparent: true,
       opacity: (currentBulbMode === 'night' ? 0.45 : currentBulbMode === 'sunset' ? 0.22 : 0),
       blending: THREE.AdditiveBlending,
@@ -315,10 +325,10 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatSty
     root.add(groundAura);
 
     if (currentBulbMode === 'night') {
-      suitMat.emissive.setHex(theme.charColor);
+      suitMat.emissive.setHex(charColor);
       suitMat.emissiveIntensity = 0.35;
     } else if (currentBulbMode === 'sunset') {
-      suitMat.emissive.setHex(theme.charColor);
+      suitMat.emissive.setHex(charColor);
       suitMat.emissiveIntensity = 0.18;
     }
   }

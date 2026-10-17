@@ -1,0 +1,3 @@
+interface:
+  display_name: "Fixing Motion Performance"
+  short_description: "Audit and fix animation performance issues"

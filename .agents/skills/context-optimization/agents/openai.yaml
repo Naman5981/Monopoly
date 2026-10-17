@@ -1,0 +1,3 @@
+interface:
+  display_name: "Context Optimization"
+  short_description: "Strategic context compaction, masking, caching, and partitioning"

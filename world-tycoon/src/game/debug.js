@@ -5,7 +5,7 @@
  * Provides granular controls for:
  * - Forced dice rolling (exact die 1 & 2, doubles, custom totals)
  * - Tile teleportation & landing evaluation (rent, buy, chance, jail, festival, tax, flight)
- * - Instant city/resort ownership assignment, 3D building tiers (0-4), mortgage, and festival boost
+ * - Instant city/resort ownership assignment, 3D building tiers (0-4), and festival boost
  * - Complete color group monopolies with instant celebration & 2x rent logic
  * - Player cash adjustments, bankruptcy triggering, revival, and island detention controls
  * - Turn forcing, skipping, and AI autoplay freezing / manual stepping
@@ -82,7 +82,6 @@ export function initDebugSuite() {
       if (level > 0) debugSetPropertyLevel(tileId, level);
     },
     level: (tileId, level) => debugSetPropertyLevel(tileId, level),
-    mortgage: (tileId) => debugTogglePropertyMortgage(tileId),
     monopoly: (groupKey, pIdx = null, level = 0) => debugGrantMonopoly(groupKey, pIdx ?? gameState.currentPlayerIdx, level),
     cash: (pIdx, amt) => debugSetCash(pIdx, amt),
     addCash: (pIdx, delta) => debugAdjustCash(pIdx, delta),
@@ -273,7 +272,6 @@ export function debugSetPropertyOwner(tileId, playerIdx, chargePrice = false) {
   if (playerIdx === null || playerIdx === undefined || playerIdx === '' || playerIdx < 0) {
     st.owner = null;
     st.level = 0;
-    st.mortgaged = false;
     st.festivalBoost = false;
     logEvent(`🧹 <strong>[DEBUG]</strong> Property <strong>${tile.name}</strong> reset to BANK.`);
   } else {
@@ -333,25 +331,6 @@ export function debugSetPropertyLevel(tileId, level) {
   syncDebugUIState();
 }
 
-/** Toggle mortgage on a property. */
-export function debugTogglePropertyMortgage(tileId, forceState = null) {
-  ensureGameStarted();
-
-  tileId = parseInt(tileId, 10);
-  const tile = BOARD_TILES[tileId];
-  const st = gameState.properties[tileId];
-  if (!tile || !st) return;
-
-  st.mortgaged = forceState !== null ? forceState : !st.mortgaged;
-  playSFX('cash');
-  logEvent(`🏦 <strong>[DEBUG]</strong> <strong>${tile.name}</strong> is now <strong>${st.mortgaged ? 'MORTGAGED' : 'ACTIVE (Unmortgaged)'}</strong>.`);
-
-  refreshTileTextureAndBuildings(tileId);
-  renderCornerHUDs();
-  saveCurrentMatchToStorage();
-  syncDebugUIState();
-}
-
 /** Toggle 2x Festival Boost on a city. */
 export function debugToggleFestivalBoost(tileId) {
   ensureGameStarted();
@@ -387,7 +366,6 @@ export function debugGrantMonopoly(groupKey, playerIdx, level = 0) {
     if (st) {
       st.owner = playerIdx;
       st.level = Math.max(0, Math.min(4, level));
-      st.mortgaged = false;
       refreshTileTextureAndBuildings(t.id);
     }
   });
@@ -419,7 +397,6 @@ export function debugClearGroup(groupKey) {
     if (st) {
       st.owner = null;
       st.level = 0;
-      st.mortgaged = false;
       st.festivalBoost = false;
       refreshTileTextureAndBuildings(t.id);
     }
@@ -641,9 +618,14 @@ export function debugAdjustFestivalPot(delta) {
 /** Trigger Victory Modal for testing end-of-game celebration. */
 export function debugTriggerVictory(playerIdx = null) {
   ensureGameStarted();
-  playerIdx = playerIdx ?? gameState.currentPlayerIdx;
-  const p = gameState.players[playerIdx] || { id: 0, name: 'Player 1', cash: 5400000, isAI: false };
-  showVictoryModal(p);
+  cancelAllGameTimers();
+  playerIdx = playerIdx ?? gameState.currentPlayerIdx ?? 0;
+  const p = (gameState.players && gameState.players[playerIdx]) || { id: 0, name: 'Player 1', cash: 5400000, isAI: false };
+  showVictoryModal(p, {
+    type: 'supremacy',
+    title: 'GLOBAL TYCOON SUPREMACY!',
+    desc: 'Victory triggered via Debug Suite test.'
+  });
   syncDebugUIState();
 }
 
@@ -675,7 +657,6 @@ export async function debugRunScenario(scenarioKey) {
       if (st) {
         st.owner = 1;
         st.level = 4;
-        st.mortgaged = false;
         refreshTileTextureAndBuildings(tokyoId);
       }
 
@@ -1024,10 +1005,7 @@ function injectDebugUI() {
           </div>
 
           <!-- Property Action Toggles -->
-          <div class="grid grid-cols-3 gap-1.5 pt-1">
-            <button onclick="window.triggerDebugToggleMortgage()" class="py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700 flex items-center justify-center gap-1">
-              <i class="fa-solid fa-building-columns"></i> Mortgage
-            </button>
+          <div class="grid grid-cols-2 gap-1.5 pt-1">
             <button onclick="window.triggerDebugToggleBoost()" class="py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700 flex items-center justify-center gap-1">
               <i class="fa-solid fa-sparkles text-amber-400"></i> 2× Boost
             </button>
@@ -1497,7 +1475,7 @@ window.syncSelectedPropertyInfo = function() {
   const tileId = parseInt(propSelect.value, 10);
   const tile = BOARD_TILES[tileId];
   if (!tile) return;
-  const st = gameState.properties[tileId] || { owner: null, level: 0, mortgaged: false, festivalBoost: false };
+  const st = gameState.properties[tileId] || { owner: null, level: 0, festivalBoost: false };
 
   const ownerEl = document.getElementById('debug-prop-val-owner');
   const levelEl = document.getElementById('debug-prop-val-level');
@@ -1519,11 +1497,8 @@ window.syncSelectedPropertyInfo = function() {
   if (rentEl) rentEl.textContent = fmtMoney(calculateTileRent(tileId));
 
   if (statusEl) {
-    const statuses = [];
-    if (st.mortgaged) statuses.push('MORTGAGED');
-    if (st.festivalBoost) statuses.push('2× BOOSTED');
-    statusEl.textContent = statuses.length > 0 ? statuses.join(' • ') : 'Normal';
-    statusEl.className = st.mortgaged ? 'font-black text-rose-400' : 'font-black text-emerald-400';
+    statusEl.textContent = st.festivalBoost ? '2× BOOSTED' : 'Normal';
+    statusEl.className = st.festivalBoost ? 'font-black text-amber-400' : 'font-black text-emerald-400';
   }
 };
 
@@ -1576,11 +1551,6 @@ window.triggerDebugSetOwner = function(chargePrice) {
 window.triggerDebugSetLevel = function(level) {
   const tileId = parseInt(document.getElementById('debug-prop-select')?.value, 10);
   debugSetPropertyLevel(tileId, level);
-};
-
-window.triggerDebugToggleMortgage = function() {
-  const tileId = parseInt(document.getElementById('debug-prop-select')?.value, 10);
-  debugTogglePropertyMortgage(tileId);
 };
 
 window.triggerDebugToggleBoost = function() {

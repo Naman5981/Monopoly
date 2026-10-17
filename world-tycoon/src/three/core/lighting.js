@@ -85,6 +85,11 @@ export function buildMainDirectionalAndAmbientLights(scene) {
   context.ambientLight = new THREE.AmbientLight(0xffffff, 0.38);
   scene.add(context.ambientLight);
 
+  // Subtle warm sky / cool ground rim hemisphere light to make plinth and building silhouettes pop
+  context.hemiLight = new THREE.HemisphereLight(0xfffaed, 0x1e293b, 0.32);
+  context.hemiLight.position.set(0, 40, 0);
+  scene.add(context.hemiLight);
+
   context.dirLight = new THREE.DirectionalLight(0xffffff, 0.98);
   context.dirLight.position.set(22, 32, 18);
   context.dirLight.castShadow = true;
@@ -722,6 +727,15 @@ export function setBulbLightingTheme(mode, boardStyle = matchSettings?.boardStyl
       context.activeTileIlluminations[k].currentIllum = 0;
     });
   }
+
+  if (typeof onLightingThemeChanged === 'function') {
+    onLightingThemeChanged(mode);
+  }
+}
+
+export let onLightingThemeChanged = null;
+export function setLightingThemeCallback(fn) {
+  onLightingThemeChanged = fn;
 }
 
 /**
@@ -844,10 +858,17 @@ export function updateTileIlluminationsAndPressLight(t) {
     const topMat = mesh.userData?.topMat || (Array.isArray(mesh.material) ? mesh.material[2] : null);
     const sideMat = mesh.userData?.sideMat || (Array.isArray(mesh.material) ? mesh.material[0] : null);
 
-    // Ensure card top face is never washed out to full white: keep top face emissive 0
-    if (topMat && topMat.emissiveIntensity > 0) {
-      topMat.emissive.setHex(0x000000);
-      topMat.emissiveIntensity = 0;
+    // Allow font emissive glow for owned tiles with emissiveMap in night/sunset modes
+    if (topMat) {
+      if (topMat.emissiveMap && isOwned && (isNightBulb || isSunsetBulb)) {
+        const baseIntensity = isNightBulb ? 0.85 : 0.55;
+        const fontNoise = Math.sin(t * 4.0 + tile.id * 1.7) * 0.04;
+        topMat.emissive.setHex(0xffffff);
+        topMat.emissiveIntensity = Math.max(0, baseIntensity * (1 + fontNoise));
+      } else if (topMat.emissiveIntensity > 0) {
+        topMat.emissive.setHex(0x000000);
+        topMat.emissiveIntensity = 0;
+      }
     }
 
     // Check if any active player is on this tile or currently landing on it
@@ -923,25 +944,10 @@ export function updateTileIlluminationsAndPressLight(t) {
       }
     }
 
-    // 2. Soft Ground Halo Light Pool (around perimeter on street/grass)
+    // 2. Soft Ground Halo Light Pool (disabled per user requirement: no reflection effects)
     if (pool) {
-      if (isOwned && ownerColor) {
-        pool.visible = true;
-        pool.material.color.setStyle(ownerColor);
-        const baseOpacity = isNightBulb ? 0.45 : (isSunsetBulb ? 0.35 : 0.25);
-        pool.material.opacity = baseOpacity + pressRatio * 0.20;
-        const poolScale = 1.0 + pressRatio * 0.08;
-        pool.scale.set(poolScale, poolScale, 1);
-      } else if (illum > 0.05 && nightFactor > 0.01) {
-        pool.visible = true;
-        pool.material.color.setHex(0xffeedd);
-        pool.material.opacity = (0.12 + pressRatio * 0.38) * nightFactor;
-        const poolScale = 1.0 + pressRatio * 0.10;
-        pool.scale.set(poolScale, poolScale, 1);
-      } else {
-        pool.visible = false;
-        pool.material.opacity = 0;
-      }
+      pool.visible = false;
+      pool.material.opacity = 0;
     }
   });
 

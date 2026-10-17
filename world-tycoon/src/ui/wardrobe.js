@@ -5,9 +5,12 @@
  */
 
 import { playSFX } from '../game/audio.js';
-import { matchSettings } from '../game/state.js';
-import { updateLobbyHeroAvatar } from '../three/stages/lobbyStage.js';
+import { gameState, matchSettings } from '../game/state.js';
+import { context } from '../three/core/context.js';
+import { spawnAllPlayerTokens3D } from '../three/pawns/tokens.js';
+import { updateLobbyHeroAvatar, updateLobbyHeroDiceSkin } from '../three/stages/lobbyStage.js';
 import { applyEquippedDiceSkin } from '../three/assets/dice.js';
+import { animateWardrobeGridCascade, animateNumberCounter } from './anim.js';
 
 export const WARDROBE_STORAGE_KEY = 'WORLD_TYCOON_PROFILE_V3';
 
@@ -46,6 +49,12 @@ export const WARDROBE_ITEMS = {
 
 let activeCategory = 'hat';
 let previousActiveElement = null;
+let wardrobeCloseTimer = null;
+let previewState = {
+  hat: null,
+  dice: null,
+  pedestal: null
+};
 
 /**
  * Loads or initializes the player's persistent profile from localStorage.
@@ -196,6 +205,7 @@ export function unlockItem(itemId) {
   profile.tycoonStars -= item.cost;
   profile.unlockedItems.push(itemId);
   profile.equipped[item.category] = itemId;
+  previewState[item.category] = itemId;
   saveTycoonProfile(profile);
 
   playSFX('cash');
@@ -217,10 +227,44 @@ export function equipItem(category, itemId) {
   }
 
   profile.equipped[category] = itemId;
+  previewState[category] = itemId;
   saveTycoonProfile(profile);
 
   playSFX('hop');
   applyEquippedCosmeticsToPlayer();
+  renderWardrobeGrid();
+}
+
+/**
+ * Previews any cosmetic item on the 3D player avatar and podium in real time.
+ * @param {string} category - 'hat' | 'dice' | 'pedestal'
+ * @param {string} itemId
+ */
+export function previewWardrobeItem(category, itemId) {
+  if (!['hat', 'dice', 'pedestal'].includes(category)) return;
+  previewState[category] = itemId;
+
+  const item = findItemById(itemId);
+  if (!item) return;
+
+  const cp = matchSettings?.customPlayers?.[0] || { hatStyle: 0, colorHex: '#3b82f6', charColor: 0x3b82f6 };
+
+  // Determine current preview hat style
+  const previewHat = findItemById(previewState.hat);
+  const curHatStyle = (previewHat && typeof previewHat.hatStyle === 'number') ? previewHat.hatStyle : (cp.hatStyle || 0);
+
+  // Determine current preview pedestal
+  const curPedestal = previewState.pedestal;
+
+  // Update 3D hero avatar & podium live
+  updateLobbyHeroAvatar(curHatStyle, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6, curPedestal);
+
+  // Update 3D mini dice on podium
+  if (category === 'dice') {
+    updateLobbyHeroDiceSkin(itemId);
+  }
+
+  playSFX('hop');
   renderWardrobeGrid();
 }
 
@@ -246,15 +290,31 @@ export function applyEquippedCosmeticsToPlayer() {
   const equippedPedestal = findItemById(profile.equipped.pedestal);
   const equippedDice = profile.equipped.dice;
 
-  // 1. Update player 0's hat style in matchSettings
-  if (matchSettings?.customPlayers?.[0] && equippedHat) {
-    matchSettings.customPlayers[0].hatStyle = equippedHat.hatStyle;
+  // Synchronize preview state with profile loadout
+  previewState.hat = profile.equipped.hat;
+  previewState.dice = profile.equipped.dice;
+  previewState.pedestal = profile.equipped.pedestal;
+
+  // 1. Update player 0's hat style & pedestal in matchSettings
+  if (matchSettings?.customPlayers?.[0]) {
+    if (equippedHat) {
+      matchSettings.customPlayers[0].hatStyle = equippedHat.hatStyle;
+    }
+    if (equippedPedestal) {
+      matchSettings.customPlayers[0].pedestal = equippedPedestal.id;
+    }
     const cp = matchSettings.customPlayers[0];
     updateLobbyHeroAvatar(cp.hatStyle, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6, equippedPedestal?.id);
   }
 
-  // 2. Apply dice skin to 3D board dice
+  // 2. Apply dice skin to 3D board dice & lobby stage mini dice
   applyEquippedDiceSkin(equippedDice);
+  updateLobbyHeroDiceSkin(equippedDice);
+
+  // 3. Live-refresh 3D board pawns and HUD portraits if board meshes are active
+  if (context?.playerMeshes?.length > 0 || gameState?.gameStarted) {
+    spawnAllPlayerTokens3D();
+  }
 }
 
 /**
@@ -287,6 +347,9 @@ export function setWardrobeCategory(cat) {
 /**
  * Renders the items grid for the active category.
  */
+/**
+ * Renders the items grid for the active category with interactive preview support.
+ */
 function renderWardrobeGrid() {
   const container = document.getElementById('wardrobe-items-grid');
   if (!container) return;
@@ -294,10 +357,12 @@ function renderWardrobeGrid() {
   const profile = getTycoonProfile();
   const items = WARDROBE_ITEMS[activeCategory] || [];
   const equippedId = profile.equipped[activeCategory];
+  const previewingId = previewState[activeCategory] || equippedId;
 
   container.innerHTML = items.map(item => {
     const isUnlocked = profile.unlockedItems.includes(item.id);
     const isEquipped = equippedId === item.id;
+    const isPreviewing = previewingId === item.id;
     const canAfford = profile.tycoonStars >= item.cost;
     const rarityClass = RARITY_STYLES[item.rarity] || RARITY_STYLES.common;
 
@@ -310,21 +375,29 @@ function renderWardrobeGrid() {
       `;
     } else if (isUnlocked) {
       actionButton = `
-        <button onclick="window.equipWardrobeItem('${activeCategory}', '${item.id}')" class="w-full py-2 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-95 text-white font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-[transform,background-color]" aria-label="Equip ${item.name}">
+        <button onclick="event.stopPropagation(); window.equipWardrobeItem('${activeCategory}', '${item.id}')" class="w-full py-2 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-[0.96] text-white font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-[transform,background-color] duration-150 ease-out" aria-label="Equip ${item.name}">
           <span>Equip</span>
         </button>
       `;
     } else {
       actionButton = `
-        <button onclick="window.unlockWardrobeItem('${item.id}')" class="w-full py-2 px-3 rounded-xl ${canAfford ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 active:scale-95 cursor-pointer' : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'} font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition-[transform,background-color]" aria-label="Unlock ${item.name} for ${item.cost.toLocaleString()} Tycoon Stars" ${!canAfford ? 'disabled' : ''}>
+        <button onclick="event.stopPropagation(); window.unlockWardrobeItem('${item.id}')" class="w-full py-2 px-3 rounded-xl ${canAfford ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 active:scale-[0.96] cursor-pointer' : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'} font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition-[transform,background-color] duration-150 ease-out" aria-label="Unlock ${item.name} for ${item.cost.toLocaleString()} Tycoon Stars" ${!canAfford ? 'disabled' : ''}>
           <i class="fa-solid fa-lock text-[10px]"></i>
           <span class="tabular-nums">${item.cost.toLocaleString()} ⭐</span>
         </button>
       `;
     }
 
+    // Dynamic border and ring classes for preview state
+    let stateBorderClass = 'border-slate-200 hover:border-sky-300 shadow-xs';
+    if (isPreviewing) {
+      stateBorderClass = 'border-sky-500 ring-2 ring-sky-400 shadow-md bg-sky-50/50 scale-[1.01]';
+    } else if (isEquipped) {
+      stateBorderClass = 'border-emerald-400 ring-1 ring-emerald-200 shadow-sm';
+    }
+
     return `
-      <div class="relative bg-white border-2 ${isEquipped ? 'border-emerald-400 ring-2 ring-emerald-200 shadow-md' : 'border-slate-200 hover:border-slate-300 shadow-xs'} rounded-2xl p-3.5 flex flex-col justify-between transition-all duration-150">
+      <div onclick="window.previewWardrobeItem('${activeCategory}', '${item.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.previewWardrobeItem('${activeCategory}', '${item.id}');}" class="relative bg-white border-2 ${stateBorderClass} rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer transition-all duration-150 ease-out" title="Click to preview on avatar">
         <div>
           <!-- Item Card Top Header -->
           <div class="flex items-start justify-between gap-2 mb-2">
@@ -333,8 +406,16 @@ function renderWardrobeGrid() {
               <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${rarityClass}">
                 ${item.rarity}
               </span>
+              ${isPreviewing 
+                ? `<span class="px-2 py-0.5 rounded-full bg-sky-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs">
+                     <i class="fa-solid fa-eye text-[9px]"></i> PREVIEW
+                   </span>`
+                : ''
+              }
               ${isEquipped 
-                ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider">ACTIVE</span>`
+                ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                     <i class="fa-solid fa-check text-[9px]"></i> ACTIVE
+                   </span>`
                 : isUnlocked 
                   ? `<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider">UNLOCKED</span>`
                   : `<span class="px-2 py-0.5 rounded-full ${canAfford ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'} text-[10px] font-black tracking-wider flex items-center gap-1 tabular-nums">
@@ -345,7 +426,9 @@ function renderWardrobeGrid() {
           </div>
 
           <!-- Item Title & Description -->
-          <h4 class="font-rounded font-black text-xs sm:text-sm text-slate-900 leading-tight">${item.name}</h4>
+          <h4 class="font-rounded font-black text-xs sm:text-sm text-slate-900 leading-tight flex items-center gap-1.5">
+            ${item.name}
+          </h4>
           <p class="text-[11px] text-slate-500 font-medium leading-normal mt-1 mb-3">${item.desc}</p>
         </div>
 
@@ -356,15 +439,21 @@ function renderWardrobeGrid() {
       </div>
     `;
   }).join('');
+
+  // Anime.js kinetic card cascade
+  animateWardrobeGridCascade('#wardrobe-items-grid > div');
 }
 
 /**
- * Updates the modal header's star balance pill.
+ * Updates the modal header's star balance pill with rolling number counter.
  */
 function renderWardrobeHeader() {
   const profile = getTycoonProfile();
   const balEl = document.getElementById('wardrobe-stars-balance');
-  if (balEl) balEl.textContent = profile.tycoonStars.toLocaleString();
+  if (balEl) {
+    const curVal = parseInt(balEl.textContent.replace(/\D/g, ''), 10) || 0;
+    animateNumberCounter(balEl, curVal, profile.tycoonStars);
+  }
 }
 
 /**
@@ -375,32 +464,64 @@ export function updateAllPointsBadges() {
   const fmt = profile.tycoonStars.toLocaleString();
 
   const lobbyStarsEl = document.getElementById('setup-profile-stars');
-  if (lobbyStarsEl) lobbyStarsEl.textContent = fmt;
+  if (lobbyStarsEl) {
+    const curVal = parseInt(lobbyStarsEl.textContent.replace(/\D/g, ''), 10) || 0;
+    animateNumberCounter(lobbyStarsEl, curVal, profile.tycoonStars);
+  }
 
   const btnStarsBadge = document.getElementById('wardrobe-button-stars-badge');
-  if (btnStarsBadge) btnStarsBadge.textContent = fmt;
+  if (btnStarsBadge) {
+    const curVal = parseInt(btnStarsBadge.textContent.replace(/\D/g, ''), 10) || 0;
+    animateNumberCounter(btnStarsBadge, curVal, profile.tycoonStars);
+  }
 
   const modalStarsEl = document.getElementById('wardrobe-stars-balance');
-  if (modalStarsEl) modalStarsEl.textContent = fmt;
+  if (modalStarsEl) {
+    const curVal = parseInt(modalStarsEl.textContent.replace(/\D/g, ''), 10) || 0;
+    animateNumberCounter(modalStarsEl, curVal, profile.tycoonStars);
+  }
 
   const victoryBalEl = document.getElementById('victory-profile-balance');
   if (victoryBalEl) victoryBalEl.innerHTML = `${fmt} <svg class="ui-icon w-3.5 h-3.5 text-amber-400 inline ml-1" aria-hidden="true"><use href="#icon-star"></use></svg>`;
 }
 
 /**
- * Opens the Wardrobe modal with accessible focus trapping and esc listeners.
+ * Opens the Wardrobe modal with seamless avatar slide and right drawer entrance.
  */
 export function openWardrobeModal() {
   previousActiveElement = document.activeElement;
+  const landingScreen = document.getElementById('landing-setup-screen');
   const modal = document.getElementById('modal-wardrobe');
   if (!modal) return;
 
+  if (wardrobeCloseTimer) {
+    clearTimeout(wardrobeCloseTimer);
+    wardrobeCloseTimer = null;
+  }
+
+  const profile = getTycoonProfile();
+  previewState = {
+    hat: profile.equipped.hat,
+    dice: profile.equipped.dice,
+    pedestal: profile.equipped.pedestal
+  };
+
+  // 1. Unhide modal and trigger hardware-accelerated drawer slide
   modal.classList.remove('hidden');
   modal.classList.add('flex');
+  void modal.offsetWidth; // Force reflow for smooth entry transition
+
+  // 2. Animate landing columns: slide avatar left, slide roster/settings offscreen
+  if (landingScreen) {
+    landingScreen.classList.add('wardrobe-mode-active');
+  }
+  modal.classList.remove('wardrobe-panel-hidden');
+  modal.classList.add('wardrobe-panel-visible');
 
   renderWardrobeHeader();
   setWardrobeCategory(activeCategory);
   updateAllPointsBadges();
+  updateLobbyHeroDiceSkin(profile.equipped.dice);
 
   playSFX('click');
 
@@ -408,23 +529,40 @@ export function openWardrobeModal() {
   setTimeout(() => {
     const closeBtn = document.getElementById('btn-close-wardrobe');
     if (closeBtn) closeBtn.focus();
-  }, 50);
+  }, 100);
 
   window.addEventListener('keydown', handleWardrobeKeyDown);
 }
 
 /**
- * Closes the Wardrobe modal.
+ * Closes the Wardrobe modal and animates the avatar smoothly back to center.
  */
 export function closeWardrobeModal() {
+  const landingScreen = document.getElementById('landing-setup-screen');
   const modal = document.getElementById('modal-wardrobe');
   if (!modal) return;
 
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
-
   window.removeEventListener('keydown', handleWardrobeKeyDown);
   playSFX('hop');
+
+  // 1. Trigger slide-out animations
+  modal.classList.remove('wardrobe-panel-visible');
+  modal.classList.add('wardrobe-panel-hidden');
+  if (landingScreen) {
+    landingScreen.classList.remove('wardrobe-mode-active');
+  }
+
+  // 2. Revert any unequipped preview back to equipped loadout
+  applyEquippedCosmeticsToPlayer();
+
+  // 3. Clean up modal display after transition ends (360ms)
+  wardrobeCloseTimer = setTimeout(() => {
+    if (!landingScreen?.classList.contains('wardrobe-mode-active')) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    wardrobeCloseTimer = null;
+  }, 360);
 
   if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
     previousActiveElement.focus();
@@ -452,6 +590,7 @@ export function initWardrobeSystem() {
     window.setWardrobeCategory = setWardrobeCategory;
     window.equipWardrobeItem = equipItem;
     window.unlockWardrobeItem = unlockItem;
+    window.previewWardrobeItem = previewWardrobeItem;
     window.resetTycoonProfile = resetTycoonProfile;
   }
 }

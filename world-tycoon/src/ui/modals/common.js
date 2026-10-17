@@ -47,6 +47,8 @@ export function closeAllGameModals() {
   const modalIds = [
     'modal-victory',
     'modal-buy-city',
+    'modal-buyout-city',
+    'modal-sell-cities',
     'modal-upgrade-city',
     'modal-auction',
     'modal-chance-wheel',
@@ -59,13 +61,24 @@ export function closeAllGameModals() {
     'modal-setup',
     'modal-monopoly-celebration',
     'modal-confirm-exit-lobby',
-    'modal-leaderboard'
+    'modal-leaderboard',
+    'modal-wardrobe',
+    'modal-resume-match'
   ];
   modalIds.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.classList.add('hidden');
       el.classList.remove('flex');
+      el.style.removeProperty('display');
+      el.style.removeProperty('z-index');
     }
   });
+
+  const victoryCard = document.getElementById('victory-card');
+  if (victoryCard) {
+    victoryCard.style.removeProperty('opacity');
+    victoryCard.style.removeProperty('pointer-events');
+  }
 }
+

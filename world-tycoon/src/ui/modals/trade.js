@@ -14,6 +14,7 @@ import { refreshTileTextureAndBuildings } from '../../three/scene.js';
 import { logEvent, renderCornerHUDs, showTurnLockToast } from '../hud.js';
 import { checkAndTriggerMonopoly, showVictoryModal } from './victory.js';
 import { isLobbyScreenActive } from './common.js';
+import { animateBotTradeHandshake } from '../anim.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    DIPLOMATIC TRADE MODAL
@@ -261,6 +262,7 @@ export function showIncomingTradeOfferModal(proposal) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     playSFX('hop');
+    animateBotTradeHandshake('#modal-incoming-trade .game-modal-shell');
   }
 }
 

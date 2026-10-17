@@ -36,6 +36,9 @@
   <!-- PeerJS WebRTC P2P Library -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
+  <!-- Anime.js Animation Engine (animejs-animation) -->
+  <script src="./src/vendor/anime.min.js"></script>
+
   <!-- Import map for Three.js ES module resolution -->
   <script type="importmap">
   {
@@ -283,7 +286,7 @@
     <div class="relative z-10 flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch my-auto py-2">
 
       <!-- LEFT COLUMN: PLAYERS AT THE TABLE -->
-      <div class="col-span-12 lg:col-span-4 game-panel-card p-5 sm:p-6 flex flex-col justify-between shadow-xl min-h-[580px]">
+      <div id="lobby-roster-column" class="col-span-12 lg:col-span-4 game-panel-card p-5 sm:p-6 flex flex-col justify-between shadow-xl min-h-[580px]">
         <div class="flex-1 flex flex-col">
           <!-- Header -->
           <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3 mb-3 flex-shrink-0">
@@ -318,9 +321,9 @@
       </div>
 
       <!-- CENTER COLUMN: HERO 3D PODIUM & BIG PLAY BUTTON -->
-      <div class="col-span-12 lg:col-span-4 flex flex-col items-center justify-between min-h-[580px] py-2 relative">
-        <!-- Sunburst Radial Halo -->
-        <div class="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-[44%] w-[420px] h-[420px] bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.78)_0%,_transparent_68%)] pointer-events-none"></div>
+      <div id="lobby-hero-column" class="col-span-12 lg:col-span-4 flex flex-col items-center justify-between min-h-[580px] py-2 relative">
+        <!-- Sunburst Radial Halo with Depth Glow -->
+        <div class="lobby-podium-halo"></div>
 
         <!-- Archetype Carousel Top Selector -->
         <div class="relative z-20 flex items-center justify-center gap-3 w-full">
@@ -340,10 +343,10 @@
           <canvas id="lobby-avatar-3d-canvas" width="380" height="400" class="w-[320px] h-[340px] sm:w-[360px] sm:h-[380px] pointer-events-auto filter drop-shadow-2xl relative z-10"></canvas>
         </div>
 
-        <!-- Bottom Controls: Wardrobe, Color Swatches & Massive Juicy Green Play Button -->
-        <div class="relative z-20 flex flex-col items-center gap-2.5 w-full">
+        <!-- Bottom Controls: Default Setup Mode -->
+        <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-2.5 w-full">
           <!-- Wardrobe & Outfits Button -->
-          <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-5 py-2 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs sm:text-sm shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-2.5 cursor-pointer transition-all duration-150 hover:scale-105 active:scale-95" title="Customize Outfits, Hats, Dice & Pedestals">
+          <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-5 py-2.5 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs sm:text-sm shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-2.5 cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Customize Outfits, Hats, Dice & Pedestals">
             <svg class="ui-icon w-4 h-4 text-amber-600" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
             <span class="tracking-wide">WARDROBE</span>
             <span class="ml-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] shadow-2xs border border-amber-500/20 tabular-nums inline-flex items-center gap-1">
@@ -365,10 +368,20 @@
             <i class="fa-solid fa-play text-xl mr-2"></i> PLAY
           </button>
         </div>
+
+        <!-- Bottom Controls: Wardrobe Preview Active Mode -->
+        <div class="lobby-hero-wardrobe-controls relative z-20 flex-col items-center gap-2.5 w-full">
+          <div class="px-4 py-1.5 rounded-full bg-amber-400 text-slate-950 font-black text-xs shadow-md border-2 border-white flex items-center gap-2">
+            <i class="fa-solid fa-eye text-slate-950"></i> LIVE 3D PREVIEW
+          </div>
+          <button onclick="window.closeWardrobeModal()" class="w-full max-w-xs py-3.5 rounded-full font-rounded font-black text-sm text-slate-800 bg-white/95 hover:bg-slate-50 border-2 border-amber-300 shadow-xl flex items-center justify-center gap-2 cursor-pointer transition-[transform,background-color] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]">
+            <i class="fa-solid fa-arrow-left text-xs"></i> BACK TO LOBBY
+          </button>
+        </div>
       </div>
 
       <!-- RIGHT COLUMN: MATCH CONFIGURATION & RULES -->
-      <div class="col-span-12 lg:col-span-4 game-panel-card p-5 sm:p-6 flex flex-col justify-between shadow-xl min-h-[580px] space-y-4">
+      <div id="lobby-settings-column" class="col-span-12 lg:col-span-4 game-panel-card p-5 sm:p-6 flex flex-col justify-between shadow-xl min-h-[580px] space-y-4">
         <div class="space-y-4">
           <!-- Header -->
           <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3">
@@ -435,45 +448,45 @@
 
           <!-- 3. DECISION TIMER STEPPER -->
           <div>
-            <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-2.5 rounded-2xl">
+            <div class="flex items-center justify-between bg-slate-50/90 border-2 border-slate-200/80 border-b-[3px] border-b-slate-300 p-2.5 rounded-2xl shadow-2xs">
               <div>
-                <label class="block text-xs font-black uppercase text-slate-700">TURN TIMER</label>
-                <div class="text-xs text-slate-500 font-semibold">Time per roll & trade</div>
+                <label class="block text-xs font-black uppercase text-slate-800">TURN TIMER</label>
+                <div class="text-[11px] text-slate-500 font-semibold">Time per roll & trade</div>
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="window.stepDecisionTime(-1)" class="w-8 h-8 rounded-full bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs">-</button>
-                <span id="setup-decision-time-text" class="text-sm font-black text-slate-800 min-w-[44px] text-center">20 s</span>
-                <button onclick="window.stepDecisionTime(1)" class="w-8 h-8 rounded-full bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs">+</button>
+                <button onclick="window.stepDecisionTime(-1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">-</button>
+                <span id="setup-decision-time-text" class="text-sm font-black text-slate-900 min-w-[48px] text-center font-mono">20 s</span>
+                <button onclick="window.stepDecisionTime(1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">+</button>
               </div>
             </div>
           </div>
 
           <!-- 4. MATCH TIME LIMIT STEPPER (15 min steps up to 1.25 hr) -->
           <div>
-            <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-2.5 rounded-2xl">
+            <div class="flex items-center justify-between bg-slate-50/90 border-2 border-slate-200/80 border-b-[3px] border-b-slate-300 p-2.5 rounded-2xl shadow-2xs">
               <div>
-                <label class="block text-xs font-black uppercase text-slate-700">MATCH TIME LIMIT</label>
-                <div class="text-xs text-slate-500 font-semibold">15m steps up to 1.25 hr</div>
+                <label class="block text-xs font-black uppercase text-slate-800">MATCH TIME LIMIT</label>
+                <div class="text-[11px] text-slate-500 font-semibold">15m steps up to 1.25 hr</div>
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="window.stepMatchDuration(-1)" class="w-8 h-8 rounded-full bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs">-</button>
-                <span id="setup-match-duration-text" class="text-xs sm:text-sm font-black text-slate-800 min-w-[76px] text-center">15 min</span>
-                <button onclick="window.stepMatchDuration(1)" class="w-8 h-8 rounded-full bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs">+</button>
+                <button onclick="window.stepMatchDuration(-1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">-</button>
+                <span id="setup-match-duration-text" class="text-xs sm:text-sm font-black text-slate-900 min-w-[76px] text-center font-mono">15 min</span>
+                <button onclick="window.stepMatchDuration(1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">+</button>
               </div>
             </div>
           </div>
 
           <!-- 5. ATMOSPHERE / LIGHTING THEME STEPPER -->
           <div>
-            <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-2.5 rounded-2xl">
+            <div class="flex items-center justify-between bg-slate-50/90 border-2 border-slate-200/80 border-b-[3px] border-b-slate-300 p-2.5 rounded-2xl shadow-2xs">
               <div>
-                <label class="block text-xs font-black uppercase text-slate-700">ATMOSPHERE</label>
-                <div class="text-xs text-slate-500 font-semibold">Day / Sunset / Night</div>
+                <label class="block text-xs font-black uppercase text-slate-800">ATMOSPHERE</label>
+                <div class="text-[11px] text-slate-500 font-semibold">Morning / Sunset / Night</div>
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="window.stepAtmosphere(-1)" class="w-8 h-8 rounded-full bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs">-</button>
-                <span id="setup-atmosphere-text" class="text-xs font-black text-slate-800 min-w-[56px] text-center">Morning</span>
-                <button onclick="window.stepAtmosphere(1)" class="w-8 h-8 rounded-full bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs">+</button>
+                <button onclick="window.stepAtmosphere(-1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">-</button>
+                <span id="setup-atmosphere-text" class="text-xs font-black text-slate-900 min-w-[60px] text-center font-mono">Morning</span>
+                <button onclick="window.stepAtmosphere(1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">+</button>
               </div>
             </div>
           </div>
@@ -551,7 +564,7 @@
 
       <div class="h-5 w-px bg-slate-300/60 hidden sm:block"></div>
 
-      <button id="btn-manage-cities" onclick="window.openPortfolioModal()" class="hud-pill text-indigo-950" title="Manage Cities & Mortgages">
+      <button id="btn-manage-cities" onclick="window.openPortfolioModal()" class="hud-pill text-indigo-950" title="Manage Cities">
         <i id="icon-manage-cities" class="fa-solid fa-city text-indigo-600"></i>
         <span>Manage Cities</span>
       </button>
@@ -793,8 +806,8 @@
 
   <!-- A. BUY CITY / AUCTION MODAL (Victory-Inspired) -->
   <div id="modal-buy-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
-    <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-md w-full">
-      <div id="buy-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md">
+    <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div id="buy-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0">
         <!-- Floating Watermark Icons -->
         <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
         <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
@@ -803,7 +816,7 @@
         <canvas id="buy-city-3d-canvas" width="220" height="110" class="w-[180px] h-[90px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
         <h3 id="buy-modal-name" class="modal-city-title">ISTANBUL</h3>
       </div>
-      <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70">
+      <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70 overflow-y-auto flex-1">
         <!-- Dual 3D Stat Cards: Price & Base Rent -->
         <div class="grid grid-cols-2 gap-3">
           <div class="game-stat-card stat-card-sky">
@@ -839,6 +852,115 @@
             <i class="fa-solid fa-forward mr-1"></i> PASS
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A1.5 HOSTILE BUYOUT CITY MODAL -->
+  <div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-buyout-city-card" class="game-modal-shell modal-shell-amber max-w-md w-full">
+      <div id="buyout-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600">
+        <!-- Floating Watermark Icons -->
+        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
+        <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+
+        <span id="buyout-modal-country" class="modal-badge-pill bg-black/30 border border-white/30 text-amber-200">⚔️ HOSTILE BUYOUT</span>
+        <canvas id="buyout-city-3d-canvas" width="220" height="110" class="w-[180px] h-[90px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
+        <h3 id="buyout-modal-name" class="modal-city-title">LONDON</h3>
+      </div>
+      <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70">
+        <!-- Current Owner Pill -->
+        <div id="buyout-modal-owner" class="text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-amber-50 text-amber-950 border-2 border-amber-300 shadow-2xs">
+          Acquire from <strong>Opponent</strong>
+        </div>
+
+        <!-- 3D Stat Cards: Buyout Cost Breakdown -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="game-stat-card stat-card-sky">
+            <span class="stat-card-badge">
+              <i class="fa-solid fa-tag text-sky-500"></i> 2× BASE PRICE
+            </span>
+            <div id="buyout-modal-base-price" class="stat-card-value text-sky-950">600K</div>
+          </div>
+          <div class="game-stat-card stat-card-emerald">
+            <span class="stat-card-badge">
+              <i class="fa-solid fa-house text-emerald-500"></i> HOUSES BUILT
+            </span>
+            <div id="buyout-modal-houses-cost" class="stat-card-value text-emerald-950">320K</div>
+          </div>
+        </div>
+
+        <!-- Total Buyout Cost Highlight Box -->
+        <div class="p-3 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-2xl border-2 border-amber-400 flex items-center justify-between">
+          <div>
+            <div class="text-[10px] font-black uppercase text-amber-800 tracking-wider">TOTAL BUYOUT COST</div>
+            <div id="buyout-modal-total-cost" class="text-xl font-black text-amber-950">$920K</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] font-black uppercase text-slate-500 tracking-wider">YOUR BALANCE</div>
+            <div id="buyout-modal-balance" class="text-sm font-black text-emerald-600">$1.50M</div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-1">
+          <button id="btn-confirm-buyout" onclick="window.confirmBuyoutCity()" class="game-btn game-btn-orange flex-1 py-3.5 text-sm font-black shadow-lg">
+            <i class="fa-solid fa-handshake mr-1"></i> BUYOUT CITY
+          </button>
+          <button id="btn-pass-buyout" onclick="window.passBuyoutCity()" class="game-btn game-btn-slate flex-1 py-3.5 text-sm font-black">
+            <i class="fa-solid fa-forward mr-1"></i> PASS
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A1.6 SELL CITIES TO PAY RENT MODAL -->
+  <div id="modal-sell-cities" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-sell-cities-card" class="game-modal-shell modal-shell-rose max-w-xl w-full flex flex-col max-h-[90vh]">
+      <!-- Header -->
+      <div class="game-modal-header bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 p-4 text-white relative shadow-md shrink-0">
+        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-coins"></use></svg>
+        <div class="relative z-10 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-xl shadow-inner border border-white/30">
+              <i class="fa-solid fa-hand-holding-dollar text-white drop-shadow"></i>
+            </div>
+            <div>
+              <h3 class="font-display font-black text-lg drop-shadow">LIQUIDATE PROPERTIES</h3>
+              <p id="sell-cities-creditor-subtitle" class="text-xs font-extrabold text-rose-100">Insufficient cash to pay rent</p>
+            </div>
+          </div>
+          <span class="modal-badge-pill bg-black/40 text-rose-200 border-rose-300/40">RENT EMERGENCY</span>
+        </div>
+      </div>
+
+      <!-- Financial Status Summary Bar -->
+      <div class="p-4 bg-gradient-to-b from-white to-slate-50 border-b border-slate-100 shrink-0 space-y-2.5">
+        <div class="grid grid-cols-3 gap-2">
+          <div class="game-stat-card stat-card-rose p-2.5 text-center">
+            <span class="text-[10px] font-black uppercase text-rose-800 tracking-wider">RENT DUE</span>
+            <div id="sell-cities-rent-due" class="text-base sm:text-lg font-black text-rose-950">$0</div>
+          </div>
+          <div class="game-stat-card stat-card-sky p-2.5 text-center">
+            <span class="text-[10px] font-black uppercase text-sky-800 tracking-wider">YOUR CASH</span>
+            <div id="sell-cities-current-cash" class="text-base sm:text-lg font-black text-sky-950">$0</div>
+          </div>
+          <div class="game-stat-card stat-card-amber p-2.5 text-center">
+            <span class="text-[10px] font-black uppercase text-amber-800 tracking-wider">DEFICIT</span>
+            <div id="sell-cities-deficit" class="text-base sm:text-lg font-black text-amber-950">$0</div>
+          </div>
+        </div>
+
+        <!-- Quick Action: Auto-sell cheapest -->
+        <button id="btn-auto-sell-cheapest" onclick="window.autoSellCheapestForRent()" class="game-btn game-btn-orange w-full py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-md">
+          <i class="fa-solid fa-bolt-lightning text-amber-300"></i>
+          <span>AUTO-SELL CHEAPEST TO COVER RENT</span>
+        </button>
+      </div>
+
+      <!-- Scrollable Properties Grid -->
+      <div class="p-4 overflow-y-auto flex-1 space-y-2.5 bg-slate-50/60" id="sell-cities-card-grid">
+        <!-- Cards populated dynamically via renderSellCitiesModal() -->
       </div>
     </div>
   </div>
@@ -892,7 +1014,7 @@
           <div id="upgrade-modal-tiers" class="space-y-1.5 pt-0.5"></div>
         </div>
 
-        <!-- Status Notice if applicable (e.g. Mortgaged or Max Level) -->
+        <!-- Status Notice if applicable (e.g. Limit Reached or Max Level) -->
         <div id="upgrade-modal-notice" class="hidden text-xs sm:text-sm font-black text-center py-2.5 px-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 shadow-xs text-amber-950"></div>
 
         <!-- Action Buttons -->
@@ -1033,7 +1155,7 @@
     </div>
   </div>
 
-  <!-- D. TILE INSPECTOR / UPGRADE / MORTGAGE DRAWER (Bottom-Right Non-Disruptive Floating Card) -->
+  <!-- D. TILE INSPECTOR / UPGRADE DRAWER (Bottom-Right Non-Disruptive Floating Card) -->
   <div id="modal-tile-inspector" class="fixed bottom-4 right-4 z-40 pointer-events-none hidden flex-col items-end">
     <div id="modal-tile-inspector-card" class="pointer-events-auto game-modal-shell w-92 max-w-[calc(100vw-32px)] overflow-hidden shadow-2xl">
       <div id="insp-header" class="game-modal-header min-h-[144px] p-3 flex flex-col justify-between items-center text-center text-white relative overflow-hidden">
@@ -1075,7 +1197,7 @@
               MANAGE YOUR GLOBAL CITIES
             </h3>
             <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">
-              Upgrade with Houses & Skyscrapers or Mortgage for 50% instant cash
+              Upgrade with Houses & Skyscrapers
             </p>
           </div>
         </div>
@@ -1105,13 +1227,6 @@
           <div>
             <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
               <svg class="ui-icon w-3 h-3 text-emerald-200" aria-hidden="true"><use href="#icon-globe"></use></svg> GLOBAL DIPLOMACY
-            </div>
-          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
-            <i class="fa-solid fa-handshake text-white drop-shadow"></i>
-          </div>
-          <div>
-            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
-              <span>🌐</span> GLOBAL DIPLOMACY
             </div>
             <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
               PROPOSE CITY TRADE
@@ -1374,16 +1489,16 @@
   </div>
 
   <!-- I. VICTORY MODAL -->
-  <div id="modal-victory" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overflow-hidden">
+  <div id="modal-victory" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto overscroll-contain">
     <!-- Rotating Radiant Sunburst Background -->
-    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+    <div class="fixed inset-0 flex items-center justify-center pointer-events-none opacity-20">
       <div class="w-[640px] h-[640px] sm:w-[860px] sm:h-[860px] rounded-full victory-sunburst animate-spin-slow"></div>
     </div>
 
     <!-- Victory Celebration Card -->
-    <div id="victory-card" class="relative bg-white/95 backdrop-blur-xl border-4 border-amber-400 rounded-3xl max-w-md w-full overflow-hidden shadow-[0_0_60px_rgba(245,158,11,0.5)] transform flex flex-col z-10 victory-card-animate">
+    <div id="victory-card" class="relative bg-white/95 backdrop-blur-xl border-4 border-amber-400 rounded-3xl max-w-md w-full max-h-[92vh] overflow-hidden shadow-[0_0_60px_rgba(245,158,11,0.5)] transform flex flex-col z-10 victory-card-animate my-auto">
       <!-- Grand Banner Header -->
-      <div class="relative p-6 pb-5 text-center text-white overflow-hidden bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 shadow-md">
+      <div class="relative p-5 sm:p-6 pb-4 sm:pb-5 text-center text-white overflow-hidden bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 shadow-md flex-shrink-0">
         <!-- Background watermark icons -->
         <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-crown"></use></svg>
         <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
@@ -1411,9 +1526,9 @@
       </div>
 
       <!-- Stats & Accolades Body -->
-      <div class="p-5 sm:p-6 space-y-4">
+      <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
         <!-- Champion Accolade Box -->
-        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-2xl p-4 flex items-center gap-3.5 shadow-xs">
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-2xl p-3.5 flex items-center gap-3.5 shadow-xs">
           <span id="victory-accolade-icon" class="text-3xl select-none">👑</span>
           <div>
             <div id="victory-accolade-title" class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider">GLOBAL TYCOON SUPREMACY!</div>
@@ -1423,11 +1538,11 @@
 
         <!-- Winner Stats Grid -->
         <div class="grid grid-cols-2 gap-3">
-          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-center">
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-center">
             <div class="text-xs font-black text-slate-600 uppercase tracking-wider">Final Cash</div>
             <div id="victory-stat-cash" class="font-rounded font-black text-xl text-emerald-600 mt-0.5">$0</div>
           </div>
-          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-center">
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-center">
             <div class="text-xs font-black text-slate-600 uppercase tracking-wider">Empire Cities</div>
             <div id="victory-stat-props" class="font-rounded font-black text-xl text-indigo-600 mt-0.5">0</div>
           </div>
@@ -1465,33 +1580,33 @@
 
         <!-- Multiplayer Status / Notice Banner -->
         <div id="victory-multiplayer-status" class="hidden text-xs font-bold text-center py-2.5 px-3.5 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-900 shadow-xs"></div>
+      </div>
 
-        <!-- Grand Lobby & Play Again Buttons -->
-        <div class="grid grid-cols-2 gap-3 pt-1">
-          <!-- Return to Lobby Button -->
-          <button id="btn-victory-lobby" onclick="window.handleReturnToLobbyFromVictory()" class="py-3.5 px-3 rounded-2xl font-rounded font-black text-sm sm:text-base text-sky-800 bg-sky-50 hover:bg-sky-100 border-2 border-sky-300 shadow-md flex items-center justify-center gap-2 cursor-pointer transition-[transform,background-color,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Return to Table Lobby with all players">
-            <i class="fa-solid fa-users text-sky-600 text-base"></i>
-            <span>LOBBY</span>
-          </button>
+      <!-- Action Footer with Fixed Bottom Buttons -->
+      <div class="p-3.5 sm:p-4 border-t border-slate-100 bg-white/95 flex-shrink-0 grid grid-cols-2 gap-3 shadow-inner">
+        <!-- Return to Lobby Button -->
+        <button id="btn-victory-lobby" onclick="window.handleReturnToLobbyFromVictory()" class="py-3 px-3 rounded-2xl font-rounded font-black text-sm sm:text-base text-sky-800 bg-sky-50 hover:bg-sky-100 border-2 border-sky-300 shadow-md flex items-center justify-center gap-2 cursor-pointer transition-[transform,background-color,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Return to Table Lobby with all players">
+          <i class="fa-solid fa-users text-sky-600 text-base"></i>
+          <span>LOBBY</span>
+        </button>
 
-          <!-- Big Grand Play Again Button -->
-          <button id="btn-victory-play-again" onclick="window.handlePlayAgainAction()" class="game-btn game-btn-green py-3.5 px-3 text-sm sm:text-base font-black shadow-xl flex items-center justify-center gap-2 group hover:scale-[1.02] enabled:active:scale-[0.96] transition-[transform,box-shadow,filter] duration-150 ease-out" title="Start immediate rematch">
-            <i class="fa-solid fa-rotate-right text-base group-hover:rotate-45 transition-transform"></i>
-            <span id="btn-victory-play-again-text">PLAY AGAIN</span>
-          </button>
-        </div>
+        <!-- Big Grand Play Again Button -->
+        <button id="btn-victory-play-again" onclick="window.handlePlayAgainAction()" class="game-btn game-btn-green py-3 px-3 text-sm sm:text-base font-black shadow-xl flex items-center justify-center gap-2 group hover:scale-[1.02] enabled:active:scale-[0.96] transition-[transform,box-shadow,filter] duration-150 ease-out" title="Start immediate rematch">
+          <i class="fa-solid fa-rotate-right text-base group-hover:rotate-45 transition-transform"></i>
+          <span id="btn-victory-play-again-text">PLAY AGAIN</span>
+        </button>
       </div>
     </div>
   </div>
 
   <!-- J. CINEMATIC MONOPOLY CELEBRATION SHOWCASE (better-ui) -->
-  <div id="modal-monopoly-celebration" class="fixed inset-0 z-50 hidden items-center justify-center p-4 select-none cursor-pointer overscroll-contain" onclick="window.closeMonopolyModal()">
+  <div id="modal-monopoly-celebration" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 select-none cursor-pointer overscroll-contain overflow-y-auto" onclick="window.closeMonopolyModal()">
     <!-- 1. Deep Dimmed Backdrop with Radial Vignette & Sunburst God Rays -->
     <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300"></div>
     <div class="monopoly-sunburst-rays pointer-events-none"></div>
 
     <!-- 2. Main Floating Celebration Stage (Center Column) -->
-    <div id="modal-monopoly-card" class="relative z-10 flex flex-col items-center max-w-xl w-full pointer-events-auto transform transition-[transform,opacity] duration-300 scale-[0.96] opacity-0 cursor-default" onclick="event.stopPropagation()">
+    <div id="modal-monopoly-card" class="relative z-10 flex flex-col items-center max-w-xl w-full pointer-events-auto cursor-default" onclick="event.stopPropagation()">
 
       <!-- Player Avatar Hero Disc -->
       <div id="monopoly-avatar-disc" class="monopoly-avatar-disc">
@@ -1705,7 +1820,7 @@
       <div class="bg-white border-t border-slate-200 px-5 py-3 flex items-center justify-between text-xs text-slate-500">
         <div class="flex items-center gap-2 text-slate-600 font-semibold text-[11px] sm:text-xs">
           <i class="fa-solid fa-circle-info text-sky-500"></i>
-          <span>Net Worth = Cash + Properties + Buildings + (Mortgages ÷ 2)</span>
+          <span>Net Worth = Cash + Properties + Buildings</span>
         </div>
         <button onclick="window.closeLeaderboardModal()" class="game-btn game-btn-blue px-6 py-2 text-xs font-black shadow-xs">
           Close
@@ -1716,68 +1831,71 @@
   </div>
 
   <!-- K. WARDROBE & COSMETICS MODAL (Victory-Inspired) -->
-  <div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-3 sm:p-5 overflow-hidden">
-    <!-- Card Container -->
-    <div class="game-modal-shell modal-shell-amber relative max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+  <div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 pointer-events-none hidden wardrobe-panel-hidden flex items-stretch justify-end">
+    <!-- Clickable backdrop on left side (clean transparent, zero blur on 3D character) -->
+    <div id="wardrobe-backdrop" onclick="window.closeWardrobeModal()" class="absolute inset-0 bg-transparent pointer-events-auto transition-opacity duration-300 opacity-0" title="Click to return to lobby"></div>
+
+    <!-- Slide-in Wardrobe Card Drawer -->
+    <div id="wardrobe-panel-card" class="relative z-10 w-full sm:w-[540px] md:w-[620px] lg:w-[680px] xl:w-[740px] h-full bg-slate-900/95 backdrop-blur-xl border-l-2 border-amber-400/40 shadow-2xl flex flex-col pointer-events-auto overflow-hidden">
       <!-- Header Banner -->
-      <div class="game-modal-header relative p-5 pb-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white flex items-center justify-between shadow-sm overflow-hidden">
+      <div class="game-modal-header relative p-5 pb-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white flex items-center justify-between shadow-sm overflow-hidden flex-shrink-0">
         <!-- Floating Watermark Icons -->
         <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
         <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <div class="relative z-10 flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/30 select-none">
-            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
+          <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner border border-white/30 select-none">
+            <svg class="ui-icon w-5 h-5 text-white" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h2 id="wardrobe-title" class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-sm">
+              <h2 id="wardrobe-title" class="font-rounded font-black text-lg sm:text-xl text-white tracking-wide drop-shadow-sm">
                 TYCOON WARDROBE
               </h2>
-              <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs border border-white/20">
-                <svg class="ui-icon w-3 h-3 text-amber-200" aria-hidden="true"><use href="#icon-sparkle"></use></svg> COSMETICS
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs border border-white/20">
+                <svg class="ui-icon w-3 h-3 text-amber-200" aria-hidden="true"><use href="#icon-sparkle"></use></svg> PREVIEW
               </span>
             </div>
             <p class="text-xs font-semibold text-amber-100 mt-0.5">
-              Customize your hats, dice, and token pedestals with match completion points
+              Click any item to test live on your 3D character
             </p>
           </div>
         </div>
 
         <!-- Right: Star Balance Badge & Accessible Close Button -->
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-950/40 backdrop-blur-md border border-amber-300/40 text-amber-300 font-black text-xs sm:text-sm shadow-inner" title="Your Tycoon Stars balance">
+        <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/40 backdrop-blur-md border border-amber-300/40 text-amber-300 font-black text-xs sm:text-sm shadow-inner" title="Your Tycoon Stars balance">
             <svg class="ui-icon w-3.5 h-3.5 text-amber-400" aria-hidden="true"><use href="#icon-star"></use></svg>
             <span id="wardrobe-stars-balance" class="tabular-nums">500</span>
           </div>
-          <button id="btn-close-wardrobe" onclick="window.closeWardrobeModal()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center cursor-pointer transition text-base" title="Close Wardrobe [Esc]" aria-label="Close Wardrobe">
+          <button id="btn-close-wardrobe" onclick="window.closeWardrobeModal()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 active:scale-[0.96] text-white flex items-center justify-center cursor-pointer transition-[transform,background-color] duration-150 ease-out text-base" title="Close Wardrobe [Esc]" aria-label="Close Wardrobe">
             <svg class="ui-icon w-4 h-4 text-white" aria-hidden="true"><use href="#icon-xmark"></use></svg>
           </button>
         </div>
       </div>
 
       <!-- Category Filter Tabs -->
-      <div class="bg-slate-100/80 border-b border-slate-200 px-5 py-2.5 flex items-center gap-2 select-none overflow-x-auto" role="tablist" aria-label="Wardrobe Categories">
-        <button onclick="window.setWardrobeCategory('hat')" data-category="hat" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer bg-amber-400 text-slate-950 shadow-sm flex items-center gap-1.5" role="tab" aria-selected="true">
+      <div class="bg-slate-100/90 border-b border-slate-200 px-5 py-2.5 flex items-center gap-2 select-none overflow-x-auto flex-shrink-0" role="tablist" aria-label="Wardrobe Categories">
+        <button onclick="window.setWardrobeCategory('hat')" data-category="hat" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer bg-amber-400 text-slate-950 shadow-sm flex items-center gap-1.5 active:scale-[0.96]" role="tab" aria-selected="true">
           <svg class="ui-icon w-4 h-4" aria-hidden="true"><use href="#icon-hat"></use></svg> <span>Hats & Headwear</span>
         </button>
-        <button onclick="window.setWardrobeCategory('dice')" data-category="dice" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5" role="tab" aria-selected="false">
+        <button onclick="window.setWardrobeCategory('dice')" data-category="dice" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 active:scale-[0.96]" role="tab" aria-selected="false">
           <svg class="ui-icon w-4 h-4" aria-hidden="true"><use href="#icon-dice"></use></svg> <span>Dice Skins</span>
         </button>
-        <button onclick="window.setWardrobeCategory('pedestal')" data-category="pedestal" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5" role="tab" aria-selected="false">
+        <button onclick="window.setWardrobeCategory('pedestal')" data-category="pedestal" class="wardrobe-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1.5 active:scale-[0.96]" role="tab" aria-selected="false">
           <svg class="ui-icon w-4 h-4" aria-hidden="true"><use href="#icon-pedestal"></use></svg> <span>Token Pedestals</span>
         </button>
       </div>
 
-      <!-- Item Grid Arena -->
-      <div class="p-5 sm:p-6 overflow-y-auto flex-1 bg-slate-50/60">
-        <div id="wardrobe-items-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+      <!-- Item Grid Arena with contain overscroll -->
+      <div class="p-5 sm:p-6 overflow-y-auto flex-1 bg-slate-50/70 overscroll-contain">
+        <div id="wardrobe-items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5">
           <!-- Dynamically populated via wardrobe.js -->
         </div>
       </div>
 
       <!-- Footer Info -->
-      <div class="bg-white border-t border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+      <div class="bg-white border-t border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 flex-shrink-0">
         <div class="flex items-center gap-3 text-slate-600 font-semibold text-[11px] sm:text-xs">
           <div class="flex items-center gap-1.5">
             <i class="fa-solid fa-trophy text-amber-500 text-sm"></i>
@@ -1787,7 +1905,7 @@
             Reset Progress
           </button>
         </div>
-        <button onclick="window.closeWardrobeModal()" class="game-btn game-btn-blue px-6 py-2 text-xs font-black shadow-xs">
+        <button onclick="window.closeWardrobeModal()" class="game-btn game-btn-blue px-6 py-2 text-xs font-black shadow-xs active:scale-[0.96] transition duration-150 ease-out">
           Done
         </button>
       </div>

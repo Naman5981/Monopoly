@@ -1,6 +1,6 @@
 /**
  * ui/modals/inspector.js
- * Property inspection modal, city level upgrade/downgrade, mortgage/unmortgage, and portfolio view.
+ * Property inspection modal, city level upgrade/downgrade, and portfolio view.
  */
 
 import { BOARD_TILES, GROUP_META } from '../../game/data.js';
@@ -51,13 +51,13 @@ export function openInspectorModal(tileId) {
   if (ownerPill) {
     if (st && st.owner !== null) {
       if (isOwnedByLocalPlayer) {
-        const levelDesc = st.mortgaged ? 'MORTGAGED' : (st.level === 4 ? 'Skyscraper (MAX)' : (st.level > 0 ? `${st.level} House${st.level > 1 ? 's' : ''}` : 'Base Land'));
-        ownerPill.className = `text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl ${st.mortgaged ? 'bg-rose-50 text-rose-800 border-2 border-rose-300' : 'bg-emerald-50 text-emerald-900 border-2 border-emerald-300'} shadow-2xs`;
-        ownerPill.innerHTML = `<i class="fa-solid fa-crown ${st.mortgaged ? 'text-rose-600' : 'text-amber-500'} mr-1"></i> Your Estate • ${levelDesc}`;
+        const levelDesc = (st.level === 4 ? 'Skyscraper (MAX)' : (st.level > 0 ? `${st.level} House${st.level > 1 ? 's' : ''}` : 'Base Land'));
+        ownerPill.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-emerald-50 text-emerald-900 border-2 border-emerald-300 shadow-2xs';
+        ownerPill.innerHTML = `<i class="fa-solid fa-crown text-amber-500 mr-1"></i> Your Estate • ${levelDesc}`;
       } else {
         const ownerName = gameState.players[st.owner]?.name || 'Opponent';
         ownerPill.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs';
-        ownerPill.innerHTML = `Owned by <strong>${ownerName}</strong> ${st.mortgaged ? '<span class="text-rose-600 font-black">(MORTGAGED)</span>' : ''}`;
+        ownerPill.innerHTML = `Owned by <strong>${ownerName}</strong>`;
       }
     } else if (tile.price) {
       ownerPill.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-amber-50 text-amber-950 border-2 border-amber-300/80 shadow-2xs';
@@ -71,7 +71,7 @@ export function openInspectorModal(tileId) {
   const rentList = document.getElementById('insp-rent-list');
   if (rentList) {
     if (tile.type === 'city') {
-      const curLevel = (st && !st.mortgaged) ? (st.level || 0) : -1;
+      const curLevel = st ? (st.level || 0) : -1;
       const tierLabels = ['Base Land', '1 House', '2 Houses', '3 Houses', 'Skyscraper'];
       rentList.innerHTML = [0, 1, 2, 3, 4].map(idx => {
         const isCurrent = (curLevel === idx);
@@ -129,19 +129,19 @@ export function openInspectorModal(tileId) {
         actionsEl.innerHTML = `
           <div class="py-2.5 px-3 rounded-2xl bg-slate-100 border border-slate-200 text-slate-500 font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-2xs">
             <i class="fa-solid fa-location-dot text-slate-400"></i>
-            <span>Land here to build upgrades or mortgage</span>
+            <span>Land here to build upgrades</span>
           </div>
         `;
       } else if (!isHumanTurnActionable()) {
         actionsEl.innerHTML = `
           <div class="w-full py-2.5 px-3 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs">
             <i class="fa-solid fa-lock text-amber-600"></i>
-            <span>Wait for your turn to build or mortgage</span>
+            <span>Wait for your turn to build upgrades</span>
           </div>
         `;
       } else {
         let html = '';
-        if (tile.type === 'city' && !st.mortgaged) {
+        if (tile.type === 'city') {
           const canUp = st.level < 4 && myPlayer.cash >= tile.houseCost;
           const canDown = st.level > 0;
           html += `
@@ -153,22 +153,6 @@ export function openInspectorModal(tileId) {
                 -Sell (+${fmtMoney(tile.houseCost / 2)})
               </button>
             </div>
-          `;
-        }
-
-        const unmortCost = Math.round(tile.price * 0.55);
-        if (!st.mortgaged && (st.level || 0) === 0) {
-          html += `
-            <button onclick="window.toggleCityMortgage(${tileId})" class="game-btn game-btn-red w-full py-2.5 text-xs font-black">
-              Mortgage City (+${fmtMoney(tile.price / 2)})
-            </button>
-          `;
-        } else if (st.mortgaged) {
-          const canAffordUnmort = myPlayer.cash >= unmortCost;
-          html += `
-            <button onclick="window.toggleCityMortgage(${tileId})" ${!canAffordUnmort ? 'disabled' : ''} class="game-btn ${canAffordUnmort ? 'game-btn-blue' : 'game-btn-slate opacity-50 cursor-not-allowed'} w-full py-2.5 text-xs font-black">
-              Unmortgage City (-${fmtMoney(unmortCost)})
-            </button>
           `;
         }
         actionsEl.innerHTML = html;
@@ -187,7 +171,7 @@ export function openInspectorModal(tileId) {
 
   if (card) {
     const isPlayerOnTile = (myPlayer?.position === tileId);
-    const canBeUpgraded = (tile.type === 'city' && st && isOwnedByLocalPlayer && !st.mortgaged && st.level < 4);
+    const canBeUpgraded = (tile.type === 'city' && st && isOwnedByLocalPlayer && st.level < 4);
     if (isPlayerOnTile && canBeUpgraded) {
       const color = tile.group ? GROUP_META[tile.group].hex : '#0284c7';
       card.style.borderColor = color;
@@ -248,7 +232,7 @@ if (typeof window !== 'undefined') {
 export function upgradeCityLevel(tileId, isForcedAI = false) {
   const st = gameState.properties[tileId];
   const tile = BOARD_TILES[tileId];
-  if (!st || st.owner === null || st.mortgaged || st.level >= 4) return;
+  if (!st || st.owner === null || st.level >= 4) return;
   const p = gameState.players[st.owner];
   if (!isForcedAI && p.position !== tileId) {
     showTurnLockToast("You can only upgrade the property you are standing on!");
@@ -310,42 +294,7 @@ export function downgradeCityLevel(tileId, isAutoLiquidation = false) {
 }
 
 export function toggleCityMortgage(tileId, isAutoLiquidation = false) {
-  const st = gameState.properties[tileId];
-  const tile = BOARD_TILES[tileId];
-  if (!st || st.owner === null) return;
-  if (st.owner === localPlayerIdx && !isAutoLiquidation && !isHumanTurnActionable()) {
-    showTurnLockToast("Wait for your turn to mortgage cities!");
-    return;
-  }
-  const p = gameState.players[st.owner];
-
-  if (!st.mortgaged) {
-    const gain = tile.price / 2;
-    st.mortgaged = true;
-    p.cash += gain;
-    playSFX('cash');
-    if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(st.owner, `+${fmtMoney(gain)}`, true);
-    logEvent(`🏦 <strong>${p.name}</strong> mortgaged <strong>${tile.name}</strong> (+${fmtMoney(gain)}).`);
-  } else {
-    const cost = Math.round(tile.price * 0.55);
-    if (p.cash < cost) return;
-    p.cash -= cost;
-    st.mortgaged = false;
-    playSFX('cash');
-    if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(st.owner, `-${fmtMoney(cost)}`, false);
-    logEvent(`🏦 <strong>${p.name}</strong> unmortgaged <strong>${tile.name}</strong> (-${fmtMoney(cost)}).`);
-  }
-
-  if (networkState.isMultiplayer && !isAutoLiquidation) {
-    broadcastAction('ACTION_MORTGAGE_CITY', { playerIdx: st.owner, tileId, mortgaged: st.mortgaged });
-  }
-
-  refreshTileTextureAndBuildings(tileId);
-  renderCornerHUDs();
-  saveCurrentMatchToStorage();
-  if (gameState.activeInspectorTile === tileId) openInspectorModal(tileId);
-  const portModal = document.getElementById('modal-portfolio');
-  if (portModal && !portModal.classList.contains('hidden')) renderPortfolioGrid();
+  // Mortgage feature has been removed from the game.
 }
 
 export function openPortfolioModal() {
@@ -372,14 +321,13 @@ export function closePortfolioModal() {
 
 export function renderPortfolioGrid() {
   const grid = document.getElementById('portfolio-grid');
-  if (!grid) return;
-  const owned = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === 0);
+  const myIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : localPlayerIdx;
+  const owned = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === myIdx);
   const summaryBar = document.getElementById('portfolio-summary-bar');
 
   if (summaryBar) {
     const totalCities = owned.length;
-    const totalRent = owned.reduce((sum, t) => sum + (gameState.properties[t.id]?.mortgaged ? 0 : calculateTileRent(t.id)), 0);
-    const mortgagedCount = owned.filter(t => gameState.properties[t.id]?.mortgaged).length;
+    const totalRent = owned.reduce((sum, t) => sum + calculateTileRent(t.id), 0);
     summaryBar.innerHTML = `
       <div class="flex items-center gap-1.5">
         <span class="text-slate-500 font-extrabold uppercase text-[10px]">Cities Owned:</span>
@@ -388,10 +336,6 @@ export function renderPortfolioGrid() {
       <div class="flex items-center gap-1.5">
         <span class="text-slate-500 font-extrabold uppercase text-[10px]">Total Rent Yield:</span>
         <span class="text-emerald-700 font-black text-sm">${fmtMoney(totalRent)}</span>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <span class="text-slate-500 font-extrabold uppercase text-[10px]">Mortgaged:</span>
-        <span class="${mortgagedCount > 0 ? 'text-rose-600' : 'text-slate-600'} font-black text-sm">${mortgagedCount}</span>
       </div>
     `;
   }
@@ -414,7 +358,7 @@ export function renderPortfolioGrid() {
     const color = t.group ? GROUP_META[t.group].hex : '#0284c7';
     const isPlayerOnTile = (gameState.players[0].position === t.id);
     const upgradesLeft = Math.max(0, 2 - (gameState.upgradesThisVisit || 0));
-    const canBeUpgraded = (t.type === 'city' && !st.mortgaged && st.level < 4 && upgradesLeft > 0);
+    const canBeUpgraded = (t.type === 'city' && st.level < 4 && upgradesLeft > 0);
     const isIlluminated = isPlayerOnTile && canBeUpgraded;
 
     const cardClass = isIlluminated
@@ -437,12 +381,12 @@ export function renderPortfolioGrid() {
               </span>
             ` : ''}
           </div>
-          <span class="text-xs sm:text-sm font-black ${st.mortgaged ? 'text-rose-700' : 'text-emerald-700'}">
-            ${st.mortgaged ? 'MORTGAGED' : `Rent: ${fmtMoney(calculateTileRent(t.id))}`}
+          <span class="text-xs sm:text-sm font-black text-emerald-700">
+            Rent: ${fmtMoney(calculateTileRent(t.id))}
           </span>
         </div>
         <div class="flex gap-2">
-          ${t.type === 'city' && !st.mortgaged ? `
+          ${t.type === 'city' ? `
             ${isPlayerOnTile ? `
               ${canBeUpgraded ? `
                 <button onclick="window.upgradeCityLevel(${t.id})" class="game-btn game-btn-green flex-1 py-2 text-xs sm:text-sm font-black shadow-md">
@@ -459,9 +403,6 @@ export function renderPortfolioGrid() {
               </div>
             `}
           ` : ''}
-          <button onclick="window.toggleCityMortgage(${t.id})" class="game-btn ${st.mortgaged ? 'game-btn-blue' : 'game-btn-slate'} flex-1 py-2 text-xs sm:text-sm font-black">
-            ${st.mortgaged ? 'Unmortgage' : `Mortgage (+${fmtMoney(t.price/2)})`}
-          </button>
         </div>
       </div>
     `;

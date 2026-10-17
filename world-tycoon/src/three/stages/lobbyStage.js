@@ -7,12 +7,14 @@
 import * as THREE from 'three';
 import { PLAYER_THEMES } from '../../game/data.js';
 import { createDetailed3DAvatarMesh } from '../assets/avatars.js';
+import { DICE_SKIN_PALETTES } from '../assets/dice.js';
 
 let lobbyHeroScene = null;
 let lobbyHeroCamera = null;
 let lobbyHeroRenderer = null;
 let lobbyHeroAvatarGroup = null;
 let lobbyHeroPodiumGroup = null;
+let lobbyHeroMiniDice = [];
 const lobbyHeroCanvasId = 'lobby-avatar-3d-canvas';
 
 export function initLobbyHeroStage() {
@@ -72,16 +74,18 @@ export function initLobbyHeroStage() {
   lobbyHeroPodiumGroup.add(createMiniTree(-1.05, 0.35, 0.85));
   lobbyHeroPodiumGroup.add(createMiniTree(1.22, -0.38, 1.05));
 
-  // Pair of red 3D dice on the grass
+  // Pair of mini 3D dice on the grass podium
   function createMiniDice(x, z, rotY) {
-    const diceMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.25 });
+    const diceMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.25 });
     const die = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.22), diceMat);
     die.position.set(x, 0.36, z);
     die.rotation.set(0.05, rotY, 0.05);
     return die;
   }
-  lobbyHeroPodiumGroup.add(createMiniDice(0.95, 0.48, 0.4));
-  lobbyHeroPodiumGroup.add(createMiniDice(1.15, 0.38, -0.2));
+  const die1 = createMiniDice(0.95, 0.48, 0.4);
+  const die2 = createMiniDice(1.15, 0.38, -0.2);
+  lobbyHeroMiniDice = [die1, die2];
+  lobbyHeroPodiumGroup.add(die1, die2);
 
   lobbyHeroScene.add(lobbyHeroPodiumGroup);
 
@@ -93,15 +97,53 @@ export function initLobbyHeroStage() {
   updateLobbyHeroAvatar(0, '#6c5ce7', 0x6c5ce7);
 }
 
+export function updateLobbyHeroDiceSkin(skinId = 'dice_classic') {
+  if (!lobbyHeroMiniDice || lobbyHeroMiniDice.length === 0) return;
+  const palette = DICE_SKIN_PALETTES[skinId] || DICE_SKIN_PALETTES.dice_classic;
+  const col = new THREE.Color(palette.bg);
+  lobbyHeroMiniDice.forEach(die => {
+    if (die && die.material) {
+      die.material.color = col;
+      if (skinId === 'dice_midas') {
+        die.material.metalness = 0.85;
+        die.material.roughness = 0.2;
+        die.material.emissive = new THREE.Color(0x713f12);
+        die.material.emissiveIntensity = 0.25;
+      } else if (skinId === 'dice_obsidian') {
+        die.material.metalness = 0.4;
+        die.material.roughness = 0.15;
+        die.material.emissive = new THREE.Color(0x581c87);
+        die.material.emissiveIntensity = 0.35;
+      } else if (skinId === 'dice_neon') {
+        die.material.metalness = 0.3;
+        die.material.roughness = 0.2;
+        die.material.emissive = new THREE.Color(0x0284c7);
+        die.material.emissiveIntensity = 0.4;
+      } else if (skinId === 'dice_ruby') {
+        die.material.metalness = 0.25;
+        die.material.roughness = 0.2;
+        die.material.emissive = new THREE.Color(0x991b1b);
+        die.material.emissiveIntensity = 0.25;
+      } else {
+        die.material.metalness = 0.05;
+        die.material.roughness = 0.35;
+        die.material.emissive = new THREE.Color(0x000000);
+        die.material.emissiveIntensity = 0;
+      }
+      die.material.needsUpdate = true;
+    }
+  });
+}
+
 export function updateLobbyHeroAvatar(hatStyle = 0, colorHex = '#6c5ce7', charColor = 0x6c5ce7, pedestalStyle = null) {
   if (!lobbyHeroAvatarGroup) return;
   while (lobbyHeroAvatarGroup.children.length > 0) {
     lobbyHeroAvatarGroup.remove(lobbyHeroAvatarGroup.children[0]);
   }
-  const mockIdx = (hatStyle || 0) % 4;
-  PLAYER_THEMES[mockIdx].charColor = (typeof charColor === 'number') ? charColor : 0x6c5ce7;
-  PLAYER_THEMES[mockIdx].colorHex = colorHex || '#6c5ce7';
-  const avatarMesh = createDetailed3DAvatarMesh(mockIdx, false, hatStyle, pedestalStyle);
+  const parsedCharColor = (typeof charColor === 'number')
+    ? charColor
+    : (colorHex ? parseInt(colorHex.replace('#', '0x'), 16) : 0x6c5ce7);
+  const avatarMesh = createDetailed3DAvatarMesh(0, false, hatStyle, pedestalStyle, parsedCharColor);
   avatarMesh.scale.setScalar(1.25);
   lobbyHeroAvatarGroup.add(avatarMesh);
 }

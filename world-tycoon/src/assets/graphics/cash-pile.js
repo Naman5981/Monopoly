@@ -1,0 +1,28 @@
+/**
+ * Asset: Isometric Cash Pile SVG Illustration
+ * Clean vector graphics component decoupled from UI logic.
+ * Source SVG: src/assets/graphics/cash-pile.svg
+ */
+export const cashPileSvg = `<svg width="108" height="78" viewBox="0 0 110 80" class="drop-shadow-md hidden sm:block" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="56" cy="62" rx="44" ry="14" fill="rgba(148, 163, 184, 0.35)"/>
+  <g transform="translate(18, 12)">
+    <polygon points="28,0 56,14 28,28 0,14" fill="#86efac" stroke="#22c55e" stroke-width="1"/>
+    <polygon points="0,14 28,28 28,44 0,30" fill="#4ade80"/>
+    <polygon points="28,28 56,14 56,30 28,44" fill="#16a34a"/>
+    <polygon points="18,6 26,10 12,24 4,20" fill="#facc15"/>
+  </g>
+  <g transform="translate(36, 36)">
+    <polygon points="18,0 38,10 18,20 0,10" fill="#e2e8f0"/>
+    <polygon points="0,10 18,20 18,28 0,18" fill="#cbd5e1"/>
+    <polygon points="18,20 38,10 38,18 18,28" fill="#94a3b8"/>
+  </g>
+  <g transform="translate(52, 42)">
+    <polygon points="16,0 32,8 16,16 0,8" fill="#fde047"/>
+    <polygon points="0,8 16,16 16,24 0,16" fill="#facc15"/>
+    <polygon points="16,16 32,8 32,16 16,24" fill="#ca8a04"/>
+  </g>
+  <ellipse cx="36" cy="64" rx="6" ry="4" fill="#facc15" stroke="#ca8a04" stroke-width="1"/>
+  <ellipse cx="52" cy="68" rx="6" ry="4" fill="#fde047" stroke="#ca8a04" stroke-width="1"/>
+</svg>`;
+
+export default cashPileSvg;

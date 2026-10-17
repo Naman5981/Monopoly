@@ -195,55 +195,117 @@ body {
   font-weight: 900;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   position: relative;
   filter: drop-shadow(0 6px 0 rgba(10, 45, 90, 0.45)) drop-shadow(0 14px 28px rgba(0, 30, 70, 0.35));
+  will-change: transform;
 }
 .logo-globe-icon {
-  font-size: 36px;
+  font-size: 38px;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
-  animation: globeFloat 3s ease-in-out infinite;
+  will-change: transform;
+  animation: globeFloat 3.2s ease-in-out infinite;
 }
 .logo-brand-world {
   color: #ffffff;
   -webkit-text-stroke: 4.5px #0284c7;
   paint-order: stroke fill;
-  font-size: 40px;
-  letter-spacing: 0.02em;
+  font-size: 42px;
+  letter-spacing: 0.03em;
   text-shadow: 0 4px 0 #0369a1;
 }
 .logo-brand-tycoon {
   color: #fbbf24;
   -webkit-text-stroke: 4.5px #b45309;
   paint-order: stroke fill;
-  font-size: 40px;
-  letter-spacing: 0.02em;
+  font-size: 42px;
+  letter-spacing: 0.03em;
   text-shadow: 0 4px 0 #92400e;
   margin-left: 2px;
 }
 @keyframes globeFloat {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-4px) rotate(8deg); }
+  50% { transform: translateY(-5px) rotate(6deg); }
+}
+
+/* Sub-title edition badge pill */
+.logo-edition-pill {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #0369a1;
+  background: rgba(255, 255, 255, 0.94);
+  border: 2px solid #bae6fd;
+  border-radius: 9999px;
+  padding: 3px 14px;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ═══ GAME PANEL & SLOTS ═══ */
 .game-panel-card {
   background: #ffffff;
-  border-radius: 36px;
-  box-shadow: 0 12px 36px rgba(15, 75, 140, 0.18), 0 2px 6px rgba(15, 75, 140, 0.08);
-  border: 3px solid #e0f2fe;
+  border-radius: 28px;
+  box-shadow: 0 18px 45px rgba(15, 75, 140, 0.15), 0 3px 8px rgba(15, 75, 140, 0.06);
+  border: 2px solid #e0f2fe;
 }
 .game-slot-dashed {
   border: 2px dashed #bae6fd;
   background: rgba(240, 249, 255, 0.6);
-  border-radius: 18px;
-  transition: border-color 150ms ease-out, background-color 150ms ease-out;
+  border-radius: 16px;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out, transform 150ms ease-out;
 }
 @media (hover: hover) {
   .game-slot-dashed:hover {
     border-color: #38bdf8;
     background: rgba(224, 242, 254, 0.85);
+    transform: translateY(-1px);
   }
+}
+
+/* Arcade player roster item card */
+.player-setup-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 2px solid #e2e8f0;
+  border-bottom: 3.5px solid #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  transition: transform 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out, background-color 150ms ease-out;
+}
+@media (hover: hover) {
+  .player-setup-card:hover {
+    transform: translateY(-2px);
+    border-color: #f59e0b;
+    border-bottom-color: #d97706;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.18);
+  }
+}
+.player-setup-card.card-selected {
+  border-color: #f59e0b !important;
+  border-bottom: 3.5px solid #b45309 !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #ffffff 100%) !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.28), 0 0 0 2px rgba(251, 191, 36, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+/* 3D Hero Centerpiece Podium Depth Halo */
+.lobby-podium-halo {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.65) 45%, rgba(186, 230, 253, 0.2) 65%, transparent 75%);
+  filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.35));
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* ═══ ANTIGRAVITY SPATIAL TOP HUD HEADER & PILLS ═══ */
@@ -266,7 +328,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  transition: transform 0.16s ease-out, box-shadow 0.16s ease-out, background-color 0.16s ease-out, border-color 0.16s ease-out;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out;
   cursor: pointer;
   border: 1.5px solid rgba(255, 255, 255, 0.88);
   white-space: nowrap;
@@ -284,7 +346,7 @@ body {
 
 .hud-pill:active:not(.pill-locked),
 .top-pill:active:not(.pill-locked) {
-  transform: translateY(1px) scale(0.97);
+  transform: translateY(1px) scale(0.96);
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
@@ -1334,6 +1396,19 @@ body {
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
+#modal-victory {
+  z-index: 9999 !important;
+}
+
+#modal-victory.flex {
+  display: flex !important;
+}
+
+#victory-card {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
 .victory-card-animate {
   animation: victoryCardPop 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
@@ -1744,6 +1819,24 @@ body {
 
 /* ═══ CINEMATIC MONOPOLY CELEBRATION SHOWCASE (better-ui) ═══ */
 
+/* Main Floating Celebration Card visibility & fluid spring transition */
+#modal-monopoly-card {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  pointer-events: auto !important;
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease-out;
+}
+
+#modal-monopoly-card.monopoly-card-entering {
+  opacity: 0 !important;
+  transform: scale(0.92) translateY(12px) !important;
+}
+
+#modal-monopoly-card.monopoly-card-leaving {
+  opacity: 0 !important;
+  transform: scale(0.92) translateY(-8px) !important;
+}
+
 /* Rotating Sunburst God Rays */
 .monopoly-sunburst-rays {
   position: absolute;
@@ -1997,12 +2090,151 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .monopoly-sunburst-rays {
+  .monopoly-sunburst-rays,
+  .logo-globe-icon,
+  .cloud-float-1,
+  .cloud-float-2 {
     animation: none !important;
   }
   .monopoly-deed-card,
   .monopoly-avatar-disc,
   .monopoly-ribbon-wrapper {
+    transition: opacity 150ms ease-out !important;
+    transform: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   WARDROBE SEAMLESS SLIDE & 3D AVATAR PREVIEW (Motion Performance Optimized)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Base transition states on lobby arena columns */
+#lobby-roster-column,
+#lobby-settings-column,
+#lobby-hero-column {
+  transition: transform 360ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms ease-out;
+  will-change: transform, opacity;
+}
+
+/* 2. When wardrobe is active: slide outer columns away */
+.wardrobe-mode-active #lobby-roster-column {
+  transform: translate3d(-110%, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wardrobe-mode-active #lobby-settings-column {
+  transform: translate3d(110%, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 3. Hero column shifts smoothly to the left stage */
+@media (min-width: 1024px) {
+  .wardrobe-mode-active #lobby-hero-column {
+    /* Translate exactly one 4-column span + gap to the left */
+    transform: translate3d(calc(-100% - 1.25rem), 0, 0);
+  }
+}
+
+@media (max-width: 1023px) {
+  .wardrobe-mode-active #lobby-hero-column {
+    transform: translate3d(0, -28px, 0) scale(0.85);
+  }
+}
+
+/* 4. Hero bottom controls swap during wardrobe mode */
+.lobby-hero-default-controls {
+  display: flex;
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.lobby-hero-wardrobe-controls {
+  display: none;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0);
+  transition: opacity 250ms ease-out, transform 250ms ease-out;
+}
+
+.wardrobe-mode-active .lobby-hero-default-controls {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  pointer-events: none;
+  display: none;
+}
+
+.wardrobe-mode-active .lobby-hero-wardrobe-controls {
+  display: flex;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* 5. Slide-in Wardrobe Modal Drawer */
+#modal-wardrobe {
+  transition: opacity 300ms ease-out;
+}
+
+#modal-wardrobe.wardrobe-panel-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#modal-wardrobe.wardrobe-panel-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#wardrobe-backdrop {
+  transition: opacity 300ms ease-out;
+  will-change: opacity;
+}
+
+#modal-wardrobe.wardrobe-panel-visible #wardrobe-backdrop {
+  opacity: 1;
+}
+
+#modal-wardrobe.wardrobe-panel-hidden #wardrobe-backdrop {
+  opacity: 0;
+}
+
+#wardrobe-panel-card {
+  transition: transform 360ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+
+#modal-wardrobe.wardrobe-panel-hidden #wardrobe-panel-card {
+  transform: translate3d(100%, 0, 0);
+}
+
+#modal-wardrobe.wardrobe-panel-visible #wardrobe-panel-card {
+  transform: translate3d(0, 0, 0);
+}
+
+@media (max-width: 639px) {
+  #wardrobe-panel-card {
+    height: 65vh;
+    margin-top: auto;
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    border-left-width: 0;
+    border-top-width: 2px;
+  }
+  #modal-wardrobe.wardrobe-panel-hidden #wardrobe-panel-card {
+    transform: translate3d(0, 100%, 0);
+  }
+  #modal-wardrobe.wardrobe-panel-visible #wardrobe-panel-card {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* 6. Reduced-motion accessibility overrides */
+@media (prefers-reduced-motion: reduce) {
+  #lobby-roster-column,
+  #lobby-settings-column,
+  #lobby-hero-column,
+  #wardrobe-panel-card,
+  #modal-wardrobe,
+  #wardrobe-backdrop {
     transition: opacity 150ms ease-out !important;
     transform: none !important;
   }

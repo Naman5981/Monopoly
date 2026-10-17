@@ -158,24 +158,25 @@ export function setFlightModeHighlights(active, boardGroup = context.boardGroup)
     flightHighlightsGroup = new THREE.Group();
     boardGroup.add(flightHighlightsGroup);
 
-    const ringGeo = new THREE.RingGeometry(1.08, 1.44, 28);
+    const ringGeo = new THREE.RingGeometry(1.08, 1.46, 32);
     BOARD_TILES.forEach(t => {
       const ringMat = new THREE.MeshBasicMaterial({
         color: 0x38bdf8,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.85
+        opacity: 0.95
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.rotation.x = -Math.PI / 2;
       const pos = getTileWorldPosition(t.id);
-      ring.position.set(pos.x, 0.45, pos.z);
+      ring.position.set(pos.x, 0.466, pos.z);
       ring.userData = { tileId: t.id };
       flightHighlightsGroup.add(ring);
     });
   }
   if (flightHighlightsGroup) {
     flightHighlightsGroup.visible = active;
+    context.flightHighlightsGroup = active ? flightHighlightsGroup : null;
   }
   if (!active) {
     BOARD_TILES.forEach(t => {
@@ -229,9 +230,14 @@ export function updateActivePlayerBeacon(t) {
   }
 
   if (flightHighlightsGroup?.visible) {
-    const pulseScale = 1 + Math.sin(t * 5.0) * 0.07;
-    const pulseOpacity = 0.55 + Math.sin(t * 4.0) * 0.35;
+    const pulseScale = 1 + Math.sin(t * 4.8) * 0.09;
+    const pulseOpacity = 0.65 + Math.sin(t * 4.8) * 0.35; // Dynamic breath: 0.30 to 1.00
     flightHighlightsGroup.children.forEach(ring => {
+      const tileId = ring.userData?.tileId;
+      const tileMesh = tileId !== undefined ? context.tilesMeshMap[tileId] : null;
+      if (tileMesh) {
+        ring.position.y = tileMesh.position.y + 0.128; // Always rests on top surface, tracks elevation
+      }
       ring.scale.set(pulseScale, pulseScale, 1);
       ring.material.opacity = pulseOpacity;
     });

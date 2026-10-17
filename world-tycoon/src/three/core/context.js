@@ -31,10 +31,12 @@ export const context = {
   tileGroundLightPools: {},
   activeTileIlluminations: {},
   activeTileDepressions: {},
+  hoveredTileId: null,
 
   // Dynamic lights
   ambientLight: null,
   dirLight: null,
+  hemiLight: null,
   tilePressPointLight: null,
 
   // Callbacks
@@ -53,5 +55,6 @@ export const context = {
     this.tileGroundLightPools = {};
     this.activeTileIlluminations = {};
     this.activeTileDepressions = {};
+    this.hoveredTileId = null;
   }
 };

@@ -10,6 +10,7 @@ import { playSFX } from '../../game/audio.js';
 import { calculatePlayerNetWorth, countCompletedColorGroups, checkLineMonopoly } from '../../game/rules.js';
 import { networkState } from '../../network/p2p.js';
 import { isLobbyScreenActive } from './common.js';
+import { animateLeaderboardGauges } from '../anim.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    LIVE LEADERBOARD & NET WORTH STANDINGS MODAL
@@ -37,14 +38,10 @@ export function renderLeaderboardModal() {
       const st = gameState.properties[t.id];
       if (st && st.owner === idx) {
         ownedPropsCount++;
-        if (st.mortgaged) {
-          propertyAssetVal += (t.price / 2);
-        } else {
-          propertyAssetVal += t.price;
-          if (st.level > 0 && t.houseCost) {
-            houseCount += st.level;
-            propertyAssetVal += st.level * t.houseCost;
-          }
+        propertyAssetVal += t.price;
+        if (st.level > 0 && t.houseCost) {
+          houseCount += st.level;
+          propertyAssetVal += st.level * t.houseCost;
         }
       }
     }
@@ -171,7 +168,7 @@ export function renderLeaderboardModal() {
         ${!st.bankrupt ? `
         <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center gap-2">
           <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-[width] duration-500" style="width: ${sharePercent}%; background:${st.theme.colorHex}"></div>
+            <div class="net-worth-bar-fill origin-left h-full rounded-full transition-[width] duration-500" style="width: ${sharePercent}%; background:${st.theme.colorHex}"></div>
           </div>
           <span class="text-[10px] font-bold text-slate-400 tabular-nums">${sharePercent}%</span>
         </div>
@@ -183,6 +180,7 @@ export function renderLeaderboardModal() {
 
   // Render post-match / in-match net worth timeline chart
   renderNetWorthTimelineChart('leaderboard-timeline-chart');
+  animateLeaderboardGauges();
 }
 
 export function openLeaderboardModal() {

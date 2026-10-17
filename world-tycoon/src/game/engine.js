@@ -32,10 +32,15 @@ import {
   showTurnLockToast,
   animateRentTransferOnHUD,
   setStatusPill,
-  refreshActivePlayerTurnStatus
+  refreshActivePlayerTurnStatus,
+  clearThinkingState
 } from '../ui/hud.js';
 import {
   openBuyCityModal,
+  openBuyoutCityModal,
+  calculateBuyoutCost,
+  openSellCitiesModal,
+  calculatePropertySaleValue,
   openUpgradeCityModal,
   openChanceWheelModal,
   registerEngineCallbacks,
@@ -49,7 +54,17 @@ import {
 import { spawnAnimatedReaction, fireConfettiBurst, stopVictoryCelebration } from '../three/effects.js';
 import { networkState, broadcastAction, registerNetworkCallbacks, broadcastReturnToLobby } from '../network/p2p.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from './persistence.js';
-import { generateProactiveBotTrade } from './trading.js';
+import {
+  animateDoublesBurstBanner,
+  animateActiveTurnSwitch,
+  animateBankruptcyQuake,
+  animateBoardingPassZoom,
+  animateFestivalPotGoldenRain,
+  animateIslandDetentionBars,
+  animateDiceSlingshotPullback,
+  animateGoSalaryStream,
+  animateIslandJailbreak
+} from '../ui/anim.js';
 
 let autoEndTurnTimer = null;
 let aiRollTimer = null;
@@ -71,7 +86,8 @@ export function initEngine() {
     spawnFloatingCash: spawnFloatingCashOnHUD,
     concludeActionPhase,
     applyChancePrize,
-    startNewMatch
+    startNewMatch,
+    terminateMatchAndReturnToLobby
   });
 
   registerNetworkCallbacks({
@@ -117,25 +133,18 @@ export function initEngine() {
         saveCurrentMatchToStorage();
       }
     },
-    onMortgageCity: (playerIdx, tileId, mortgaged) => {
+    onBuyoutCity: (playerIdx, tileId, prevOwnerIdx, buyoutCost) => {
       const st = gameState.properties[tileId];
-      const tile = BOARD_TILES[tileId];
-      const p = gameState.players[playerIdx];
-      if (st && tile && p) {
-        st.mortgaged = mortgaged;
-        if (mortgaged) {
-          const gain = tile.price / 2;
-          p.cash += gain;
-          playSFX('cash');
-          spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(gain)}`, true);
-          logEvent(`🏦 <strong>${p.name}</strong> mortgaged <strong>${tile.name}</strong> (+${fmtMoney(gain)}).`);
-        } else {
-          const cost = Math.round(tile.price * 0.55);
-          p.cash -= cost;
-          playSFX('cash');
-          spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(cost)}`, false);
-          logEvent(`🏦 <strong>${p.name}</strong> unmortgaged <strong>${tile.name}</strong> (-${fmtMoney(cost)}).`);
-        }
+      const buyer = gameState.players[playerIdx];
+      const prevOwner = gameState.players[prevOwnerIdx];
+      if (st && buyer) {
+        buyer.cash -= buyoutCost;
+        if (prevOwner) prevOwner.cash += buyoutCost;
+        st.owner = playerIdx;
+        playSFX('build');
+        spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(buyoutCost)}`, false);
+        if (prevOwner) spawnFloatingCashOnHUD(prevOwnerIdx, `+${fmtMoney(buyoutCost)}`, true);
+        logEvent(`⚔️ <strong>${buyer.name}</strong> bought out <strong>${BOARD_TILES[tileId]?.name || 'City'}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong>!`);
         refreshTileTextureAndBuildings(tileId);
         renderCornerHUDs();
         saveCurrentMatchToStorage();
@@ -218,6 +227,9 @@ export async function handleRollButtonClick() {
   const p = gameState.players[gameState.currentPlayerIdx];
   if (!p || p.isAI) return;
 
+  const rollBtn = document.getElementById('btn-center-roll') || document.getElementById('btn-bottom-roll');
+  if (rollBtn) animateDiceSlingshotPullback(rollBtn);
+
   if (networkState.isMultiplayer && gameState.currentPlayerIdx !== networkState.localPlayerIdx) {
     showTurnLockToast("Wait for your turn to roll!");
     return;
@@ -234,7 +246,7 @@ export async function handleRollButtonClick() {
 }
 
 export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
-  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+  if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   if (!p) return;
@@ -263,11 +275,16 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
   showSpeechBubble(`Rolled ${d1} + ${d2} = ${total}${isDoubles ? ' (DOUBLES!)' : ''}`, 2200);
   logEvent(`🎲 <strong>${p.name}</strong> rolled <strong>${d1} + ${d2} = ${total}</strong>.`);
 
+  if (isDoubles) {
+    animateDoublesBurstBanner(p.name);
+  }
+
   // Check Tropical Island Detention
   if (p.inIsland) {
     if (isDoubles) {
       p.inIsland = false;
       p.islandTurns = 0;
+      animateIslandJailbreak(pIdx);
       logEvent(`🏝️ <strong>${p.name}</strong> rolled doubles and escaped the Island!`);
     } else {
       p.islandTurns++;
@@ -277,6 +294,7 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
         p.cash -= 150000;
         gameState.festivalPot += 150000;
         spawnFloatingCashOnHUD(pIdx, '-150K Bail', false);
+        animateIslandJailbreak(pIdx);
         triggerTokenHurtAnimation(pIdx);
         logEvent(`🏝️ <strong>${p.name}</strong> paid 150K after 3 turns on the Island.`);
       } else {
@@ -314,6 +332,7 @@ export async function hopPlayerSteps3D(playerIdx, steps) {
       playSFX('cash');
       spawnAnimatedReaction('cash');
       spawnFloatingCashOnHUD(playerIdx, '+300K Passed START', true);
+      animateGoSalaryStream(playerIdx, '+300K');
       logEvent(`🚩 <strong>${p.name}</strong> passed START and collected <strong>300K</strong> salary!`);
       renderCornerHUDs();
     }
@@ -354,10 +373,94 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
         openBuyCityModal(tile, isDoubles);
         return;
       }
-    } else if (st.owner !== playerIdx && !st.mortgaged) {
+    } else if (st.owner !== playerIdx) {
       const rent = calculateTileRent(tile.id);
       const owner = gameState.players[st.owner];
 
+      // Check if player has enough cash to pay rent
+      if (p.cash < rent) {
+        const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
+
+        if (owned.length > 0) {
+          // Debtor owns cities: MUST liquidate cities to pay rent
+          if (p.isAI) {
+            setStatusPill(`💸 <strong>${p.name}</strong> is selling cities to pay rent to <strong>${owner.name}</strong>...`, { isThinking: true, playerIdx });
+            logEvent(`💸 <strong>${p.name}</strong> is selling properties to pay <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
+            await new Promise(r => setTimeout(r, getGameDelay(700)));
+
+            // AI liquidates cheapest cities until cash >= rent
+            while (p.cash < rent) {
+              const currentOwned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
+              if (currentOwned.length === 0) break;
+              currentOwned.sort((a, b) => {
+                const vA = calculatePropertySaleValue(a, gameState.properties[a.id]);
+                const vB = calculatePropertySaleValue(b, gameState.properties[b.id]);
+                return vA - vB;
+              });
+              const cheapest = currentOwned[0];
+              const cSt = gameState.properties[cheapest.id];
+              const sVal = calculatePropertySaleValue(cheapest, cSt);
+              cSt.owner = null;
+              cSt.level = 0;
+              p.cash += sVal;
+              refreshTileTextureAndBuildings(cheapest.id);
+              logEvent(`⚡ <strong>${p.name}</strong> sold <strong>${cheapest.name}</strong> for <strong>${fmtMoney(sVal)}</strong> to pay rent.`);
+            }
+            renderCornerHUDs();
+            clearThinkingState();
+
+            // After AI liquidation, pay rent or handle strike
+            if (p.cash >= rent) {
+              await animateRentTransferOnHUD(playerIdx, st.owner, rent);
+              p.cash -= rent;
+              owner.cash += rent;
+              logEvent(`💸 <strong>${p.name}</strong> settled <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
+              renderCornerHUDs();
+              concludeActionPhase(isDoubles);
+              return;
+            } else {
+              // Liquidated all cities but still not enough money for rent -> transfer all money to owner and bankrupt
+              const paid = Math.max(0, p.cash);
+              p.cash = 0;
+              owner.cash += paid;
+              p.bankrupt = true;
+              playSFX('bankrupt');
+              logEvent(`💥 <strong>${p.name}</strong> sold all cities, paid remaining <strong>${fmtMoney(paid)}</strong> to <strong>${owner.name}</strong>, but still cannot afford <strong>${fmtMoney(rent)}</strong> rent. <strong>BANKRUPT!</strong>`);
+              renderCornerHUDs();
+              animateBankruptcyQuake(playerIdx);
+              concludeActionPhase(isDoubles);
+              return;
+            }
+          } else {
+            // Human player:
+            if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
+              // Peer is selling cities
+              showSpeechBubble(`${p.name} is selling cities to pay rent...`, 3000);
+              logEvent(`💸 <strong>${p.name}</strong> is selling cities to pay rent to <strong>${owner.name}</strong>.`);
+              return;
+            }
+            // Local human debtor: Only this player sees modal
+            logEvent(`💸 <strong>${p.name}</strong> owes <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong> and must liquidate properties.`);
+            openSellCitiesModal(tile, rent, st.owner, isDoubles);
+            return;
+          }
+        } else {
+          // Debtor owns 0 cities and cash < rent -> give all money to owner, then bankrupt immediately!
+          const paid = Math.max(0, p.cash);
+          p.cash = 0;
+          owner.cash += paid;
+          p.bankrupt = true;
+          playSFX('bankrupt');
+          showSpeechBubble(`Bankrupt! 💥`, 2500);
+          logEvent(`💥 <strong>${p.name}</strong> has no cities to sell, transferred all remaining <strong>${fmtMoney(paid)}</strong> to <strong>${owner.name}</strong> for <strong>${fmtMoney(rent)}</strong> rent. <strong>BANKRUPT!</strong>`);
+          renderCornerHUDs();
+          animateBankruptcyQuake(playerIdx);
+          concludeActionPhase(isDoubles);
+          return;
+        }
+      }
+
+      // Solvency confirmed: Player has cash >= rent
       showSpeechBubble(`Ouch! Paying ${fmtMoney(rent)} rent to ${owner.name}!`, 3000);
       logEvent(`💸 <strong>${p.name}</strong> landed on <strong>${tile.name}</strong> and transferred <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
 
@@ -367,14 +470,30 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
       p.cash -= rent;
       owner.cash += rent;
 
-      checkAndHandleNegativeCash(playerIdx, {
-        onRefreshTile: refreshTileTextureAndBuildings,
-        onLog: logEvent
-      });
       renderCornerHUDs();
+
+      // Check Hostile Buyout Eligibility
+      const buyoutCost = calculateBuyoutCost(tile, st);
+      if (buyoutCost > 0 && p.cash >= buyoutCost) {
+        if (p.isAI) {
+          await handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles);
+          return;
+        } else {
+          if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
+            showSpeechBubble(`${p.name} is considering a buyout of ${tile.name}...`, 3000);
+            return;
+          }
+          openBuyoutCityModal(tile, isDoubles);
+          return;
+        }
+      }
     } else if (st.owner === playerIdx) {
       if (tile.type === 'city') {
-        if (p.isAI) {
+        if (st.level >= 4) {
+          const rent = calculateTileRent(tile.id);
+          showSpeechBubble(`Inspecting your maxed Skyscraper in ${tile.name}! 👑🏆`, 2200);
+          logEvent(`👑 <strong>${p.name}</strong> visited their maxed <strong>Skyscraper</strong> in <strong>${tile.name}</strong> (Generating <strong>${fmtMoney(rent)}</strong> rent).`);
+        } else if (p.isAI) {
           await handleAIOwnedCityLanding(playerIdx, tile, isDoubles);
           return;
         } else {
@@ -421,6 +540,7 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
     showSpeechBubble('Detained on Tropical Island! 🏝️', 2200);
     logEvent(`🏝️ <strong>${p.name}</strong> landed on the <strong>ISLAND</strong>!`);
     renderCornerHUDs();
+    animateIslandDetentionBars(playerIdx);
     concludeActionPhase(false);
     return;
   } else if (tile.type === 'festival') {
@@ -430,6 +550,7 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
       gameState.festivalPot = 0;
       playSFX('cash');
       spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(jackpot)} Festival!`, true);
+      animateFestivalPotGoldenRain(playerIdx);
       logEvent(`🎉 <strong>${p.name}</strong> won the <strong>${fmtMoney(jackpot)}</strong> Festival Jackpot!`);
     }
     const myCities = BOARD_TILES.filter(t => t.type === 'city' && gameState.properties[t.id]?.owner === playerIdx);
@@ -475,6 +596,11 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
 }
 
 export async function executeWorldTourFlight(destTileId, isRemote = false, explicitPlayerIdx = null) {
+  if (typeof destTileId !== 'number' || destTileId < 0 || destTileId >= BOARD_TILES.length) {
+    console.warn('[WorldTour] Invalid destination tile:', destTileId);
+    return;
+  }
+
   setFlightModeHighlights(false);
   document.getElementById('world-tour-banner')?.classList.add('hidden');
   document.getElementById('world-tour-banner')?.classList.remove('flex');
@@ -492,24 +618,41 @@ export async function executeWorldTourFlight(destTileId, isRemote = false, expli
 
   showSpeechBubble(`✈️ Flying to ${BOARD_TILES[destTileId].name}...`, 3500);
   logEvent(`✈️ <strong>${p.name}</strong> took off on flight toward <strong>${BOARD_TILES[destTileId].name}</strong>!`);
+  animateBoardingPassZoom(BOARD_TILES[destTileId].name);
 
   playSFX('flight');
   setTileHighlightRing(destTileId, true);
 
   const startPos = p.position;
-  const crossesStart = (destTileId < startPos) || (startPos === 24 && destTileId === 0);
+  const totalSteps = (destTileId - startPos + 32) % 32;
 
-  if (startPos !== destTileId) {
-    await flyPlayerDirectFlightAnimation(pIdx, startPos, destTileId, () => {
-      if (crossesStart) {
-        p.cash += 300000;
-        playSFX('cash');
-        spawnAnimatedReaction('cash');
-        spawnFloatingCashOnHUD(pIdx, '+300K Passed START', true);
-        logEvent(`🚩 <strong>${p.name}</strong> flew past START and collected <strong>300K</strong> bonus!`);
-        renderCornerHUDs();
+  try {
+    if (totalSteps > 0) {
+      for (let s = 0; s < totalSteps; s++) {
+        if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+        const curTileId = (startPos + s) % 32;
+        const nextTileId = (startPos + s + 1) % 32;
+        const curWorldPos = getTileWorldPosition(curTileId);
+        const nextWorldPos = getTileWorldPosition(nextTileId);
+        p.position = nextTileId;
+
+        await flyPlayerStepAnimation(pIdx, curWorldPos, nextWorldPos, s, totalSteps, nextTileId);
+        if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+
+        // Passing START bonus (+300K) — only on intermediate passing, not final landing on START
+        if (p.position === 0 && s < totalSteps - 1) {
+          p.cash += 300000;
+          playSFX('cash');
+          spawnAnimatedReaction('cash');
+          spawnFloatingCashOnHUD(pIdx, '+300K Passed START', true);
+          animateGoSalaryStream(pIdx, '+300K');
+          logEvent(`🚩 <strong>${p.name}</strong> passed START on World Tour and collected <strong>300K</strong> salary!`);
+          renderCornerHUDs();
+        }
       }
-    });
+    }
+  } catch (err) {
+    console.error('[WorldTour] Flight animation error, recovering token position:', err);
   }
 
   p.position = destTileId;
@@ -517,8 +660,11 @@ export async function executeWorldTourFlight(destTileId, isRemote = false, expli
   updatePlayerTokenPositions3D();
   playSFX('hop');
   showSpeechBubble(`🛬 Landed in ${BOARD_TILES[destTileId].name}!`, 2200);
-  setTimeout(() => setTileHighlightRing(destTileId, false), 900);
+  setTileHighlightRing(destTileId, false);
   renderCornerHUDs();
+
+  gameState.upgradesThisVisit = 0;
+  await new Promise(r => setTimeout(r, Math.max(120, Math.round(350 / (matchSettings.gameSpeed || 1)))));
 
   await evaluateTileLanding(pIdx, false);
 }
@@ -543,7 +689,11 @@ async function handleAICityDecision(playerIdx, tile, isDoubles) {
     if (tile.group) {
       checkAndTriggerMonopoly(playerIdx, tile.group);
     }
+  } else {
+    showSpeechBubble(`Passed on ${tile.name}`, 1500);
+    logEvent(`⏭️ <strong>${p.name}</strong> passed on buying <strong>${tile.name}</strong>.`);
   }
+  clearThinkingState();
   concludeActionPhase(isDoubles);
 }
 
@@ -556,12 +706,47 @@ async function handleAIOwnedCityLanding(playerIdx, tile, isDoubles) {
   await new Promise(r => setTimeout(r, getGameDelay(700)));
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
-  if (st && !st.mortgaged && st.level < 4 && p.cash >= tile.houseCost + 200000) {
+  if (st && st.level < 4 && p.cash >= tile.houseCost + 200000) {
     upgradeCityLevel(tile.id, true);
     showSpeechBubble(`Upgraded ${tile.name} to Level ${st.level}! 🏗️`, 2200);
   } else {
     showSpeechBubble(`Inspecting ${tile.name}! 👑`, 1800);
   }
+  clearThinkingState();
+  concludeActionPhase(isDoubles);
+}
+
+async function handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles) {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+  const p = gameState.players[playerIdx];
+  if (!p) return;
+  const prevOwnerIdx = st.owner;
+  const prevOwner = gameState.players[prevOwnerIdx];
+
+  setStatusPill(`🤔 <strong>${p.name}</strong> is considering buying out <strong>${tile.name}</strong>...`, { isThinking: true, playerIdx });
+  await new Promise(r => setTimeout(r, getGameDelay(750)));
+  if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+
+  if (p.cash >= buyoutCost + 200000) {
+    p.cash -= buyoutCost;
+    if (prevOwner) {
+      prevOwner.cash += buyoutCost;
+      spawnFloatingCashOnHUD(prevOwnerIdx, `+${fmtMoney(buyoutCost)}`, true);
+    }
+    st.owner = playerIdx;
+    playSFX('build');
+    spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(buyoutCost)}`, false);
+    showSpeechBubble(`Bought out ${tile.name}! ⚔️`, 2200);
+    logEvent(`⚔️ <strong>${p.name}</strong> executed a hostile buyout of <strong>${tile.name}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong> for <strong>${fmtMoney(buyoutCost)}</strong>!`);
+    refreshTileTextureAndBuildings(tile.id);
+    renderCornerHUDs();
+    if (tile.group) {
+      checkAndTriggerMonopoly(playerIdx, tile.group);
+    }
+  } else {
+    showSpeechBubble(`Passed on buyout for ${tile.name}`, 1500);
+  }
+  clearThinkingState();
   concludeActionPhase(isDoubles);
 }
 
@@ -641,6 +826,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       p.cash += salary;
       playSFX('cash');
       spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(salary)} START`, true);
+      animateGoSalaryStream(playerIdx, fmtMoney(salary));
       logEvent(`💰 <strong>${p.name}</strong> landed on <strong>START</strong> and collected <strong>${fmtMoney(salary)}</strong> salary.`);
     } else {
       showSpeechBubble(`✈️ Flying to ${BOARD_TILES[dest]?.name || 'Destination'}!`, 2500);
@@ -663,6 +849,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
 }
 
 export function concludeActionPhase(isDoubles) {
+  if (gameState.phase === 'VICTORY') return;
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
 
@@ -674,10 +861,11 @@ export function concludeActionPhase(isDoubles) {
     return;
   }
 
-  if (!gameState.gameStarted || gameState.phase === 'SETUP') {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') {
     cancelAllGameTimers();
     return;
   }
+  clearThinkingState();
   saveCurrentMatchToStorage();
 
   if (isDoubles && !p.inIsland && !p.bankrupt && gameState.doublesCount < 2) {
@@ -693,7 +881,7 @@ export function concludeActionPhase(isDoubles) {
       if (aiRollTimer) clearTimeout(aiRollTimer);
       aiRollTimer = setTimeout(() => {
         aiRollTimer = null;
-        if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+        if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
         executePlayerRoll();
       }, getGameDelay(1350));
     }
@@ -709,7 +897,7 @@ export function concludeActionPhase(isDoubles) {
     }
     autoEndTurnTimer = setTimeout(() => {
       autoEndTurnTimer = null;
-      if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+      if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
       advanceTurn();
     }, getGameDelay(1150));
   } else {
@@ -717,7 +905,7 @@ export function concludeActionPhase(isDoubles) {
     updateRollButtonsUI(isHumanTurnActionable());
     autoEndTurnTimer = setTimeout(() => {
       autoEndTurnTimer = null;
-      if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
+      if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
       if (gameState.phase === 'END') {
         advanceTurn();
       }
@@ -726,11 +914,12 @@ export function concludeActionPhase(isDoubles) {
 }
 
 export function advanceTurn(isRemote = false, forcedNextIdx = null) {
-  if (!gameState.gameStarted || gameState.phase === 'SETUP') {
+  if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') {
     cancelAllGameTimers();
     return;
   }
   cancelAllGameTimers();
+  clearThinkingState();
 
   const total = gameState.players.length;
   let next = forcedNextIdx !== null ? forcedNextIdx : (gameState.currentPlayerIdx + 1) % total;
@@ -750,6 +939,7 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
   recordNetWorthSnapshot();
 
   renderCornerHUDs();
+  animateActiveTurnSwitch(next);
   updateRollButtonsUI(isHumanTurnActionable());
   saveCurrentMatchToStorage();
 
@@ -857,11 +1047,16 @@ export function handlePayIslandBail() {
   p.islandTurns = 0;
   playSFX('cash');
   spawnFloatingCashOnHUD(pIdx, '-150K Bail', false);
+  animateIslandJailbreak(pIdx);
   triggerTokenHurtAnimation(pIdx);
   showSpeechBubble('Paid 150K Island Bail!', 1800);
   renderCornerHUDs();
   updateRollButtonsUI(isHumanTurnActionable());
   saveCurrentMatchToStorage();
+
+  if (networkState.isMultiplayer) {
+    broadcastAction('ACTION_PAY_BAIL', { playerIdx: pIdx });
+  }
 }
 
 /**

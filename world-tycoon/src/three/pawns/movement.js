@@ -5,7 +5,7 @@
  */
 
 import { context } from '../core/context.js';
-import { getTileFacingAngle, BASE_BUILDING_Y } from '../board/coords.js';
+import { getTileFacingAngle, getTileWorldPosition, BASE_BUILDING_Y } from '../board/coords.js';
 import { triggerTileButtonPress, setMovingHopDestTileId } from '../board/tilePress.js';
 import { updateSpeechBubbleScreenPosition } from './speech.js';
 import { matchSettings } from '../../game/state.js';
@@ -269,15 +269,21 @@ export function flyPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
       { x: 0.52, z: 0.0 }
     ];
     const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
-    const flyDuration = totalSteps > 14 ? 145 : (totalSteps > 7 ? 175 : 215);
+    const speed = matchSettings.gameSpeed || 1;
+    const baseDuration = totalSteps > 14 ? 120 : (totalSteps > 7 ? 150 : 190);
+    const flyDuration = Math.max(50, Math.round(baseDuration / speed));
     const flyStart = performance.now();
     let pressedTriggered = false;
+
+    const dx = endPos.x - startPos.x;
+    const dz = endPos.z - startPos.z;
+    const heading = Math.atan2(dx, dz);
 
     function stepFly(now) {
       const rawT = Math.min(1, (now - flyStart) / flyDuration);
       const easeT = -(Math.cos(Math.PI * rawT) - 1) / 2;
-      const curX = startPos.x + (endPos.x - startPos.x) * easeT + off.x;
-      const curZ = startPos.z + (endPos.z - startPos.z) * easeT + off.z;
+      const curX = startPos.x + dx * easeT + off.x;
+      const curZ = startPos.z + dz * easeT + off.z;
       const isFinalTouchdown = (step === totalSteps - 1);
 
       let flightAltitude;
@@ -301,7 +307,14 @@ export function flyPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
 
       if (mesh) {
         mesh.position.set(curX, BASE_BUILDING_Y + flightAltitude + (isFinalTouchdown && rawT > 0.8 ? tilePressOffset : 0), curZ);
-        mesh.rotation.y = getTileFacingAngle(destTileId);
+
+        const destFacing = getTileFacingAngle(destTileId);
+        if (isFinalTouchdown && rawT > 0.65) {
+          const landFactor = Math.max(0, (1 - rawT) / 0.35);
+          mesh.rotation.y = destFacing + (heading - destFacing) * landFactor;
+        } else {
+          mesh.rotation.y = heading;
+        }
 
         const ud = mesh.userData;
         if (ud?.armGroupL && ud?.armGroupR) {

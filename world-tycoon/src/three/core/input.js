@@ -87,6 +87,14 @@ export function findIntersectedTileId() {
     ];
   }
 
+  if (context.flightHighlightsGroup && context.flightHighlightsGroup.visible) {
+    const flightHits = context.raycaster.intersectObjects(context.flightHighlightsGroup.children, true);
+    if (flightHits.length > 0) {
+      const tileId = getIntersectedTileId(flightHits);
+      if (tileId !== undefined) return tileId;
+    }
+  }
+
   if (cachedTargets.length > 0) {
     const intersects = context.raycaster.intersectObjects(cachedTargets, true);
     if (intersects.length > 0) {
@@ -112,6 +120,7 @@ export function handleCanvasHover(event) {
 
   const tileId = findIntersectedTileId();
   if (tileId !== undefined) {
+    context.hoveredTileId = tileId;
     const tile = BOARD_TILES[tileId];
     if (tile) {
       // Tactile button hover response: elevate hovered tile (0.24 in World Tour, 0.08 in standard play)
@@ -150,7 +159,7 @@ export function handleCanvasHover(event) {
 
       let detailsHtml = '';
       if (tile.type === 'city' || tile.type === 'resort') {
-        const curRent = (st?.owner !== null && st?.owner !== undefined && !st.mortgaged)
+        const curRent = (st?.owner !== null && st?.owner !== undefined)
           ? fmtMoney(calculateTileRent(tileId))
           : fmtMoney(tile.rent[0]);
         detailsHtml = `<div class="flex justify-between gap-4 text-xs text-slate-200 mt-1.5"><span>Price: <strong class="text-white font-bold">${fmtMoney(tile.price)}</strong></span><span>Rent: <strong class="text-emerald-400 font-bold">${curRent}</strong></span></div><div class="text-xs text-slate-200 mt-1">Owner: <strong class="text-white font-bold">${ownerText}</strong></div>`;
@@ -168,6 +177,7 @@ export function handleCanvasHover(event) {
   }
 
   // Pointer moved away: smoothly reset hover elevation offsets
+  context.hoveredTileId = null;
   BOARD_TILES.forEach(t => {
     if (context.activeTileDepressions[t.id] && context.activeTileDepressions[t.id].targetOffset > 0) {
       context.activeTileDepressions[t.id].targetOffset = 0;

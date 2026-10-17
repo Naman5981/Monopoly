@@ -8,13 +8,13 @@ import { gameState, displayedCash, matchSettings, matchSeconds } from './state.j
 import { fmtMoney } from './utils.js';
 import { playSFX } from './audio.js';
 
-/** Check whether a player owns every city in a colour group (none mortgaged). */
+/** Check whether a player owns every city in a colour group. */
 export function ownsFullColorGroup(playerIdx, groupKey) {
   if (!groupKey) return false;
   const tiles = BOARD_TILES.filter(t => t.type === 'city' && t.group === groupKey);
   return tiles.length > 0 && tiles.every(t => {
     const st = gameState.properties[t.id];
-    return st && st.owner === playerIdx && !st.mortgaged;
+    return st && st.owner === playerIdx;
   });
 }
 
@@ -22,7 +22,7 @@ export function ownsFullColorGroup(playerIdx, groupKey) {
 export function calculateTileRent(tileId) {
   const tile = BOARD_TILES[tileId];
   const st = gameState.properties[tileId];
-  if (!tile || !st || st.owner === null || st.mortgaged) return 0;
+  if (!tile || !st || st.owner === null) return 0;
 
   if (tile.type === 'resort') {
     const ownedResorts = BOARD_TILES.filter(
@@ -38,7 +38,7 @@ export function calculateTileRent(tileId) {
 }
 
 /**
- * Auto-liquidate buildings / mortgage to cover a debt, then declare bankruptcy
+ * Auto-liquidate buildings to cover a debt, then declare bankruptcy
  * if still insolvent.
  * Returns false if the player went bankrupt.
  */
@@ -55,15 +55,6 @@ export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks) {
       refreshCallbacks?.onRefreshTile?.(t.id);
     }
   }
-  for (const t of BOARD_TILES) {
-    const st = gameState.properties[t.id];
-    if (p.cash < 0 && st && st.owner === playerIdx && !st.mortgaged) {
-      const gain = t.price / 2;
-      st.mortgaged = true;
-      p.cash += gain;
-      refreshCallbacks?.onRefreshTile?.(t.id);
-    }
-  }
 
   if (p.cash < 0) {
     p.bankrupt = true;
@@ -73,7 +64,6 @@ export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks) {
       if (st && st.owner === playerIdx) {
         st.owner = null;
         st.level = 0;
-        st.mortgaged = false;
         refreshCallbacks?.onRefreshTile?.(t.id);
       }
     });
@@ -112,7 +102,7 @@ export function checkLineMonopoly(playerIdx) {
     const sideTiles = sides[s];
     const ownsAll = sideTiles.every(id => {
       const st = gameState.properties[id];
-      return st && st.owner === playerIdx && !st.mortgaged;
+      return st && st.owner === playerIdx;
     });
     if (ownsAll) {
       return s + 1; // Side 1..4
@@ -121,7 +111,7 @@ export function checkLineMonopoly(playerIdx) {
   return 0;
 }
 
-/** Calculate player's total net worth (Cash + Unmortgaged Properties + Upgrades + Mortgaged half values). */
+/** Calculate player's total net worth (Cash + Properties + Upgrades). */
 export function calculatePlayerNetWorth(playerIdx) {
   const p = gameState.players && gameState.players[playerIdx];
   if (!p || p.bankrupt) return 0;
@@ -129,13 +119,9 @@ export function calculatePlayerNetWorth(playerIdx) {
   for (const t of BOARD_TILES) {
     const st = gameState.properties[t.id];
     if (st && st.owner === playerIdx) {
-      if (st.mortgaged) {
-        netWorth += (t.price / 2);
-      } else {
-        netWorth += t.price;
-        if (st.level > 0 && t.houseCost) {
-          netWorth += st.level * t.houseCost;
-        }
+      netWorth += t.price;
+      if (st.level > 0 && t.houseCost) {
+        netWorth += st.level * t.houseCost;
       }
     }
   }

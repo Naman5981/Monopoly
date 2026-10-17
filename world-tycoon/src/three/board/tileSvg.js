@@ -11,6 +11,7 @@ import { gameState, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { calculateTileRent } from '../../game/rules.js';
 import { getTileWorldPosition } from './coords.js';
+import { currentBulbMode } from '../core/lighting.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SHARED SVG EMBEDDED VECTOR PATHS & ICONS (Resolution-Independent)
@@ -35,6 +36,10 @@ export const SVG_PATHS = {
 function getBoardThemeStyles(boardStyle, propState, isOwned) {
   const isCyber = boardStyle === 'cyberpunk';
   const isElegant = boardStyle === 'elegant';
+  const bulbMode = currentBulbMode || matchSettings?.lightingTheme || 'day';
+  const isNight = bulbMode === 'night';
+  const isSunset = bulbMode === 'sunset';
+  const isDay = !isNight && !isSunset;
 
   let bgFill = '#ffffff';
   let textPrimary = '#0f172a';
@@ -44,24 +49,30 @@ function getBoardThemeStyles(boardStyle, propState, isOwned) {
   let boxBorder = '#e2e8f0';
 
   if (isCyber) {
-    bgFill = propState?.mortgaged ? '#0e1726' : '#080d1a';
+    bgFill = '#080d1a';
     textPrimary = '#ffffff';
     textSecondary = '#94a3b8';
     cardBorder = '#00f5ff';
     boxFill = 'rgba(15, 23, 42, 0.75)';
     boxBorder = '#1e293b';
   } else if (isElegant) {
-    bgFill = propState?.mortgaged ? '#f1f5f9' : '#fafaf9';
+    bgFill = '#fafaf9';
     textPrimary = '#1c1917';
     textSecondary = '#78716c';
     cardBorder = '#d4af37';
     boxFill = '#fdfbf7';
     boxBorder = '#f5eedb';
+  } else if (isNight && isOwned) {
+    // Dark background so white neon text is visible at night
+    bgFill = '#0f172a';
+  } else if (isSunset && isOwned) {
+    // Deep warm dusk background for sunset neon
+    bgFill = '#1a0a2e';
   } else {
-    bgFill = propState?.mortgaged ? '#e2e8f0' : '#ffffff';
+    bgFill = '#ffffff';
   }
 
-  return { isCyber, isElegant, bgFill, textPrimary, textSecondary, cardBorder, boxFill, boxBorder };
+  return { isCyber, isElegant, isNight, isSunset, isDay, bgFill, textPrimary, textSecondary, cardBorder, boxFill, boxBorder };
 }
 
 function getTileRotationAngle(tileId) {
@@ -123,173 +134,122 @@ function renderTileOuterBorder(isOwned, ownerTheme, styles) {
 }
 
 /**
- * Generates mortgage overlay banner SVG if property is mortgaged.
+ * Generates mortgage overlay banner SVG (Mortgage feature removed).
  */
 function renderMortgageOverlay(isMortgaged) {
-  if (!isMortgaged) return '';
-  return `
-    <!-- Mortgage Overlay Banner -->
-    <g transform="translate(26, 215)">
-      <rect width="460" height="92" rx="14" fill="rgba(225, 29, 72, 0.96)" stroke="#ffffff" stroke-width="5" />
-      <g transform="translate(56, 32) scale(1.2)" fill="#ffffff">
-        <path d="${SVG_PATHS.lock}" />
-      </g>
-      <text x="240" y="58" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="44" fill="#ffffff" text-anchor="middle" letter-spacing="3">MORTGAGED</text>
-    </g>
-  `;
+  return '';
 }
 
 /**
  * Generates City Tile SVG Vector Template.
+ * Minimalist layout inspired by reference design:
+ * - Cadastral architectural grid
+ * - Top group color strip
+ * - City Name (glows in the colour of the city when bought)
+ * - Amount: Buy Price when unowned, ONLY Current Rent when bought
  */
 function renderCityTileSvg(tile, propState, styles, isOwned, ownerTheme, ownerName) {
   const groupColor = tile.group && GROUP_META[tile.group] ? GROUP_META[tile.group].hex : '#38bdf8';
   const nameLen = tile.name.length;
-  const nameFontSize = nameLen <= 6 ? 64 : (nameLen <= 9 ? 54 : (nameLen <= 11 ? 46 : 40));
-  const lvl = propState?.level || 0;
+  const nameFontSize = nameLen <= 6 ? 66 : (nameLen <= 9 ? 56 : (nameLen <= 11 ? 46 : 38));
 
-  let progressionContent = '';
+  // Value: Buy Price when unowned, Current Rent when bought
+  let valStr;
   if (isOwned) {
-    // Owner Plaque + 4 Upgrade Slots (H1, H2, H3, SKY)
-    let slotsMarkup = '';
-    for (let i = 0; i < 3; i++) {
-      const slotX = 36 + i * 112;
-      const isActive = lvl >= i + 1;
-      const fill = isActive ? '#10b981' : (styles.isCyber ? 'rgba(255,255,255,0.06)' : '#f1f5f9');
-      const stroke = isActive ? '#ffffff' : (styles.isCyber ? 'rgba(255,255,255,0.16)' : '#cbd5e1');
-      const textFill = isActive ? '#ffffff' : (styles.isCyber ? '#64748b' : '#94a3b8');
-      const iconFill = isActive ? '#ffffff' : (styles.isCyber ? '#64748b' : '#94a3b8');
-
-      slotsMarkup += `
-        <rect x="${slotX}" y="236" width="104" height="42" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${isActive ? 2 : 1.5}" />
-        <g transform="translate(${slotX + 16}, 245) scale(0.9)" fill="${iconFill}">
-          <path d="${SVG_PATHS.house}" />
-        </g>
-        <text x="${slotX + 64}" y="263" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="19" fill="${textFill}" text-anchor="middle">H${i + 1}</text>
-      `;
-    }
-
-    // Slot 4: Skyscraper
-    const skyX = 372;
-    const isSkyActive = lvl >= 4;
-    const skyFill = isSkyActive ? '#8b5cf6' : (styles.isCyber ? 'rgba(255,255,255,0.06)' : '#f1f5f9');
-    const skyStroke = isSkyActive ? '#ffffff' : (styles.isCyber ? 'rgba(255,255,255,0.16)' : '#cbd5e1');
-    const skyTextFill = isSkyActive ? '#ffffff' : (styles.isCyber ? '#64748b' : '#94a3b8');
-    const skyIconFill = isSkyActive ? '#ffffff' : (styles.isCyber ? '#64748b' : '#94a3b8');
-
-    slotsMarkup += `
-      <rect x="${skyX}" y="236" width="104" height="42" rx="10" fill="${skyFill}" stroke="${skyStroke}" stroke-width="${isSkyActive ? 2 : 1.5}" />
-      <g transform="translate(${skyX + 14}, 244) scale(0.95)" fill="${skyIconFill}">
-        <path d="${SVG_PATHS.skyscraper}" />
-      </g>
-      <text x="${skyX + 66}" y="263" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="18" fill="${skyTextFill}" text-anchor="middle">SKY</text>
-    `;
-
-    progressionContent = `
-      <!-- Owner Plaque Banner -->
-      <g transform="translate(36, 180)">
-        <rect width="440" height="46" rx="14" fill="${ownerTheme.colorHex}" stroke="#ffffff" stroke-width="2" />
-        <g transform="translate(68, 11) scale(1.0)" fill="#ffffff">
-          <path d="${SVG_PATHS.crown}" />
-        </g>
-        <text x="235" y="31" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="24" fill="#ffffff" text-anchor="middle">${escapeXml(ownerName)}</text>
-      </g>
-      ${slotsMarkup}
-    `;
+    const rentAmt = calculateTileRent(tile.id);
+    valStr = fmtMoney(rentAmt);
   } else {
-    // Unowned: House Potential & Build Cost Container
-    let previewSlotsMarkup = '';
-    const previewLabels = ['H1', 'H2', 'H3', 'SKY'];
-    for (let i = 0; i < 4; i++) {
-      const pX = 52 + i * 104;
-      const isSky = i === 3;
-      const iconPath = isSky ? SVG_PATHS.skyscraper : SVG_PATHS.house;
-      previewSlotsMarkup += `
-        <rect x="${pX}" y="234" width="96" height="32" rx="8" fill="${styles.isCyber ? 'rgba(30, 41, 59, 0.65)' : '#e2e8f0'}" stroke="${styles.isCyber ? '#334155' : '#cbd5e1'}" stroke-width="1" />
-        <g transform="translate(${pX + 12}, 240) scale(0.7)" fill="${styles.isCyber ? '#94a3b8' : '#475569'}">
-          <path d="${iconPath}" />
-        </g>
-        <text x="${pX + 54}" y="255" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="15" fill="${styles.isCyber ? '#94a3b8' : '#475569'}" text-anchor="middle">${previewLabels[i]}</text>
-      `;
-    }
-
-    progressionContent = `
-      <g transform="translate(36, 180)">
-        <rect width="440" height="98" rx="16" fill="${styles.boxFill}" stroke="${styles.boxBorder}" stroke-width="2" />
-        <g transform="translate(42, 16) scale(0.9)" fill="${styles.isCyber ? '#38bdf8' : '#0284c7'}">
-          <path d="${SVG_PATHS.crane}" />
-        </g>
-        <text x="235" y="35" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="22" fill="${styles.isCyber ? '#38bdf8' : '#0284c7'}" text-anchor="middle">BUILD HOUSE: +${fmtMoney(tile.houseCost || 0)}</text>
-      </g>
-      ${previewSlotsMarkup}
-    `;
+    valStr = fmtMoney(tile.price);
   }
 
-  // Rent / Price Showcase & Footer
-  let showcaseContent = '';
-  if (isOwned) {
-    const rentAmt = propState?.mortgaged ? 0 : calculateTileRent(tile.id);
-    const rentStr = fmtMoney(rentAmt);
-    const rentFontSize = rentStr.length > 8 ? 72 : 84;
-    const rentColor = styles.isCyber ? '#38bdf8' : '#047857';
+  const valLen = valStr.length;
+  const valFontSize = valLen <= 4 ? 116 : (valLen <= 5 ? 102 : (valLen <= 6 ? 88 : 74));
 
-    let footerPill = '';
-    if (propState?.festivalBoost) {
-      footerPill = `
-        <rect x="36" y="436" width="440" height="50" rx="14" fill="${styles.isCyber ? 'rgba(236, 72, 153, 0.22)' : '#fdf2f8'}" stroke="#ec4899" stroke-width="2" />
-        <text x="256" y="468" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="21" fill="#db2777" text-anchor="middle">★ FESTIVAL 2X RENT ACTIVE ★</text>
-      `;
-    } else if (propState?.mortgaged) {
-      footerPill = `
-        <rect x="36" y="436" width="440" height="50" rx="14" fill="#fef2f2" stroke="#ef4444" stroke-width="2" />
-        <text x="256" y="468" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="21" fill="#dc2626" text-anchor="middle">MORTGAGED — NO RENT</text>
-      `;
-    } else if (lvl === 4) {
-      footerPill = `
-        <rect x="36" y="436" width="440" height="50" rx="14" fill="${styles.isCyber ? 'rgba(168, 85, 247, 0.22)' : '#faf5ff'}" stroke="#a855f7" stroke-width="2" />
-        <text x="256" y="468" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="21" fill="#7c3aed" text-anchor="middle">★ MAX LEVEL SKYSCRAPER ★</text>
+  // Architectural Cadastral Grid (inspired by reference image)
+  const gridStroke = styles.isCyber ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.045)';
+  const gridMarkup = `
+    <!-- Architectural Cadastral Grid -->
+    <g stroke="${gridStroke}" stroke-width="1.5">
+      <line x1="120" y1="78" x2="120" y2="488" />
+      <line x1="216" y1="78" x2="216" y2="488" />
+      <line x1="312" y1="78" x2="312" y2="488" />
+      <line x1="408" y1="78" x2="408" y2="488" />
+      <line x1="20" y1="160" x2="492" y2="160" />
+      <line x1="20" y1="245" x2="492" y2="245" />
+      <line x1="20" y1="330" x2="492" y2="330" />
+      <line x1="20" y1="415" x2="492" y2="415" />
+    </g>
+  `;
+
+  // Top Group Color Strip
+  const topBar = `
+    <!-- Top Group Color Strip -->
+    <rect x="16" y="16" width="480" height="58" rx="4" fill="${groupColor}" />
+    <rect x="16" y="16" width="480" height="7" rx="3" fill="rgba(255, 255, 255, 0.40)" />
+    <rect x="16" y="74" width="480" height="4" fill="#0f172a" />
+  `;
+
+  // Body content depending on ownership and lighting theme
+  let bodyMarkup = '';
+
+  // Helper: renders neon glow text using pure stroke-layering (SVG filters don't work in canvas drawImage pipeline)
+  const neonText = (x, y, fontSize, text, isItalic = false) => {
+    const glowColor = styles.isSunset ? '#fff0a0' : '#ffffff';
+    const bloomColor = styles.isSunset ? '#fff0a0' : '#e0f0ff';
+    const fontStyle = isItalic ? 'italic' : 'normal';
+    const attrs = `font-family="Rubik, system-ui, sans-serif" font-weight="900" font-style="${fontStyle}" font-size="${fontSize}" text-anchor="middle" letter-spacing="${isItalic ? 1 : 3}"`;
+    const glowStroke = `fill="none" stroke="${bloomColor}" stroke-linecap="round" stroke-linejoin="round"`;
+
+    // Simulate a real neon tube: dark shadow underneath → wide soft bloom → tight bright halo → bright white core
+    return `
+      <!-- Dark contact shadow (tube mounting) -->
+      <text x="${x}" y="${y + 4}" ${attrs} fill="none" stroke="#000000" stroke-width="24" opacity="0.65" stroke-linecap="round" stroke-linejoin="round">${escapeXml(text)}</text>
+      <!-- Neon outer haze — widest, most diffuse bloom -->
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="52" opacity="0.10">${escapeXml(text)}</text>
+      <!-- Neon mid bloom -->
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="36" opacity="0.20">${escapeXml(text)}</text>
+      <!-- Neon inner bloom -->
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="22" opacity="0.40">${escapeXml(text)}</text>
+      <!-- Neon tube glow — tight bright hug -->
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="12" opacity="0.75">${escapeXml(text)}</text>
+      <!-- Neon tube bright edge -->
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="5" opacity="1.0">${escapeXml(text)}</text>
+      <!-- Bright hot core — the neon tube itself -->
+      <text x="${x}" y="${y}" ${attrs} fill="${glowColor}">${escapeXml(text)}</text>
+    `;
+  };
+
+  if (isOwned) {
+    if (styles.isNight || styles.isSunset) {
+      // NIGHT & SUNSET: Neon glow via stroke-layering (no SVG filters — they don't work in canvas pipeline)
+      bodyMarkup = `
+        <!-- Neon City Name -->
+        ${neonText(256, 265, nameFontSize, tile.name)}
+
+        <!-- Neon Rent Amount -->
+        ${neonText(256, 415, valFontSize, valStr, true)}
       `;
     } else {
-      footerPill = `
-        <rect x="36" y="436" width="440" height="50" rx="14" fill="${styles.isCyber ? 'rgba(30, 41, 59, 0.7)' : '#f1f5f9'}" stroke="${styles.isCyber ? '#334155' : '#cbd5e1'}" stroke-width="1.5" />
-        <text x="256" y="468" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="21" fill="${styles.isCyber ? '#94a3b8' : '#475569'}" text-anchor="middle">TIER ${lvl} OF 4 HOUSES</text>
+      // DAY / MORNING: Clean Daylight Typography (NO artificial lighting)
+      const dayTextColor = styles.isCyber ? '#ffffff' : '#0f172a';
+      bodyMarkup = `
+        <text x="256" y="265" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${nameFontSize}" fill="${dayTextColor}" text-anchor="middle" letter-spacing="3">${escapeXml(tile.name)}</text>
+        <text x="256" y="415" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-style="italic" font-size="${valFontSize}" fill="${dayTextColor}" text-anchor="middle" letter-spacing="1">${escapeXml(valStr)}</text>
       `;
     }
-
-    showcaseContent = `
-      <text x="256" y="320" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="22" fill="${rentColor}" text-anchor="middle">CURRENT RENT</text>
-      <text x="256" y="396" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${rentFontSize}" fill="${rentColor}" text-anchor="middle">${rentStr}</text>
-      ${footerPill}
-    `;
   } else {
-    const priceStr = fmtMoney(tile.price);
-    const priceFontSize = priceStr.length > 8 ? 74 : 86;
-    const priceColor = styles.isCyber ? '#00f5ff' : '#0f172a';
-
-    showcaseContent = `
-      <text x="256" y="316" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="22" fill="${styles.textSecondary}" text-anchor="middle">PURCHASE PRICE</text>
-      <text x="256" y="390" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${priceFontSize}" fill="${priceColor}" text-anchor="middle">${priceStr}</text>
-      <g transform="translate(36, 432)">
-        <rect width="440" height="54" rx="16" fill="${styles.isCyber ? 'rgba(30, 41, 59, 0.85)' : '#f1f5f9'}" stroke="${styles.isCyber ? '#334155' : '#cbd5e1'}" stroke-width="2" />
-        <text x="220" y="36" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="24" fill="${styles.isCyber ? '#38bdf8' : '#0f172a'}" text-anchor="middle">BASE RENT: ${fmtMoney(tile.rent?.[0] || 0)}</text>
-      </g>
+    // UNOWNED: Crisp high-contrast typography
+    const unownedTextColor = styles.isCyber ? '#ffffff' : '#0f172a';
+    bodyMarkup = `
+      <text x="256" y="265" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${nameFontSize}" fill="${unownedTextColor}" text-anchor="middle" letter-spacing="3">${escapeXml(tile.name)}</text>
+      <text x="256" y="415" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-style="italic" font-size="${valFontSize}" fill="${unownedTextColor}" text-anchor="middle" letter-spacing="1">${escapeXml(valStr)}</text>
     `;
   }
 
   return `
-    <!-- Top Group Color Bar -->
-    <rect x="16" y="16" width="480" height="72" fill="${groupColor}" />
-    <rect x="16" y="16" width="480" height="8" fill="rgba(255, 255, 255, 0.35)" />
-    <rect x="16" y="88" width="480" height="4" fill="#0f172a" />
-
-    <!-- City Name -->
-    <text x="256" y="146" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${nameFontSize}" fill="${styles.textPrimary}" text-anchor="middle">${escapeXml(tile.name)}</text>
-
-    <!-- Zone 2: Progression / Build Track -->
-    ${progressionContent}
-
-    <!-- Zone 3: Price / Rent Showcase -->
-    ${showcaseContent}
+    ${gridMarkup}
+    ${topBar}
+    ${bodyMarkup}
   `;
 }
 
@@ -297,83 +257,91 @@ function renderCityTileSvg(tile, propState, styles, isOwned, ownerTheme, ownerNa
  * Generates Resort Tile SVG Vector Template.
  */
 function renderResortTileSvg(tile, propState, styles, isOwned, ownerTheme, ownerName) {
-  const resortFontSize = tile.name.length > 8 ? 44 : 54;
-  let bodyContent = '';
+  const resortColor = '#0ea5e9';
+  const nameLen = tile.name.length;
+  const nameFontSize = nameLen <= 6 ? 66 : (nameLen <= 9 ? 56 : (nameLen <= 11 ? 46 : 38));
+
+  let valStr;
+  if (isOwned) {
+    const rentAmt = calculateTileRent(tile.id);
+    valStr = fmtMoney(rentAmt);
+  } else {
+    valStr = fmtMoney(tile.price);
+  }
+
+  const valLen = valStr.length;
+  const valFontSize = valLen <= 4 ? 116 : (valLen <= 5 ? 102 : (valLen <= 6 ? 88 : 74));
+
+  const gridStroke = styles.isCyber ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.045)';
+  const gridMarkup = `
+    <!-- Architectural Cadastral Grid -->
+    <g stroke="${gridStroke}" stroke-width="1.5">
+      <line x1="120" y1="78" x2="120" y2="488" />
+      <line x1="216" y1="78" x2="216" y2="488" />
+      <line x1="312" y1="78" x2="312" y2="488" />
+      <line x1="408" y1="78" x2="408" y2="488" />
+      <line x1="20" y1="160" x2="492" y2="160" />
+      <line x1="20" y1="245" x2="492" y2="245" />
+      <line x1="20" y1="330" x2="492" y2="330" />
+      <line x1="20" y1="415" x2="492" y2="415" />
+    </g>
+  `;
+
+  const topBar = `
+    <!-- Top Resort Header Strip -->
+    <rect x="16" y="16" width="480" height="58" rx="4" fill="${resortColor}" />
+    <rect x="16" y="16" width="480" height="7" rx="3" fill="rgba(255, 255, 255, 0.40)" />
+    <rect x="16" y="74" width="480" height="4" fill="#0f172a" />
+    <text x="256" y="53" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle" letter-spacing="3">RESORT</text>
+  `;
+
+  let bodyMarkup = '';
+
+  // Helper: stroke-layering neon glow (SVG filters don't work in canvas drawImage)
+  const neonText = (x, y, fontSize, text, isItalic = false) => {
+    const glowColor = styles.isSunset ? '#fff0a0' : '#ffffff';
+    const bloomColor = styles.isSunset ? '#fff0a0' : '#e0f0ff';
+    const fontStyle = isItalic ? 'italic' : 'normal';
+    const attrs = `font-family="Rubik, system-ui, sans-serif" font-weight="900" font-style="${fontStyle}" font-size="${fontSize}" text-anchor="middle" letter-spacing="${isItalic ? 1 : 3}"`;
+    const glowStroke = `fill="none" stroke="${bloomColor}" stroke-linecap="round" stroke-linejoin="round"`;
+    return `
+      <text x="${x}" y="${y + 4}" ${attrs} fill="none" stroke="#000000" stroke-width="24" opacity="0.65" stroke-linecap="round" stroke-linejoin="round">${escapeXml(text)}</text>
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="52" opacity="0.10">${escapeXml(text)}</text>
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="36" opacity="0.20">${escapeXml(text)}</text>
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="22" opacity="0.40">${escapeXml(text)}</text>
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="12" opacity="0.75">${escapeXml(text)}</text>
+      <text x="${x}" y="${y}" ${attrs} ${glowStroke} stroke-width="5" opacity="1.0">${escapeXml(text)}</text>
+      <text x="${x}" y="${y}" ${attrs} fill="${glowColor}">${escapeXml(text)}</text>
+    `;
+  };
 
   if (isOwned) {
-    const rentAmt = propState?.mortgaged ? 0 : calculateTileRent(tile.id);
-    const rentStr = fmtMoney(rentAmt);
-    const rentFontSize = rentStr.length > 8 ? 72 : 84;
-    const rentColor = styles.isCyber ? '#38bdf8' : '#047857';
-
-    bodyContent = `
-      <!-- Owner Plaque -->
-      <g transform="translate(36, 180)">
-        <rect width="440" height="46" rx="14" fill="${ownerTheme.colorHex}" stroke="#ffffff" stroke-width="2" />
-        <g transform="translate(68, 11) scale(1.0)" fill="#ffffff">
-          <path d="${SVG_PATHS.crown}" />
-        </g>
-        <text x="235" y="31" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="24" fill="#ffffff" text-anchor="middle">${escapeXml(ownerName)}</text>
-      </g>
-
-      <!-- Multiplier Feature Pill -->
-      <g transform="translate(36, 236)">
-        <rect width="440" height="42" rx="10" fill="${styles.isCyber ? 'rgba(30, 41, 59, 0.65)' : '#f1f5f9'}" stroke="${styles.isCyber ? '#334155' : '#cbd5e1'}" stroke-width="1.5" />
-        <g transform="translate(42, 10) scale(0.9)" fill="${styles.isCyber ? '#38bdf8' : '#0284c7'}">
-          <path d="${SVG_PATHS.palm}" />
-        </g>
-        <text x="235" y="28" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="18" fill="${styles.isCyber ? '#38bdf8' : '#0284c7'}" text-anchor="middle">VACATION MULTIPLIER (1X–5X)</text>
-      </g>
-
-      <!-- Rent Showcase -->
-      <text x="256" y="320" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="22" fill="${rentColor}" text-anchor="middle">RESORT RENT</text>
-      <text x="256" y="396" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${rentFontSize}" fill="${rentColor}" text-anchor="middle">${rentStr}</text>
-
-      <!-- Status Footer Pill -->
-      <g transform="translate(36, 436)">
-        <rect width="440" height="50" rx="14" fill="${styles.isCyber ? 'rgba(30, 41, 59, 0.7)' : '#f1f5f9'}" stroke="${styles.isCyber ? '#334155' : '#cbd5e1'}" stroke-width="1.5" />
-        <text x="220" y="32" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="21" fill="${styles.isCyber ? '#94a3b8' : '#475569'}" text-anchor="middle">★ SCALES WITH OWNED RESORTS ★</text>
-      </g>
-    `;
+    if (styles.isNight || styles.isSunset) {
+      bodyMarkup = `
+        <!-- Neon Resort Name -->
+        ${neonText(256, 215, nameFontSize, tile.name)}
+        <!-- Neon Rent Amount -->
+        ${neonText(256, 380, valFontSize, valStr, true)}
+      `;
+    } else {
+      const dayTextColor = styles.isCyber ? '#ffffff' : '#0f172a';
+      bodyMarkup = `
+        <text x="256" y="215" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${nameFontSize}" fill="${dayTextColor}" text-anchor="middle" letter-spacing="3">${escapeXml(tile.name)}</text>
+        <text x="256" y="380" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-style="italic" font-size="${valFontSize}" fill="${dayTextColor}" text-anchor="middle" letter-spacing="1">${escapeXml(valStr)}</text>
+      `;
+    }
   } else {
-    const priceStr = fmtMoney(tile.price);
-    const priceFontSize = priceStr.length > 8 ? 74 : 86;
-    const priceColor = styles.isCyber ? '#00f5ff' : '#0f172a';
-
-    bodyContent = `
-      <!-- Unowned Feature Box -->
-      <g transform="translate(36, 180)">
-        <rect width="440" height="98" rx="16" fill="${styles.boxFill}" stroke="${styles.boxBorder}" stroke-width="2" />
-        <g transform="translate(42, 14) scale(1.0)" fill="${styles.isCyber ? '#38bdf8' : '#0284c7'}">
-          <path d="${SVG_PATHS.palm}" />
-        </g>
-        <text x="235" y="34" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="22" fill="${styles.isCyber ? '#38bdf8' : '#0284c7'}" text-anchor="middle">VACATION DESTINATION</text>
-        <text x="220" y="74" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="18" fill="${styles.textSecondary}" text-anchor="middle">RENT MULTIPLIER: 1X → 2X → 4X → 8X</text>
-      </g>
-
-      <!-- Price Showcase -->
-      <text x="256" y="316" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="22" fill="${styles.textSecondary}" text-anchor="middle">PURCHASE PRICE</text>
-      <text x="256" y="390" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${priceFontSize}" fill="${priceColor}" text-anchor="middle">${priceStr}</text>
-
-      <!-- Base Rent Pill -->
-      <g transform="translate(36, 432)">
-        <rect width="440" height="54" rx="16" fill="${styles.isCyber ? 'rgba(30, 41, 59, 0.85)' : '#f1f5f9'}" stroke="${styles.isCyber ? '#334155' : '#cbd5e1'}" stroke-width="2" />
-        <text x="220" y="36" font-family="Rubik, system-ui, sans-serif" font-weight="800" font-size="24" fill="${styles.isCyber ? '#38bdf8' : '#0f172a'}" text-anchor="middle">BASE RENT: ${fmtMoney(tile.rent?.[0] || 0)}</text>
-      </g>
+    const unownedTextColor = styles.isCyber ? '#ffffff' : '#0f172a';
+    bodyMarkup = `
+      <text x="256" y="218" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${nameFontSize}" fill="${unownedTextColor}" text-anchor="middle" letter-spacing="3">${escapeXml(tile.name)}</text>
+      <text x="256" y="380" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-style="italic" font-size="${valFontSize}" fill="${unownedTextColor}" text-anchor="middle" letter-spacing="1">${escapeXml(valStr)}</text>
     `;
   }
 
   return `
-    <!-- Top Resort Header Bar -->
-    <rect x="16" y="16" width="480" height="68" fill="#0ea5e9" />
-    <rect x="16" y="16" width="480" height="8" fill="rgba(255, 255, 255, 0.32)" />
-    <rect x="16" y="84" width="480" height="4" fill="#0f172a" />
-    <text x="256" y="58" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="32" fill="#ffffff" text-anchor="middle" letter-spacing="2">RESORT</text>
-
-    <!-- Resort Title -->
-    <text x="256" y="146" font-family="Rubik, system-ui, sans-serif" font-weight="900" font-size="${resortFontSize}" fill="${styles.textPrimary}" text-anchor="middle">${escapeXml(tile.name)}</text>
-
-    ${bodyContent}
+    ${gridMarkup}
+    ${topBar}
+    ${bodyMarkup}
   `;
 }
 

@@ -9,6 +9,7 @@ import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { setStatusPill } from '../hud.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
+import { animateFortuneCardUnfold } from '../anim.js';
 
 const WHEEL_VECTOR_ICONS = {
   money: new Path2D('M2 6h20v12H2V6zm2 2v8h16V8H4zm8 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm-6 2h1v2H6v-2zm11 0h1v2h-1v-2z'),
@@ -359,6 +360,7 @@ export function showChanceAwardPopup(prize, onDone) {
 
   m.classList.remove('hidden');
   m.classList.add('flex');
+  animateFortuneCardUnfold('#modal-chance-result .game-modal-shell');
 
   // Exactly 2000ms (2 seconds)
   setTimeout(() => {

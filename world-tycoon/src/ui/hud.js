@@ -10,6 +10,8 @@ import { ownsFullColorGroup } from '../game/rules.js';
 import { showSpeechBubble, triggerTokenHurtAnimation } from '../three/scene.js';
 import { networkState } from '../network/p2p.js';
 import { playSFX } from '../game/audio.js';
+import { cashPileSvg } from '../assets/graphics/cash-pile.js';
+import { animateNumberCounter, animateToastAccordionPush } from './anim.js';
 
 /** Render / re-render the 4-corner HUD player cards. */
 export function renderCornerHUDs() {
@@ -102,30 +104,9 @@ export function updateGameSpeedUI() {
   }
 }
 
+/** Returns the isometric cash stack SVG asset. */
 function getIsometricCashPileSVG() {
-  return `
-    <svg width="108" height="78" viewBox="0 0 110 80" class="drop-shadow-md hidden sm:block">
-      <ellipse cx="56" cy="62" rx="44" ry="14" fill="rgba(148, 163, 184, 0.35)"/>
-      <g transform="translate(18, 12)">
-        <polygon points="28,0 56,14 28,28 0,14" fill="#86efac" stroke="#22c55e" stroke-width="1"/>
-        <polygon points="0,14 28,28 28,44 0,30" fill="#4ade80"/>
-        <polygon points="28,28 56,14 56,30 28,44" fill="#16a34a"/>
-        <polygon points="18,6 26,10 12,24 4,20" fill="#facc15"/>
-      </g>
-      <g transform="translate(36, 36)">
-        <polygon points="18,0 38,10 18,20 0,10" fill="#e2e8f0"/>
-        <polygon points="0,10 18,20 18,28 0,18" fill="#cbd5e1"/>
-        <polygon points="18,20 38,10 38,18 18,28" fill="#94a3b8"/>
-      </g>
-      <g transform="translate(52, 42)">
-        <polygon points="16,0 32,8 16,16 0,8" fill="#fde047"/>
-        <polygon points="0,8 16,16 16,24 0,16" fill="#facc15"/>
-        <polygon points="16,16 32,8 32,16 16,24" fill="#ca8a04"/>
-      </g>
-      <ellipse cx="36" cy="64" rx="6" ry="4" fill="#facc15" stroke="#ca8a04" stroke-width="1"/>
-      <ellipse cx="52" cy="68" rx="6" ry="4" fill="#fde047" stroke="#ca8a04" stroke-width="1"/>
-    </svg>
-  `;
+  return cashPileSvg;
 }
 
 /** Show a floating cash label next to a player's HUD card. */
@@ -249,16 +230,16 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
       fromCard.classList.remove('hud-card-deduct');
       spawnFloatingCashOnHUD(toIdx, `+${fmtMoney(amount)} Rent`, true);
 
-      // Smooth count numbers
+      // Smooth count numbers with Anime.js odometer
       const fromEl = document.getElementById(`hud-cash-val-${fromIdx}`);
       const toEl = document.getElementById(`hud-cash-val-${toIdx}`);
       if (fromEl) {
         fromEl.classList.add('text-rose-600');
-        fromEl.textContent = fmtMoney(Math.max(0, fromPlayer.cash - amount));
+        animateNumberCounter(fromEl, fromPlayer.cash, Math.max(0, fromPlayer.cash - amount), '$', '', 450);
       }
       if (toEl) {
         toEl.classList.add('text-emerald-600');
-        toEl.textContent = fmtMoney(toPlayer.cash + amount);
+        animateNumberCounter(toEl, toPlayer.cash, toPlayer.cash + amount, '$', '', 450);
       }
 
       setTimeout(() => {
@@ -365,6 +346,7 @@ export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') 
   if (!toast || !textEl) return;
   textEl.textContent = msg;
   toast.classList.remove('hidden');
+  animateToastAccordionPush(toast);
   showSpeechBubble(msg, 2000);
   if (toast._timer) clearTimeout(toast._timer);
   toast._timer = setTimeout(() => toast.classList.add('hidden'), 2200);
@@ -372,6 +354,15 @@ export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') 
 
 let statusPillResetTimer = null;
 let currentThinkingState = null;
+
+/** Clears any active thinking state and pending reset timers. */
+export function clearThinkingState() {
+  currentThinkingState = null;
+  if (statusPillResetTimer) {
+    clearTimeout(statusPillResetTimer);
+    statusPillResetTimer = null;
+  }
+}
 
 /**
  * Updates the bottom-center pill shape status bar.
@@ -392,7 +383,7 @@ export function setStatusPill(htmlContent, options = {}) {
   const { isThinking = false, playerIdx = null, icon = null, durationMs = 3800 } = options;
 
   if (isThinking) {
-    currentThinkingState = { htmlContent, options };
+    currentThinkingState = { htmlContent, options: { ...options, playerIdx } };
   }
 
   textEl.innerHTML = htmlContent;
@@ -432,9 +423,11 @@ export function setStatusPill(htmlContent, options = {}) {
   if (!isThinking && durationMs > 0) {
     statusPillResetTimer = setTimeout(() => {
       statusPillResetTimer = null;
-      if (currentThinkingState) {
+      // Only restore thinking state if it belongs to the CURRENT active player
+      if (currentThinkingState && currentThinkingState.options?.playerIdx === gameState.currentPlayerIdx) {
         setStatusPill(currentThinkingState.htmlContent, currentThinkingState.options);
       } else {
+        currentThinkingState = null;
         refreshActivePlayerTurnStatus();
       }
     }, durationMs);
@@ -446,7 +439,7 @@ export function setStatusPill(htmlContent, options = {}) {
  */
 export function refreshActivePlayerTurnStatus() {
   if (!gameState.gameStarted || gameState.phase === 'SETUP') {
-    setStatusPill('Welcome to World Tycoon! Roll to start.', { isThinking: false });
+    setStatusPill('Welcome to World Tycoon! Roll to start.', { isThinking: false, durationMs: 0 });
     return;
   }
   const curIdx = gameState.currentPlayerIdx;
@@ -456,12 +449,13 @@ export function refreshActivePlayerTurnStatus() {
   const isLocalHuman = (curIdx === (networkState.isMultiplayer ? networkState.localPlayerIdx : 0)) && !p.isAI;
 
   if (isLocalHuman) {
+    currentThinkingState = null;
     if (p.inIsland) {
-      setStatusPill(`🏝️ <strong>Your Turn</strong> — Roll doubles to escape or pay bail!`, { isThinking: false, playerIdx: curIdx });
+      setStatusPill(`🏝️ <strong>Your Turn</strong> — Roll doubles to escape or pay bail!`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
     } else if (gameState.phase === 'ROLL') {
-      setStatusPill(`🎲 <strong>Your Turn</strong> — Roll the dice or press Space!`, { isThinking: false, playerIdx: curIdx });
+      setStatusPill(`🎲 <strong>Your Turn</strong> — Roll the dice or press Space!`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
     } else if (gameState.phase === 'END') {
-      setStatusPill(`✨ <strong>Turn ending</strong>...`, { isThinking: false, playerIdx: curIdx });
+      setStatusPill(`✨ <strong>Turn ending</strong>...`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
     }
   } else if (p.isAI) {
     if (p.inIsland) {
@@ -482,6 +476,7 @@ export function logEvent(html) {
     div.className = 'border-l-2 border-indigo-400 pl-2 py-0.5';
     div.innerHTML = html;
     log.prepend(div);
+    animateToastAccordionPush(div);
   }
   setStatusPill(html, { isThinking: false, durationMs: 4200 });
 }

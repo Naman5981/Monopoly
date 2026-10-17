@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;" id="game-svg-symbols">
+  <defs>
+    <!-- Crown / Royalty / Victory -->
+    <symbol id="icon-crown" viewBox="0 0 24 24">
+      <path d="M2.5 19.5h19a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-19a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm19.3-13.6a1 1 0 0 0-1.2.2L16 9.3 12.8 3.5a1 1 0 0 0-1.6 0L8 9.3 3.4 5.6a1 1 0 0 0-1.2-.2 1 1 0 0 0-.4 1.1l2.5 10.5h15.4l2.5-10.5a1 1 0 0 0-.4-1.1z"/>
+    </symbol>
+
+    <!-- City Skyline / Real Estate -->
+    <symbol id="icon-city" viewBox="0 0 24 24">
+      <path d="M3 21h18v-2h-2v-6h-4v-4h-4v-4H7v16H5v-8H3v8zm6-12h2v2H9V9zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm4-8h2v2h-2V5zm0 4h2v2h-2V9zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+    </symbol>
+
+    <!-- Classical Edifice / Bank / Landmark -->
+    <symbol id="icon-building" viewBox="0 0 24 24">
+      <path d="M12 1.5 1 7v2h2v10H1v2h22v-2h-2V9h2V7L12 1.5zM5 9h2v10H5V9zm4 0h2v10H9V9zm4 0h2v10h-2V9zm4 0h2v10h-2V9zm-5-4.5 6 3H6l6-3z"/>
+    </symbol>
+
+    <!-- Handshake / Trade Deal -->
+    <symbol id="icon-handshake" viewBox="0 0 24 24">
+      <path d="M21.7 8.3a2.5 2.5 0 0 0-3.5 0L16 10.5l-1.3-1.3a2.5 2.5 0 0 0-3.5 0L9.8 10.6 8 8.8a2.5 2.5 0 0 0-3.5 0L2.3 11a1 1 0 0 0 0 1.4l5.3 5.3a2.5 2.5 0 0 0 3.5 0l1.2-1.2 1.3 1.3a2.5 2.5 0 0 0 3.5 0l4.6-4.6a2.5 2.5 0 0 0 0-3.5l-.7-.7 1.4-1.4a2.5 2.5 0 0 0 0-3.5l-.7-.8zm-6.4 7.8-1.3-1.3 2.1-2.1 1.3 1.3-2.1 2.1zm-3.6-.8-1.2 1.2a1 1 0 0 1-1.4 0L4.4 11.8l1.4-1.4a1 1 0 0 1 1.4 0l2.5 2.5-1.1 1.1 1.4 1.4 2.3-2.3 1.2 1.2a1 1 0 0 1 0 1.4z"/>
+    </symbol>
+
+    <!-- Scales of Justice / Auction -->
+    <symbol id="icon-scales" viewBox="0 0 24 24">
+      <path d="M11 3V1h2v2h6l-3.5 8H20a6 6 0 0 1-6 6v3h3v2H7v-2h3v-3a6 6 0 0 1-6-6h4.5L5 3h6zm-4.7 6h3.4L8 5.1 6.3 9zm11.4 0h-3.4L16 5.1 17.7 9z"/>
+    </symbol>
+
+    <!-- Scroll / Deed / Rules -->
+    <symbol id="icon-scroll" viewBox="0 0 24 24">
+      <path d="M19.5 3A2.5 2.5 0 0 0 17 5.5V17H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11V2H6A4 4 0 0 0 2 6v9a4 4 0 0 0 4 4h12.5a2.5 2.5 0 0 0 2.5-2.5V5.5A2.5 2.5 0 0 0 19.5 3zM7 8h8v2H7V8zm0 4h8v2H7v-2z"/>
+    </symbol>
+
+    <!-- Dice -->
+    <symbol id="icon-dice" viewBox="0 0 24 24">
+      <rect width="18" height="18" x="3" y="3" rx="3.5" ry="3.5"/>
+      <circle cx="8" cy="8" r="1.5" fill="#fff"/>
+      <circle cx="16" cy="8" r="1.5" fill="#fff"/>
+      <circle cx="12" cy="12" r="1.5" fill="#fff"/>
+      <circle cx="8" cy="16" r="1.5" fill="#fff"/>
+      <circle cx="16" cy="16" r="1.5" fill="#fff"/>
+    </symbol>
+
+    <!-- Save / Diskette -->
+    <symbol id="icon-save" viewBox="0 0 24 24">
+      <path d="M19 2H5a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V6l-3-4zm-7 18a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-12H6V4h9v4z"/>
+    </symbol>
+
+    <!-- Wardrobe / Cosmetics -->
+    <symbol id="icon-wardrobe" viewBox="0 0 24 24">
+      <path d="M6 3 2 9l4 2V3zm12 0 4 6-4 2V3zm-6 0-3 3 2 6-2 9 3 1 3-1-2-9 2-6-3-3z"/>
+    </symbol>
+
+    <!-- Warning Triangle -->
+    <symbol id="icon-warning" viewBox="0 0 24 24">
+      <path d="M12 2 1 21h22L12 2zm0 4.5 7.5 13h-15L12 6.5zM11 11h2v4h-2v-4zm0 5h2v2h-2v-2z"/>
+    </symbol>
+
+    <!-- Door Open / Exit -->
+    <symbol id="icon-door" viewBox="0 0 24 24">
+      <path d="M19 2H5v20h14V2zm-2 18H7V4h10v16zm-3-9h2v2h-2v-2z"/>
+    </symbol>
+
+    <!-- Trophy / Accolade -->
+    <symbol id="icon-trophy" viewBox="0 0 24 24">
+      <path d="M18 2H6v3H2v6a5 5 0 0 0 5 5h.2A6 6 0 0 0 11 19.8V21H8v2h8v-2h-3v-1.2A6 6 0 0 0 16.8 16H17a5 5 0 0 0 5-5V5h-4V2zM4 10V7h2v4.8A3 3 0 0 1 4 10zm16 0a3 3 0 0 1-2 1.8V7h2v3z"/>
+    </symbol>
+
+    <!-- Sparkle / Starburst -->
+    <symbol id="icon-sparkle" viewBox="0 0 24 24">
+      <path d="M12 2c.5 4.5 4.5 8.5 9 9-4.5.5-8.5 4.5-9 9-.5-4.5-4.5-8.5-9-9 4.5-.5 8.5-4.5 9-9z"/>
+    </symbol>
+
+    <!-- Globe / World -->
+    <symbol id="icon-globe" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" fill="none" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+
+    <!-- Money / Banknote -->
+    <symbol id="icon-money" viewBox="0 0 24 24">
+      <rect width="20" height="12" x="2" y="6" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M6 10h.01M18 14h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Lightning / Action -->
+    <symbol id="icon-lightning" viewBox="0 0 24 24">
+      <path d="M13 2 3 14h8l-2 8 10-12h-8l2-8z"/>
+    </symbol>
+
+    <!-- Airplane / World Tour -->
+    <symbol id="icon-airplane" viewBox="0 0 24 24">
+      <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+    </symbol>
+
+    <!-- Lock -->
+    <symbol id="icon-lock" viewBox="0 0 24 24">
+      <path d="M17 9V7a5 5 0 0 0-10 0v2H5v13h14V9h-2zm-8-2a3 3 0 0 1 6 0v2H9V7zm3 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+    </symbol>
+
+    <!-- Checkmark -->
+    <symbol id="icon-check" viewBox="0 0 24 24">
+      <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+    </symbol>
+
+    <!-- Xmark / Close -->
+    <symbol id="icon-xmark" viewBox="0 0 24 24">
+      <path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4l5.6 5.6L5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6L19 6.4z"/>
+    </symbol>
+
+    <!-- Play Triangle -->
+    <symbol id="icon-play" viewBox="0 0 24 24">
+      <path d="M6 3v18l14-9L6 3z"/>
+    </symbol>
+
+    <!-- Star -->
+    <symbol id="icon-star" viewBox="0 0 24 24">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    </symbol>
+
+    <!-- Cloud -->
+    <symbol id="icon-cloud" viewBox="0 0 24 24">
+      <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+    </symbol>
+
+    <!-- Envelope / Message -->
+    <symbol id="icon-envelope" viewBox="0 0 24 24">
+      <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+    </symbol>
+
+    <!-- Pin / Location -->
+    <symbol id="icon-pin" viewBox="0 0 24 24">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+    </symbol>
+
+    <!-- Top Hat / Headwear -->
+    <symbol id="icon-hat" viewBox="0 0 24 24">
+      <path d="M6 3h12v9H6V3zm15 11h-1.4V14H4.4v0H3a2 2 0 0 0-2 2c0 1.1.9 2 2 2h18a2 2 0 0 0 2-2c0-1.1-.9-2-2-2z"/>
+    </symbol>
+
+    <!-- Pedestal / Monument -->
+    <symbol id="icon-pedestal" viewBox="0 0 24 24">
+      <path d="M4 20h16v2H4v-2zm2-2h12v-2H6v2zm1-4h10V8H7v6zm-2-8h14V4H5v2zm-2-4h18V0H3v2z"/>
+    </symbol>
+  </defs>
+</svg>

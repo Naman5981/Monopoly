@@ -11,6 +11,7 @@ import { fireConfettiBurst } from '../../three/effects.js';
 import { renderCornerHUDs, logEvent } from '../hud.js';
 import { checkAndTriggerMonopoly } from './victory.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
+import { animateAuctionGavelRipple } from '../anim.js';
 
 export function startCityAuction() {
   if (isLobbyScreenActive()) return;
@@ -71,6 +72,7 @@ export function placeAuctionBid(increment) {
   a.turnPos = (a.turnPos + 1) % a.activeBidders.length;
   playSFX('hop');
   updateAuctionModalUI();
+  animateAuctionGavelRipple();
   checkAIAuctionTurn();
 }
 
