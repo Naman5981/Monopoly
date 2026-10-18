@@ -18,6 +18,7 @@ import {
 import { renderCornerHUDs, showTurnLockToast, logEvent } from '../hud.js';
 import { saveCurrentMatchToStorage } from '../../game/persistence.js';
 import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML } from './common.js';
+import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose } from '../anim.js';
 
 export function openInspectorModal(tileId) {
   if (isLobbyScreenActive()) return;
@@ -180,9 +181,7 @@ export function openInspectorModal(tileId) {
       card.style.borderColor = '';
       card.style.boxShadow = '';
     }
-    card.classList.remove('tile-inspector-exit', 'tile-inspector-pulse', 'tile-inspector-enter');
-    void card.offsetWidth;
-    card.classList.add('tile-inspector-enter');
+    animateTileInspectorSpringOpen('#modal-tile-inspector', card);
     playSFX('hop');
   }
 }
@@ -192,22 +191,13 @@ export function closeInspectorModal() {
   const card = document.getElementById('modal-tile-inspector-card');
   setTileHighlightRing(0, false);
 
-  if (card && m && !m.classList.contains('hidden')) {
+  if (card) {
     card.style.borderColor = '';
     card.style.boxShadow = '';
-    card.classList.remove('tile-inspector-enter', 'tile-inspector-pulse');
-    card.classList.add('tile-inspector-exit');
-    setTimeout(() => {
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-      card.classList.remove('tile-inspector-exit');
-      clearCityPreview();
-    }, 220);
-  } else if (m) {
-    m.classList.add('hidden');
-    m.classList.remove('flex');
-    clearCityPreview();
   }
+  animateTileInspectorSpringClose(m, card, () => {
+    clearCityPreview();
+  });
   gameState.activeInspectorTile = null;
 }
 

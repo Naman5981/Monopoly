@@ -5,9 +5,9 @@
 
 import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
 import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed } from './game/state.js';
-import { updateMasterVolume, playSFX, initAudioUnlock } from './game/audio.js';
+import { updateMasterVolume, playSFX, initAudioUnlock, startAdaptiveMusic, stopAdaptiveMusic } from './game/audio.js';
 import { updateGameSpeedUI } from './ui/hud.js';
-import { initThreeScene, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
+import { initThreeScene, initTheatreSuite, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
 import { context } from './three/core/context.js';
 import { checkVictoryConditions } from './game/rules.js';
 import {
@@ -60,7 +60,12 @@ import {
   renderMatchSettingButtons,
   selectSetupPlayer,
   removePlayerAt,
-  openLandingSetupScreen
+  openLandingSetupScreen,
+  showTitleScreen,
+  showLocalSetup,
+  showMultiplayerSetup,
+  setLobbyView,
+  joinP2PRoomFromPortal
 } from './ui/setup.js';
 import {
   networkState,
@@ -209,7 +214,12 @@ window.stepMatchLength = stepMatchLength;
 window.selectSetupPlayer = selectSetupPlayer;
 window.removePlayerAt = removePlayerAt;
 
-// P2P Multiplayer Window Handlers
+// Title Screen & P2P Multiplayer Window Handlers
+window.showTitleScreen = showTitleScreen;
+window.showLocalSetup = showLocalSetup;
+window.showMultiplayerSetup = showMultiplayerSetup;
+window.setLobbyView = setLobbyView;
+window.joinP2PRoomFromPortal = joinP2PRoomFromPortal;
 window.selectMatchMode = selectMatchMode;
 window.hostP2PRoom = hostP2PRoom;
 window.joinP2PRoom = joinP2PRoom;
@@ -368,6 +378,11 @@ window.toggleSound = () => {
   updateSoundUI();
   if (soundEnabled) {
     playSFX('click', 0.8);
+    if (gameState && gameState.gameStarted && gameState.phase !== 'VICTORY') {
+      startAdaptiveMusic();
+    }
+  } else {
+    stopAdaptiveMusic();
   }
 };
 
@@ -402,6 +417,7 @@ function initApp() {
   initLandingSetup();
   initWardrobeSystem();
   initDebugSuite();
+  initTheatreSuite();
 
   // Apply initial lighting mode
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
@@ -453,14 +469,25 @@ function initApp() {
           handleRollButtonClick();
         } else if (currentPlayer.isAI && (!networkState.isMultiplayer || networkState.isHost)) {
           executePlayerRoll();
+        } else if (networkState.isMultiplayer && networkState.isHost && !isHumanTurnActionable()) {
+          // Remote peer AFK fallback on Host: Auto-roll on timeout to prevent match stall
+          executePlayerRoll();
         }
       }
     }
   }, 1000);
 
-  // Keyboard hotkeys for Leaderboard (Tab or L) and Esc
+  // Keyboard hotkeys for Leaderboard (Tab or L), Space to Roll, and Esc
   window.addEventListener('keydown', (e) => {
     if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+    if (e.code === 'Space' || e.key === ' ') {
+      const hasActiveModal = document.querySelector('.game-modal-shell:not(.hidden), #modal-chance-result:not(.hidden), #modal-portfolio:not(.hidden), #modal-trade:not(.hidden), #modal-rules:not(.hidden), #modal-leaderboard:not(.hidden), #modal-wardrobe:not(.hidden)');
+      if (!hasActiveModal && gameState.gameStarted && (gameState.phase === 'ROLL' || gameState.phase === 'END') && isHumanTurnActionable()) {
+        e.preventDefault();
+        handleRollButtonClick();
+        return;
+      }
+    }
     if (e.key === 'Tab' || e.key === 'l' || e.key === 'L') {
       if (gameState.gameStarted && gameState.phase !== 'SETUP') {
         e.preventDefault();

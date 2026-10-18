@@ -80,10 +80,10 @@ export function buildFestivalBalloon3D(boardGroup) {
   );
   basket.position.y = 2.65;
   balloonGroup.add(envelope, basket);
-  balloonGroup.position.set(-5.2, 0.5, -5.2);
+  balloonGroup.position.set(-15.5, 4.5, -15.5);
   boardGroup.add(balloonGroup);
 
-  festivalBalloons.push({ mesh: balloonGroup, baseH: 0.5, phase: 0.7 });
+  festivalBalloons.push({ mesh: balloonGroup, baseH: 4.5, phase: 0.7 });
 }
 
 /**

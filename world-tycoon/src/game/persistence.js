@@ -8,7 +8,7 @@ import { BOARD_TILES, applyBoardEdition } from './data.js';
 import { fmtMoney } from './utils.js';
 import { refreshTileTextureAndBuildings, spawnAllPlayerTokens3D, updatePlayerTokenPositions3D, showSpeechBubble, applyBoardStyle } from '../three/scene.js';
 import { renderCornerHUDs, updateRollButtonsUI, logEvent } from '../ui/hud.js';
-import { playSFX } from './audio.js';
+import { playSFX, startAdaptiveMusic } from './audio.js';
 import { resumeActiveTurn } from './engine.js';
 
 const STORAGE_KEY = 'WORLD_TYCOON_SAVED_MATCH_V1';
@@ -151,6 +151,7 @@ export function resumeSavedMatch() {
     }
 
     playSFX('win');
+    startAdaptiveMusic();
     showSpeechBubble('🎮 Match resumed! Welcome back!', 3000);
     logEvent(`💾 <strong>Unfinished match resumed</strong> from previous session.`);
 

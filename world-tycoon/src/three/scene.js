@@ -28,10 +28,67 @@ import { ensure3DPortraitSystemInitialized } from './pawns/tokens.js';
 import { applyBoardStyle, BOARD_STYLES } from './board/skins.js';
 import { initInputHandlers } from './core/input.js';
 import { startRenderLoop } from './core/loop.js';
+import { initPhysicsEngine, spawnShatterDebris, spawnGoldCoinShower, triggerBoardShockwave } from './physics/physicsEngine.js';
+import { initPostProcessingPipeline, postProcessingState } from './postprocessing/pipeline.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Scene Initialization Facade
+// Scene Initialization Facade & GPU Detection
 // ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Detects GPU acceleration tier and WebGPU capability.
+ */
+export async function detectGPUCapabilities() {
+  const caps = {
+    webgpu: false,
+    tier: 'standard',
+    unmaskedRenderer: 'unknown'
+  };
+
+  if (typeof navigator !== 'undefined' && 'gpu' in navigator && navigator.gpu) {
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (adapter) {
+        caps.webgpu = true;
+      }
+    } catch {
+      // WebGPU disabled or restricted by policy
+    }
+  }
+
+  if (context.renderer) {
+    const gl = context.renderer.getContext();
+    if (gl) {
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      if (debugInfo) {
+        caps.unmaskedRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || 'unknown';
+      }
+    }
+  }
+
+  const rLower = caps.unmaskedRenderer.toLowerCase();
+  if (
+    caps.webgpu ||
+    rLower.includes('rtx') ||
+    rLower.includes('gtx') ||
+    rLower.includes('geforce') ||
+    rLower.includes('radeon') ||
+    rLower.includes('apple') ||
+    rLower.includes('m1') ||
+    rLower.includes('m2') ||
+    rLower.includes('m3') ||
+    rLower.includes('m4')
+  ) {
+    caps.tier = 'high';
+  } else if (rLower.includes('intel') || rLower.includes('swiftshader') || rLower.includes('llvmpipe')) {
+    caps.tier = 'low';
+  }
+
+  context.gpuTier = caps.tier;
+  context.hasWebGPU = caps.webgpu;
+  console.info(`[Engine] GPU Tier: ${caps.tier} (WebGPU: ${caps.webgpu}, Renderer: ${caps.unmaskedRenderer})`);
+  return caps;
+}
 
 /**
  * Initializes the main Three.js isometric diorama scene.
@@ -74,6 +131,25 @@ export function initThreeScene(onTileClickCb) {
   context.renderer.outputColorSpace = THREE.SRGBColorSpace;
   context.maxAnisotropy = context.renderer.capabilities.getMaxAnisotropy() || 4;
 
+  // 3B. WebGL Context Loss & Recovery Handling
+  const canvas = context.renderer.domElement;
+  canvas.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+    context.isContextLost = true;
+    console.warn('[Three Scene] WebGL Context Lost! Pausing rendering loop.');
+  }, false);
+
+  canvas.addEventListener('webglcontextrestored', () => {
+    console.info('[Three Scene] WebGL Context Restored! Resuming rendering pipeline.');
+    context.isContextLost = false;
+    if (context.renderer) {
+      context.renderer.setSize(window.innerWidth, window.innerHeight);
+      context.renderer.shadowMap.needsUpdate = true;
+    }
+  }, false);
+
+  detectGPUCapabilities();
+
   container.innerHTML = '';
   container.appendChild(context.renderer.domElement);
 
@@ -107,6 +183,10 @@ export function initThreeScene(onTileClickCb) {
   // 8B. Apply initial board style skin (wood, cyberpunk, elegant)
   applyBoardStyle(matchSettings.boardStyle || 'wood');
 
+  // 8C. Initialize 3D Rigid-Body Physics Simulation & Post-Processing Pipeline
+  initPhysicsEngine(context.scene);
+  initPostProcessingPipeline();
+
   // 9. Input & interaction listeners (raycast, hover, drag-orbit, wheel zoom)
   initInputHandlers(context.renderer.domElement, onTileClickCb);
 
@@ -128,6 +208,26 @@ export {
 // Re-exports: Board Geometry & Tile System
 // ──────────────────────────────────────────────────────────────────────────────
 export { getTileWorldPosition } from './board/coords.js';
+
+/**
+ * Projects a board tile coordinate to 2D screen coordinates { x, y } for UI FLIP springs.
+ * @param {number} tileId
+ * @returns {{ x: number, y: number }|null}
+ */
+export function getTileScreenPosition(tileId) {
+  try {
+    if (!context || !context.camera) return null;
+    const worldPos = getTileWorldPosition(tileId);
+    const vec = new THREE.Vector3(worldPos.x, 0.4, worldPos.z);
+    vec.project(context.camera);
+    return {
+      x: (vec.x * 0.5 + 0.5) * window.innerWidth,
+      y: (-(vec.y * 0.5) + 0.5) * window.innerHeight
+    };
+  } catch (_) {
+    return null;
+  }
+}
 export { triggerTileButtonPress } from './board/tilePress.js';
 export {
   refreshTileTextureAndBuildings,
@@ -198,3 +298,28 @@ export {
   updateLobbyHeroAvatar
 } from './stages/lobbyStage.js';
 export { resetLocalCarAnimationClock } from './environment/cars.js';
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Re-exports: 3D Physics Engine & Post-Processing Shaders
+// ──────────────────────────────────────────────────────────────────────────────
+export {
+  spawnShatterDebris,
+  spawnGoldCoinShower,
+  triggerBoardShockwave
+} from './physics/physicsEngine.js';
+export { postProcessingState } from './postprocessing/pipeline.js';
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Re-exports: Theatre.js Cinematics & Motion Design
+// ──────────────────────────────────────────────────────────────────────────────
+export {
+  initTheatreSuite,
+  playCinematicCutscene,
+  playIntroCinematicFlyIn,
+  playLandmarkCinematicReveal,
+  playVictoryCinematicOrbit
+} from './theatre.js';
+
+
+
+

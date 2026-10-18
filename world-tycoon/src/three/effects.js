@@ -24,6 +24,32 @@ let victoryCelebrationTimer = null;
 let celebrationActive = false;
 let lastFireworkSoundTime = 0;
 
+// High-performance particle object pools (zero GC allocations)
+const confettiPool = [];
+const sparkPool = [];
+const MAX_CONFETTI_POOL = 300;
+const MAX_SPARK_POOL = 600;
+
+function obtainConfetti() {
+  return confettiPool.length > 0 ? confettiPool.pop() : {};
+}
+
+function releaseConfetti(p) {
+  if (confettiPool.length < MAX_CONFETTI_POOL) {
+    confettiPool.push(p);
+  }
+}
+
+function obtainSpark() {
+  return sparkPool.length > 0 ? sparkPool.pop() : {};
+}
+
+function releaseSpark(s) {
+  if (sparkPool.length < MAX_SPARK_POOL) {
+    sparkPool.push(s);
+  }
+}
+
 const FIREWORK_PALETTES = [
   // Imperial Gold & Amber
   ['#fbbf24', '#f59e0b', '#fde047', '#ffffff', '#ea580c', '#fffbeb'],
@@ -65,20 +91,20 @@ export function fireConfettiBurst(x = window.innerWidth / 2, y = window.innerHei
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = 4 + Math.random() * 13;
-    confettiParticles.push({
-      x,
-      y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 4,
-      size: 6 + Math.random() * 8,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      rotation: Math.random() * Math.PI * 2,
-      vRot: (Math.random() - 0.5) * 0.22,
-      gravity: 0.28,
-      life: 1,
-      decay: 0.01 + Math.random() * 0.014,
-      shape: Math.random() > 0.35 ? 'rect' : 'circle'
-    });
+    const p = obtainConfetti();
+    p.x = x;
+    p.y = y;
+    p.vx = Math.cos(angle) * speed;
+    p.vy = Math.sin(angle) * speed - 4;
+    p.size = 6 + Math.random() * 8;
+    p.color = colors[Math.floor(Math.random() * colors.length)];
+    p.rotation = Math.random() * Math.PI * 2;
+    p.vRot = (Math.random() - 0.5) * 0.22;
+    p.gravity = 0.28;
+    p.life = 1;
+    p.decay = 0.01 + Math.random() * 0.014;
+    p.shape = Math.random() > 0.35 ? 'rect' : 'circle';
+    confettiParticles.push(p);
   }
 
   if (!confettiAnimId) {
@@ -96,40 +122,40 @@ export function fireDualSideConfettiCannons() {
   for (let i = 0; i < 55; i++) {
     const angle = -Math.PI / 4 + (Math.random() - 0.5) * 0.6;
     const speed = 15 + Math.random() * 16;
-    confettiParticles.push({
-      x: 0,
-      y: h * 0.85,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      size: 7 + Math.random() * 9,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      rotation: Math.random() * Math.PI * 2,
-      vRot: (Math.random() - 0.5) * 0.26,
-      gravity: 0.32,
-      life: 1,
-      decay: 0.007 + Math.random() * 0.011,
-      shape: Math.random() > 0.4 ? 'rect' : 'circle'
-    });
+    const p = obtainConfetti();
+    p.x = 0;
+    p.y = h * 0.85;
+    p.vx = Math.cos(angle) * speed;
+    p.vy = Math.sin(angle) * speed;
+    p.size = 7 + Math.random() * 9;
+    p.color = colors[Math.floor(Math.random() * colors.length)];
+    p.rotation = Math.random() * Math.PI * 2;
+    p.vRot = (Math.random() - 0.5) * 0.26;
+    p.gravity = 0.32;
+    p.life = 1;
+    p.decay = 0.007 + Math.random() * 0.011;
+    p.shape = Math.random() > 0.4 ? 'rect' : 'circle';
+    confettiParticles.push(p);
   }
 
   // Right cannon shooting up-left
   for (let i = 0; i < 55; i++) {
     const angle = -3 * Math.PI / 4 + (Math.random() - 0.5) * 0.6;
     const speed = 15 + Math.random() * 16;
-    confettiParticles.push({
-      x: w,
-      y: h * 0.85,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      size: 7 + Math.random() * 9,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      rotation: Math.random() * Math.PI * 2,
-      vRot: (Math.random() - 0.5) * 0.26,
-      gravity: 0.32,
-      life: 1,
-      decay: 0.007 + Math.random() * 0.011,
-      shape: Math.random() > 0.4 ? 'rect' : 'circle'
-    });
+    const p = obtainConfetti();
+    p.x = w;
+    p.y = h * 0.85;
+    p.vx = Math.cos(angle) * speed;
+    p.vy = Math.sin(angle) * speed;
+    p.size = 7 + Math.random() * 9;
+    p.color = colors[Math.floor(Math.random() * colors.length)];
+    p.rotation = Math.random() * Math.PI * 2;
+    p.vRot = (Math.random() - 0.5) * 0.26;
+    p.gravity = 0.32;
+    p.life = 1;
+    p.decay = 0.007 + Math.random() * 0.011;
+    p.shape = Math.random() > 0.4 ? 'rect' : 'circle';
+    confettiParticles.push(p);
   }
 
   if (!confettiAnimId) animateConfetti();
@@ -179,38 +205,38 @@ function explodeFireworkRocket(rocket) {
     const angle = Math.random() * Math.PI * 2;
     const speed = 2.5 + Math.random() * 10.5;
     const col = pal[Math.floor(Math.random() * pal.length)];
-    fireworkSparks.push({
-      x: rocket.x,
-      y: rocket.y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      color: col,
-      alpha: 1,
-      decay: 0.012 + Math.random() * 0.018,
-      gravity: 0.12 + Math.random() * 0.06,
-      drag: 0.965,
-      size: 2.8 + Math.random() * 3.2,
-      flicker: Math.random() > 0.35
-    });
+    const s = obtainSpark();
+    s.x = rocket.x;
+    s.y = rocket.y;
+    s.vx = Math.cos(angle) * speed;
+    s.vy = Math.sin(angle) * speed;
+    s.color = col;
+    s.alpha = 1;
+    s.decay = 0.012 + Math.random() * 0.018;
+    s.gravity = 0.12 + Math.random() * 0.06;
+    s.drag = 0.965;
+    s.size = 2.8 + Math.random() * 3.2;
+    s.flicker = Math.random() > 0.35;
+    fireworkSparks.push(s);
   }
 
   // Glittering white crackle center
   for (let j = 0; j < 16; j++) {
     const angle = (j / 16) * Math.PI * 2;
     const speed = 1.2 + Math.random() * 3.5;
-    fireworkSparks.push({
-      x: rocket.x,
-      y: rocket.y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      color: '#ffffff',
-      alpha: 1,
-      decay: 0.022 + Math.random() * 0.02,
-      gravity: 0.08,
-      drag: 0.94,
-      size: 2.2,
-      flicker: true
-    });
+    const s = obtainSpark();
+    s.x = rocket.x;
+    s.y = rocket.y;
+    s.vx = Math.cos(angle) * speed;
+    s.vy = Math.sin(angle) * speed;
+    s.color = '#ffffff';
+    s.alpha = 1;
+    s.decay = 0.022 + Math.random() * 0.02;
+    s.gravity = 0.08;
+    s.drag = 0.94;
+    s.size = 2.2;
+    s.flicker = true;
+    fireworkSparks.push(s);
   }
 }
 
@@ -317,7 +343,9 @@ function animateConfetti() {
     s.alpha -= s.decay;
 
     if (s.alpha <= 0) {
-      fireworkSparks.splice(i, 1);
+      fireworkSparks[i] = fireworkSparks[fireworkSparks.length - 1];
+      fireworkSparks.pop();
+      releaseSpark(s);
       continue;
     }
 
@@ -344,7 +372,9 @@ function animateConfetti() {
     p.life -= p.decay;
 
     if (p.life <= 0 || p.y > confettiCanvas.height + 25) {
-      confettiParticles.splice(i, 1);
+      confettiParticles[i] = confettiParticles[confettiParticles.length - 1];
+      confettiParticles.pop();
+      releaseConfetti(p);
       continue;
     }
 
@@ -451,33 +481,15 @@ export const THEME_COMBINATIONS = {
     sunPos: { x: 14, y: 32, z: 18 }
   },
 
-  // ── ⚡ CYBERPUNK BOARD STYLE ──────────────────────────────────────────────
+  // ── ⚡ CYBERPUNK BOARD STYLE (Day Only) ───────────────────────────────────
   'cyberpunk:day': {
-    // High-tech neo-city daylight: sleek overcast slate with electric cyan glow
-    bg: 'radial-gradient(ellipse 130% 90% at 50% 25%, #1e293b 0%, #0f172a 42%, #080d1a 75%, #020617 100%)',
-    ambientColor: 0x38bdf8,
-    ambientIntensity: 0.38,
-    sunColor: 0xe0f2fe,
-    sunIntensity: 0.90,
+    // High-tech neo-city daylight: sleek overcast slate with subtle cool ambient
+    bg: 'radial-gradient(ellipse 130% 90% at 50% 25%, #182232 0%, #0d1522 42%, #080d16 75%, #030710 100%)',
+    ambientColor: 0x64748b,
+    ambientIntensity: 0.32,
+    sunColor: 0xe2e8f0,
+    sunIntensity: 0.95,
     sunPos: { x: 22, y: 32, z: 18 }
-  },
-  'cyberpunk:sunset': {
-    // 80s Synthwave / Outrun Sunset: vibrant magenta, violet & neon amber horizon
-    bg: 'radial-gradient(ellipse 135% 95% at 50% 20%, #f472b6 0%, #d946ef 18%, #9333ea 38%, #4c1d95 62%, #1e1b4b 82%, #090514 100%)',
-    ambientColor: 0xd946ef,
-    ambientIntensity: 0.48,
-    sunColor: 0xf43f5e,
-    sunIntensity: 0.92,
-    sunPos: { x: 28, y: 14, z: 18 }
-  },
-  'cyberpunk:night': {
-    // Pure Cyberpunk Neon Night: deepest obsidian space with glowing electric cyan & magenta nodes
-    bg: 'radial-gradient(circle at 50% 40%, #1e1b4b 0%, #0f172a 45%, #020617 80%, #000000 100%)',
-    ambientColor: 0x1e1b4b,
-    ambientIntensity: 0.28,
-    sunColor: 0x00f5ff,
-    sunIntensity: 0.35,
-    sunPos: { x: 14, y: 32, z: 18 }
   },
 
   // ── ✨ ELEGANT BOARD STYLE ────────────────────────────────────────────────
@@ -534,21 +546,11 @@ export const LOBBY_THEMES = {
     skyStyle: 'opacity: 0.75; filter: drop-shadow(0 0 16px rgba(255,255,255,0.4));'
   },
 
-  // ⚡ CYBERPUNK
+  // ⚡ CYBERPUNK (Day Only)
   'cyberpunk:day': {
-    bg: 'linear-gradient(180deg, #0284c7 0%, #0f172a 38%, #1e1b4b 72%, #312e81 100%)',
+    bg: 'linear-gradient(180deg, #0f172a 0%, #1e293b 35%, #0f172a 70%, #020617 100%)',
     skyIcons: ['☁️', '⚡', '☁️'],
-    skyStyle: 'opacity: 0.5; filter: drop-shadow(0 0 12px rgba(56,189,248,0.5));'
-  },
-  'cyberpunk:sunset': {
-    bg: 'linear-gradient(180deg, #f472b6 0%, #d946ef 22%, #9333ea 48%, #4c1d95 75%, #090514 100%)',
-    skyIcons: ['🌆', '🌤️', '🌆'],
-    skyStyle: 'opacity: 0.6; filter: drop-shadow(0 0 16px rgba(217,70,239,0.6));'
-  },
-  'cyberpunk:night': {
-    bg: 'linear-gradient(180deg, #1e1b4b 0%, #0f172a 35%, #020617 75%, #000000 100%)',
-    skyIcons: ['✨', '⚡', '⭐'],
-    skyStyle: 'opacity: 0.8; filter: drop-shadow(0 0 20px rgba(0,245,255,0.7));'
+    skyStyle: 'opacity: 0.35; filter: drop-shadow(0 0 10px rgba(56,189,248,0.3));'
   },
 
   // ✨ ELEGANT
@@ -574,10 +576,15 @@ let currentLightingKey = 'day';
 export function applyLightingMode(key, threeSceneObjects) {
   if (key === 'morning') key = 'day';
   if (!['day', 'sunset', 'night'].includes(key)) key = 'day';
+
+  const boardStyle = matchSettings?.boardStyle || 'wood';
+  if (boardStyle === 'cyberpunk') {
+    key = 'day'; // Cyberpunk board style is dedicated to Day mode only
+  }
+
   currentLightingKey = key;
   if (matchSettings) matchSettings.lightingTheme = key;
 
-  const boardStyle = matchSettings?.boardStyle || 'wood';
   const comboKey = `${boardStyle}:${key}`;
   const cfg = THEME_COMBINATIONS[comboKey] || THEME_COMBINATIONS[`wood:${key}`] || THEME_COMBINATIONS['wood:day'];
 
@@ -635,22 +642,32 @@ export function applyLightingMode(key, threeSceneObjects) {
   // Update theme button icon
   const btn = document.getElementById('btn-lighting-mode');
   if (btn) {
-    const icons = {
-      day: '<i class="fa-solid fa-sun text-amber-500"></i><span>Morning</span>',
-      sunset: '<i class="fa-solid fa-cloud-sun text-orange-500"></i><span>Sunset</span>',
-      night: '<i class="fa-solid fa-moon text-indigo-400"></i><span>Night</span>'
-    };
-    btn.innerHTML = icons[key] || icons.day;
+    if (boardStyle === 'cyberpunk') {
+      btn.innerHTML = '<i class="fa-solid fa-sun text-cyan-400"></i><span class="hidden xl:inline text-xs">Day</span>';
+      btn.title = 'Day Mode (Cyber Board)';
+      btn.classList.add('opacity-70', 'cursor-default');
+    } else {
+      btn.classList.remove('opacity-70', 'cursor-default');
+      btn.title = 'Toggle Lighting Theme (Morning, Sunset, Night)';
+      const icons = {
+        day: '<i class="fa-solid fa-sun text-amber-500"></i><span>Morning</span>',
+        sunset: '<i class="fa-solid fa-cloud-sun text-orange-500"></i><span>Sunset</span>',
+        night: '<i class="fa-solid fa-moon text-indigo-400"></i><span>Night</span>'
+      };
+      btn.innerHTML = icons[key] || icons.day;
+    }
   }
 
   // Update lobby atmosphere text
   const atmoTextEl = document.getElementById('setup-atmosphere-text') || document.getElementById('setup-match-length-text');
   if (atmoTextEl) {
-    atmoTextEl.textContent = key === 'night' ? 'Night' : (key === 'sunset' ? 'Sunset' : 'Morning');
+    atmoTextEl.textContent = boardStyle === 'cyberpunk' ? 'Day' : (key === 'night' ? 'Night' : (key === 'sunset' ? 'Sunset' : 'Morning'));
   }
 }
 
 export function cycleLightingMode(threeSceneObjects) {
+  const boardStyle = matchSettings?.boardStyle || 'wood';
+  if (boardStyle === 'cyberpunk') return; // Cyberpunk style only supports Day mode
   const modes = ['day', 'sunset', 'night'];
   const cur = matchSettings?.lightingTheme || currentLightingKey || 'day';
   const nextIdx = (modes.indexOf(cur) + 1) % modes.length;

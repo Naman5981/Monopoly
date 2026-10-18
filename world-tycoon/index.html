@@ -17,21 +17,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Rubik', 'system-ui', 'sans-serif'],
-            rounded: ['Rubik', 'Fredoka', 'system-ui', 'sans-serif'],
-            display: ['Rubik', 'Fredoka', 'system-ui', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Pre-compiled Production Tailwind CSS & Custom Styles (5x faster load, zero runtime DOM observation) -->
+  <link rel="stylesheet" href="./src/compiled.css">
 
   <!-- PeerJS WebRTC P2P Library -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -47,9 +34,6 @@
     }
   }
   </script>
-
-  <!-- Custom Game Styles -->
-  <link rel="stylesheet" href="./src/style.css">
 
   <!-- Vite / ES Module entry -->
   <script type="module" src="./src/main.js"></script>
@@ -205,13 +189,9 @@
   </svg>
 
   <!-- 0. FULL-SCREEN CASUAL 3D GAME LOBBY: WORLD TYCOON ORIGINAL INTERFACE -->
-  <div id="landing-setup-screen" class="fixed inset-0 z-50 flex flex-col justify-between p-4 sm:p-6 lg:p-7 overflow-y-auto overflow-x-hidden">
+  <div id="landing-setup-screen" class="lobby-view-title fixed inset-0 z-50 flex flex-col justify-between p-4 sm:p-6 lg:p-7 overflow-y-auto overflow-x-hidden">
 
-    <!-- Floating Atmosphere Clouds & Diamond Accents -->
-    <div class="diamond-watermark" style="top:8%; left:5%;"></div>
-    <div class="diamond-watermark" style="bottom:12%; left:3%;"></div>
-    <div class="diamond-watermark" style="top:18%; right:4%;"></div>
-    <div class="diamond-watermark" style="bottom:10%; right:6%;"></div>
+    <!-- Floating Atmosphere Clouds -->
     <div id="setup-atmosphere-sky-elements" class="absolute bottom-0 left-0 right-0 pointer-events-none opacity-45 flex justify-between select-none transition-opacity duration-700 px-6">
       <svg class="w-36 h-24 text-white/50 cloud-float-1 transform -translate-y-6 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
       <svg class="w-28 h-20 text-white/40 cloud-float-2 transform -translate-y-3 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
@@ -220,28 +200,29 @@
 
     <!-- TOP HEADER BAR: WORLD TYCOON BRANDING & PROFILE -->
     <div class="relative z-20 max-w-7xl w-full mx-auto flex items-center justify-between gap-4 flex-shrink-0 pt-1 pb-3">
-      <!-- Left: Player Profile Pill -->
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-3 bg-white/95 rounded-full p-1.5 pr-5 shadow-lg border-2 border-white backdrop-blur-sm">
-          <div id="setup-profile-avatar" class="w-12 h-12 rounded-full border-3 border-emerald-400 overflow-hidden flex items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-200 font-black text-emerald-800 text-lg shadow-inner">
-            N
+      <!-- Left: Navigation & Player Profile Capsule (Unified 42px Height) -->
+      <div class="flex items-center gap-2.5">
+        <button id="btn-lobby-back-to-title" onclick="window.showTitleScreen()" class="hidden h-[42px] px-3.5 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-black text-xs shadow-md border-2 border-slate-200 cursor-pointer inline-flex items-center justify-center gap-2 flex-shrink-0 whitespace-nowrap transition-transform hover:scale-[1.02] active:scale-[0.98]" title="Return to Title Menu">
+          <i class="fa-solid fa-arrow-left text-sky-600 text-sm"></i>
+          <span class="font-black text-xs uppercase tracking-wider">Back</span>
+        </button>
+
+        <div class="h-[42px] flex items-center gap-2.5 bg-white/95 rounded-full px-2 py-1 pr-3.5 shadow-md border-2 border-white backdrop-blur-sm flex-shrink-0">
+          <div id="setup-profile-avatar" class="w-8 h-8 rounded-full border-2 border-emerald-400 overflow-hidden flex items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-200 font-black text-emerald-800 text-sm shadow-inner flex-shrink-0">
+            Y
           </div>
-          <div>
+          <div class="flex items-center gap-2.5">
             <div class="flex items-center gap-1.5">
-              <span id="setup-profile-name" class="text-sm font-black uppercase text-slate-800 leading-tight">
-                NAMAN
+              <span id="setup-profile-name" class="text-sm font-black uppercase text-slate-800 tracking-wider">
+                YOU
               </span>
               <svg class="ui-icon w-3.5 h-3.5 text-amber-500" aria-hidden="true"><use href="#icon-crown"></use></svg>
             </div>
-            <div class="flex items-center gap-2 mt-0.5">
-              <div class="text-xs font-black text-emerald-600 flex items-center gap-1">
-                <i class="fa-solid fa-coins text-xs text-amber-500"></i>
-                <span id="setup-profile-cash">$2.0M</span>
-              </div>
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-300 text-[11px] font-black text-amber-900 shadow-2xs" title="Persistent Tycoon Stars">
-                <svg class="ui-icon w-3 h-3 text-amber-500" aria-hidden="true"><use href="#icon-star"></use></svg>
-                <span id="setup-profile-stars" class="tabular-nums">500</span>
-              </span>
+            <span class="w-px h-4 bg-slate-200"></span>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow-xs border border-amber-300" title="Your Tycoon Stars">
+              <svg class="ui-icon w-3.5 h-3.5 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
+              <span id="setup-profile-stars" class="font-mono tabular-nums text-xs font-black">558</span>
+              <span class="text-[10px] uppercase tracking-wider font-extrabold text-amber-950">STARS</span>
             </div>
           </div>
         </div>
@@ -259,31 +240,31 @@
         </div>
       </div>
 
-      <!-- Right: Rules, Audio & Quick Action Buttons -->
-      <div class="flex items-center gap-2.5">
-        <button onclick="window.toggleDebugPanel()" class="top-pill px-3 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5" title="Open Debug & QA Suite [Key: ~ or F2]">
-          <i class="fa-solid fa-bug text-slate-900"></i>
+      <!-- Right: Rules, Audio & Quick Action Buttons (Unified 42px Height) -->
+      <div class="flex items-center gap-2">
+        <button onclick="window.toggleDebugPanel()" class="h-[42px] top-pill px-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5 flex-shrink-0" title="Open Debug & QA Suite [Key: ~ or F2]">
+          <i class="fa-solid fa-bug text-slate-900 text-xs"></i>
           <span>DEBUG</span>
         </button>
-        <button onclick="window.openRulesModal()" class="top-pill px-4 py-2 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-2" title="How to Play & Rules">
-          <i class="fa-solid fa-book-open text-sky-600"></i>
+        <button onclick="window.openRulesModal()" class="h-[42px] top-pill px-4 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-2 flex-shrink-0" title="How to Play & Rules">
+          <i class="fa-solid fa-book-open text-sky-600 text-xs"></i>
           <span>RULES</span>
         </button>
-        <div class="flex items-center gap-2 bg-white/95 backdrop-blur-md py-1 px-3 rounded-full shadow-md border-2 border-white" title="Adjust Sound Volume">
+        <div class="h-[42px] flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
           <button onclick="window.toggleSound()" id="setup-btn-sound" class="text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center p-1" title="Mute / Unmute Sound">
-            <i id="setup-btn-sound-icon" class="fa-solid fa-volume-high text-sm text-sky-600"></i>
+            <i id="setup-btn-sound-icon" class="fa-solid fa-volume-high text-xs text-sky-600"></i>
           </button>
-          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-20 sm:w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume">
-          <span id="setup-sound-volume-val" class="text-xs font-black tabular-nums text-slate-700 w-7">75%</span>
+          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-16 sm:w-20 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume">
+          <span id="setup-sound-volume-val" class="text-xs font-black tabular-nums text-slate-700 w-6">75%</span>
         </div>
-        <button onclick="if(confirm('Reset match settings to defaults?')) window.location.reload()" class="game-circle-btn bg-rose-500 hover:bg-rose-600 text-white" title="Reset Lobby">
-          <i class="fa-solid fa-rotate-left text-sm font-black"></i>
+        <button onclick="if(confirm('Reset match settings to defaults?')) window.location.reload()" class="w-[42px] h-[42px] rounded-full border-2 border-white bg-rose-500 hover:bg-rose-600 text-white shadow-md flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer" title="Reset Lobby">
+          <i class="fa-solid fa-rotate-left text-xs font-black"></i>
         </button>
       </div>
     </div>
 
     <!-- MAIN 3-COLUMN LOBBY CONTENT ARENA -->
-    <div class="relative z-10 flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch my-auto py-2">
+    <div id="lobby-main-arena" class="relative z-10 flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch my-auto py-2">
 
       <!-- LEFT COLUMN: PLAYERS AT THE TABLE -->
       <div id="lobby-roster-column" class="col-span-12 lg:col-span-4 game-panel-card p-5 sm:p-6 flex flex-col justify-between shadow-xl min-h-[580px]">
@@ -339,34 +320,92 @@
         </div>
 
         <!-- 3D Canvas Stage -->
-        <div class="relative flex items-center justify-center my-auto">
+        <div id="lobby-avatar-3d-canvas-wrapper" class="relative flex items-center justify-center">
           <canvas id="lobby-avatar-3d-canvas" width="380" height="400" class="w-[320px] h-[340px] sm:w-[360px] sm:h-[380px] pointer-events-auto filter drop-shadow-2xl relative z-10"></canvas>
         </div>
 
         <!-- Bottom Controls: Default Setup Mode -->
-        <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-2.5 w-full">
-          <!-- Wardrobe & Outfits Button -->
-          <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-5 py-2.5 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs sm:text-sm shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-2.5 cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Customize Outfits, Hats, Dice & Pedestals">
-            <svg class="ui-icon w-4 h-4 text-amber-600" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
-            <span class="tracking-wide">WARDROBE</span>
-            <span class="ml-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] shadow-2xs border border-amber-500/20 tabular-nums inline-flex items-center gap-1">
-              <svg class="ui-icon w-3 h-3 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
-              <span id="wardrobe-button-stars-badge">500</span>
-            </span>
-          </button>
+        <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-3 w-full">
+          <!-- Customization Row: Wardrobe & Colors (Always accessible) -->
+          <div class="flex items-center gap-2 flex-wrap justify-center">
+            <!-- Wardrobe & Outfits Button -->
+            <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-5 py-2.5 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs sm:text-sm shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-2.5 cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Customize Outfits, Hats, Dice & Pedestals">
+              <svg class="ui-icon w-4 h-4 text-amber-600" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
+              <span class="tracking-wide">WARDROBE</span>
+              <span class="ml-1 px-3 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-xs shadow-2xs border border-amber-500/20 tabular-nums inline-flex items-center gap-1.5">
+                <svg class="ui-icon w-3.5 h-3.5 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
+                <span id="wardrobe-button-stars-badge" class="font-mono tabular-nums text-xs font-black">500</span>
+              </span>
+            </button>
 
-          <!-- Color Swatches Bar -->
-          <div class="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-white shadow-md flex items-center gap-2">
-            <span class="text-xs font-black uppercase text-slate-600 tracking-wider mr-1">COLOR</span>
-            <div id="setup-color-swatches" class="flex items-center gap-1.5">
-              <!-- Dynamically populated candy circles -->
+            <!-- Color Swatches Bar -->
+            <div id="setup-color-swatches-container" class="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-white shadow-md flex items-center gap-2">
+              <span class="text-xs font-black uppercase text-slate-600 tracking-wider mr-1">COLOR</span>
+              <div id="setup-color-swatches" class="flex items-center gap-1.5">
+                <!-- Dynamically populated candy circles -->
+              </div>
             </div>
           </div>
 
-          <!-- Massive juicy 3D Green PLAY Button -->
-          <button id="landing-play-btn" onclick="window.startGameFromLandingPage()" class="w-full max-w-xs py-4 sm:py-4.5 rounded-full font-rounded font-black text-2xl sm:text-3xl text-white tracking-widest uppercase game-btn game-btn-green shadow-2xl">
-            <i class="fa-solid fa-play text-xl mr-2"></i> PLAY
-          </button>
+          <!-- A. Title Screen Primary Menu (LOCAL vs MULTIPLAYER) -->
+          <div id="title-menu-actions" class="w-full max-w-sm flex flex-col items-center gap-3 mt-1 relative z-30 pointer-events-auto">
+            <button onclick="window.showLocalSetup()" class="w-full py-4 px-6 rounded-3xl font-rounded font-black text-white game-btn game-btn-green shadow-xl flex items-center justify-between group cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]" title="Play solo against bots or pass-and-play">
+              <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-2xl shadow-inner border border-white/30">
+                  <i class="fa-solid fa-gamepad text-white"></i>
+                </div>
+                <div class="text-left">
+                  <div class="text-lg sm:text-xl font-black leading-tight tracking-wider">LOCAL PLAY</div>
+                  <div class="text-[10px] font-extrabold text-emerald-100 uppercase tracking-widest">Pass & Play + AI Bots</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-emerald-200 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+
+            <button onclick="window.showMultiplayerSetup()" class="w-full py-3.5 px-6 rounded-3xl font-rounded font-black text-white game-btn game-btn-blue shadow-lg flex items-center justify-between group cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]" title="Host private room or join via room code">
+              <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-2xl shadow-inner border border-white/30">
+                  <i class="fa-solid fa-globe text-white"></i>
+                </div>
+                <div class="text-left">
+                  <div class="text-lg sm:text-xl font-black leading-tight tracking-wider">MULTIPLAYER</div>
+                  <div class="text-[10px] font-extrabold text-sky-100 uppercase tracking-widest">Host or Join via Room Code</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-sky-200 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+
+          <!-- B. Lobby Setup Actions (START MATCH & Multiplayer Room Hero Capsule) -->
+          <div id="lobby-setup-actions" class="w-full max-w-sm flex flex-col items-center gap-2.5 mt-1">
+            <!-- Multiplayer Room Hero Capsule (Visible when in a live room) -->
+            <div id="mp-room-capsule" class="w-full rounded-2xl bg-white/95 border-2 border-sky-300 p-2.5 shadow-md flex-col items-center gap-2 hidden">
+              <div class="flex items-center justify-between w-full">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span class="text-xs font-black uppercase text-sky-900 tracking-wider">ROOM:</span>
+                  <strong id="mp-room-code-display" class="font-mono text-base font-black text-slate-900">----</strong>
+                </div>
+                <span id="mp-role-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-300">HOST</span>
+              </div>
+              <div class="flex items-center gap-2 w-full">
+                <button onclick="window.copyRoomInviteLink()" class="flex-1 py-1.5 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-300 text-sky-700 font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
+                  <i class="fa-solid fa-link text-xs"></i> Copy Link
+                </button>
+                <button onclick="window.copyRoomCodeOnly()" class="py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
+                  <i class="fa-solid fa-copy text-xs"></i> Code
+                </button>
+                <button onclick="window.leaveP2PRoom()" class="py-1.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-600 font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs" title="Leave Room">
+                  <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> Leave
+                </button>
+              </div>
+            </div>
+
+            <!-- Massive juicy 3D Green PLAY Button -->
+            <button id="landing-play-btn" onclick="window.startGameFromLandingPage()" class="w-full py-4 sm:py-4.5 rounded-full font-rounded font-black text-2xl sm:text-3xl text-white tracking-widest uppercase game-btn game-btn-green shadow-2xl">
+              <i class="fa-solid fa-play text-xl mr-2"></i> START MATCH
+            </button>
+          </div>
         </div>
 
         <!-- Bottom Controls: Wardrobe Preview Active Mode -->
@@ -394,8 +433,24 @@
             </span>
           </div>
 
-          <!-- 1. MATCH MODE (Local vs WebRTC P2P) -->
-          <div>
+          <!-- 1. DEDICATED LOCAL PLAY ARCADE HEADER (Replaces match mode toggle in local play) -->
+          <div id="lobby-local-mode-header" class="p-3 rounded-2xl bg-gradient-to-r from-sky-50 to-indigo-50 border-2 border-sky-200/80 shadow-2xs flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-sky-500 text-white flex items-center justify-center text-base shadow-sm">
+                <i class="fa-solid fa-gamepad"></i>
+              </div>
+              <div>
+                <div class="text-xs font-black uppercase text-slate-800 tracking-wide flex items-center gap-1.5">
+                  <span>LOCAL PASS &amp; PLAY</span>
+                </div>
+                <div class="text-[10px] font-semibold text-slate-500">Play together on this device</div>
+              </div>
+            </div>
+            <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-white text-sky-700 border border-sky-200 shadow-2xs">OFFLINE</span>
+          </div>
+
+          <!-- Match Mode Selector (Hidden in dedicated local play and multiplayer room) -->
+          <div id="setup-match-mode-selector" class="hidden">
             <label class="block text-xs font-black uppercase text-slate-500 tracking-wider mb-2">MATCH MODE</label>
             <div class="flex bg-slate-100 p-1.5 rounded-2xl gap-1.5">
               <button id="btn-mode-local" onclick="window.selectMatchMode('local')" class="flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer bg-sky-500 text-white shadow-sm flex items-center justify-center gap-1.5">
@@ -410,121 +465,195 @@
           <!-- WebRTC P2P Room Panel (Expands when Multiplayer is selected) -->
           <div id="setup-p2p-panel" class="hidden p-3.5 rounded-2xl bg-sky-50 border-2 border-sky-200 space-y-2.5">
             <div class="text-xs font-black text-sky-900 flex items-center justify-between">
-              <span>🌐 WebRTC P2P ROOM</span>
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-globe text-sky-500"></i>
+                <span>ONLINE ROOM</span>
+              </span>
               <span id="setup-p2p-status-text" class="text-xs font-bold text-sky-600">Ready</span>
             </div>
-            <div class="flex flex-wrap gap-2">
-              <button id="btn-p2p-create-room" onclick="window.hostP2PRoom()" class="flex-1 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs shadow-sm cursor-pointer">
-                Host Room
+
+            <!-- Unconnected Controls (Visible only when NOT in an active room) -->
+            <div id="p2p-unconnected-controls" class="space-y-2">
+              <button id="btn-p2p-create-room" onclick="window.hostP2PRoom()" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 active:scale-98 text-white font-black text-xs shadow-sm cursor-pointer transition">
+                <i class="fa-solid fa-crown text-amber-300 mr-1.5"></i> Host Room
               </button>
-              <button id="btn-p2p-copy-link" onclick="window.copyRoomInviteLink()" class="hidden px-3 py-2 rounded-xl bg-white text-sky-700 border border-sky-300 font-black text-xs cursor-pointer" title="Copy Invite Link">
-                🔗 Copy Link
-              </button>
-              <button id="btn-p2p-copy-code" onclick="window.copyRoomCodeOnly()" class="hidden px-3 py-2 rounded-xl bg-white text-sky-700 border border-sky-300 font-black text-xs cursor-pointer" title="Copy Room Code Only">
-                📋 Copy Code
-              </button>
-              <button id="btn-p2p-leave" onclick="window.leaveP2PRoom()" class="hidden px-3 py-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-300 font-black text-xs cursor-pointer" title="Leave Room">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Leave
-              </button>
+              <div class="flex gap-2">
+                <input id="input-p2p-room-code" type="text" maxlength="6" placeholder="ENTER ROOM CODE" onkeydown="if(event.key==='Enter') window.joinP2PRoom()" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-black uppercase bg-white tracking-wider focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200">
+                <button id="btn-p2p-join-room" onclick="window.joinP2PRoom()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black text-xs shadow-sm cursor-pointer transition">
+                  Join
+                </button>
+              </div>
             </div>
-            <div class="flex gap-2">
-              <input id="input-p2p-room-code" type="text" maxlength="6" placeholder="Enter Room Code" onkeydown="if(event.key==='Enter') window.joinP2PRoom()" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-black uppercase bg-white">
-              <button id="btn-p2p-join-room" onclick="window.joinP2PRoom()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm cursor-pointer">
-                Join
+
+            <!-- Connected Room Controls (Visible ONLY when room is active) -->
+            <div id="p2p-connected-controls" class="hidden grid-cols-3 gap-2">
+              <button id="btn-p2p-copy-link" onclick="window.copyRoomInviteLink()" class="py-2 px-2 rounded-xl bg-white hover:bg-sky-50 text-sky-700 border border-sky-300 font-black text-xs cursor-pointer shadow-2xs transition flex items-center justify-center gap-1.5" title="Copy Invite Link">
+                <i class="fa-solid fa-link text-xs"></i> <span>Link</span>
+              </button>
+              <button id="btn-p2p-copy-code" onclick="window.copyRoomCodeOnly()" class="py-2 px-2 rounded-xl bg-white hover:bg-sky-50 text-sky-700 border border-sky-300 font-black text-xs cursor-pointer shadow-2xs transition flex items-center justify-center gap-1.5" title="Copy Room Code Only">
+                <i class="fa-solid fa-copy text-xs"></i> <span>Code</span>
+              </button>
+              <button id="btn-p2p-leave" onclick="window.leaveP2PRoom()" class="py-2 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-300 font-black text-xs cursor-pointer shadow-2xs transition flex items-center justify-center gap-1.5" title="Leave Room">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> <span>Leave</span>
               </button>
             </div>
           </div>
 
-          <!-- 2. STARTING CAPITAL -->
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-500 tracking-wider mb-2">STARTING CAPITAL</label>
-            <div class="grid grid-cols-4 gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
-              <button id="setup-cash-1500000" onclick="window.setStartingCash(1500000)" class="py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900">$1.5M</button>
-              <button id="setup-cash-2000000" onclick="window.setStartingCash(2000000)" class="py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer bg-sky-500 text-white shadow-sm">$2.0M</button>
-              <button id="setup-cash-3000000" onclick="window.setStartingCash(3000000)" class="py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900">$3.0M</button>
-              <button id="setup-cash-5000000" onclick="window.setStartingCash(5000000)" class="py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900">$5.0M</button>
+          <!-- 1. SECTION CARD: GAME RULES & PACE -->
+          <div class="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-3.5 space-y-3 shadow-2xs">
+            <div class="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <i class="fa-solid fa-scale-balanced text-sky-500"></i> Rules &amp; Pace
             </div>
-          </div>
 
-          <!-- 3. DECISION TIMER STEPPER -->
-          <div>
-            <div class="flex items-center justify-between bg-slate-50/90 border-2 border-slate-200/80 border-b-[3px] border-b-slate-300 p-2.5 rounded-2xl shadow-2xs">
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-800">TURN TIMER</label>
-                <div class="text-[11px] text-slate-500 font-semibold">Time per roll & trade</div>
-              </div>
-              <div class="flex items-center gap-2">
-                <button onclick="window.stepDecisionTime(-1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">-</button>
-                <span id="setup-decision-time-text" class="text-sm font-black text-slate-900 min-w-[48px] text-center font-mono">20 s</span>
-                <button onclick="window.stepDecisionTime(1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">+</button>
+            <!-- Starting Capital -->
+            <div>
+              <div class="text-xs font-black text-slate-700 mb-1.5">Starting Capital</div>
+              <div class="grid grid-cols-4 gap-1.5 bg-slate-200/60 p-1 rounded-xl">
+                <button id="setup-cash-1500000" onclick="window.setStartingCash(1500000)" class="py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 text-center">$1.5M</button>
+                <button id="setup-cash-2000000" onclick="window.setStartingCash(2000000)" class="py-1.5 rounded-lg text-xs font-black transition cursor-pointer bg-sky-500 text-white shadow-xs text-center">$2.0M</button>
+                <button id="setup-cash-3000000" onclick="window.setStartingCash(3000000)" class="py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 text-center">$3.0M</button>
+                <button id="setup-cash-5000000" onclick="window.setStartingCash(5000000)" class="py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 text-center">$5.0M</button>
               </div>
             </div>
-          </div>
 
-          <!-- 4. MATCH TIME LIMIT STEPPER (15 min steps up to 1.25 hr) -->
-          <div>
-            <div class="flex items-center justify-between bg-slate-50/90 border-2 border-slate-200/80 border-b-[3px] border-b-slate-300 p-2.5 rounded-2xl shadow-2xs">
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-800">MATCH TIME LIMIT</label>
-                <div class="text-[11px] text-slate-500 font-semibold">15m steps up to 1.25 hr</div>
+            <!-- Twin Pace Controls: Turn Timer & Match Limit -->
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/70">
+              <!-- Turn Timer Stepper -->
+              <div class="bg-white rounded-xl p-2 border border-slate-200 flex flex-col justify-between">
+                <span class="text-[11px] font-black uppercase text-slate-600 tracking-tight">Turn Timer</span>
+                <div class="flex items-center justify-between mt-1">
+                  <button onclick="window.stepDecisionTime(-1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 transition">-</button>
+                  <span id="setup-decision-time-text" class="text-xs font-black text-slate-900 font-mono">20 s</span>
+                  <button onclick="window.stepDecisionTime(1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 transition">+</button>
+                </div>
               </div>
-              <div class="flex items-center gap-2">
-                <button onclick="window.stepMatchDuration(-1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">-</button>
-                <span id="setup-match-duration-text" class="text-xs sm:text-sm font-black text-slate-900 min-w-[76px] text-center font-mono">15 min</span>
-                <button onclick="window.stepMatchDuration(1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">+</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 5. ATMOSPHERE / LIGHTING THEME STEPPER -->
-          <div>
-            <div class="flex items-center justify-between bg-slate-50/90 border-2 border-slate-200/80 border-b-[3px] border-b-slate-300 p-2.5 rounded-2xl shadow-2xs">
-              <div>
-                <label class="block text-xs font-black uppercase text-slate-800">ATMOSPHERE</label>
-                <div class="text-[11px] text-slate-500 font-semibold">Morning / Sunset / Night</div>
-              </div>
-              <div class="flex items-center gap-2">
-                <button onclick="window.stepAtmosphere(-1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">-</button>
-                <span id="setup-atmosphere-text" class="text-xs font-black text-slate-900 min-w-[60px] text-center font-mono">Morning</span>
-                <button onclick="window.stepAtmosphere(1)" class="w-8 h-8 rounded-full bg-white border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400 text-slate-800 font-black text-sm flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.96] transition-[transform,background-color] duration-150 ease-out">+</button>
+              <!-- Match Limit Stepper -->
+              <div class="bg-white rounded-xl p-2 border border-slate-200 flex flex-col justify-between">
+                <span class="text-[11px] font-black uppercase text-slate-600 tracking-tight">Match Limit</span>
+                <div class="flex items-center justify-between mt-1">
+                  <button onclick="window.stepMatchDuration(-1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 transition">-</button>
+                  <span id="setup-match-duration-text" class="text-xs font-black text-slate-900 font-mono">15 min</span>
+                  <button onclick="window.stepMatchDuration(1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 transition">+</button>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- 5. BOARD MAP / EDITION -->
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-500 tracking-wider mb-2">BOARD MAP / EDITION</label>
-            <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl">
-              <button id="setup-edition-world" onclick="window.setBoardEdition('world')" class="py-2 px-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer bg-sky-500 text-white shadow-sm flex items-center justify-center gap-1.5">
-                🌍 World Cities
-              </button>
-              <button id="setup-edition-rajasthan" onclick="window.setBoardEdition('rajasthan')" class="py-2 px-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5">
-                🏰 Rajasthan (India)
-              </button>
+          <!-- 2. SECTION CARD: BOARD & WORLD -->
+          <div class="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-3.5 space-y-3 shadow-2xs">
+            <div class="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <i class="fa-solid fa-earth-americas text-sky-500"></i> Board &amp; Atmosphere
             </div>
-          </div>
 
-          <!-- 6. BOARD STYLE / SKIN -->
-          <div>
-            <label class="block text-xs font-black uppercase text-slate-500 tracking-wider mb-2">BOARD STYLE</label>
-            <div class="grid grid-cols-3 gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
-              <button id="setup-board-wood" onclick="window.setBoardStyle('wood')" class="py-2 px-1 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer bg-sky-500 text-white shadow-sm flex items-center justify-center gap-1">
-                🪵 Wood
-              </button>
-              <button id="setup-board-cyberpunk" onclick="window.setBoardStyle('cyberpunk')" class="py-2 px-1 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
-                ⚡ Cyber
-              </button>
-              <button id="setup-board-elegant" onclick="window.setBoardStyle('elegant')" class="py-2 px-1 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
-                ✨ Elegant
-              </button>
+            <!-- Map Edition -->
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs font-black text-slate-700">Map Edition</span>
+                <span id="lobby-edition-tiles-text" class="text-[10px] font-bold text-slate-400">32 Cities</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5 bg-slate-200/60 p-1 rounded-xl">
+                <button id="setup-edition-world" onclick="window.setBoardEdition('world')" class="py-1.5 px-2 rounded-lg text-xs font-black transition cursor-pointer bg-sky-500 text-white shadow-xs flex items-center justify-center gap-1">
+                  🌍 World
+                </button>
+                <button id="setup-edition-rajasthan" onclick="window.setBoardEdition('rajasthan')" class="py-1.5 px-2 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+                  🏰 Rajasthan
+                </button>
+              </div>
+            </div>
+
+            <!-- Board Style & Atmosphere Twin Row -->
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/70">
+              <!-- Board Style -->
+              <div class="bg-white rounded-xl p-2 border border-slate-200 flex flex-col justify-between">
+                <span class="text-[11px] font-black uppercase text-slate-600 tracking-tight mb-1">Style</span>
+                <div class="grid grid-cols-3 gap-1 bg-slate-100 p-0.5 rounded-lg">
+                  <button id="setup-board-wood" onclick="window.setBoardStyle('wood')" class="py-1 rounded-md text-[11px] font-black transition cursor-pointer bg-sky-500 text-white shadow-2xs flex items-center justify-center" title="Wood">🪵</button>
+                  <button id="setup-board-cyberpunk" onclick="window.setBoardStyle('cyberpunk')" class="py-1 rounded-md text-[11px] font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center" title="Cyber">⚡</button>
+                  <button id="setup-board-elegant" onclick="window.setBoardStyle('elegant')" class="py-1 rounded-md text-[11px] font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center" title="Elegant">✨</button>
+                </div>
+              </div>
+              <!-- Atmosphere Stepper -->
+              <div class="bg-white rounded-xl p-2 border border-slate-200 flex flex-col justify-between">
+                <span class="text-[11px] font-black uppercase text-slate-600 tracking-tight mb-1">Lighting</span>
+                <div class="flex items-center justify-between">
+                  <button onclick="window.stepAtmosphere(-1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 transition">-</button>
+                  <span id="setup-atmosphere-text" class="text-xs font-black text-slate-900 font-mono truncate px-0.5">Morning</span>
+                  <button onclick="window.stepAtmosphere(1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 transition">+</button>
+                </div>
+                <span id="setup-atmosphere-desc" class="hidden"></span>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Board Edition Info Badge -->
         <div class="pt-2 border-t border-sky-100 flex items-center justify-between text-xs text-slate-500 font-bold">
-          <span>Board Map: <strong id="lobby-edition-badge-text" class="text-sky-700">World Tour Edition</strong></span>
-          <span>Tiles: <strong id="lobby-edition-tiles-text" class="text-slate-700">32 Cities</strong></span>
+          <span>Map: <strong id="lobby-edition-badge-text" class="text-sky-700">World Tour Edition</strong></span>
+          <span class="text-[11px] text-slate-400 font-semibold">Standard Board</span>
+        </div>
+      </div>
+
+      <!-- MULTIPLAYER PORTAL: HOST OR JOIN ROOM CHOICE -->
+      <div id="lobby-multiplayer-portal" class="col-span-12 max-w-3xl mx-auto w-full my-auto py-6 grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-stretch hidden">
+        <!-- Host Room Card -->
+        <div class="game-panel-card p-6 sm:p-7 flex flex-col justify-between shadow-xl border-2 border-sky-300 border-b-4 border-b-sky-500 bg-white">
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center text-xl shadow-md border-2 border-white/80 flex-shrink-0">
+                <i class="fa-solid fa-crown text-amber-300"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">Host Lobby</span>
+                <h3 class="font-display font-black text-2xl text-slate-900 tracking-wide leading-tight">Create Room</h3>
+              </div>
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-600">Start a private match and share the invite code with your friends.</p>
+
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold">
+                <i class="fa-solid fa-users text-sky-600 text-[11px]"></i> Up to 6 Players
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold">
+                <i class="fa-solid fa-link text-indigo-600 text-[11px]"></i> Invite Link
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold">
+                <i class="fa-solid fa-robot text-emerald-600 text-[11px]"></i> Bot Fill
+              </span>
+            </div>
+          </div>
+
+          <button onclick="window.hostP2PRoom()" class="mt-6 w-full py-4 rounded-2xl font-rounded font-black text-lg text-white game-btn game-btn-blue shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <i class="fa-solid fa-plus text-base"></i>
+            <span>CREATE ROOM</span>
+          </button>
+        </div>
+
+        <!-- Join Room Card -->
+        <div class="game-panel-card p-6 sm:p-7 flex flex-col justify-between shadow-xl border-2 border-emerald-300 border-b-4 border-b-emerald-500 bg-white">
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xl shadow-md border-2 border-white/80 flex-shrink-0">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Join Lobby</span>
+                <h3 class="font-display font-black text-2xl text-slate-900 tracking-wide leading-tight">Join Room</h3>
+              </div>
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-600">Enter the room code shared by your friend to jump into their game.</p>
+
+            <div class="space-y-1.5 pt-1">
+              <div class="relative">
+                <input id="input-p2p-room-code-portal" type="text" maxlength="6" placeholder="ROOM CODE" oninput="this.value = this.value.toUpperCase(); const oldInput = document.getElementById('input-p2p-room-code'); if(oldInput) oldInput.value = this.value;" onkeydown="if(event.key==='Enter') window.joinP2PRoomFromPortal()" class="w-full text-center uppercase tracking-[0.25em] text-2xl font-mono font-black py-3 px-4 rounded-2xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-slate-50 focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-sans placeholder:font-bold placeholder:text-sm">
+              </div>
+              <p id="portal-p2p-status-text" class="text-xs font-bold text-slate-500 text-center min-h-[18px]"></p>
+            </div>
+          </div>
+
+          <button onclick="window.joinP2PRoomFromPortal()" class="mt-4 w-full py-4 rounded-2xl font-rounded font-black text-lg text-white game-btn game-btn-green shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <i class="fa-solid fa-gamepad text-base"></i>
+            <span>JOIN GAME</span>
+          </button>
         </div>
       </div>
 
@@ -542,7 +671,7 @@
   <div id="tile-hover-tooltip" class="tile-hover-tooltip hidden"></div>
 
   <!-- 2C. TURN LOCK NOTIFICATION TOAST -->
-  <div id="turn-lock-toast" class="turn-lock-toast hidden">
+  <div id="turn-lock-toast" class="turn-lock-toast hidden" style="display: none;">
     <i class="fa-solid fa-lock text-amber-400"></i>
     <span id="turn-lock-toast-text">Wait for your turn!</span>
   </div>
@@ -675,15 +804,15 @@
   </div>
 
   <!-- 7. CORNER PLAYER HUD CARDS -->
-  <div id="hud-left-players" class="fixed top-16 left-4 z-20 flex flex-col gap-3 sm:gap-4 pointer-events-auto"></div>
-  <div id="hud-right-players" class="fixed top-16 right-4 z-20 flex flex-col gap-3 sm:gap-4 items-end pointer-events-auto"></div>
+  <div id="hud-left-players" class="fixed top-[74px] left-4 z-[55] flex flex-col gap-2.5 sm:gap-3 pointer-events-auto"></div>
+  <div id="hud-right-players" class="fixed top-[74px] right-4 z-[55] flex flex-col gap-2.5 sm:gap-3 items-end pointer-events-auto"></div>
 
   <!-- 8. CENTER BOARD FLOATING "ROLL" PILL BUTTON -->
-  <div id="center-park-controls" class="fixed left-1/2 top-[51%] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto flex flex-col items-center gap-2 transition-opacity duration-300">
-    <div id="dice-sum-badge" class="hidden px-3.5 py-1 rounded-full bg-slate-900/90 text-white font-rounded font-extrabold text-xs shadow-lg border border-white/20 tracking-wider animate-bounce">
+  <div id="center-park-controls" class="fixed left-1/2 top-[51%] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none flex flex-col items-center gap-2 transition-opacity duration-300">
+    <div id="dice-sum-badge" class="hidden px-3.5 py-1 rounded-full bg-slate-900/90 text-white font-rounded font-extrabold text-xs shadow-lg border border-white/20 tracking-wider animate-bounce pointer-events-auto">
       🎲 Rolled 7
     </div>
-    <button id="btn-center-roll" onclick="window.handleRollButtonClick()" class="center-roll-btn">
+    <button id="btn-center-roll" onclick="window.handleRollButtonClick()" class="center-roll-btn hidden pointer-events-auto">
       <i class="fa-solid fa-dice text-lg"></i>
       <span id="center-roll-label">Roll</span>
     </button>
@@ -730,9 +859,9 @@
     </div>
   </div>
 
-  <!-- 8C. REAL-TIME BOTTOM CENTER EVENT & THINKING STATUS PILL -->
-  <div id="hud-bottom-status-wrap" class="fixed bottom-20 sm:bottom-22 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none w-full max-w-xl px-4 transition-[transform,opacity] duration-300">
-    <div id="hud-status-pill" class="hud-status-pill pointer-events-auto cursor-pointer" onclick="window.toggleEventLogDrawer()" title="Click to view full event log [Log]">
+  <!-- 8C & 9. UNIFIED BOTTOM ACTION DOCK (Status Pill + Primary Roll Station + Bail + Timer) -->
+  <div id="hud-bottom-status-wrap" class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2.5 pointer-events-none w-full max-w-xl px-4 transition-[transform,opacity] duration-300">
+    <div id="hud-status-pill" class="hud-status-pill pointer-events-auto cursor-pointer" onclick="window.handleStatusPillClick()" title="Click to roll dice (your turn) or view event log">
       <div id="hud-status-pill-avatar" class="hud-status-pill-avatar shrink-0">
         <span id="hud-status-pill-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
       </div>
@@ -746,24 +875,23 @@
         <i class="fa-solid fa-list-ul text-[9px] text-amber-400"></i> LOG
       </div>
     </div>
-  </div>
 
-  <!-- 9. BOTTOM CENTER "ROLL" BUTTON + CIRCULAR COUNTDOWN TIMER -->
-  <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center">
-    <div class="relative flex items-center justify-center">
+    <!-- Main Action Station: Centered Roll Button flanked by Bail (left) and 15s Timer (right) -->
+    <div id="hud-roll-station" class="relative flex items-center justify-center pointer-events-auto">
       <!-- Jail Pay Bail Quick Button (When on Island) - Flanks left without pulling center -->
-      <button id="btn-escape-island" onclick="window.handlePayIslandBail()" class="hidden absolute right-full mr-3 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg transition items-center gap-1.5 whitespace-nowrap">
+      <button id="btn-escape-island" onclick="window.handlePayIslandBail()" class="hidden absolute right-full mr-3 px-4 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs shadow-lg transition items-center gap-1.5 whitespace-nowrap cursor-pointer" title="Pay 150K bail to exit Island immediately">
         <i class="fa-solid fa-umbrella-beach"></i> Pay 150K Bail
       </button>
 
       <!-- Primary Action: Perfectly centered on screen horizontal axis -->
-      <button id="btn-bottom-roll" onclick="window.handleRollButtonClick()" class="bottom-roll-btn">
-        <i class="fa-solid fa-dice text-lg"></i>
+      <button id="btn-bottom-roll" onclick="window.handleRollButtonClick()" class="bottom-roll-btn cursor-pointer" title="Roll Dice [Space]">
+        <i class="fa-solid fa-dice text-xl"></i>
         <span id="bottom-roll-label">Roll</span>
+        <kbd class="text-[10px] bg-black/25 px-2 py-0.5 rounded-full font-mono text-white/90 border border-white/20 hidden sm:inline-block">SPACE</kbd>
       </button>
 
       <!-- Circular Turn Timer Badge - Flanks right without pulling center -->
-      <div class="absolute left-full ml-3 w-12 h-12 flex items-center justify-center drop-shadow-md">
+      <div id="hud-turn-timer-wrap" class="absolute left-full ml-3 w-12 h-12 flex items-center justify-center drop-shadow-md">
         <svg class="w-12 h-12 -rotate-90" viewBox="0 0 44 44">
           <circle cx="22" cy="22" r="18" fill="#ffffff" stroke="#e2e8f0" stroke-width="4.5"></circle>
           <circle id="turn-timer-ring" cx="22" cy="22" r="18" fill="none" stroke="#f59e0b" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="0"></circle>
@@ -805,50 +933,80 @@
   <!-- ================================================================= -->
 
   <!-- A. BUY CITY / AUCTION MODAL (Victory-Inspired) -->
-  <div id="modal-buy-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
-    <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden">
-      <div id="buy-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0">
+  <div id="modal-buy-city" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-sm w-full flex flex-col overflow-hidden shadow-2xl">
+      <!-- 1. Header with Country, 3D landmark canvas, and City Title -->
+      <div id="buy-modal-header" class="game-modal-header h-32 p-3 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0">
         <!-- Floating Watermark Icons -->
-        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
-        <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+        <svg class="ui-watermark absolute -right-2 -top-2 w-16 h-16 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
+        <svg class="ui-watermark absolute -left-2 -bottom-2 w-16 h-16 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
         <span id="buy-modal-country" class="modal-badge-pill">GLOBAL METROPOLIS</span>
-        <canvas id="buy-city-3d-canvas" width="220" height="110" class="w-[180px] h-[90px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
-        <h3 id="buy-modal-name" class="modal-city-title">ISTANBUL</h3>
+        <canvas id="buy-city-3d-canvas" width="220" height="110" class="w-[170px] h-[85px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
+        <h3 id="buy-modal-name" class="modal-city-title text-xl sm:text-2xl">ISTANBUL</h3>
       </div>
-      <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70 overflow-y-auto flex-1">
-        <!-- Dual 3D Stat Cards: Price & Base Rent -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="game-stat-card stat-card-sky">
-            <span class="stat-card-badge">
+
+      <!-- 2. Minimalist Body: Buyer info + 2 Stat Badges + Affordability Balance + Single-Line Growth Teaser -->
+      <div class="p-4 sm:p-5 space-y-3 bg-gradient-to-b from-white to-slate-50/70">
+        <!-- Active Buyer Strip -->
+        <div id="buy-modal-buyer-row" class="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-100/90 border border-slate-200/90 shadow-2xs">
+          <div class="flex items-center gap-2.5">
+            <div id="buy-modal-buyer-avatar-wrap" class="w-8 h-8 rounded-full border-2 border-white shadow-xs overflow-hidden flex-shrink-0 bg-slate-200 flex items-center justify-center">
+              <canvas id="buy-modal-buyer-avatar-canvas" width="64" height="64" class="w-full h-full block rounded-full"></canvas>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">BUYING TYCOON</span>
+              <span id="buy-modal-buyer-name" class="text-xs font-black text-slate-800 leading-tight">Player 1</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span id="buy-modal-buyer-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
+              ACTIVE TURN
+            </span>
+          </div>
+        </div>
+
+        <!-- Dual Compact Badges: Price & Base Rent -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="game-stat-card stat-card-sky p-2.5">
+            <span class="stat-card-badge text-[10px]">
               <i class="fa-solid fa-tag text-sky-500"></i> CITY PRICE
             </span>
-            <div id="buy-modal-price" class="stat-card-value text-sky-950">600K</div>
+            <div id="buy-modal-price" class="stat-card-value text-sky-950 text-xl font-black">600K</div>
           </div>
-          <div class="game-stat-card stat-card-emerald">
-            <span class="stat-card-badge">
+          <div class="game-stat-card stat-card-emerald p-2.5">
+            <span class="stat-card-badge text-[10px]">
               <i class="fa-solid fa-coins text-emerald-500"></i> BASE RENT
             </span>
-            <div id="buy-modal-rent" class="stat-card-value text-emerald-950">90K</div>
+            <div id="buy-modal-rent" class="stat-card-value text-emerald-950 text-xl font-black">90K</div>
           </div>
         </div>
 
-        <!-- 3D Rent Progression Vault -->
-        <div class="game-tiers-tray">
-          <div class="tiers-tray-header">
-            <span class="flex items-center gap-1.5 font-display font-black text-[11px] uppercase tracking-wider text-slate-500">
-              <i class="fa-solid fa-chart-line text-sky-500"></i> Rent Progression
+        <!-- Dynamic Context Strip: Affordability & Max Potential -->
+        <div class="p-3 rounded-2xl bg-slate-100/90 border border-slate-200/90 space-y-1.5 shadow-2xs">
+          <!-- Balance after purchase -->
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+            <span class="text-slate-500 flex items-center gap-1.5">
+              <i class="fa-solid fa-wallet text-amber-500 text-xs"></i> Balance After:
             </span>
-            <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Per Visit</span>
+            <span id="buy-modal-balance-preview" class="font-mono tabular-nums font-black text-slate-900">$2.0M → $1.4M</span>
           </div>
-          <div id="buy-modal-tiers" class="space-y-1.5 pt-0.5"></div>
+
+          <!-- Max potential / Resort perk -->
+          <div id="buy-modal-potential-row" class="flex items-center justify-between text-[11px] font-bold text-slate-600 pt-1.5 border-t border-slate-200/80">
+            <span class="text-slate-400 flex items-center gap-1">
+              <i class="fa-solid fa-bolt text-amber-500 text-xs"></i> Max Potential:
+            </span>
+            <span id="buy-modal-max-rent" class="font-mono tabular-nums font-extrabold text-amber-600">$1.2M (Skyscraper)</span>
+          </div>
         </div>
 
-        <div class="flex gap-3 pt-1">
-          <button id="btn-confirm-buy" onclick="window.confirmBuyCity()" class="game-btn game-btn-green flex-1 py-3.5 text-sm font-black">
-            <i class="fa-solid fa-cart-shopping mr-1"></i> BUY CITY
+        <!-- Primary Action CTAs -->
+        <div class="flex gap-2.5 pt-1">
+          <button id="btn-confirm-buy" onclick="window.confirmBuyCity()" class="game-btn game-btn-green flex-1 py-3 text-sm font-black shadow-md cursor-pointer transition">
+            <i class="fa-solid fa-cart-shopping mr-1.5"></i> BUY CITY
           </button>
-          <button id="btn-pass-buy" onclick="window.passBuyCity()" class="game-btn game-btn-slate flex-1 py-3.5 text-sm font-black">
+          <button id="btn-pass-buy" onclick="window.passBuyCity()" class="game-btn game-btn-slate w-28 py-3 text-sm font-black cursor-pointer transition">
             <i class="fa-solid fa-forward mr-1"></i> PASS
           </button>
         </div>
@@ -1099,8 +1257,8 @@
       <div class="p-5 space-y-4 bg-gradient-to-b from-slate-50 via-white to-indigo-50/50">
         <!-- Wheel 3D Stage Housing -->
         <div class="relative w-[310px] h-[310px] mx-auto flex items-center justify-center p-2 rounded-full bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200 border-3 border-white shadow-[inset_0_4px_10px_rgba(0,0,0,0.12),0_8px_20px_rgba(15,23,42,0.15)]">
-          <!-- 3D Golden Pointer / Ticker Pin -->
-          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)]">
+          <!-- 3D Golden Pointer / Ticker Pin (Rive/Spine physics dynamic needle) -->
+          <div id="chance-wheel-ticker-pin" class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)] origin-top transition-transform duration-75">
             <div class="w-8 h-8 rounded-full bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 border-2.5 border-white shadow-lg flex items-center justify-center">
               <div class="w-3.5 h-3.5 rounded-full bg-rose-600 border border-amber-200 shadow-inner"></div>
             </div>
@@ -1831,9 +1989,9 @@
   </div>
 
   <!-- K. WARDROBE & COSMETICS MODAL (Victory-Inspired) -->
-  <div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 pointer-events-none hidden wardrobe-panel-hidden flex items-stretch justify-end">
+  <div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 pointer-events-none hidden wardrobe-panel-hidden items-stretch justify-end">
     <!-- Clickable backdrop on left side (clean transparent, zero blur on 3D character) -->
-    <div id="wardrobe-backdrop" onclick="window.closeWardrobeModal()" class="absolute inset-0 bg-transparent pointer-events-auto transition-opacity duration-300 opacity-0" title="Click to return to lobby"></div>
+    <div id="wardrobe-backdrop" onclick="window.closeWardrobeModal()" class="absolute inset-0 bg-transparent pointer-events-none transition-opacity duration-300 opacity-0" title="Click to return to lobby"></div>
 
     <!-- Slide-in Wardrobe Card Drawer -->
     <div id="wardrobe-panel-card" class="relative z-10 w-full sm:w-[540px] md:w-[620px] lg:w-[680px] xl:w-[740px] h-full bg-slate-900/95 backdrop-blur-xl border-l-2 border-amber-400/40 shadow-2xl flex flex-col pointer-events-auto overflow-hidden">

@@ -11,6 +11,7 @@ import { BASE_TILE_Y, getTileWorldPosition } from '../board/coords.js';
 import { movingHopDestTileId } from '../board/tilePress.js';
 
 export let currentBulbMode = 'day';
+export let currentBulbBoardStyle = 'wood';
 
 export const streetBulbMaterials = [];
 export const streetFilamentMaterials = [];
@@ -418,107 +419,44 @@ export function updateAvatarLightingForCurrentMode() {
  */
 export function setBulbLightingTheme(mode, boardStyle = matchSettings?.boardStyle || 'wood') {
   currentBulbMode = mode;
+  currentBulbBoardStyle = boardStyle;
   const isNight = (mode === 'night');
   const isSunset = (mode === 'sunset');
   const isCyber = (boardStyle === 'cyberpunk');
   const isElegant = (boardStyle === 'elegant');
 
   if (isCyber) {
-    if (isNight) {
-      streetFilamentMaterials.forEach(mat => mat.color.setHex(0x00f5ff));
-      streetBulbMaterials.forEach(mat => {
-        mat.emissive.setHex(0x00f5ff);
-        mat.emissiveIntensity = 2.8;
-        mat.opacity = 0.95;
-      });
-      streetGlassMaterials.forEach(mat => {
-        mat.emissive.setHex(0xd946ef);
-        mat.emissiveIntensity = 0.45;
-        mat.opacity = 0.45;
-      });
-      streetGlowSprites.forEach(mat => {
-        mat.color.setHex(0x00f5ff);
-        mat.opacity = 0.85;
-      });
-      streetGroundLightPools.forEach(mat => {
-        mat.color.setHex(0x00f5ff);
-        mat.opacity = 0.55;
-      });
-      streetLightBeams.forEach(mat => {
-        mat.color.setHex(0x00f5ff);
-        mat.opacity = 0.12;
-      });
-      streetPointLights.forEach(pl => {
-        pl.visible = true;
-        pl.color.setHex(0x00f5ff);
-        pl.intensity = 1.8;
-        pl.distance = 8.5;
-        pl.decay = 1.8;
-      });
-    } else if (isSunset) {
-      streetFilamentMaterials.forEach(mat => mat.color.setHex(0xec4899));
-      streetBulbMaterials.forEach(mat => {
-        mat.emissive.setHex(0xd946ef);
-        mat.emissiveIntensity = 2.2;
-        mat.opacity = 0.90;
-      });
-      streetGlassMaterials.forEach(mat => {
-        mat.emissive.setHex(0x00f5ff);
-        mat.emissiveIntensity = 0.35;
-        mat.opacity = 0.40;
-      });
-      streetGlowSprites.forEach(mat => {
-        mat.color.setHex(0xec4899);
-        mat.opacity = 0.65;
-      });
-      streetGroundLightPools.forEach(mat => {
-        mat.color.setHex(0xd946ef);
-        mat.opacity = 0.38;
-      });
-      streetLightBeams.forEach(mat => {
-        mat.color.setHex(0xec4899);
-        mat.opacity = 0.08;
-      });
-      streetPointLights.forEach(pl => {
-        pl.visible = true;
-        pl.color.setHex(0xd946ef);
-        pl.intensity = 1.3;
-        pl.distance = 7.0;
-        pl.decay = 1.8;
-      });
-    } else {
-      // Cyberpunk Day: Tech glow on lamp posts
-      streetFilamentMaterials.forEach(mat => mat.color.setHex(0x00f5ff));
-      streetBulbMaterials.forEach(mat => {
-        mat.emissive.setHex(0x00f5ff);
-        mat.emissiveIntensity = 1.2;
-        mat.opacity = 0.85;
-      });
-      streetGlassMaterials.forEach(mat => {
-        mat.emissive.setHex(0x00f5ff);
-        mat.emissiveIntensity = 0.20;
-        mat.opacity = 0.30;
-      });
-      streetGlowSprites.forEach(mat => {
-        mat.color.setHex(0x00f5ff);
-        mat.opacity = 0.25;
-      });
-      streetGroundLightPools.forEach(mat => {
-        mat.color.setHex(0x00f5ff);
-        mat.opacity = 0.15;
-      });
-      streetLightBeams.forEach(mat => {
-        mat.color.setHex(0x00f5ff);
-        mat.opacity = 0.04;
-      });
-      streetPointLights.forEach(pl => {
-        pl.visible = true;
-        pl.color.setHex(0x00f5ff);
-        pl.intensity = 0.6;
-        pl.distance = 5.0;
-        pl.decay = 2.0;
-      });
-    }
+    // Cyberpunk board style is dedicated to Day mode only
+    streetFilamentMaterials.forEach(mat => mat.color.setHex(0x38bdf8));
+    streetBulbMaterials.forEach(mat => {
+      mat.emissive.setHex(0x0284c7);
+      mat.emissiveIntensity = 0.45;
+      mat.opacity = 0.80;
+    });
+    streetGlassMaterials.forEach(mat => {
+      mat.emissive.setHex(0x0284c7);
+      mat.emissiveIntensity = 0.08;
+      mat.opacity = 0.22;
+    });
+    streetGlowSprites.forEach(mat => {
+      mat.color.setHex(0x38bdf8);
+      mat.opacity = 0.10;
+    });
+    streetGroundLightPools.forEach(mat => {
+      mat.color.setHex(0x0284c7);
+      mat.opacity = 0.08;
+    });
+    streetLightBeams.forEach(mat => {
+      mat.color.setHex(0x0284c7);
+      mat.opacity = 0.02;
+    });
+    streetPointLights.forEach(pl => {
+      pl.visible = true;
+      pl.color.setHex(0x38bdf8);
+      pl.intensity = 0.25;
+      pl.distance = 4.5;
+      pl.decay = 2.0;
+    });
   } else if (isElegant) {
     if (isNight) {
       streetFilamentMaterials.forEach(mat => mat.color.setHex(0xffd700));
@@ -754,7 +692,7 @@ export function getSceneLighting() {
  * @param {number} t - Time in seconds
  */
 export function updateStreetLampGlow(t) {
-  if (currentBulbMode === 'day') return;
+  if (currentBulbMode === 'day' || currentBulbBoardStyle === 'cyberpunk') return;
   const basePulse = Math.sin(t * 3.5) * 0.04;
   let baseIntensity = 0.50;
   let baseOpacity = 0.35;

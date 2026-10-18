@@ -8,8 +8,10 @@ import { gameState } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { setStatusPill } from '../hud.js';
+import { getTileScreenPosition } from '../../three/scene.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
-import { animateFortuneCardUnfold } from '../anim.js';
+import { animateChanceDeckDraw, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { setPlayerPortraitMood } from '../portraitRenderer.js';
 
 const WHEEL_VECTOR_ICONS = {
   money: new Path2D('M2 6h20v12H2V6zm2 2v8h16V8H4zm8 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm-6 2h1v2H6v-2zm11 0h1v2h-1v-2z'),
@@ -264,8 +266,7 @@ export function openChanceWheelModal(isDoubles) {
   setStatusPill(`🎡 Spin the wheel to test your luck on Chance!`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
 
   const m = document.getElementById('modal-chance-wheel');
-  m.classList.remove('hidden');
-  m.classList.add('flex');
+  animateModalSpringOpen(m);
 }
 
 export function showChanceAwardPopup(prize, onDone) {
@@ -358,15 +359,14 @@ export function showChanceAwardPopup(prize, onDone) {
     timerBar.style.width = '0%';
   }
 
-  m.classList.remove('hidden');
-  m.classList.add('flex');
-  animateFortuneCardUnfold('#modal-chance-result .game-modal-shell');
+  const currentTileId = gameState.players[gameState.currentPlayerIdx]?.position || 8;
+  const origin = getTileScreenPosition(currentTileId);
+  animateModalSpringOpen(m, '#modal-chance-result .game-modal-shell', origin);
+  animateChanceDeckDraw('#modal-chance-result .game-modal-shell', origin);
 
   // Exactly 2000ms (2 seconds)
   setTimeout(() => {
-    m.classList.add('hidden');
-    m.classList.remove('flex');
-    if (onDone) onDone();
+    animateModalSpringClose(m, '#modal-chance-result .game-modal-shell', onDone);
   }, 2000);
 }
 
@@ -400,14 +400,29 @@ export function spinChanceWheel() {
     canvas.style.transform = `rotate(${wheelAngle}deg)`;
   }
 
-  // Ticking sound simulation as wheel spins and decelerates
+  // Dynamic ticker needle deflection and synchronized audio ticks
   const totalSpinMs = 2600;
   let tickInterval = 60;
   const startSpinTime = Date.now();
+  const tickerPin = document.getElementById('chance-wheel-ticker-pin');
+
   function scheduleNextTick() {
     const elapsed = Date.now() - startSpinTime;
-    if (elapsed >= totalSpinMs - 120) return;
+    if (elapsed >= totalSpinMs - 120) {
+      if (tickerPin) tickerPin.style.transform = 'translate(-50%, 0) rotate(0deg)';
+      return;
+    }
     playSFX('wheelTick', 0.7);
+
+    // Spring deflection simulating sector peg collisions
+    if (tickerPin) {
+      const deflectDeg = -(12 + Math.random() * 8);
+      tickerPin.style.transform = `translate(-50%, 0) rotate(${deflectDeg}deg)`;
+      setTimeout(() => {
+        if (tickerPin) tickerPin.style.transform = 'translate(-50%, 0) rotate(0deg)';
+      }, Math.min(55, tickInterval * 0.45));
+    }
+
     const progress = elapsed / totalSpinMs;
     tickInterval = 55 + Math.pow(progress, 2.5) * 320;
     setTimeout(scheduleNextTick, tickInterval);
@@ -417,6 +432,29 @@ export function spinChanceWheel() {
   setTimeout(async () => {
     if (isLobbyScreenActive()) return;
     playSFX('win');
+
+    // Spring landing micro-bounce on wheel canvas
+    if (canvas) {
+      canvas.style.transform = `rotate(${wheelAngle}deg) scale(1.035)`;
+      setTimeout(() => {
+        if (canvas) canvas.style.transform = `rotate(${wheelAngle}deg) scale(1)`;
+      }, 160);
+    }
+
+    // Trigger emotional reaction on active player's portrait
+    const activePIdx = (gameState.currentPlayerIdx !== undefined && gameState.currentPlayerIdx !== null)
+      ? gameState.currentPlayerIdx
+      : 0;
+
+    if (prize.type === 'tax') {
+      setPlayerPortraitMood(activePIdx, 'crying', 3500);
+    } else if (prize.type === 'island') {
+      setPlayerPortraitMood(activePIdx, 'shocked', 3500);
+    } else if (prize.type === 'cash' && prize.amount >= 300000) {
+      setPlayerPortraitMood(activePIdx, 'smug', 3500);
+    } else {
+      setPlayerPortraitMood(activePIdx, 'cheering', 3500);
+    }
 
     // 1. Immediately highlight the result in the box below the wheel
     const resultText = document.getElementById('chance-result-text');
@@ -429,15 +467,11 @@ export function spinChanceWheel() {
     if (isLobbyScreenActive()) return;
 
     // 3. Close the wheel modal
-    document.getElementById('modal-chance-wheel').classList.add('hidden');
-    document.getElementById('modal-chance-wheel').classList.remove('flex');
+    animateModalSpringClose('#modal-chance-wheel');
 
     // 4. Show the dedicated, 100% solid, crystal-clear 2-second award popup
     showChanceAwardPopup(prize, async () => {
       // 5. Run the in-game 3D flight/tax/cash animation!
-      const activePIdx = (gameState.currentPlayerIdx !== undefined && gameState.currentPlayerIdx !== null)
-        ? gameState.currentPlayerIdx
-        : 0;
       if (engineCallbacks.applyChancePrize) {
         await engineCallbacks.applyChancePrize(activePIdx, prize, gameState.pendingDoubles);
       }

@@ -6,7 +6,7 @@
 import { BOARD_TILES, GROUP_META } from '../../game/data.js';
 import { gameState, localPlayerIdx, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
-import { playSFX } from '../../game/audio.js';
+import { playSFX, stopAdaptiveMusic } from '../../game/audio.js';
 import { ownsFullColorGroup } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastReturnToLobby, broadcastStartOnlineMatch } from '../../network/p2p.js';
 import { setMonopolyTileHighlights, startIntroCameraFlyIn } from '../../three/scene.js';
@@ -17,6 +17,8 @@ import { engineCallbacks, isLobbyScreenActive, closeAllGameModals } from './comm
 import { ARCHETYPES } from '../setup.js';
 import { awardMatchPoints } from '../wardrobe.js';
 import { animateVictoryTally, animateNumberCounter, animateModalPunchIn, animateMonopolyRibbonUnfurl } from '../anim.js';
+import { playVictoryCinematicOrbit, playIntroCinematicFlyIn } from '../../three/theatre.js';
+import { setPlayerPortraitMood } from '../portraitRenderer.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    VICTORY CELEBRATION MODAL
@@ -32,6 +34,7 @@ export function showVictoryModal(winner, victoryDetails = null) {
 
   // Set phase to VICTORY to immediately freeze turn timer, dice rolls, and AI action loops
   gameState.phase = 'VICTORY';
+  stopAdaptiveMusic();
 
   // Cancel all pending timers (AI rolls, auto-end turn, etc.)
   if (typeof window.cancelAllGameTimers === 'function') {
@@ -207,6 +210,16 @@ export function showVictoryModal(winner, victoryDetails = null) {
   }
 
   startVictoryCelebration(winnerObj);
+
+  // Theatre.js cinematic 360-degree victory orbit & character portrait emotional reactions
+  playVictoryCinematicOrbit(14000);
+  const winnerIdx = winnerObj.id !== undefined ? winnerObj.id : (gameState.players ? gameState.players.indexOf(winnerObj) : 0);
+  setPlayerPortraitMood(winnerIdx, 'cheering', 15000);
+  (gameState.players || []).forEach((p, idx) => {
+    if (idx !== winnerIdx) {
+      setPlayerPortraitMood(idx, p.bankrupt ? 'bankrupt' : 'crying', 15000);
+    }
+  });
 }
 
 export function handlePlayAgainAction() {
@@ -249,7 +262,7 @@ export function handlePlayAgainAction() {
     broadcastStartOnlineMatch();
   }
 
-  startIntroCameraFlyIn();
+  playIntroCinematicFlyIn();
   if (engineCallbacks.startNewMatch) {
     engineCallbacks.startNewMatch();
   } else if (window.startNewMatch) {

@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { matchSettings } from '../../game/state.js';
-import { dioramaMeshes, createProceduralWoodTexture } from './diorama.js';
+import { dioramaMeshes, createProceduralWoodTexture, updateDioramaCenterForEdition } from './diorama.js';
 import { refreshAllTileTexturesAndMaterials } from './tiles.js';
 import { applyLightingMode } from '../effects.js';
 import { getSceneLighting } from '../core/lighting.js';
@@ -29,18 +29,18 @@ export function createProceduralCyberpunkBaseTexture() {
   c.height = 512;
   const ctx = c.getContext('2d');
 
-  // 1. Dark obsidian / carbon background
+  // 1. Sleek dark obsidian / matte carbon background
   const grad = ctx.createLinearGradient(0, 0, 1024, 0);
-  grad.addColorStop(0.0, '#060a12');
-  grad.addColorStop(0.25, '#0b1324');
-  grad.addColorStop(0.50, '#0f172a');
-  grad.addColorStop(0.75, '#0a1020');
-  grad.addColorStop(1.0, '#060a12');
+  grad.addColorStop(0.0, '#04070e');
+  grad.addColorStop(0.25, '#080d1a');
+  grad.addColorStop(0.50, '#0c1324');
+  grad.addColorStop(0.75, '#080d1a');
+  grad.addColorStop(1.0, '#04070e');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 1024, 512);
 
   // 2. High-tech carbon micro-weave
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.018)';
   for (let x = 0; x < 1024; x += 12) {
     for (let y = 0; y < 512; y += 12) {
       if ((x + y) % 24 === 0) {
@@ -49,18 +49,18 @@ export function createProceduralCyberpunkBaseTexture() {
     }
   }
 
-  // 3. Laser circuit conduits (Neon Cyan & Magenta)
+  // 3. Subtle laser circuit conduits (Restrained, fine architectural lines)
   const circuits = [
-    { y: 70, col: '#00f5ff', glow: 'rgba(0, 245, 255, 0.45)', w: 3 },
-    { y: 150, col: '#d946ef', glow: 'rgba(217, 70, 239, 0.45)', w: 2.5 },
-    { y: 260, col: '#00f5ff', glow: 'rgba(0, 245, 255, 0.45)', w: 3.5 },
-    { y: 370, col: '#06b6d4', glow: 'rgba(6, 182, 212, 0.4)', w: 2.5 },
-    { y: 440, col: '#ec4899', glow: 'rgba(236, 72, 153, 0.45)', w: 3 }
+    { y: 80, col: 'rgba(0, 229, 255, 0.35)', glow: 'rgba(0, 229, 255, 0.20)', w: 1.8 },
+    { y: 170, col: 'rgba(147, 51, 234, 0.30)', glow: 'rgba(147, 51, 234, 0.15)', w: 1.5 },
+    { y: 260, col: 'rgba(0, 229, 255, 0.35)', glow: 'rgba(0, 229, 255, 0.20)', w: 2.0 },
+    { y: 350, col: 'rgba(14, 165, 233, 0.30)', glow: 'rgba(14, 165, 233, 0.15)', w: 1.5 },
+    { y: 430, col: 'rgba(168, 85, 247, 0.30)', glow: 'rgba(168, 85, 247, 0.15)', w: 1.8 }
   ];
 
   circuits.forEach(cDef => {
-    ctx.shadowColor = cDef.col;
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = cDef.glow;
+    ctx.shadowBlur = 4;
     ctx.strokeStyle = cDef.col;
     ctx.lineWidth = cDef.w;
 
@@ -68,32 +68,32 @@ export function createProceduralCyberpunkBaseTexture() {
     ctx.moveTo(0, cDef.y);
     for (let x = 60; x < 1024; x += 160) {
       ctx.lineTo(x, cDef.y);
-      const angleY = cDef.y + ((x % 320 === 0) ? 35 : -35);
-      ctx.lineTo(x + 35, angleY);
-      ctx.lineTo(x + 110, angleY);
-      ctx.lineTo(x + 145, cDef.y);
+      const angleY = cDef.y + ((x % 320 === 0) ? 28 : -28);
+      ctx.lineTo(x + 30, angleY);
+      ctx.lineTo(x + 100, angleY);
+      ctx.lineTo(x + 130, cDef.y);
     }
     ctx.lineTo(1024, cDef.y);
     ctx.stroke();
 
-    // Circuit node pads
+    // Small, refined node pads
     for (let nx = 120; nx < 1024; nx += 160) {
       ctx.fillStyle = cDef.col;
       ctx.beginPath();
-      ctx.arc(nx, cDef.y, 4, 0, Math.PI * 2);
+      ctx.arc(nx, cDef.y, 2.5, 0, Math.PI * 2);
       ctx.fill();
     }
   });
 
   ctx.shadowBlur = 0;
 
-  // 4. Subtle digital scanlines & edge illumination
+  // 4. Subtle ambient edge illumination
   const edgeGlow = ctx.createLinearGradient(0, 0, 0, 512);
-  edgeGlow.addColorStop(0, 'rgba(0, 245, 255, 0.35)');
-  edgeGlow.addColorStop(0.08, 'rgba(0, 245, 255, 0.08)');
+  edgeGlow.addColorStop(0, 'rgba(0, 229, 255, 0.12)');
+  edgeGlow.addColorStop(0.08, 'rgba(0, 229, 255, 0.03)');
   edgeGlow.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-  edgeGlow.addColorStop(0.92, 'rgba(217, 70, 239, 0.08)');
-  edgeGlow.addColorStop(1, 'rgba(217, 70, 239, 0.45)');
+  edgeGlow.addColorStop(0.92, 'rgba(147, 51, 234, 0.03)');
+  edgeGlow.addColorStop(1, 'rgba(147, 51, 234, 0.15)');
   ctx.fillStyle = edgeGlow;
   ctx.fillRect(0, 0, 1024, 512);
 
@@ -266,7 +266,7 @@ export function createWoodParkTexture() {
 }
 
 /**
- * Cyberpunk Synthwave Highway & Neon Grid Matrix Park
+ * Cyberpunk Obsidian Tech Plaza & Precision Laser Circuit Park
  */
 export function createCyberpunkParkTexture() {
   const c = document.createElement('canvas');
@@ -274,76 +274,88 @@ export function createCyberpunkParkTexture() {
   c.height = 1024;
   const ctx = c.getContext('2d');
 
-  // Roadway: Dark synthwave track
-  ctx.fillStyle = '#080d1a';
+  // Roadway: Matte carbon asphalt
+  ctx.fillStyle = '#060a14';
   ctx.fillRect(0, 0, 1024, 1024);
 
-  // Outer neon cyan road boundary
-  ctx.shadowColor = '#00f5ff';
-  ctx.shadowBlur = 12;
-  ctx.strokeStyle = '#00f5ff';
-  ctx.lineWidth = 8;
-  ctx.strokeRect(6, 6, 1012, 1012);
+  // Subtle carbon micro-texture
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+  for (let y = 0; y < 1024; y += 4) {
+    ctx.fillRect(0, y, 1024, 1.5);
+  }
 
-  // Hot magenta dashed center lane divider
-  ctx.shadowColor = '#d946ef';
-  ctx.shadowBlur = 10;
-  ctx.strokeStyle = '#ec4899';
-  ctx.lineWidth = 6;
-  ctx.setLineDash([26, 20]);
-  ctx.strokeRect(52, 52, 920, 920);
-  ctx.setLineDash([]);
+  // Refined electric cyan road boundary (restrained 2.5px width)
+  ctx.strokeStyle = 'rgba(2, 132, 199, 0.7)';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#0284c7';
+  ctx.shadowBlur = 4;
+  ctx.strokeRect(8, 8, 1008, 1008);
   ctx.shadowBlur = 0;
 
-  // Corner neon digital crosswalks
+  // Discreet slate center lane divider
+  ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([18, 14]);
+  ctx.strokeRect(52, 52, 920, 920);
+  ctx.setLineDash([]);
+
+  // Corner tech transition markers
   const crossWalks = [
-    { x: 28, y: 28, w: 74, h: 74 },
-    { x: 922, y: 28, w: 74, h: 74 },
-    { x: 28, y: 922, w: 74, h: 74 },
-    { x: 922, y: 922, w: 74, h: 74 }
+    { x: 30, y: 30, w: 70, h: 70 },
+    { x: 924, y: 30, w: 70, h: 70 },
+    { x: 30, y: 924, w: 70, h: 70 },
+    { x: 924, y: 924, w: 70, h: 70 }
   ];
-  ctx.fillStyle = '#00f5ff';
+  ctx.fillStyle = 'rgba(14, 165, 233, 0.35)';
   crossWalks.forEach(cwk => {
-    for (let s = 6; s < cwk.w - 6; s += 14) {
-      ctx.fillRect(cwk.x + s, cwk.y + 4, 7, cwk.h - 8);
+    for (let s = 6; s < cwk.w - 6; s += 16) {
+      ctx.fillRect(cwk.x + s, cwk.y + 6, 6, cwk.h - 12);
     }
   });
 
-  // Central cyber park curb (illuminated dark titanium)
+  // Central cyber plaza curb (dark titanium)
   const pm = 104, ps = 1024 - pm * 2, gc = 6, cw = ps / gc;
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(pm - 8, pm - 8, ps + 16, ps + 16);
-  ctx.strokeStyle = '#00f5ff';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(pm - 8, pm - 8, ps + 16, ps + 16);
+  ctx.fillStyle = '#090e1a';
+  ctx.fillRect(pm - 6, pm - 6, ps + 12, ps + 12);
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(pm - 6, pm - 6, ps + 12, ps + 12);
 
-  // Digital matrix checkered cyber lawn
+  // Obsidian tech pavers with subtle micro-seams
   for (let gx = 0; gx < gc; gx++) {
     for (let gz = 0; gz < gc; gz++) {
       const isAlt = (gx + gz) % 2 === 0;
-      ctx.fillStyle = isAlt ? '#031e1c' : '#0a1628';
+      ctx.fillStyle = isAlt ? '#0a0f1d' : '#0e1526';
       ctx.fillRect(pm + gx * cw, pm + gz * cw, cw, cw);
 
-      // Glowing matrix grid crosshairs
-      ctx.strokeStyle = isAlt ? 'rgba(0, 245, 255, 0.40)' : 'rgba(217, 70, 239, 0.35)';
-      ctx.lineWidth = 2.5;
+      // Fine architectural seam lines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+      ctx.lineWidth = 1;
       ctx.strokeRect(pm + gx * cw, pm + gz * cw, cw, cw);
-
-      // Tech node dot at center of tile
-      ctx.fillStyle = isAlt ? '#00f5ff' : '#d946ef';
-      ctx.beginPath();
-      ctx.arc(pm + gx * cw + cw / 2, pm + gz * cw + cw / 2, 3, 0, Math.PI * 2);
-      ctx.fill();
     }
   }
 
-  // Inner neon boundary frame
-  ctx.shadowColor = '#00f5ff';
-  ctx.shadowBlur = 14;
-  ctx.strokeStyle = '#00f5ff';
-  ctx.lineWidth = 7;
+  // Central Dice Arena / Holographic Medallion Ring
+  const cx = 512, cy = 512;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 148, 0, Math.PI * 2);
+  ctx.fillStyle = '#070b16';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(14, 165, 233, 0.4)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Subtle concentric calibration ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, 110, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(71, 85, 105, 0.3)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Inner boundary frame
+  ctx.strokeStyle = 'rgba(2, 132, 199, 0.5)';
+  ctx.lineWidth = 2.5;
   ctx.strokeRect(pm, pm, ps, ps);
-  ctx.shadowBlur = 0;
 
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -474,10 +486,10 @@ export function applyBoardStyle(styleName = 'wood') {
       metalness: 0.90
     });
     const cyberNodeMat = new THREE.MeshStandardMaterial({
-      color: 0x00f5ff,
-      emissive: 0x00f5ff,
-      emissiveIntensity: 1.4,
-      roughness: 0.1
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.45,
+      roughness: 0.20
     });
 
     dioramaMeshes.cornerGroups.forEach(cg => {
@@ -486,7 +498,7 @@ export function applyBoardStyle(styleName = 'wood') {
       if (cg.children[2]) cg.children[2].material = cyberNodeMat;
     });
 
-    // Rim: Gunmetal titanium with cyan accent
+    // Rim: Gunmetal titanium with subtle edge accent
     if (dioramaMeshes.rimMesh) {
       dioramaMeshes.rimMesh.material = new THREE.MeshStandardMaterial({
         color: 0x0f172a,
@@ -495,7 +507,7 @@ export function applyBoardStyle(styleName = 'wood') {
       });
     }
 
-    // Inner park roadway & digital lawn
+    // Inner park roadway & obsidian tech plaza
     if (dioramaMeshes.innerMesh) {
       dioramaMeshes.innerMesh.material = new THREE.MeshStandardMaterial({
         map: cachedTextures.cyberPark,
@@ -504,38 +516,38 @@ export function applyBoardStyle(styleName = 'wood') {
       });
     }
 
-    // Update trees to cyber neon foliage
+    // Update trees to obsidian faceted crystal sculptures
     dioramaMeshes.treeClusters.forEach(cluster => {
       cluster.traverse(child => {
         if (child.isMesh && child.geometry?.type === 'ConeGeometry') {
           child.material = new THREE.MeshStandardMaterial({
-            color: 0x06b6d4,
-            emissive: 0x06b6d4,
-            emissiveIntensity: 0.35,
-            roughness: 0.25,
-            metalness: 0.5
+            color: 0x0b1324,
+            emissive: 0x0284c7,
+            emissiveIntensity: 0.08,
+            roughness: 0.20,
+            metalness: 0.75
           });
         } else if (child.isMesh && child.geometry?.type === 'CylinderGeometry') {
           child.material = new THREE.MeshStandardMaterial({
-            color: 0x1e293b,
-            roughness: 0.3,
-            metalness: 0.8
+            color: 0x0f172a,
+            roughness: 0.35,
+            metalness: 0.85
           });
         }
       });
     });
 
-    // Update fountain to cyber hologram water
+    // Update fountain to calm holographic crystal emitter
     if (dioramaMeshes.fountain) {
       dioramaMeshes.fountain.traverse(child => {
         if (child.isMesh && child.material?.transparent) {
           child.material = new THREE.MeshStandardMaterial({
-            color: 0x00f5ff,
-            emissive: 0x00f5ff,
-            emissiveIntensity: 0.95,
+            color: 0x38bdf8,
+            emissive: 0x0284c7,
+            emissiveIntensity: 0.20,
             transparent: true,
-            opacity: 0.90,
-            roughness: 0.08
+            opacity: 0.70,
+            roughness: 0.15
           });
         }
       });
@@ -697,7 +709,13 @@ export function applyBoardStyle(styleName = 'wood') {
   // 2. Refresh all 32 tiles with new textures and block side styling
   refreshAllTileTexturesAndMaterials();
 
+  // 2B. Re-apply active edition centerpiece & texture (preserves Rajasthan desert vs World park)
+  updateDioramaCenterForEdition(matchSettings?.boardEdition || 'world');
+
   // 3. Re-apply composite lighting and atmosphere matching the new board style
   const lighting = getSceneLighting();
+  if (style === 'cyberpunk') {
+    matchSettings.lightingTheme = 'day';
+  }
   applyLightingMode(matchSettings.lightingTheme || 'day', lighting);
 }

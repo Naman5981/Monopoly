@@ -14,7 +14,8 @@ import { refreshTileTextureAndBuildings } from '../../three/scene.js';
 import { logEvent, renderCornerHUDs, showTurnLockToast } from '../hud.js';
 import { checkAndTriggerMonopoly, showVictoryModal } from './victory.js';
 import { isLobbyScreenActive } from './common.js';
-import { animateBotTradeHandshake } from '../anim.js';
+import { animateBotTradeHandshake, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    DIPLOMATIC TRADE MODAL
@@ -50,9 +51,7 @@ export function openTradeModal() {
 
   populateTradePartnerProps();
   document.getElementById('trade-status-msg').classList.add('hidden');
-  const m = document.getElementById('modal-trade');
-  m.classList.remove('hidden');
-  m.classList.add('flex');
+  animateModalSpringOpen('#modal-trade');
 }
 
 export function populateTradePartnerProps() {
@@ -102,6 +101,10 @@ export function completeTradeTransfer(giverIdx, receiverIdx, offerCash, reqCash,
   renderCornerHUDs();
   saveCurrentMatchToStorage();
 
+  if (networkState.isMultiplayer && networkState.isHost) {
+    broadcastFullGameState();
+  }
+
   const vic = checkVictoryConditions();
   if (vic) {
     clearSavedMatch();
@@ -132,12 +135,38 @@ export function executeTradeOffer() {
     return;
   }
 
+  // If partner is a human peer in multiplayer, send the offer over network
+  if (networkState.isMultiplayer && !partner.isAI) {
+    const proposal = {
+      proposerIdx: myIdx,
+      targetIdx: partnerIdx,
+      offerCash,
+      reqCash,
+      offerTileIds: myIds,
+      reqTileIds: theirIds
+    };
+    broadcastAction('ACTION_TRADE_OFFER', {
+      targetIdx: partnerIdx,
+      proposal
+    });
+    msg.className = 'text-center text-xs font-bold py-1 text-sky-600';
+    msg.innerHTML = `<i class="fa-solid fa-paper-plane mr-1 text-sky-500"></i> Trade proposal sent to <strong>${partner.name}</strong>! Waiting for their decision...`;
+    return;
+  }
+
   // Evaluate through objective trading engine
   const evalResult = evaluateTradeDeal(partnerIdx, myIdx, offerCash, reqCash, myIds, theirIds);
 
   if (evalResult.status === 'accept') {
     completeTradeTransfer(myIdx, partnerIdx, offerCash, reqCash, myIds, theirIds);
     logEvent(`🤝 <strong>Trade Completed!</strong> ${me.name} and ${partner.name} concluded their deal.`);
+    if (networkState.isMultiplayer) {
+      broadcastAction('ACTION_TRADE_RESPONSE', {
+        accepted: true,
+        proposal: { proposerIdx: myIdx, targetIdx: partnerIdx, offerCash, reqCash, offerTileIds: myIds, reqTileIds: theirIds }
+      });
+      if (networkState.isHost) broadcastFullGameState();
+    }
     closeTradeModal();
   } else if (evalResult.status === 'counter' && evalResult.counterOffer) {
     pendingTradeCounter = evalResult.counterOffer;
@@ -172,6 +201,13 @@ export function acceptTradeCounterOffer() {
   }
   completeTradeTransfer(giverIdx, receiverIdx, offerCash, reqCash, offerTileIds, reqTileIds);
   logEvent(`🤝 <strong>Counter-Offer Accepted!</strong> ${giver.name} agreed to ${receiver.name}'s terms.`);
+  if (networkState.isMultiplayer) {
+    broadcastAction('ACTION_TRADE_RESPONSE', {
+      accepted: true,
+      proposal: pendingTradeCounter
+    });
+    if (networkState.isHost) broadcastFullGameState();
+  }
   pendingTradeCounter = null;
   const banner = document.getElementById('trade-counter-banner');
   if (banner) banner.classList.add('hidden');
@@ -191,11 +227,7 @@ export function rejectTradeCounterOffer() {
 }
 
 export function closeTradeModal() {
-  const m = document.getElementById('modal-trade');
-  if (m) {
-    m.classList.add('hidden');
-    m.classList.remove('flex');
-  }
+  animateModalSpringClose('#modal-trade');
   const banner = document.getElementById('trade-counter-banner');
   if (banner) banner.classList.add('hidden');
   pendingTradeCounter = null;
@@ -259,19 +291,14 @@ export function showIncomingTradeOfferModal(proposal) {
 
   const modal = document.getElementById('modal-incoming-trade');
   if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    animateModalSpringOpen(modal, '#modal-incoming-trade .game-modal-shell');
     playSFX('hop');
     animateBotTradeHandshake('#modal-incoming-trade .game-modal-shell');
   }
 }
 
 export function closeIncomingTradeModal() {
-  const modal = document.getElementById('modal-incoming-trade');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
+  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
   activeIncomingTradeProposal = null;
 }
 
@@ -279,9 +306,18 @@ export function acceptIncomingTrade() {
   if (!activeIncomingTradeProposal) return;
   const p = activeIncomingTradeProposal;
   completeTradeTransfer(p.proposerIdx, p.targetIdx, p.offerCash, p.reqCash, p.offerTileIds, p.reqTileIds);
-  const bot = gameState.players[p.proposerIdx];
+  const proposer = gameState.players[p.proposerIdx];
   const target = gameState.players[p.targetIdx];
-  logEvent(`🤝 <strong>Trade Deal Struck!</strong> ${target.name} accepted ${bot.name}'s proposal.`);
+  logEvent(`🤝 <strong>Trade Deal Struck!</strong> ${target ? target.name : 'Player'} accepted ${proposer ? proposer.name : 'Player'}'s proposal.`);
+  if (networkState.isMultiplayer) {
+    broadcastAction('ACTION_TRADE_RESPONSE', {
+      accepted: true,
+      proposal: p
+    });
+    if (networkState.isHost) {
+      broadcastFullGameState();
+    }
+  }
   closeIncomingTradeModal();
 }
 
@@ -299,7 +335,14 @@ export function counterIncomingTrade() {
 
 export function declineIncomingTrade() {
   if (!activeIncomingTradeProposal) return;
-  const bot = gameState.players[activeIncomingTradeProposal.proposerIdx];
-  logEvent(`❌ Proactive trade offer from <strong>${bot?.name || 'Bot'}</strong> declined.`);
+  const p = activeIncomingTradeProposal;
+  const proposer = gameState.players[p.proposerIdx];
+  logEvent(`❌ Trade offer from <strong>${proposer?.name || 'Player'}</strong> declined.`);
+  if (networkState.isMultiplayer) {
+    broadcastAction('ACTION_TRADE_RESPONSE', {
+      accepted: false,
+      proposal: p
+    });
+  }
   closeIncomingTradeModal();
 }

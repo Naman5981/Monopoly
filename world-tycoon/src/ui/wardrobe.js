@@ -11,6 +11,7 @@ import { spawnAllPlayerTokens3D } from '../three/pawns/tokens.js';
 import { updateLobbyHeroAvatar, updateLobbyHeroDiceSkin } from '../three/stages/lobbyStage.js';
 import { applyEquippedDiceSkin } from '../three/assets/dice.js';
 import { animateWardrobeGridCascade, animateNumberCounter } from './anim.js';
+import { networkState, sendClientProfileUpdate, broadcastLobbySettings } from '../network/p2p.js';
 
 export const WARDROBE_STORAGE_KEY = 'WORLD_TYCOON_PROFILE_V3';
 
@@ -247,7 +248,8 @@ export function previewWardrobeItem(category, itemId) {
   const item = findItemById(itemId);
   if (!item) return;
 
-  const cp = matchSettings?.customPlayers?.[0] || { hatStyle: 0, colorHex: '#3b82f6', charColor: 0x3b82f6 };
+  const myIdx = (networkState?.isMultiplayer && !networkState?.isHost) ? (networkState.localPlayerIdx || 0) : 0;
+  const cp = matchSettings?.customPlayers?.[myIdx] || { hatStyle: 0, colorHex: '#3b82f6', charColor: 0x3b82f6 };
 
   // Determine current preview hat style
   const previewHat = findItemById(previewState.hat);
@@ -295,16 +297,25 @@ export function applyEquippedCosmeticsToPlayer() {
   previewState.dice = profile.equipped.dice;
   previewState.pedestal = profile.equipped.pedestal;
 
-  // 1. Update player 0's hat style & pedestal in matchSettings
-  if (matchSettings?.customPlayers?.[0]) {
+  // 1. Update local player's hat style & pedestal in matchSettings
+  const myIdx = (networkState?.isMultiplayer && !networkState?.isHost) ? (networkState.localPlayerIdx || 0) : 0;
+  if (matchSettings?.customPlayers?.[myIdx]) {
     if (equippedHat) {
-      matchSettings.customPlayers[0].hatStyle = equippedHat.hatStyle;
+      matchSettings.customPlayers[myIdx].hatStyle = equippedHat.hatStyle;
     }
     if (equippedPedestal) {
-      matchSettings.customPlayers[0].pedestal = equippedPedestal.id;
+      matchSettings.customPlayers[myIdx].pedestal = equippedPedestal.id;
     }
-    const cp = matchSettings.customPlayers[0];
+    const cp = matchSettings.customPlayers[myIdx];
     updateLobbyHeroAvatar(cp.hatStyle, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6, equippedPedestal?.id);
+
+    if (networkState?.isMultiplayer) {
+      if (networkState.isHost) {
+        broadcastLobbySettings();
+      } else {
+        sendClientProfileUpdate({ hatStyle: cp.hatStyle, pedestal: cp.pedestal });
+      }
+    }
   }
 
   // 2. Apply dice skin to 3D board dice & lobby stage mini dice
@@ -489,6 +500,10 @@ export function updateAllPointsBadges() {
  * Opens the Wardrobe modal with seamless avatar slide and right drawer entrance.
  */
 export function openWardrobeModal() {
+  if (networkState?.isMultiplayer) {
+    const myIdx = networkState.isHost ? 0 : (networkState.localPlayerIdx || 0);
+    window.selectSetupPlayer?.(myIdx);
+  }
   previousActiveElement = document.activeElement;
   const landingScreen = document.getElementById('landing-setup-screen');
   const modal = document.getElementById('modal-wardrobe');

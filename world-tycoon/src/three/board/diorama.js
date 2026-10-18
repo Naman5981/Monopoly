@@ -245,6 +245,8 @@ export const dioramaMeshes = {
 export function buildDioramaBaseAndPark(boardGroup) {
   dioramaMeshes.cornerGroups = [];
   dioramaMeshes.treeClusters = [];
+  dioramaMeshes.rajasthanDesertTex = null;
+  dioramaMeshes.worldParkTex = null;
 
   const shadowGeo = new THREE.PlaneGeometry(34.0, 34.0);
   const shadowMat = new THREE.MeshBasicMaterial({ color: 0x0f172a, transparent: true, opacity: 0.26 });
@@ -427,6 +429,11 @@ export function updateDioramaCenterForEdition(editionId = 'world') {
   }
   if (dioramaMeshes.rajasthanCenterGroup) {
     dioramaMeshes.rajasthanCenterGroup.visible = isRajasthan;
+  }
+
+  // If a custom board style (cyberpunk or elegant) is active, preserve its custom park skin
+  if (matchSettings?.boardStyle && matchSettings.boardStyle !== 'wood') {
+    return;
   }
 
   if (dioramaMeshes.innerMesh) {

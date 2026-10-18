@@ -9,6 +9,7 @@ import { getTileFacingAngle, getTileWorldPosition, BASE_BUILDING_Y } from '../bo
 import { triggerTileButtonPress, setMovingHopDestTileId } from '../board/tilePress.js';
 import { updateSpeechBubbleScreenPosition } from './speech.js';
 import { matchSettings } from '../../game/state.js';
+import { triggerBoardShockwave } from '../physics/physicsEngine.js';
 
 /**
  * Animates a single tile-to-tile parabolic hopping jump.
@@ -50,6 +51,8 @@ export function hopPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
       if (isFinalTouchdown && rawT >= 0.82 && !pressedTriggered) {
         pressedTriggered = true;
         triggerTileButtonPress(destTileId, -0.11, 220);
+        const landPos = getTileWorldPosition(destTileId);
+        triggerBoardShockwave(landPos.x, landPos.z, 14, 24);
       } else if (!isFinalTouchdown && rawT >= 0.88 && !pressedTriggered) {
         pressedTriggered = true;
         triggerTileButtonPress(destTileId, -0.05, 120);

@@ -316,8 +316,8 @@ body {
   -webkit-backdrop-filter: blur(14px);
   color: #0f172a;
   border-radius: 9999px;
-  height: 38px;
-  padding: 0 13px;
+  height: 42px;
+  padding: 0 14px;
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 700;
@@ -417,115 +417,129 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ═══ PLAYER HUD CARDS ═══ */
+/* ═══ MODERN ARCADE PLAYER HUD CARDS ═══ */
 .player-hud-card {
   position: relative;
   display: flex;
   align-items: center;
-  filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.15));
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+  gap: 10px;
+  padding: 6px 12px 6px 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-bottom: 3.5px solid #cbd5e1;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out, border-color 150ms ease-out, opacity 150ms ease-out;
+  pointer-events: auto;
+  user-select: none;
+}
+
+@media (hover: hover) {
+  .player-hud-card:hover {
+    transform: translateY(-1px);
+  }
+}
+
+#hud-left-players,
+#hud-right-players {
+  z-index: 55;
 }
 
 .player-hud-card.active-turn-hud {
+  border-color: #f59e0b !important;
+  border-bottom-color: #d97706 !important;
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.98) 0%, rgba(255, 255, 255, 0.98) 100%) !important;
+  box-shadow: 0 8px 26px rgba(245, 158, 11, 0.35), 0 0 0 2.5px rgba(251, 191, 36, 0.55) !important;
   transform: scale(1.05);
+  z-index: 60;
 }
 
 .avatar-circle {
-  width: 74px;
-  height: 74px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  border: 4px solid #f59e0b;
-  background: radial-gradient(circle at 50% 35%, #94a3b8, #475569);
-  box-shadow: 0 0 0 3px rgba(254, 240, 138, 0.85), inset 0 3px 6px rgba(0,0,0,0.35);
+  border: 2.5px solid #ffffff;
+  background: radial-gradient(circle at 50% 35%, #f8fafc, #e2e8f0);
   position: relative;
-  z-index: 10;
   overflow: hidden;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  transform: translateZ(0);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.avatar-circle canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
 }
 
 .active-turn-hud .avatar-circle {
-  box-shadow: 0 0 0 4px #fde047, 0 0 24px rgba(245, 158, 11, 0.9);
+  transform: scale(1.04);
 }
 
-.hud-banner-left {
-  margin-left: -18px;
-  width: 178px;
-  border-radius: 0 16px 16px 0;
-  overflow: hidden;
-  background: #ffffff;
-  border: 2.5px solid #6c5ce7;
-  border-left: none;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+.hud-info-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 96px;
 }
 
-.hud-banner-left .name-strip {
-  background: #6c5ce7;
-  color: #ffffff;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 14.5px;
-  letter-spacing: 0.04em;
-  padding: 6px 14px 6px 24px;
-  text-align: center;
-  text-shadow: 0 1.5px 2px rgba(0, 0, 0, 0.3);
-  clip-path: polygon(0 0, 100% 0, 93% 100%, 0% 100%);
-}
-
-.hud-banner-left .cash-strip {
-  background: #ffffff;
-  padding: 6px 14px 7px 22px;
+.hud-header-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font-family: var(--font-ui);
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: -0.02em;
-  color: #065f46;
-  font-variant-numeric: tabular-nums;
+  gap: 6px;
 }
 
-.hud-banner-right {
-  margin-right: -18px;
-  width: 178px;
-  border-radius: 16px 0 0 16px;
-  overflow: hidden;
-  background: #ffffff;
-  border: 2.5px solid #f39c12;
-  border-right: none;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
-}
-
-.hud-banner-right .name-strip {
-  background: #f39c12;
-  color: #ffffff;
+.hud-player-name {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 14.5px;
-  letter-spacing: 0.04em;
-  padding: 6px 24px 6px 14px;
-  text-align: center;
-  text-shadow: 0 1.5px 2px rgba(0, 0, 0, 0.3);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 7% 100%);
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: #1e293b;
+  text-transform: uppercase;
+  max-width: 84px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.hud-banner-right .cash-strip {
-  background: #ffffff;
-  padding: 6px 22px 7px 14px;
+.hud-cash-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
+  gap: 6px;
+}
+
+.hud-cash-amount {
   font-family: var(--font-ui);
-  font-weight: 800;
-  font-size: 20px;
+  font-weight: 900;
+  font-size: 16px;
   letter-spacing: -0.02em;
-  color: #065f46;
+  color: #059669;
   font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.hud-cash-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 14px;
+  border-radius: 4px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 /* ═══ JUICY 3D ROLL BUTTONS ═══ */
@@ -572,6 +586,10 @@ body {
   box-shadow: none;
 }
 
+.center-roll-btn.hidden {
+  display: none !important;
+}
+
 .bottom-roll-btn {
   background: linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
   color: #ffffff;
@@ -593,6 +611,10 @@ body {
   transition-property: transform, box-shadow;
   transition-duration: 150ms;
   transition-timing-function: ease-out;
+}
+
+.bottom-roll-btn.hidden {
+  display: none !important;
 }
 
 @media (hover: hover) {
@@ -684,6 +706,10 @@ body {
   gap: 8px;
   pointer-events: none;
   animation: toastPopIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.turn-lock-toast.hidden {
+  display: none !important;
 }
 
 @keyframes toastPopIn {
@@ -1042,39 +1068,7 @@ body {
   will-change: transform, opacity;
 }
 
-/* ═══ ACTIVE PLAYER HUD HIGHLIGHTS ═══ */
-.player-hud-card.active-turn-hud {
-  transform: scale(1.08);
-  filter: drop-shadow(0 0 18px rgba(250, 204, 21, 0.95)) drop-shadow(0 8px 24px rgba(15, 23, 42, 0.22));
-  z-index: 30;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.35s ease;
-}
 
-.active-turn-pill {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #0f172a;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  padding: 3px 12px;
-  border-radius: 9999px;
-  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.7), 0 0 0 2.5px #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  z-index: 40;
-  white-space: nowrap;
-  animation: bounceActivePill 1.6s infinite ease-in-out;
-}
-
-@keyframes bounceActivePill {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-3px); }
-}
 
 /* ═══ RENT DEDUCTION & CASH TRANSFER ANIMATIONS ═══ */
 .hud-card-deduct {
@@ -2174,14 +2168,24 @@ body {
   transition: opacity 300ms ease-out;
 }
 
+#modal-wardrobe.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 #modal-wardrobe.wardrobe-panel-hidden {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+#modal-wardrobe.wardrobe-panel-hidden * {
+  pointer-events: none !important;
 }
 
 #modal-wardrobe.wardrobe-panel-visible {
-  opacity: 1;
-  pointer-events: auto;
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 #wardrobe-backdrop {
@@ -2191,10 +2195,12 @@ body {
 
 #modal-wardrobe.wardrobe-panel-visible #wardrobe-backdrop {
   opacity: 1;
+  pointer-events: auto !important;
 }
 
 #modal-wardrobe.wardrobe-panel-hidden #wardrobe-backdrop {
   opacity: 0;
+  pointer-events: none !important;
 }
 
 #wardrobe-panel-card {
@@ -2238,6 +2244,193 @@ body {
     transition: opacity 150ms ease-out !important;
     transform: none !important;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   7. LOBBY SCREENS: TITLE vs LOCAL vs MULTIPLAYER MODES
+───────────────────────────────────────────────────────────────────────────── */
+/* A. Title Screen View */
+.lobby-view-title #lobby-roster-column,
+.lobby-view-title #lobby-settings-column,
+.lobby-view-title #lobby-multiplayer-portal,
+.lobby-view-title #lobby-setup-actions,
+.lobby-view-title #btn-lobby-back-to-title,
+.lobby-view-title #setup-color-swatches-container {
+  display: none !important;
+}
+
+.lobby-view-title #lobby-main-arena {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: auto !important;
+}
+
+.lobby-view-title #lobby-hero-column {
+  grid-column: span 12 / span 12 !important;
+  max-width: 440px;
+  margin: 0 auto !important;
+  width: 100%;
+  min-height: unset !important;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  padding: 0 !important;
+}
+
+.lobby-view-title #lobby-avatar-3d-canvas-wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.lobby-view-title #lobby-avatar-3d-canvas {
+  width: 270px !important;
+  height: 280px !important;
+  max-height: 36vh !important;
+}
+
+.lobby-view-title .lobby-podium-halo {
+  width: 330px !important;
+  height: 330px !important;
+}
+
+.lobby-view-title .lobby-hero-default-controls {
+  gap: 10px !important;
+}
+
+.lobby-view-title #title-menu-actions {
+  display: flex !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 30 !important;
+  gap: 10px !important;
+}
+
+.lobby-view-title #title-menu-actions button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Margin auto for canvas in 3-column setup modes */
+.lobby-view-local #lobby-avatar-3d-canvas-wrapper,
+.lobby-view-multiplayer-room #lobby-avatar-3d-canvas-wrapper {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+#debug-floating-toggle-pill {
+  display: none !important;
+}
+
+/* B. Local Setup View */
+.lobby-view-local #title-menu-actions,
+.lobby-view-local #lobby-multiplayer-portal,
+.lobby-view-local #mp-room-capsule,
+.lobby-view-local #setup-match-mode-selector,
+.lobby-view-local #setup-p2p-panel {
+  display: none !important;
+}
+
+.lobby-view-local #lobby-local-mode-header {
+  display: flex !important;
+}
+
+.lobby-view-local #lobby-roster-column,
+.lobby-view-local #lobby-settings-column,
+.lobby-view-local #setup-color-swatches-container {
+  display: flex !important;
+}
+
+.lobby-view-local #lobby-hero-column {
+  grid-column: span 12 / span 12;
+}
+@media (min-width: 1024px) {
+  .lobby-view-local #lobby-hero-column {
+    grid-column: span 4 / span 4 !important;
+    max-width: none;
+    margin: 0;
+  }
+}
+
+.lobby-view-local #lobby-setup-actions {
+  display: flex !important;
+}
+.lobby-view-local #btn-lobby-back-to-title {
+  display: inline-flex !important;
+}
+
+/* C. Multiplayer Portal View (Before Room is Hosted/Joined) */
+.lobby-view-multiplayer-portal #lobby-roster-column,
+.lobby-view-multiplayer-portal #lobby-settings-column,
+.lobby-view-multiplayer-portal #lobby-hero-column,
+.lobby-view-multiplayer-portal #title-menu-actions,
+.lobby-view-multiplayer-portal #lobby-setup-actions,
+.lobby-view-multiplayer-portal #setup-color-swatches-container {
+  display: none !important;
+}
+
+.lobby-view-multiplayer-portal #lobby-multiplayer-portal {
+  display: grid !important;
+}
+.lobby-view-multiplayer-portal #btn-lobby-back-to-title {
+  display: inline-flex !important;
+}
+
+/* D. Multiplayer Room View (When in Live Room) */
+.lobby-view-multiplayer-room #title-menu-actions,
+.lobby-view-multiplayer-room #lobby-multiplayer-portal,
+.lobby-view-multiplayer-room #lobby-local-mode-header,
+.lobby-view-multiplayer-room #setup-match-mode-selector {
+  display: none !important;
+}
+
+.lobby-view-multiplayer-room #lobby-roster-column,
+.lobby-view-multiplayer-room #lobby-settings-column,
+.lobby-view-multiplayer-room #setup-color-swatches-container {
+  display: flex !important;
+}
+
+.lobby-view-multiplayer-room #lobby-hero-column {
+  grid-column: span 12 / span 12;
+}
+@media (min-width: 1024px) {
+  .lobby-view-multiplayer-room #lobby-hero-column {
+    grid-column: span 4 / span 4 !important;
+    max-width: none;
+    margin: 0;
+  }
+}
+
+.lobby-view-multiplayer-room #mp-room-capsule,
+.lobby-view-multiplayer-room #lobby-setup-actions {
+  display: flex !important;
+}
+.lobby-view-multiplayer-room #btn-lobby-back-to-title {
+  display: inline-flex !important;
+}
+
+#btn-lobby-back-to-title {
+  height: 42px !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+/* ═══ ABSOLUTE VISIBILITY ENFORCEMENT (.hidden ALWAYS WINS) ═══ */
+.hidden,
+[hidden],
+.turn-lock-toast.hidden,
+.center-roll-btn.hidden,
+.bottom-roll-btn.hidden {
+  display: none !important;
 }
 
 

@@ -113,6 +113,7 @@ export function animateNumberCounter(element, startVal, endVal, prefix = '', suf
 
 /**
  * Dynamic spring punch-in for game modals (Buy City, Inspector, Chance, Victory).
+ * Uses high-fidelity physics spring curve with elastic settle.
  * @param {string|HTMLElement} target - Modal shell selector or element
  */
 export function animateModalPunchIn(target) {
@@ -121,12 +122,224 @@ export function animateModalPunchIn(target) {
   if (!el) return;
 
   anime.remove(el);
+  el.style.willChange = 'transform, opacity';
   anime({
     targets: el,
-    scale: [0.82, 1],
+    scale: [0.72, 1],
+    translateY: [24, 0],
+    rotateX: [10, 0],
     opacity: [0, 1],
-    duration: 480,
-    easing: 'spring(1, 80, 11, 0)'
+    duration: 540,
+    easing: 'spring(1, 95, 11, 0)',
+    complete: () => {
+      el.style.willChange = 'auto';
+    }
+  });
+}
+
+/**
+ * Physics-based spring opening for game modal popups.
+ * Supports GSAP FLIP-style origin inversion from clicked 3D tile coordinates.
+ * @param {string|HTMLElement} modalTarget - Modal backdrop / container
+ * @param {string|HTMLElement} [cardTarget=null] - Inner modal card / shell
+ * @param {{x: number, y: number}|null} [originCoords=null] - Optional source screen coordinate for FLIP expansion
+ */
+export function animateModalSpringOpen(modalTarget, cardTarget = null, originCoords = null) {
+  const modalEl = typeof modalTarget === 'string' ? document.querySelector(modalTarget) : modalTarget;
+  if (!modalEl) return;
+  let cardEl = typeof cardTarget === 'string' ? document.querySelector(cardTarget) : cardTarget;
+  if (!cardEl) {
+    cardEl = modalEl.querySelector('.game-modal-shell, .modal-card, [id$="-card"], .rounded-3xl, .rounded-2xl, .bg-white');
+  }
+
+  // 1. Reveal modal container
+  modalEl.style.removeProperty('display');
+  modalEl.classList.remove('hidden');
+  modalEl.classList.add('flex');
+
+  if (typeof anime === 'undefined' || isReducedMotion()) {
+    if (cardEl) {
+      cardEl.style.opacity = '1';
+      cardEl.style.transform = 'none';
+    }
+    return;
+  }
+
+  // 2. Smooth exponential backdrop blur/opacity fade
+  anime.remove(modalEl);
+  anime({
+    targets: modalEl,
+    opacity: [0, 1],
+    duration: 260,
+    easing: 'easeOutQuad'
+  });
+
+  if (!cardEl) return;
+  anime.remove(cardEl);
+
+  // 3. FLIP Origin Calculation
+  let initTranslateX = 0;
+  let initTranslateY = 32;
+  let initScale = 0.70;
+  let initRotateX = 12;
+
+  if (originCoords && typeof originCoords.x === 'number' && typeof originCoords.y === 'number') {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    initTranslateX = Math.max(-160, Math.min(160, (originCoords.x - cx) * 0.40));
+    initTranslateY = Math.max(-160, Math.min(160, (originCoords.y - cy) * 0.40));
+    initScale = 0.52;
+    initRotateX = 16;
+  }
+
+  cardEl.style.willChange = 'transform, opacity';
+  anime({
+    targets: cardEl,
+    translateX: [initTranslateX, 0],
+    translateY: [initTranslateY, 0],
+    scale: [initScale, 1],
+    rotateX: [initRotateX, 0],
+    opacity: [0, 1],
+    duration: 540,
+    easing: 'spring(1, 95, 11, 0)',
+    complete: () => {
+      cardEl.style.willChange = 'auto';
+    }
+  });
+}
+
+/**
+ * Physics-based spring exit & dismiss for game modal popups.
+ * @param {string|HTMLElement} modalTarget - Modal backdrop / container
+ * @param {string|HTMLElement|Function} [cardTarget=null] - Inner modal card or callback
+ * @param {Function} [onDone=null] - Completion callback
+ */
+export function animateModalSpringClose(modalTarget, cardTarget = null, onDone = null) {
+  if (typeof cardTarget === 'function') {
+    onDone = cardTarget;
+    cardTarget = null;
+  }
+  const modalEl = typeof modalTarget === 'string' ? document.querySelector(modalTarget) : modalTarget;
+  if (!modalEl) {
+    if (onDone) onDone();
+    return;
+  }
+  let cardEl = typeof cardTarget === 'string' ? document.querySelector(cardTarget) : cardTarget;
+  if (!cardEl) {
+    cardEl = modalEl.querySelector('.game-modal-shell, .modal-card, [id$="-card"], .rounded-3xl, .rounded-2xl, .bg-white');
+  }
+
+  if (typeof anime === 'undefined' || isReducedMotion() || !cardEl) {
+    modalEl.classList.add('hidden');
+    modalEl.classList.remove('flex');
+    modalEl.style.removeProperty('display');
+    if (onDone) onDone();
+    return;
+  }
+
+  anime.remove(modalEl);
+  anime.remove(cardEl);
+
+  // Card springs down with elastic recoil
+  anime({
+    targets: cardEl,
+    scale: [1, 0.86],
+    translateY: [0, 24],
+    opacity: [1, 0],
+    duration: 220,
+    easing: 'easeInQuad'
+  });
+
+  // Backdrop fades out cleanly
+  anime({
+    targets: modalEl,
+    opacity: [1, 0],
+    duration: 220,
+    easing: 'easeInQuad',
+    complete: () => {
+      modalEl.classList.add('hidden');
+      modalEl.classList.remove('flex');
+      modalEl.style.removeProperty('opacity');
+      modalEl.style.removeProperty('display');
+      cardEl.style.removeProperty('transform');
+      cardEl.style.removeProperty('opacity');
+      if (onDone) onDone();
+    }
+  });
+}
+
+/**
+ * Bottom-right Tile Inspector slide-and-spring drawer entrance.
+ * @param {string|HTMLElement} drawerTarget
+ * @param {string|HTMLElement} cardTarget
+ */
+export function animateTileInspectorSpringOpen(drawerTarget = '#modal-tile-inspector', cardTarget = '#modal-tile-inspector-card') {
+  const drawerEl = typeof drawerTarget === 'string' ? document.querySelector(drawerTarget) : drawerTarget;
+  const cardEl = typeof cardTarget === 'string' ? document.querySelector(cardTarget) : cardTarget;
+  if (!drawerEl || !cardEl) return;
+
+  drawerEl.style.removeProperty('display');
+  drawerEl.classList.remove('hidden');
+  drawerEl.classList.add('flex');
+
+  if (typeof anime === 'undefined' || isReducedMotion()) {
+    cardEl.style.transform = 'none';
+    cardEl.style.opacity = '1';
+    return;
+  }
+
+  anime.remove(cardEl);
+  cardEl.style.willChange = 'transform, opacity';
+  anime({
+    targets: cardEl,
+    translateY: ['115%', '0%'],
+    scale: [0.92, 1],
+    opacity: [0, 1],
+    duration: 540,
+    easing: 'spring(1, 90, 12, 0)',
+    complete: () => {
+      cardEl.style.willChange = 'auto';
+    }
+  });
+}
+
+/**
+ * Bottom-right Tile Inspector slide-down dismiss.
+ * @param {string|HTMLElement} drawerTarget
+ * @param {string|HTMLElement} cardTarget
+ * @param {Function} [onDone=null]
+ */
+export function animateTileInspectorSpringClose(drawerTarget = '#modal-tile-inspector', cardTarget = '#modal-tile-inspector-card', onDone = null) {
+  const drawerEl = typeof drawerTarget === 'string' ? document.querySelector(drawerTarget) : drawerTarget;
+  const cardEl = typeof cardTarget === 'string' ? document.querySelector(cardTarget) : cardTarget;
+
+  if (!drawerEl || !cardEl) {
+    if (onDone) onDone();
+    return;
+  }
+
+  if (typeof anime === 'undefined' || isReducedMotion()) {
+    drawerEl.classList.add('hidden');
+    drawerEl.classList.remove('flex');
+    if (onDone) onDone();
+    return;
+  }
+
+  anime.remove(cardEl);
+  anime({
+    targets: cardEl,
+    translateY: ['0%', '120%'],
+    scale: [1, 0.94],
+    opacity: [1, 0],
+    duration: 220,
+    easing: 'easeInQuad',
+    complete: () => {
+      drawerEl.classList.add('hidden');
+      drawerEl.classList.remove('flex');
+      cardEl.style.removeProperty('transform');
+      cardEl.style.removeProperty('opacity');
+      if (onDone) onDone();
+    }
   });
 }
 
@@ -234,34 +447,121 @@ export function animateActiveTurnSwitch(playerIdx) {
 }
 
 /**
- * 4. 3D flip unfold animation for Chance & Community Chest Fortune card.
- * @param {string|HTMLElement} cardSelector - Target card
+ * Physics-based 3D spring card draw from Chance / Community Chest deck.
+ * Supports origin coordinates from board/deck tile with elastic spring physics.
+ * @param {string|HTMLElement} cardSelector - Target card element
+ * @param {{x: number, y: number}|null} [originCoords=null] - Optional source screen coordinate for FLIP expansion
  */
-export function animateFortuneCardUnfold(cardSelector = '#modal-chance-result .game-modal-shell') {
+export function animateChanceDeckDraw(cardSelector = '#modal-chance-result .game-modal-shell', originCoords = null) {
   if (typeof anime === 'undefined' || isReducedMotion()) return;
   const card = typeof cardSelector === 'string' ? document.querySelector(cardSelector) : cardSelector;
+  if (!card) return;
+
+  let startX = 0;
+  let startY = 240;
+  if (originCoords && typeof originCoords.x === 'number' && typeof originCoords.y === 'number') {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    startX = Math.max(-220, Math.min(220, (originCoords.x - cx) * 0.5));
+    startY = Math.max(-180, Math.min(260, (originCoords.y - cy) * 0.5));
+  }
+
+  anime.remove(card);
+  card.style.willChange = 'transform, opacity';
+  anime({
+    targets: card,
+    translateX: [startX, 0],
+    translateY: [startY, 0],
+    rotateY: [180, 0],
+    rotateZ: [-24, 0],
+    scale: [0.25, 1],
+    opacity: [0, 1],
+    duration: 680,
+    easing: 'spring(1, 80, 10, 0)',
+    complete: () => {
+      card.style.willChange = 'auto';
+    }
+  });
+
+  const icon = document.getElementById('chance-result-icon');
+  if (icon) {
+    anime.remove(icon);
+    anime({
+      targets: icon,
+      scale: [0, 1.28, 1],
+      rotate: [-24, 0],
+      delay: 180,
+      duration: 520,
+      easing: 'spring(1, 85, 10, 0)'
+    });
+  }
+
+  const badges = card.querySelectorAll('#chance-result-tag, #chance-result-action, .chance-badge');
+  if (badges.length) {
+    anime.remove(badges);
+    anime({
+      targets: badges,
+      translateY: [24, 0],
+      scale: [0.75, 1],
+      opacity: [0, 1],
+      delay: anime.stagger(60, { start: 220 }),
+      duration: 480,
+      easing: 'spring(1, 90, 12, 0)'
+    });
+  }
+}
+
+/** Legacy alias pointing to animateChanceDeckDraw */
+export function animateFortuneCardUnfold(cardSelector = '#modal-chance-result .game-modal-shell') {
+  animateChanceDeckDraw(cardSelector, null);
+}
+
+/**
+ * Elastic spring absorption effect on player HUD card when receiving rent or cash.
+ * @param {number} playerIdx - Recipient player index
+ */
+export function animateHUDCardSpringAbsorb(playerIdx) {
+  if (typeof anime === 'undefined' || isReducedMotion()) return;
+  const card = document.getElementById(`hud-card-${playerIdx}`);
   if (!card) return;
 
   anime.remove(card);
   anime({
     targets: card,
-    rotateY: [180, 0],
-    scale: [0.35, 1],
-    opacity: [0, 1],
-    duration: 650,
-    easing: 'spring(1, 75, 11, 0)'
+    scale: [1, 1.15, 0.95, 1.04, 1],
+    duration: 600,
+    easing: 'spring(1, 85, 10, 0)'
   });
 
-  const icon = document.getElementById('chance-result-icon');
-  if (icon) {
+  spawnCashSpringRipple(card);
+}
+
+/**
+ * Green & gold shockwave ripple expanding outward from target element on cash absorption.
+ * @param {HTMLElement} element - Target element
+ */
+export function spawnCashSpringRipple(element) {
+  if (!element || isReducedMotion()) return;
+  const rect = element.getBoundingClientRect();
+  const ripple = document.createElement('div');
+  ripple.className = 'fixed pointer-events-none rounded-2xl border-2 border-emerald-400 bg-emerald-400/20 z-50 shadow-[0_0_24px_rgba(52,211,153,0.5)]';
+  ripple.style.left = `${rect.left}px`;
+  ripple.style.top = `${rect.top}px`;
+  ripple.style.width = `${rect.width}px`;
+  ripple.style.height = `${rect.height}px`;
+  document.body.appendChild(ripple);
+
+  if (typeof anime !== 'undefined') {
     anime({
-      targets: icon,
-      scale: [0, 1.25, 1],
-      rotate: [-20, 0],
-      delay: 150,
-      duration: 500,
-      easing: 'spring(1, 80, 10, 0)'
+      targets: ripple,
+      scale: [1, 1.4],
+      opacity: [0.9, 0],
+      duration: 520,
+      easing: 'easeOutQuad',
+      complete: () => ripple.remove()
     });
+  } else {
+    setTimeout(() => ripple.remove(), 400);
   }
 }
 
@@ -874,5 +1174,73 @@ export function animateIslandJailbreak(playerIdx = 0) {
   });
 }
 
+/**
+ * 15. Smooth spring choreography when switching between Title, Local, and Multiplayer views.
+ * @param {string} viewName - 'title' | 'local' | 'multiplayer-portal' | 'multiplayer-room'
+ */
+export function animateLobbyViewTransition(viewName = 'title') {
+  if (typeof anime === 'undefined' || isReducedMotion()) return;
 
-
+  if (viewName === 'title') {
+    anime.remove('#title-menu-actions > button');
+    anime.remove('#lobby-hero-column');
+    anime({
+      targets: '#title-menu-actions > button',
+      scale: [0.88, 1],
+      opacity: [0, 1],
+      delay: anime.stagger(60),
+      duration: 480,
+      easing: 'spring(1, 85, 10, 0)'
+    });
+    anime({
+      targets: '#lobby-hero-column',
+      scale: [0.94, 1],
+      duration: 450,
+      easing: 'spring(1, 80, 10, 0)'
+    });
+  } else if (viewName === 'local') {
+    anime.remove('#lobby-roster-column');
+    anime.remove('#lobby-settings-column');
+    anime.remove('#lobby-hero-column');
+    anime({
+      targets: '#lobby-roster-column',
+      translateX: [-35, 0],
+      opacity: [0, 1],
+      duration: 450,
+      easing: 'spring(1, 85, 10, 0)'
+    });
+    anime({
+      targets: '#lobby-settings-column',
+      translateX: [35, 0],
+      opacity: [0, 1],
+      duration: 450,
+      easing: 'spring(1, 85, 10, 0)'
+    });
+    anime({
+      targets: '#lobby-hero-column',
+      scale: [0.92, 1],
+      duration: 450,
+      easing: 'spring(1, 80, 10, 0)'
+    });
+  } else if (viewName === 'multiplayer-portal') {
+    anime.remove('#lobby-multiplayer-portal > div');
+    anime({
+      targets: '#lobby-multiplayer-portal > div',
+      scale: [0.9, 1],
+      opacity: [0, 1],
+      delay: anime.stagger(80),
+      duration: 520,
+      easing: 'spring(1, 85, 10, 0)'
+    });
+  } else if (viewName === 'multiplayer-room') {
+    anime.remove(['#lobby-roster-column', '#lobby-hero-column', '#lobby-settings-column']);
+    anime({
+      targets: ['#lobby-roster-column', '#lobby-hero-column', '#lobby-settings-column'],
+      scale: [0.95, 1],
+      opacity: [0, 1],
+      delay: anime.stagger(50),
+      duration: 480,
+      easing: 'spring(1, 85, 10, 0)'
+    });
+  }
+}

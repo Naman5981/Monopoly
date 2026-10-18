@@ -244,8 +244,10 @@ export function renderLive3DHUDPortraits(t) {
 export function triggerTokenHurtAnimation(playerIdx) {
   if (playerIdx === null || playerIdx === undefined || playerIdx < 0) return;
 
-  // 1. Play impact hurt sound
-  playSFX('hurt');
+  const mesh = context.playerMeshes[playerIdx];
+
+  // 1. Play impact hurt sound with 3D token spatial positioning
+  playSFX('hurt', 1.0, mesh ? mesh.position : null);
 
   // 2. Trigger HUD 3D portrait shudder
   if (portraitScenes[playerIdx]) {
@@ -253,7 +255,6 @@ export function triggerTokenHurtAnimation(playerIdx) {
   }
 
   // 3. 3D Board pawn flinch animation
-  const mesh = context.playerMeshes[playerIdx];
   if (!mesh) return;
   const ud = mesh.userData;
   if (!ud) return;

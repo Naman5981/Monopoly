@@ -193,7 +193,7 @@ export function applyBoardEdition(editionId) {
 
 export const PLAYER_THEMES = [
   { name: 'YOU',     colorHex: '#3b82f6', charColor: 0x3b82f6, hatColor: 0x334155, isAI: false },
-  { name: 'BIDIK',   colorHex: '#fb923c', charColor: 0xf97316, hatColor: 0xfde047, isAI: true  },
+  { name: 'BARON',   colorHex: '#fb923c', charColor: 0xf97316, hatColor: 0xfde047, isAI: true  },
   { name: 'ATLAS',   colorHex: '#22c55e', charColor: 0x22c55e, hatColor: 0x1e293b, isAI: true  },
   { name: 'NOVA',    colorHex: '#ec4899', charColor: 0xec4899, hatColor: 0xffffff, isAI: true  },
   { name: 'PHOENIX', colorHex: '#ef4444', charColor: 0xef4444, hatColor: 0xf97316, isAI: true  },

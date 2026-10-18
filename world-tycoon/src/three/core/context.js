@@ -19,6 +19,9 @@ export const context = {
   // Render & projection constants
   frustumSize: 31.5,
   maxAnisotropy: 4,
+  isContextLost: false,
+  gpuTier: 'standard',
+  hasWebGPU: false,
 
   // Mesh & group registries
   tilesMeshMap: {},

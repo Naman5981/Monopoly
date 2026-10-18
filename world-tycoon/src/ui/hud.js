@@ -10,64 +10,120 @@ import { ownsFullColorGroup } from '../game/rules.js';
 import { showSpeechBubble, triggerTokenHurtAnimation } from '../three/scene.js';
 import { networkState } from '../network/p2p.js';
 import { playSFX } from '../game/audio.js';
-import { cashPileSvg } from '../assets/graphics/cash-pile.js';
-import { animateNumberCounter, animateToastAccordionPush } from './anim.js';
+import { animateNumberCounter, animateToastAccordionPush, animateHUDCardSpringAbsorb } from './anim.js';
+import { setPlayerPortraitMood, drawPortraitFrame, initPortraitRenderLoop } from './portraitRenderer.js';
+export { setPlayerPortraitMood, drawPortraitFrame } from './portraitRenderer.js';
 
 /** Render / re-render the 4-corner HUD player cards. */
 export function renderCornerHUDs() {
+  initPortraitRenderLoop();
   const leftContainer = document.getElementById('hud-left-players');
   const rightContainer = document.getElementById('hud-right-players');
-  leftContainer.innerHTML = '';
-  rightContainer.innerHTML = '';
+  if (!leftContainer || !rightContainer) return;
+
+  const totalCards = leftContainer.querySelectorAll('.player-hud-card').length + rightContainer.querySelectorAll('.player-hud-card').length;
+  const needsRebuild = (totalCards !== gameState.players.length);
+
+  if (needsRebuild) {
+    leftContainer.innerHTML = '';
+    rightContainer.innerHTML = '';
+  }
 
   gameState.players.forEach((p, idx) => {
     const isTurn = (idx === gameState.currentPlayerIdx);
     const isLeft = (idx % 2 === 0);
     const shownMoney = displayedCash[idx] !== undefined ? displayedCash[idx] : p.cash;
+    const theme = PLAYER_THEMES[idx] || { colorHex: '#3b82f6', charColor: 0x3b82f6 };
 
-    const wrapper = document.createElement('div');
-    wrapper.className = `flex items-center gap-4 ${p.bankrupt ? 'opacity-35 grayscale' : (isTurn ? 'opacity-100' : 'opacity-85 hover:opacity-100')}`;
+    const turnBadgeHtml = isTurn
+      ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[10px] tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>`
+      : (p.isAI
+          ? `<span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">BOT</span>`
+          : (idx === (networkState.isMultiplayer ? networkState.localPlayerIdx : 0)
+              ? `<span class="text-[9px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200">YOU</span>`
+              : (networkState.isMultiplayer && idx === 0
+                  ? `<span class="text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">HOST</span>`
+                  : `<span class="text-[9px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">P${idx + 1}</span>`
+                )
+            )
+        );
 
-    if (isLeft) {
-      wrapper.innerHTML = `
-        <div id="hud-card-${idx}" class="player-hud-card ${isTurn ? 'active-turn-hud' : ''}">
-          ${isTurn ? '<div class="active-turn-pill"><span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> ACTIVE TURN</div>' : ''}
-          <div class="avatar-circle">
-            <canvas id="hud-avatar-canvas-${idx}" width="136" height="136" class="w-full h-full block"></canvas>
-          </div>
-          <div class="hud-banner-left" style="border-color:${PLAYER_THEMES[idx].colorHex}">
-            <div class="name-strip" style="background:${PLAYER_THEMES[idx].colorHex}">
-              ${p.name} ${p.inIsland ? '🏝️' : ''}
+    const islandIcon = p.inIsland ? '<span class="text-xs" title="In Island">🏝️</span>' : '';
+
+    if (needsRebuild) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `player-hud-wrapper flex items-center ${p.bankrupt ? 'opacity-35 grayscale' : (isTurn ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150`;
+
+      if (isLeft) {
+        wrapper.innerHTML = `
+          <div id="hud-card-${idx}" class="player-hud-card ${isTurn ? 'active-turn-hud' : ''}">
+            <div class="avatar-circle" style="box-shadow: 0 0 0 2.5px ${theme.colorHex}, 0 4px 10px rgba(0,0,0,0.12);">
+              <canvas id="hud-avatar-canvas-${idx}" width="104" height="104" class="w-full h-full block"></canvas>
             </div>
-            <div class="cash-strip">
-              <span id="hud-cash-val-${idx}">${p.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
-              <span class="inline-flex items-center justify-center w-5 h-4 rounded bg-emerald-600 text-white text-xs font-black shadow-xs">💵</span>
+            <div class="hud-info-col">
+              <div class="hud-header-row">
+                <span class="hud-player-name">${p.name}</span>
+                <span class="hud-island-icon">${islandIcon}</span>
+                <span class="hud-turn-badge">${turnBadgeHtml}</span>
+              </div>
+              <div class="hud-cash-row">
+                <span id="hud-cash-val-${idx}" class="hud-cash-amount">${p.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
+                <span class="hud-cash-icon" title="Cash">💵</span>
+              </div>
             </div>
           </div>
-        </div>
-        ${getIsometricCashPileSVG()}
-      `;
-      leftContainer.appendChild(wrapper);
+        `;
+        leftContainer.appendChild(wrapper);
+      } else {
+        wrapper.innerHTML = `
+          <div id="hud-card-${idx}" class="player-hud-card ${isTurn ? 'active-turn-hud' : ''}">
+            <div class="hud-info-col items-end text-right">
+              <div class="hud-header-row justify-end">
+                <span class="hud-turn-badge">${turnBadgeHtml}</span>
+                <span class="hud-island-icon">${islandIcon}</span>
+                <span class="hud-player-name">${p.name}</span>
+              </div>
+              <div class="hud-cash-row justify-end">
+                <span class="hud-cash-icon" title="Cash">💵</span>
+                <span id="hud-cash-val-${idx}" class="hud-cash-amount">${p.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
+              </div>
+            </div>
+            <div class="avatar-circle" style="box-shadow: 0 0 0 2.5px ${theme.colorHex}, 0 4px 10px rgba(0,0,0,0.12);">
+              <canvas id="hud-avatar-canvas-${idx}" width="104" height="104" class="w-full h-full block"></canvas>
+            </div>
+          </div>
+        `;
+        rightContainer.appendChild(wrapper);
+      }
+
+      // Draw initial frame immediately onto newly mounted canvas
+      const canvas = document.getElementById(`hud-avatar-canvas-${idx}`);
+      if (canvas) {
+        drawPortraitFrame(canvas, idx, performance.now());
+      }
     } else {
-      wrapper.innerHTML = `
-        ${getIsometricCashPileSVG()}
-        <div id="hud-card-${idx}" class="player-hud-card ${isTurn ? 'active-turn-hud' : ''}">
-          ${isTurn ? '<div class="active-turn-pill"><span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> ACTIVE TURN</div>' : ''}
-          <div class="hud-banner-right" style="border-color:${PLAYER_THEMES[idx].colorHex}">
-            <div class="name-strip" style="background:${PLAYER_THEMES[idx].colorHex}">
-              ${p.name} ${p.inIsland ? '🏝️' : ''}
-            </div>
-            <div class="cash-strip">
-              <span id="hud-cash-val-${idx}">${p.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
-              <span class="inline-flex items-center justify-center w-5 h-4 rounded bg-emerald-600 text-white text-xs font-black shadow-xs">💵</span>
-            </div>
-          </div>
-          <div class="avatar-circle">
-            <canvas id="hud-avatar-canvas-${idx}" width="136" height="136" class="w-full h-full block"></canvas>
-          </div>
-        </div>
-      `;
-      rightContainer.appendChild(wrapper);
+      // In-place update preserving DOM & canvas context
+      const card = document.getElementById(`hud-card-${idx}`);
+      if (card) {
+        card.classList.toggle('active-turn-hud', isTurn);
+        const wrapper = card.closest('.player-hud-wrapper') || card.parentElement;
+        if (wrapper) {
+          wrapper.className = `player-hud-wrapper flex items-center ${p.bankrupt ? 'opacity-35 grayscale' : (isTurn ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150`;
+        }
+        const nameEl = card.querySelector('.hud-player-name');
+        if (nameEl && nameEl.textContent !== p.name) nameEl.textContent = p.name;
+
+        const islandEl = card.querySelector('.hud-island-icon');
+        if (islandEl) islandEl.innerHTML = islandIcon;
+
+        const badgeEl = card.querySelector('.hud-turn-badge');
+        if (badgeEl) badgeEl.innerHTML = turnBadgeHtml;
+
+        const cashVal = document.getElementById(`hud-cash-val-${idx}`);
+        if (cashVal && !cashVal.classList.contains('text-rose-600') && !cashVal.classList.contains('text-emerald-600')) {
+          cashVal.textContent = p.bankrupt ? 'OUT' : fmtMoney(shownMoney);
+        }
+      }
     }
   });
 
@@ -104,10 +160,7 @@ export function updateGameSpeedUI() {
   }
 }
 
-/** Returns the isometric cash stack SVG asset. */
-function getIsometricCashPileSVG() {
-  return cashPileSvg;
-}
+
 
 /** Show a floating cash label next to a player's HUD card. */
 export function spawnFloatingCashOnHUD(playerIdx, text, isGain = true) {
@@ -151,8 +204,10 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
     const endX = toRect.left + toRect.width / 2;
     const endY = toRect.top + toRect.height / 2;
 
-    // 1. Shake payer card, trigger 3D token hurt recoil, and pop deduction text
+    // 1. Shake payer card, trigger 3D token hurt recoil, set mood reactions, and pop deduction text
     fromCard.classList.add('hud-card-deduct');
+    setPlayerPortraitMood(fromIdx, 'crying', 3500);
+    setPlayerPortraitMood(toIdx, 'smug', 3500);
     spawnFloatingCashOnHUD(fromIdx, `-${fmtMoney(amount)} Rent`, false);
     triggerTokenHurtAnimation(fromIdx);
 
@@ -162,8 +217,7 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
     // 2. Display rent payment game placard at center
     showRentTransferBanner(fromPlayer.name, toPlayer.name, amount, fromIdx, toIdx);
 
-    // 3. Staggered flying cash bills & coins from payer card to owner card
-    // Slower, graceful transfer duration (~1.45s per note) so bills are clearly tracked across screen
+    // 3. Staggered flying cash bills & coins with multi-particle ballistic spring physics
     const billCount = 16;
     const duration = 1450;
     let landedCount = 0;
@@ -191,20 +245,32 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
         const arcPeak = Math.max(140, arcDistance * 0.28) + (Math.random() - 0.5) * 60;
         const midX = (startX + endX) / 2 + (Math.random() - 0.5) * 90;
         const midY = Math.min(startY, endY) - arcPeak;
+        // Fanning initial launch impulse spread
+        const fanSpreadX = (Math.random() - 0.5) * 70;
+        const fanSpreadY = (Math.random() - 0.5) * 45;
 
         function stepBill(now) {
-          const t = Math.min(1, (now - startTime) / duration);
-          const bx = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * midX + t * t * endX;
-          const by = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * midY + t * t * endY;
-          const scale = 0.85 + Math.sin(t * Math.PI) * 0.42;
-          const rot = (now - startTime) * 0.16 + Math.sin(t * Math.PI * 4) * 16;
+          const rawT = Math.min(1, (now - startTime) / duration);
+          // Cubic ease-in-out spring progression
+          const t = rawT < 0.5
+            ? 4 * rawT * rawT * rawT
+            : 1 - Math.pow(-2 * rawT + 2, 3) / 2;
 
-          // Pure compositor translate3d avoids layout recalcs and paint thrash
-          bill.style.transform = `translate3d(${bx}px, ${by}px, 0) translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`;
-          // Fully visible across the board, fades out only on final contact with card
-          bill.style.opacity = t < 0.94 ? '1' : `${Math.max(0, (1 - t) * 16)}`;
+          // Ballistic curve with initial launch impulse fanning out and converging to destination
+          const fanInfluence = Math.sin(rawT * Math.PI) * 0.85;
+          const bx = ((1 - t) * (1 - t) * startX + 2 * (1 - t) * t * midX + t * t * endX) + fanSpreadX * fanInfluence;
+          const by = ((1 - t) * (1 - t) * startY + 2 * (1 - t) * t * midY + t * t * endY) + fanSpreadY * fanInfluence;
+          const scale = 0.85 + Math.sin(rawT * Math.PI) * 0.45;
 
-          if (t < 1) {
+          // 3D paper aerodynamic flutter
+          const flutterX = Math.sin(rawT * Math.PI * 5 + i) * 32;
+          const flutterY = Math.cos(rawT * Math.PI * 4 + i) * 26;
+          const rotZ = (now - startTime) * 0.18 + Math.sin(rawT * Math.PI * 3) * 18;
+
+          bill.style.transform = `translate3d(${bx}px, ${by}px, 0) translate(-50%, -50%) perspective(500px) rotateX(${flutterX}deg) rotateY(${flutterY}deg) rotateZ(${rotZ}deg) scale(${scale})`;
+          bill.style.opacity = rawT < 0.92 ? '1' : `${Math.max(0, (1 - rawT) * 12.5)}`;
+
+          if (rawT < 1) {
             requestAnimationFrame(stepBill);
           } else {
             bill.remove();
@@ -213,9 +279,12 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
             if (landedCount === 1) {
               toCard.classList.add('hud-card-receive');
               playSFX('cash');
-            }
-            if (landedCount % 3 === 0) {
+              animateHUDCardSpringAbsorb(toIdx);
+            } else if (landedCount % 4 === 0) {
               playSFX('hop', 0.25);
+              animateHUDCardSpringAbsorb(toIdx);
+            } else if (landedCount === billCount) {
+              animateHUDCardSpringAbsorb(toIdx);
             }
           }
         }
@@ -346,10 +415,14 @@ export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') 
   if (!toast || !textEl) return;
   textEl.textContent = msg;
   toast.classList.remove('hidden');
+  toast.style.display = 'flex';
   animateToastAccordionPush(toast);
   showSpeechBubble(msg, 2000);
   if (toast._timer) clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => toast.classList.add('hidden'), 2200);
+  toast._timer = setTimeout(() => {
+    toast.classList.add('hidden');
+    toast.style.display = 'none';
+  }, 2200);
 }
 
 let statusPillResetTimer = null;
@@ -483,9 +556,6 @@ export function logEvent(html) {
 
 /** Update the roll / end-turn buttons and manage-cities / trade pill locks. */
 export function updateRollButtonsUI(isHumanTurnActionable) {
-  const p = gameState.players[gameState.currentPlayerIdx];
-  if (!p) return;
-
   const btnCenter = document.getElementById('btn-center-roll');
   const btnBottom = document.getElementById('btn-bottom-roll');
   const lblCenter = document.getElementById('center-roll-label');
@@ -507,32 +577,116 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
     if (iconTrade) iconTrade.className = canManage ? 'fa-solid fa-handshake text-emerald-600' : 'fa-solid fa-lock text-slate-400';
   }
 
+  const rollStation = document.getElementById('hud-roll-station');
+  const p = gameState.players ? gameState.players[gameState.currentPlayerIdx] : null;
+
+  if (!p || !gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') {
+    if (rollStation) rollStation.classList.add('hidden');
+    if (btnCenter) {
+      btnCenter.classList.add('hidden');
+      btnCenter.style.display = 'none';
+    }
+    if (btnBottom) {
+      btnBottom.classList.add('hidden');
+      btnBottom.style.display = 'none';
+    }
+    if (btnBail) {
+      btnBail.classList.add('hidden');
+      btnBail.style.display = 'none';
+    }
+    return;
+  }
+
+  if (rollStation) rollStation.classList.remove('hidden');
+
   // In online multiplayer: If this is NOT our turn, completely hide the roll buttons!
   const isOnlineOtherTurn = networkState.isMultiplayer && (gameState.currentPlayerIdx !== networkState.localPlayerIdx);
 
   if (p.isAI || isOnlineOtherTurn) {
-    btnCenter.classList.add('hidden');
-    btnBottom.classList.add('hidden');
-    btnBail.classList.add('hidden');
+    if (btnCenter) {
+      btnCenter.classList.add('hidden');
+      btnCenter.style.display = 'none';
+    }
+    if (btnBottom) {
+      btnBottom.classList.add('hidden');
+      btnBottom.style.display = 'none';
+    }
+    if (btnBail) {
+      btnBail.classList.add('hidden');
+      btnBail.style.display = 'none';
+    }
     return;
   }
 
   if (gameState.phase === 'ROLL') {
-    btnCenter.classList.remove('hidden');
-    btnBottom.classList.remove('hidden');
-    btnCenter.disabled = false; btnBottom.disabled = false;
-    lblCenter.textContent = 'Roll'; lblBottom.textContent = 'Roll';
-    btnBail.classList.toggle('hidden', !(p.inIsland && p.cash >= 150000));
-    btnBail.classList.toggle('inline-flex', !!(p.inIsland && p.cash >= 150000));
+    if (btnCenter) {
+      btnCenter.classList.remove('hidden');
+      btnCenter.style.display = 'inline-flex';
+      btnCenter.disabled = false;
+    }
+    if (btnBottom) {
+      btnBottom.classList.remove('hidden');
+      btnBottom.style.display = 'inline-flex';
+      btnBottom.disabled = false;
+    }
+    if (lblCenter) lblCenter.textContent = 'Roll';
+    if (lblBottom) lblBottom.textContent = 'Roll';
+    if (btnBail) {
+      const showBail = !!(p.inIsland && p.cash >= 150000);
+      btnBail.classList.toggle('hidden', !showBail);
+      btnBail.classList.toggle('inline-flex', showBail);
+      btnBail.style.display = showBail ? 'inline-flex' : 'none';
+    }
   } else if (gameState.phase === 'END') {
-    btnCenter.classList.remove('hidden');
-    btnBottom.classList.remove('hidden');
-    btnCenter.disabled = false; btnBottom.disabled = false;
-    lblCenter.textContent = 'End Turn'; lblBottom.textContent = 'End Turn';
-    btnBail.classList.add('hidden');
+    if (btnCenter) {
+      btnCenter.classList.remove('hidden');
+      btnCenter.style.display = 'inline-flex';
+      btnCenter.disabled = false;
+    }
+    if (btnBottom) {
+      btnBottom.classList.remove('hidden');
+      btnBottom.style.display = 'inline-flex';
+      btnBottom.disabled = false;
+    }
+    if (lblCenter) lblCenter.textContent = 'End Turn';
+    if (lblBottom) lblBottom.textContent = 'End Turn';
+    if (btnBail) {
+      btnBail.classList.add('hidden');
+      btnBail.style.display = 'none';
+    }
   } else {
-    btnCenter.classList.add('hidden');
-    btnBottom.classList.add('hidden');
-    btnBail.classList.add('hidden');
+    // MOVING, MODAL, CHANCE, FLIGHT, etc.
+    if (btnCenter) {
+      btnCenter.classList.add('hidden');
+      btnCenter.style.display = 'none';
+    }
+    if (btnBottom) {
+      btnBottom.classList.add('hidden');
+      btnBottom.style.display = 'none';
+    }
+    if (btnBail) {
+      btnBail.classList.add('hidden');
+      btnBail.style.display = 'none';
+    }
   }
+}
+
+/** Handles clicks onto the bottom-center status pill: rolls dice if actionable turn, or opens event drawer. */
+export function handleStatusPillClick() {
+  const p = gameState.players ? gameState.players[gameState.currentPlayerIdx] : null;
+  const isLocalHuman = p && !p.isAI && (gameState.currentPlayerIdx === (networkState.isMultiplayer ? networkState.localPlayerIdx : 0));
+  if (gameState.gameStarted && (gameState.phase === 'ROLL' || gameState.phase === 'END') && isLocalHuman) {
+    if (typeof window.handleRollButtonClick === 'function') {
+      window.handleRollButtonClick();
+      return;
+    }
+  }
+  if (typeof window.toggleEventLogDrawer === 'function') {
+    window.toggleEventLogDrawer();
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.handleStatusPillClick = handleStatusPillClick;
+  window.updateRollButtonsUI = updateRollButtonsUI;
 }

@@ -11,16 +11,12 @@ import { fireConfettiBurst } from '../../three/effects.js';
 import { renderCornerHUDs, logEvent } from '../hud.js';
 import { checkAndTriggerMonopoly } from './victory.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
-import { animateAuctionGavelRipple } from '../anim.js';
+import { animateAuctionGavelRipple, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 
 export function startCityAuction() {
   if (isLobbyScreenActive()) return;
   clearCityPreview();
-  const buyModal = document.getElementById('modal-buy-city');
-  if (buyModal) {
-    buyModal.classList.add('hidden');
-    buyModal.classList.remove('flex');
-  }
+  animateModalSpringClose('#modal-buy-city');
 
   const tile = gameState.pendingBuyTile;
   const activeBidders = gameState.players.map((p, idx) => (!p.bankrupt ? idx : -1)).filter(i => i !== -1);
@@ -34,11 +30,7 @@ export function startCityAuction() {
   };
 
   updateAuctionModalUI();
-  const m = document.getElementById('modal-auction');
-  if (m) {
-    m.classList.remove('hidden');
-    m.classList.add('flex');
-  }
+  animateModalSpringOpen('#modal-auction');
   checkAIAuctionTurn();
 }
 
@@ -94,11 +86,7 @@ export function passAuctionBid() {
     }
     logEvent(`🔨 <strong>${winner.name}</strong> won the auction for <strong>${a.tile.name}</strong> at <strong>${fmtMoney(a.highBid)}</strong>!`);
 
-    const auctionModal = document.getElementById('modal-auction');
-    if (auctionModal) {
-      auctionModal.classList.add('hidden');
-      auctionModal.classList.remove('flex');
-    }
+    animateModalSpringClose('#modal-auction');
     refreshTileTextureAndBuildings(a.tile.id);
     renderCornerHUDs();
     if (a.tile.group) {

@@ -18,6 +18,8 @@ import { updateSpeechBubbleScreenPosition } from '../pawns/speech.js';
 import { renderLobbyHeroStage } from '../stages/lobbyStage.js';
 import { gameState, displayedCash } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
+import { updatePhysicsSimulation } from '../physics/physicsEngine.js';
+import { updateAudioListener, updateAdaptiveMusicTension, evaluateMatchTension } from '../../game/audio.js';
 
 let isLoopRunning = false;
 let lastFrameTime = performance.now();
@@ -30,8 +32,8 @@ let shadowTick = 0;
 export function animateThreeLoop() {
   requestAnimationFrame(animateThreeLoop);
 
-  // 1. Power-save: Pause rendering entirely if tab is minimized or hidden in background
-  if (document.hidden) return;
+  // 1. Power-save: Pause rendering entirely if tab is minimized or hidden in background, or WebGL context lost
+  if (document.hidden || context.isContextLost) return;
 
   const now = performance.now();
 
@@ -73,6 +75,16 @@ export function animateThreeLoop() {
 
   // 1. Camera damping & isometric orientation updates
   updateCameraDamping(dt);
+
+  // Sync 3D spatial audio listener with current camera coordinates and azimuth
+  if (context.camera && cameraState) {
+    updateAudioListener(context.camera.position, cameraState.cameraTarget, context.camera.up);
+  }
+
+  // Update adaptive soundtrack tension every ~20 frames (~330ms)
+  if (shadowTick % 20 === 0 && gameState && gameState.gameStarted && gameState.phase !== 'VICTORY') {
+    updateAdaptiveMusicTension(evaluateMatchTension());
+  }
 
   // 2. Roadway traffic simulation
   updateRoadCarsAnimation();
@@ -125,7 +137,10 @@ export function animateThreeLoop() {
   // 12. Floating 3D speech bubble screen projection
   updateSpeechBubbleScreenPosition();
 
-  // 13. Primary Scene Render
+  // 13. Dynamic 3D Physics Engine Simulation Tick
+  updatePhysicsSimulation(dt);
+
+  // 14. Primary Scene Render (Direct render: crisp, natural lighting, zero artificial bloom blowout)
   if (context.renderer && context.scene && context.camera) {
     context.renderer.render(context.scene, context.camera);
   }

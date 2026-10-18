@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { playSFX } from '../../game/audio.js';
+import { simulateDicePhysicsToss, triggerBoardShockwave } from '../physics/physicsEngine.js';
 
 export const DICE_SKIN_PALETTES = {
   dice_classic: { bg: '#ffffff', stroke: '#cbd5e1', pipSpecial: '#ef4444', pipNormal: '#0f172a' },
@@ -123,7 +124,7 @@ import { matchSettings } from '../../game/state.js';
  */
 export function animate3DDiceTumble(d1, d2) {
   return new Promise(resolve => {
-    playSFX('diceShuffle');
+    playSFX('diceShuffle', 0.9, { x: 0, y: 1.0, z: 0 });
 
     const speed = matchSettings?.gameSpeed || 1;
     const baseDuration = 1150;
@@ -175,37 +176,40 @@ export function animate3DDiceTumble(d1, d2) {
     const cssSpins2 = { x: cssRot2.x - 360 * 3, y: cssRot2.y - 360 * 4, z: -360 * 2 };
 
     let bounced1 = false;
-    let bounced2 = false;
+
+    // Simulate 3D rigid-body dice physics with real bounce, angular momentum, and rim ricochets
+    simulateDicePhysicsToss(dieMesh1, dieMesh2, d1, d2, duration, (progress) => {
+      // Small shockwave pulse when dice hit the board
+      if (progress > 0.45 && !bounced1) {
+        bounced1 = true;
+        playSFX('diceBounce', 1.0, { x: 0, y: 0.4, z: -1.2 });
+        triggerBoardShockwave(0, -1.2, 12, 22);
+      }
+    });
 
     function stepDice(now) {
       const rawT = Math.min(1, (now - startTime) / duration);
 
       let bounceY1 = 0, shadowScale1 = 1, shadowOp1 = 0.8;
       let bounceY2 = 0, shadowScale2 = 1, shadowOp2 = 0.8;
-      let meshY1 = 1.05, meshY2 = 1.05;
 
       if (rawT < 0.44) {
         const p = rawT / 0.44;
         bounceY1 = -220 * (1 - p * p);
         shadowScale1 = 0.45 + 0.55 * p;
         shadowOp1 = 0.25 + 0.55 * p;
-        meshY1 = 1.05 + 3.4 * (1 - p * p);
       } else if (rawT < 0.76) {
-        if (!bounced1) { bounced1 = true; playSFX('diceBounce'); }
         const p = (rawT - 0.44) / 0.32;
         bounceY1 = -Math.sin(p * Math.PI) * 82;
         shadowScale1 = 1 - Math.sin(p * Math.PI) * 0.45;
         shadowOp1 = 0.8 - Math.sin(p * Math.PI) * 0.4;
-        meshY1 = 1.05 + Math.sin(p * Math.PI) * 1.5;
       } else if (rawT < 0.93) {
-        if (!bounced2) { bounced2 = true; playSFX('diceBounce'); }
         const p = (rawT - 0.76) / 0.17;
         bounceY1 = -Math.sin(p * Math.PI) * 18;
         shadowScale1 = 1 - Math.sin(p * Math.PI) * 0.2;
         shadowOp1 = 0.8 - Math.sin(p * Math.PI) * 0.2;
-        meshY1 = 1.05 + Math.sin(p * Math.PI) * 0.45;
       } else {
-        bounceY1 = 0; shadowScale1 = 1; shadowOp1 = 0.8; meshY1 = 1.05;
+        bounceY1 = 0; shadowScale1 = 1; shadowOp1 = 0.8;
       }
 
       const t2 = Math.max(0, Math.min(1, (now - startTime - 35) / Math.max(1, duration - 35)));
@@ -214,43 +218,18 @@ export function animate3DDiceTumble(d1, d2) {
         bounceY2 = -240 * (1 - p * p);
         shadowScale2 = 0.45 + 0.55 * p;
         shadowOp2 = 0.25 + 0.55 * p;
-        meshY2 = 1.05 + 3.7 * (1 - p * p);
       } else if (t2 < 0.76) {
         const p = (t2 - 0.44) / 0.32;
         bounceY2 = -Math.sin(p * Math.PI) * 90;
         shadowScale2 = 1 - Math.sin(p * Math.PI) * 0.45;
         shadowOp2 = 0.8 - Math.sin(p * Math.PI) * 0.4;
-        meshY2 = 1.05 + Math.sin(p * Math.PI) * 1.7;
       } else if (t2 < 0.93) {
         const p = (t2 - 0.76) / 0.17;
         bounceY2 = -Math.sin(p * Math.PI) * 20;
         shadowScale2 = 1 - Math.sin(p * Math.PI) * 0.2;
         shadowOp2 = 0.8 - Math.sin(p * Math.PI) * 0.2;
-        meshY2 = 1.05 + Math.sin(p * Math.PI) * 0.5;
       } else {
-        bounceY2 = 0; shadowScale2 = 1; shadowOp2 = 0.8; meshY2 = 1.05;
-      }
-
-      // 3D Three.js Mesh Bouncing & Settling
-      if (dieMesh1) {
-        const curX = startPos[0].x + (endPos[0].x - startPos[0].x) * rawT;
-        const curZ = startPos[0].z + (endPos[0].z - startPos[0].z) * rawT;
-        dieMesh1.position.set(curX, meshY1, curZ);
-        dieMesh1.rotation.set(
-          rot1.x + (1 - rawT) * Math.PI * 4,
-          0.28 + (1 - rawT) * Math.PI * 5,
-          rot1.z + (1 - rawT) * Math.PI * 3
-        );
-      }
-      if (dieMesh2) {
-        const curX = startPos[1].x + (endPos[1].x - startPos[1].x) * rawT;
-        const curZ = startPos[1].z + (endPos[1].z - startPos[1].z) * rawT;
-        dieMesh2.position.set(curX, meshY2, curZ);
-        dieMesh2.rotation.set(
-          rot2.x - (1 - rawT) * Math.PI * 4,
-          -0.22 - (1 - rawT) * Math.PI * 5,
-          rot2.z - (1 - rawT) * Math.PI * 3
-        );
+        bounceY2 = 0; shadowScale2 = 1; shadowOp2 = 0.8;
       }
 
       if (actor1) actor1.style.transform = `translateY(${bounceY1}px)`;
@@ -276,19 +255,10 @@ export function animate3DDiceTumble(d1, d2) {
         if (die1) die1.style.transform = `rotateX(${cssRot1.x}deg) rotateY(${cssRot1.y}deg) rotateZ(0deg)`;
         if (die2) die2.style.transform = `rotateX(${cssRot2.x}deg) rotateY(${cssRot2.y}deg) rotateZ(0deg)`;
 
-        if (dieMesh1) {
-          dieMesh1.position.set(endPos[0].x, 1.02, endPos[0].z);
-          dieMesh1.rotation.set(rot1.x, 0.28, rot1.z);
-        }
-        if (dieMesh2) {
-          dieMesh2.position.set(endPos[1].x, 1.02, endPos[1].z);
-          dieMesh2.rotation.set(rot2.x, -0.22, rot2.z);
-        }
-
         const resultStr = `🎲 ${d1} + ${d2} = ${d1 + d2}${d1 === d2 ? ' (DOUBLES!)' : ''}`;
         if (resultText) resultText.textContent = resultStr;
         if (resultBadge) resultBadge.style.transform = 'scale(1)';
-        playSFX('hop');
+        playSFX('hop', 0.8, { x: 0, y: 0.4, z: -1.2 });
 
         if (sumBadge) {
           sumBadge.textContent = resultStr;

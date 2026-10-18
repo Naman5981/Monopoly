@@ -13,6 +13,31 @@ export const animatedChimneySmokes = [];
 export const animatedSkyscraperBeacons = [];
 export const animatedBuildingPopups = [];
 
+// Shared Flag Geometries & Static Materials Cache for maximum GPU reuse
+const sharedFlagGeom = {
+  plinth: new THREE.CylinderGeometry(0.22, 0.28, 0.08, 16),
+  brassCollar: new THREE.CylinderGeometry(0.14, 0.19, 0.05, 16),
+  boltRing: new THREE.CylinderGeometry(0.08, 0.11, 0.04, 12),
+  pole: new THREE.CylinderGeometry(0.042, 0.056, 1.80, 16),
+  ring: new THREE.TorusGeometry(0.058, 0.014, 8, 16),
+  finialBall: new THREE.SphereGeometry(0.095, 16, 16),
+  finialTip: new THREE.ConeGeometry(0.052, 0.14, 12),
+  star: new THREE.OctahedronGeometry(0.11, 0)
+};
+
+const sharedFlagMat = {
+  basePlinth: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.3 }),
+  brass: new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.22, metalness: 0.88 }),
+  pole: new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.18, metalness: 0.85 }),
+  goldTrim: new THREE.MeshStandardMaterial({
+    color: 0xfde047,
+    emissive: 0xfacc15,
+    emissiveIntensity: 0.15,
+    roughness: 0.25,
+    metalness: 0.75
+  })
+};
+
 /**
  * Creates an architectural claim/ownership flag with a waving cloth pennant.
  * @param {number|string} ownerColor - Player's theme color
@@ -21,9 +46,6 @@ export const animatedBuildingPopups = [];
 export function createDetailedFlagMesh(ownerColor) {
   const flagGroup = new THREE.Group();
 
-  const basePlinthMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.3 });
-  const brassMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.22, metalness: 0.88 });
-  const poleMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.18, metalness: 0.85 });
   const clothMat = new THREE.MeshStandardMaterial({
     color: ownerColor,
     emissive: ownerColor,
@@ -31,43 +53,36 @@ export function createDetailedFlagMesh(ownerColor) {
     roughness: 0.38,
     metalness: 0.12
   });
-  const goldTrimMat = new THREE.MeshStandardMaterial({
-    color: 0xfde047,
-    emissive: 0xfacc15,
-    emissiveIntensity: 0.15,
-    roughness: 0.25,
-    metalness: 0.75
-  });
 
   // 1. Plinth & mounting collar (Heavy brass/slate weighted pedestal)
-  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.08, 16), basePlinthMat);
+  const plinth = new THREE.Mesh(sharedFlagGeom.plinth, sharedFlagMat.basePlinth);
   plinth.position.y = 0.04;
   plinth.castShadow = true;
   plinth.receiveShadow = true;
 
-  const brassCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.19, 0.05, 16), brassMat);
+  const brassCollar = new THREE.Mesh(sharedFlagGeom.brassCollar, sharedFlagMat.brass);
   brassCollar.position.y = 0.10;
   brassCollar.castShadow = true;
 
-  const boltRing = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, 0.04, 12), brassMat);
+  const boltRing = new THREE.Mesh(sharedFlagGeom.boltRing, sharedFlagMat.brass);
   boltRing.position.y = 0.14;
   flagGroup.add(plinth, brassCollar, boltRing);
 
   // 2. High-visibility Flagpole (Tall, solid, gleaming)
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.056, 1.80, 16), poleMat);
+  const pole = new THREE.Mesh(sharedFlagGeom.pole, sharedFlagMat.pole);
   pole.position.y = 1.04;
   pole.castShadow = true;
 
-  const ringTop = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.014, 8, 16), brassMat);
+  const ringTop = new THREE.Mesh(sharedFlagGeom.ring, sharedFlagMat.brass);
   ringTop.position.set(0, 1.76, 0);
   ringTop.rotation.x = Math.PI / 2;
-  const ringBtm = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.014, 8, 16), brassMat);
+  const ringBtm = new THREE.Mesh(sharedFlagGeom.ring, sharedFlagMat.brass);
   ringBtm.position.set(0, 1.05, 0);
   ringBtm.rotation.x = Math.PI / 2;
 
-  const finialBall = new THREE.Mesh(new THREE.SphereGeometry(0.095, 16, 16), brassMat);
+  const finialBall = new THREE.Mesh(sharedFlagGeom.finialBall, sharedFlagMat.brass);
   finialBall.position.y = 1.98;
-  const finialTip = new THREE.Mesh(new THREE.ConeGeometry(0.052, 0.14, 12), brassMat);
+  const finialTip = new THREE.Mesh(sharedFlagGeom.finialTip, sharedFlagMat.brass);
   finialTip.position.y = 2.09;
   flagGroup.add(pole, ringTop, ringBtm, finialBall, finialTip);
 
@@ -101,13 +116,13 @@ export function createDetailedFlagMesh(ownerColor) {
 
   // Golden borders across the top and bottom
   const borderThick = 0.036;
-  const topBorder = new THREE.Mesh(new THREE.BoxGeometry(totalW, borderThick, 0.038), goldTrimMat);
+  const topBorder = new THREE.Mesh(new THREE.BoxGeometry(totalW, borderThick, 0.038), sharedFlagMat.goldTrim);
   topBorder.position.set(totalW / 2, bannerH / 2 + borderThick / 2, 0);
-  const btmBorder = new THREE.Mesh(new THREE.BoxGeometry(totalW, borderThick, 0.038), goldTrimMat);
+  const btmBorder = new THREE.Mesh(new THREE.BoxGeometry(totalW, borderThick, 0.038), sharedFlagMat.goldTrim);
   btmBorder.position.set(totalW / 2, -(bannerH / 2 + borderThick / 2), 0);
 
   // Prominent Golden Star emblem in the center
-  const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), goldTrimMat);
+  const star = new THREE.Mesh(sharedFlagGeom.star, sharedFlagMat.goldTrim);
   star.position.set(0.36, 0, 0.024);
   star.scale.set(1, 1, 0.35);
 
