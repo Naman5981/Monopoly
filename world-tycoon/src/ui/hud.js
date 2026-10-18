@@ -425,6 +425,62 @@ export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') 
   }, 2200);
 }
 
+let diceSumTimer = null;
+
+/**
+ * Display ephemeral roll sum badge in center park area with auto-dismiss.
+ * @param {string} resultStr - E.g. "🎲 5 + 4 = 9"
+ * @param {number} durationMs - Auto-dismiss timeout (defaults to 1800ms)
+ */
+export function showDiceSumBadge(resultStr, durationMs = 1800) {
+  const sumBadge = document.getElementById('dice-sum-badge');
+  if (!sumBadge) return;
+  if (diceSumTimer) {
+    clearTimeout(diceSumTimer);
+    diceSumTimer = null;
+  }
+  sumBadge.textContent = resultStr;
+  sumBadge.classList.remove('hidden');
+  sumBadge.style.display = 'inline-flex';
+  sumBadge.style.opacity = '0';
+  sumBadge.style.transform = 'scale(0.85)';
+
+  requestAnimationFrame(() => {
+    sumBadge.style.opacity = '1';
+    sumBadge.style.transform = 'scale(1)';
+  });
+
+  const speed = matchSettings?.gameSpeed || 1;
+  const timeoutMs = Math.max(600, Math.round(durationMs / speed));
+
+  diceSumTimer = setTimeout(() => {
+    hideDiceSumBadge();
+  }, timeoutMs);
+}
+
+/**
+ * Immediately dismiss and hide the dice sum badge.
+ */
+export function hideDiceSumBadge() {
+  if (diceSumTimer) {
+    clearTimeout(diceSumTimer);
+    diceSumTimer = null;
+  }
+  const sumBadge = document.getElementById('dice-sum-badge');
+  if (!sumBadge) return;
+  sumBadge.style.opacity = '0';
+  sumBadge.style.transform = 'scale(0.85)';
+  setTimeout(() => {
+    if (!diceSumTimer) {
+      sumBadge.classList.add('hidden');
+      sumBadge.style.display = 'none';
+    }
+  }, 220);
+}
+
+window.showDiceSumBadge = showDiceSumBadge;
+window.hideDiceSumBadge = hideDiceSumBadge;
+
 let statusPillResetTimer = null;
 let currentThinkingState = null;
 
@@ -581,6 +637,7 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
   const p = gameState.players ? gameState.players[gameState.currentPlayerIdx] : null;
 
   if (!p || !gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') {
+    hideDiceSumBadge();
     if (rollStation) rollStation.classList.add('hidden');
     if (btnCenter) {
       btnCenter.classList.add('hidden');
@@ -619,6 +676,7 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
   }
 
   if (gameState.phase === 'ROLL') {
+    hideDiceSumBadge();
     if (btnCenter) {
       btnCenter.classList.remove('hidden');
       btnCenter.style.display = 'inline-flex';

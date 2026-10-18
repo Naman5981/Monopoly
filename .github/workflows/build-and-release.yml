@@ -1,0 +1,92 @@
+name: Build & Release Game Executable
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Package Executables
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: './world-tycoon/package-lock.json'
+
+      - name: Install dependencies & compile CSS
+        working-directory: ./world-tycoon
+        run: |
+          npm ci
+          node ./node_modules/tailwindcss/lib/cli.js -i ./src/style.css -o ./src/compiled.css --minify
+          node ./node_modules/tailwindcss/lib/cli.js -i ./src/style.css -o ./public/compiled.css --minify
+
+      - name: Build Windows Standalone Executable & Packages
+        shell: pwsh
+        run: |
+          .\build_all.ps1
+
+      - name: Verify Generated Executables
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "WorldTycoon.exe")) { throw "WorldTycoon.exe was not created!" }
+          if (-not (Test-Path "WorldTycoon_Online_Game.zip")) { throw "WorldTycoon_Online_Game.zip was not created!" }
+          if (-not (Test-Path "WorldTycoon-Mac.zip")) { throw "WorldTycoon-Mac.zip was not created!" }
+          $exe = Get-Item "WorldTycoon.exe"
+          Write-Host "Executable built successfully: $($exe.FullName) ($($exe.Length) bytes)" -ForegroundColor Green
+
+      - name: Upload WorldTycoon.exe (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldTycoon.exe
+          path: WorldTycoon.exe
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload All Game Packages (Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldTycoon-All-Packages
+          path: |
+            WorldTycoon.exe
+            WorldTycoon_Online_Game.zip
+            WorldTycoon-Mac.zip
+          retention-days: 90
+
+      - name: Publish to GitHub Releases (Rolling Release)
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: latest
+          name: "World Tycoon: Global Edition (Latest Build)"
+          body: |
+            ## 🎲 World Tycoon: Global Edition — Latest Build
+            
+            Automated production build generated from commit `${{ github.sha }}`.
+            
+            ### ⬇️ Direct Downloads:
+            | Platform | File | Description |
+            | :--- | :--- | :--- |
+            | 🪟 **Windows (Standalone)** | [**`WorldTycoon.exe`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon.exe) | Single-click native launcher (no installation needed) |
+            | 🪟 **Windows (Package Zip)** | [**`WorldTycoon_Online_Game.zip`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon_Online_Game.zip) | Portable game folder with launcher & quick guide |
+            | 🍎 **macOS (App Bundle)** | [**`WorldTycoon-Mac.zip`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon-Mac.zip) | Native macOS `WorldTycoon.app` bundle |
+          draft: false
+          prerelease: false
+          files: |
+            WorldTycoon.exe
+            WorldTycoon_Online_Game.zip
+            WorldTycoon-Mac.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

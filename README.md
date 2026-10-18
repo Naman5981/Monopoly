@@ -3,7 +3,10 @@
 [![Three.js](https://img.shields.io/badge/Three.js-r128-black?style=for-the-badge&logo=three.js)](https://threejs.org/)
 [![WebRTC](https://img.shields.io/badge/WebRTC-PeerJS-339933?style=for-the-badge&logo=webrtc)](https://peerjs.com/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![Windows Executable](https://img.shields.io/badge/Windows-Standalone_EXE-0078D6?style=for-the-badge&logo=windows)](https://microsoft.com)
+[![Build & Release](https://img.shields.io/github/actions/workflow/status/Naman5981/Monopoly/build-and-release.yml?branch=main&style=for-the-badge&label=Build%20%26%20Release)](https://github.com/Naman5981/Monopoly/actions/workflows/build-and-release.yml)
+[![Download EXE](https://img.shields.io/badge/Download-WorldTycoon.exe-brightgreen?style=for-the-badge&logo=windows)](https://github.com/Naman5981/Monopoly/releases/download/latest/WorldTycoon.exe)
+
+> 🎮 **[Click here to download WorldTycoon.exe (Latest Standalone Build)](https://github.com/Naman5981/Monopoly/releases/download/latest/WorldTycoon.exe)** — Single-click native Windows executable, zero installation needed! Full release packages and macOS bundles available under [**Releases**](https://github.com/Naman5981/Monopoly/releases/tag/latest).
 
 **World Tycoon: Global Edition** is an isometric 3D global property trading board game built with **Three.js**, **WebRTC P2P DataChannels (PeerJS)**, **Web Audio API**, and **Tailwind CSS**. It combines classic Monopoly real-estate trading mechanics with modern serverless multiplayer, animated 3D dioramas, customizable avatars, and live auctions.
 

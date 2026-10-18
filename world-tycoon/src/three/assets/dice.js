@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { playSFX } from '../../game/audio.js';
 import { simulateDicePhysicsToss, triggerBoardShockwave } from '../physics/physicsEngine.js';
+import { showDiceSumBadge, hideDiceSumBadge } from '../../ui/hud.js';
 
 export const DICE_SKIN_PALETTES = {
   dice_classic: { bg: '#ffffff', stroke: '#cbd5e1', pipSpecial: '#ef4444', pipNormal: '#0f172a' },
@@ -159,8 +160,7 @@ export function animate3DDiceTumble(d1, d2) {
     const shadow2 = document.getElementById('screen-die-shadow-2');
     const resultBadge = document.getElementById('dice-overlay-result');
     const resultText = document.getElementById('dice-overlay-result-text');
-    const sumBadge = document.getElementById('dice-sum-badge');
-    if (sumBadge) sumBadge.classList.add('hidden');
+    hideDiceSumBadge();
 
     if (overlay) {
       overlay.classList.remove('hidden');
@@ -260,10 +260,7 @@ export function animate3DDiceTumble(d1, d2) {
         if (resultBadge) resultBadge.style.transform = 'scale(1)';
         playSFX('hop', 0.8, { x: 0, y: 0.4, z: -1.2 });
 
-        if (sumBadge) {
-          sumBadge.textContent = resultStr;
-          sumBadge.classList.remove('hidden');
-        }
+        showDiceSumBadge(resultStr, 2000);
 
         const settlePause = Math.max(120, Math.round(550 / speed));
         setTimeout(() => {

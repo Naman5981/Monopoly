@@ -26,7 +26,8 @@ import {
   setStatusPill,
   refreshActivePlayerTurnStatus,
   clearThinkingState,
-  setPlayerPortraitMood
+  setPlayerPortraitMood,
+  hideDiceSumBadge
 } from '../../ui/hud.js';
 import { showVictoryModal, showIncomingTradeOfferModal } from '../../ui/modals.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
@@ -97,6 +98,7 @@ export async function handleRollButtonClick() {
 
 export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
   if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
+  hideDiceSumBadge();
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   if (!p) return;
@@ -165,6 +167,7 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
 }
 
 export async function hopPlayerSteps3D(playerIdx, steps) {
+  hideDiceSumBadge();
   const p = gameState.players[playerIdx];
   if (!p) return;
 
@@ -279,6 +282,7 @@ export function concludeActionPhase(isDoubles) {
 }
 
 export function advanceTurn(isRemote = false, forcedNextIdx = null) {
+  hideDiceSumBadge();
   if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') {
     cancelAllGameTimers();
     return;

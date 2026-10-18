@@ -1,6 +1,13 @@
 param()
 
 $csc = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+if (-not (Test-Path $csc)) {
+    $csc = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe"
+}
+if (-not (Test-Path $csc)) {
+    $found = Get-Command csc.exe -ErrorAction SilentlyContinue
+    if ($found) { $csc = $found.Source }
+}
 $outExe = "$PSScriptRoot\WorldTycoon.exe"
 $src = "$PSScriptRoot\Launcher.cs"
 $zip = "$PSScriptRoot\world-tycoon.zip"

@@ -809,7 +809,7 @@
 
   <!-- 8. CENTER BOARD FLOATING "ROLL" PILL BUTTON -->
   <div id="center-park-controls" class="fixed left-1/2 top-[51%] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none flex flex-col items-center gap-2 transition-opacity duration-300">
-    <div id="dice-sum-badge" class="hidden px-3.5 py-1 rounded-full bg-slate-900/90 text-white font-rounded font-extrabold text-xs shadow-lg border border-white/20 tracking-wider animate-bounce pointer-events-auto">
+    <div id="dice-sum-badge" class="hidden px-3.5 py-1 rounded-full bg-slate-900/90 text-white font-rounded font-extrabold text-xs shadow-lg border border-white/20 tracking-wider pointer-events-none transition-all duration-200" style="display: none; opacity: 0; transform: scale(0.85);">
       🎲 Rolled 7
     </div>
     <button id="btn-center-roll" onclick="window.handleRollButtonClick()" class="center-roll-btn hidden pointer-events-auto">
