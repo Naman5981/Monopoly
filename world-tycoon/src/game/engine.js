@@ -59,6 +59,7 @@ import {
 import { executeWorldTourFlight } from './engine/flight.js';
 import { applyChancePrize } from './engine/chance.js';
 import { evaluateTileLanding } from './engine/landings.js';
+import { PlayerControllerFactory } from './controllers/PlayerControllerFactory.js';
 import {
   cancelAllGameTimers,
   getGameDelay,
@@ -193,8 +194,15 @@ export function initEngine() {
     onPlayerConvertedToAI: (leavingIdx) => {
       if (gameState.players && gameState.players[leavingIdx]) {
         gameState.players[leavingIdx].isAI = true;
-        if (gameState.currentPlayerIdx === leavingIdx && gameState.phase === 'ROLL') {
-          executePlayerRoll();
+        if (gameState.currentPlayerIdx === leavingIdx) {
+          if (gameState.phase === 'ROLL') {
+            executePlayerRoll();
+          } else if (gameState.phase === 'END') {
+            advanceTurn();
+          } else if (gameState.phase === 'MODAL' || gameState.phase === 'WORLD_TOUR') {
+            if (window.closeAllGameModals) window.closeAllGameModals();
+            if (window.concludeActionPhase) window.concludeActionPhase(false);
+          }
         }
       }
     },
@@ -206,12 +214,11 @@ export function initEngine() {
           if (!src) return;
           const tid = Number(id);
           if (!gameState.properties[tid]) {
-            gameState.properties[tid] = { ...src };
+            gameState.properties[tid] = { ...src, festivalBoost: Boolean(src.festivalBoost || src.festival) };
           } else {
             gameState.properties[tid].owner = src.owner;
             gameState.properties[tid].level = src.level;
-            gameState.properties[tid].festival = Boolean(src.festival);
-            gameState.properties[tid].festivalMultiplier = src.festivalMultiplier || 1;
+            gameState.properties[tid].festivalBoost = Boolean(src.festivalBoost || src.festival);
           }
           refreshTileTextureAndBuildings(tid);
         });
@@ -278,18 +285,8 @@ export function startNewMatch() {
     broadcastFullGameState();
   }
 
-  const curP = gameState.players[gameState.currentPlayerIdx];
-  if (curP && curP.isAI) {
-    setStatusPill(`🤔 <strong>${curP.name}</strong> is rolling the dice...`, { isThinking: true, playerIdx: gameState.currentPlayerIdx });
-    if (!networkState.isMultiplayer || networkState.isHost) {
-      if (!debugState?.freezeAI) {
-        setTimeout(() => {
-          if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
-          executePlayerRoll();
-        }, getGameDelay(400));
-      }
-    }
-  }
+  const controller = PlayerControllerFactory.create(gameState.currentPlayerIdx);
+  controller.onTurnStart({ executeRollFn: executePlayerRoll });
 }
 
 /**

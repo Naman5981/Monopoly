@@ -24,7 +24,7 @@ export function startCityAuction() {
   gameState.auction = {
     tile,
     highBid: Math.max(50000, Math.round((tile.price * 0.4) / 25000) * 25000),
-    highBidder: 0,
+    highBidder: null,
     activeBidders,
     turnPos: 0
   };
@@ -44,7 +44,11 @@ export function updateAuctionModalUI() {
   const highBidEl = document.getElementById('auction-high-bid');
   if (highBidEl) highBidEl.textContent = fmtMoney(a.highBid);
   const highBidderEl = document.getElementById('auction-high-bidder');
-  if (highBidderEl) highBidderEl.textContent = `Leading: ${gameState.players[a.highBidder]?.name}`;
+  if (highBidderEl) {
+    highBidderEl.textContent = (a.highBidder !== null && gameState.players[a.highBidder])
+      ? `Leading: ${gameState.players[a.highBidder].name}`
+      : 'No bids yet';
+  }
   const curBidderIdx = a.activeBidders[a.turnPos % a.activeBidders.length];
   const turnPlayerEl = document.getElementById('auction-turn-player');
   if (turnPlayerEl) turnPlayerEl.textContent = gameState.players[curBidderIdx]?.name || 'Unknown';
@@ -75,7 +79,18 @@ export function passAuctionBid() {
   a.activeBidders.splice(curPos, 1);
 
   if (a.activeBidders.length <= 1) {
-    const winnerIdx = a.activeBidders[0] !== undefined ? a.activeBidders[0] : a.highBidder;
+    if (a.highBidder === null) {
+      // Everyone passed and no bids were placed: property remains unowned
+      logEvent(`🔨 No bids placed on <strong>${a.tile.name}</strong>. Property remains unowned.`);
+      animateModalSpringClose('#modal-auction');
+      gameState.auction = null;
+      if (engineCallbacks.concludeActionPhase) {
+        engineCallbacks.concludeActionPhase(gameState.pendingDoubles);
+      }
+      return;
+    }
+
+    const winnerIdx = a.highBidder;
     const winner = gameState.players[winnerIdx];
     winner.cash -= a.highBid;
     gameState.properties[a.tile.id].owner = winnerIdx;

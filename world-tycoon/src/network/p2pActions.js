@@ -10,6 +10,8 @@ import { fmtMoney } from '../game/utils.js';
 import { spawnAnimatedReaction } from '../three/effects.js';
 import { BOARD_TILES } from '../game/data.js';
 import { refreshTileTextureAndBuildings } from '../three/scene.js';
+import { checkVictoryConditions } from '../game/rules.js';
+import { showVictoryModal } from '../ui/modals.js';
 import { networkState, networkCallbacks } from './p2pState.js';
 import { broadcastToAll, broadcastFullGameState } from './p2pHost.js';
 
@@ -121,6 +123,11 @@ export function executeIncomingNetworkAction(msg) {
         });
         logEvent(`💥 <strong>${bankruptP.name}</strong> declared bankruptcy!`);
         renderCornerHUDs();
+
+        const vic = checkVictoryConditions();
+        if (vic) {
+          showVictoryModal(vic.winner, vic);
+        }
       }
       break;
     }

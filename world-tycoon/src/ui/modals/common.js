@@ -41,44 +41,85 @@ export function getTierBadgeHTML(level) {
 }
 
 /**
- * Closes and hides all in-game modals.
+ * Closes and hides all in-game modals and overlays defensively.
+ * Cancels active anime.js tweens to prevent stuck backdrop-filter blurs.
  */
 export function closeAllGameModals() {
   const modalIds = [
     'modal-victory',
+    'modal-monopoly-celebration',
     'modal-buy-city',
     'modal-buyout-city',
     'modal-sell-cities',
     'modal-upgrade-city',
     'modal-auction',
     'modal-chance-wheel',
+    'modal-chance-result',
     'modal-tile-inspector',
     'modal-portfolio',
     'modal-trade',
     'modal-incoming-trade',
     'modal-rules',
-    'modal-disconnect-notice',
     'modal-setup',
-    'modal-monopoly-celebration',
+    'modal-resume-match',
+    'modal-disconnect-notice',
     'modal-confirm-exit-lobby',
     'modal-leaderboard',
     'modal-wardrobe',
-    'modal-resume-match'
+    'screen-dice-overlay',
+    'landing-setup-screen'
   ];
+
   modalIds.forEach(id => {
+    // For landing-setup-screen, only forcefully dismiss if match is running
+    if (id === 'landing-setup-screen') {
+      const landing = document.getElementById(id);
+      if (landing && gameState.gameStarted && gameState.phase !== 'SETUP') {
+        if (typeof anime !== 'undefined') anime.remove(landing);
+        landing.classList.add('hidden');
+        landing.classList.remove('flex');
+        landing.style.setProperty('display', 'none', 'important');
+        landing.style.removeProperty('opacity');
+        landing.style.removeProperty('pointer-events');
+      }
+      return;
+    }
+
     const el = document.getElementById(id);
     if (el) {
+      if (typeof anime !== 'undefined') {
+        anime.remove(el);
+      }
+      if (el._autoCloseTimer) {
+        clearTimeout(el._autoCloseTimer);
+        el._autoCloseTimer = null;
+      }
+
+      // Reset nested card elements so they don't remain scale(0) or opacity(0)
+      const cards = el.querySelectorAll('.game-modal-shell, .modal-card, [id$="-card"], #victory-card, #modal-monopoly-card, #wardrobe-panel-card');
+      cards.forEach(card => {
+        if (typeof anime !== 'undefined') anime.remove(card);
+        card.style.removeProperty('transform');
+        card.style.removeProperty('opacity');
+        card.classList.remove('monopoly-card-leaving', 'monopoly-card-entering');
+      });
+
       el.classList.add('hidden');
-      el.classList.remove('flex');
-      el.style.removeProperty('display');
+      el.classList.remove('flex', 'wardrobe-panel-visible');
+      if (id === 'modal-wardrobe') el.classList.add('wardrobe-panel-hidden');
+      el.style.setProperty('display', 'none', 'important');
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('pointer-events');
       el.style.removeProperty('z-index');
     }
   });
 
   const victoryCard = document.getElementById('victory-card');
   if (victoryCard) {
+    if (typeof anime !== 'undefined') anime.remove(victoryCard);
     victoryCard.style.removeProperty('opacity');
     victoryCard.style.removeProperty('pointer-events');
+    victoryCard.style.removeProperty('transform');
   }
 }
 

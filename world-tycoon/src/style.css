@@ -37,6 +37,11 @@ body {
   font-family: var(--font-ui);
 }
 
+/* Hard guarantee that .hidden always sets display: none regardless of inline styles or specificity */
+.hidden {
+  display: none !important;
+}
+
 /* ═══ CASUAL 3D GAME LOBBY ATMOSPHERE BACKGROUND ═══ */
 #landing-setup-screen {
   background: linear-gradient(180deg, #38b6ff 0%, #2fa5f5 35%, #60a5fa 70%, #93c5fd 100%);

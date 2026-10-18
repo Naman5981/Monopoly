@@ -3,7 +3,7 @@
  * Turn cycle progression: dice rolling, step hopping, island bail, turn advancement, and victory triggers.
  */
 
-import { gameState, isHumanTurnActionable, matchSettings, debugState, localPlayerIdx } from '../state.js';
+import { gameState, isHumanTurnActionable, matchSettings, debugState } from '../state.js';
 import { fmtMoney } from '../utils.js';
 import { playSFX } from '../audio.js';
 import { calculatePlayerNetWorth, checkVictoryConditions } from '../rules.js';
@@ -29,11 +29,12 @@ import {
   setPlayerPortraitMood,
   hideDiceSumBadge
 } from '../../ui/hud.js';
-import { showVictoryModal, showIncomingTradeOfferModal } from '../../ui/modals.js';
+import { showVictoryModal, closeAllGameModals } from '../../ui/modals.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from '../persistence.js';
-import { generateProactiveBotTrade } from '../trading.js';
+import { PlayerControllerFactory } from '../controllers/PlayerControllerFactory.js';
+import { AIPlayerController } from '../controllers/AIPlayerController.js';
 import {
   animateDoublesBurstBanner,
   animateActiveTurnSwitch,
@@ -44,17 +45,13 @@ import {
 import { evaluateTileLanding } from './landings.js';
 
 let autoEndTurnTimer = null;
-let aiRollTimer = null;
 
 export function cancelAllGameTimers() {
   if (autoEndTurnTimer) {
     clearTimeout(autoEndTurnTimer);
     autoEndTurnTimer = null;
   }
-  if (aiRollTimer) {
-    clearTimeout(aiRollTimer);
-    aiRollTimer = null;
-  }
+  AIPlayerController.cancelTimer();
 }
 
 export function getGameDelay(ms) {
@@ -232,20 +229,8 @@ export function concludeActionPhase(isDoubles) {
     gameState.doublesCount++;
     gameState.phase = 'ROLL';
     gameState.turnTimeLeft = 15;
-    updateRollButtonsUI(isHumanTurnActionable());
-    if (p.isAI) {
-      if (networkState.isMultiplayer && !networkState.isHost) return;
-      if (debugState?.freezeAI) {
-        logEvent(`⏸️ <strong>[DEBUG]</strong> AI roll paused for <strong>${p.name}</strong> (AI Frozen).`);
-        return;
-      }
-      if (aiRollTimer) clearTimeout(aiRollTimer);
-      aiRollTimer = setTimeout(() => {
-        aiRollTimer = null;
-        if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
-        executePlayerRoll();
-      }, getGameDelay(350));
-    }
+    const controller = PlayerControllerFactory.create(pIdx);
+    controller.onTurnStart({ executeRollFn: executePlayerRoll });
     return;
   }
 
@@ -283,8 +268,15 @@ export function concludeActionPhase(isDoubles) {
 
 export function advanceTurn(isRemote = false, forcedNextIdx = null) {
   hideDiceSumBadge();
+  closeAllGameModals();
   if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') {
     cancelAllGameTimers();
+    return;
+  }
+  const victory = checkVictoryConditions();
+  if (victory) {
+    clearSavedMatch();
+    showVictoryModal(victory.winner, victory);
     return;
   }
   cancelAllGameTimers();
@@ -312,10 +304,6 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
   updateRollButtonsUI(isHumanTurnActionable());
   saveCurrentMatchToStorage();
 
-  const nextP = gameState.players[next];
-  showSpeechBubble(`${nextP.name}'s Turn!`, 2000);
-  refreshActivePlayerTurnStatus();
-
   if (networkState.isMultiplayer) {
     if (!isRemote) {
       broadcastAction('ACTION_END_TURN', { nextPlayerIdx: next });
@@ -325,28 +313,8 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
     }
   }
 
-  if (nextP.isAI) {
-    setStatusPill(`🤔 <strong>${nextP.name}</strong> is rolling the dice...`, { isThinking: true, playerIdx: next });
-    if (!networkState.isMultiplayer || networkState.isHost) {
-      if (debugState?.freezeAI) {
-        logEvent(`⏸️ <strong>[DEBUG]</strong> AI turn start paused for <strong>${nextP.name}</strong> (AI Frozen).`);
-        return;
-      }
-
-      // Check proactive bot trade offer to local player
-      const humanIdx = localPlayerIdx || 0;
-      const botTrade = generateProactiveBotTrade(next);
-      if (botTrade && botTrade.targetIdx === humanIdx && !gameState.players[humanIdx]?.bankrupt) {
-        showIncomingTradeOfferModal(botTrade);
-      }
-
-      aiRollTimer = setTimeout(() => {
-        aiRollTimer = null;
-        if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
-        executePlayerRoll();
-      }, getGameDelay(350));
-    }
-  }
+  const controller = PlayerControllerFactory.create(next);
+  controller.onTurnStart({ executeRollFn: executePlayerRoll });
 }
 
 export function resumeActiveTurn() {
@@ -371,39 +339,15 @@ export function resumeActiveTurn() {
   gameState.upgradesThisVisit = 0;
   gameState.turnTimeLeft = matchSettings.turnDuration || 15;
 
-  const curP = gameState.players[cur];
   renderCornerHUDs();
-  updateRollButtonsUI(isHumanTurnActionable());
-  refreshActivePlayerTurnStatus();
-
   const statusWrap = document.getElementById('hud-bottom-status-wrap');
   if (statusWrap) statusWrap.classList.remove('hidden');
 
-  showSpeechBubble(`${curP.name}'s Turn!`, 2200);
+  const controller = PlayerControllerFactory.create(cur);
+  controller.onTurnStart({ executeRollFn: executePlayerRoll });
 
-  if (curP.isAI) {
-    setStatusPill(`🤔 <strong>${curP.name}</strong> is rolling the dice...`, { isThinking: true, playerIdx: cur });
-    if (!networkState.isMultiplayer || networkState.isHost) {
-      if (debugState?.freezeAI) {
-        logEvent(`⏸️ <strong>[DEBUG]</strong> AI roll paused for <strong>${curP.name}</strong> (AI Frozen).`);
-        return;
-      }
-
-      // Check proactive bot trade offer to local player
-      const humanIdx = localPlayerIdx || 0;
-      const botTrade = generateProactiveBotTrade(cur);
-      if (botTrade && botTrade.targetIdx === humanIdx && !gameState.players[humanIdx]?.bankrupt) {
-        showIncomingTradeOfferModal(botTrade);
-      }
-
-      aiRollTimer = setTimeout(() => {
-        aiRollTimer = null;
-        if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
-        executePlayerRoll();
-      }, getGameDelay(350));
-    }
-  } else {
-    logEvent(`🎲 Resumed match on <strong>${curP.name}'s</strong> turn to roll.`);
+  if (!controller.isAI()) {
+    logEvent(`🎲 Resumed match on <strong>${gameState.players[cur]?.name}'s</strong> turn to roll.`);
   }
 }
 

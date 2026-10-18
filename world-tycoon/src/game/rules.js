@@ -6,7 +6,6 @@
 import { BOARD_TILES, PLAYER_THEMES } from './data.js';
 import { gameState, displayedCash, matchSettings, matchSeconds } from './state.js';
 import { fmtMoney } from './utils.js';
-import { playSFX } from './audio.js';
 
 /** Check whether a player owns every city in a colour group. */
 export function ownsFullColorGroup(playerIdx, groupKey) {

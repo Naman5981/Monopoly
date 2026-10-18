@@ -23,6 +23,9 @@ import {
   evaluateTileLanding
 } from './game/engine.js';
 import { BOARD_TILES } from './game/data.js';
+import { container } from './core/Container.js';
+import { eventBus } from './core/EventBus.js';
+import { GameEvents } from './core/Events.js';
 window.BOARD_TILES = BOARD_TILES;
 window.evaluateTileLanding = evaluateTileLanding;
 window.executePlayerRoll = executePlayerRoll;
@@ -162,6 +165,16 @@ import {
   previewWardrobeItem
 } from './ui/wardrobe.js';
 
+// Register core services in IoC container for dependency inversion (DIP)
+container
+  .register('gameState', gameState)
+  .register('debugState', debugState)
+  .register('threeContext', context)
+  .register('audio', { playSFX, updateMasterVolume, startAdaptiveMusic, stopAdaptiveMusic });
+
+window.appContainer = container;
+window.eventBus = eventBus;
+window.GameEvents = GameEvents;
 window.gameState = gameState;
 window.debugState = debugState;
 window.threeContext = context;

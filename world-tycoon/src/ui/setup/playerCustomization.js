@@ -68,6 +68,9 @@ export function canCurrentPlayerEditSlot(slotIdx) {
 }
 
 export function selectSetupPlayer(idx) {
+  if (networkState.isMultiplayer && !canCurrentPlayerEditSlot(idx)) {
+    return;
+  }
   if (idx >= 0 && idx < lobbyPlayerCount) {
     selectedSetupPlayerIdx = idx;
     const cp = matchSettings.customPlayers[selectedSetupPlayerIdx];

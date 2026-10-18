@@ -106,6 +106,7 @@ export function incrementTomato() { tomatoThrows++; }
 
 export let matchSeconds = 0;
 export function incrementMatchSeconds() { matchSeconds++; }
+export function setMatchSeconds(sec) { matchSeconds = typeof sec === 'number' ? sec : 0; }
 
 export let localPlayerIdx = 0;
 export function setLocalPlayerIdx(idx) { localPlayerIdx = idx; }
@@ -132,6 +133,7 @@ export function resetGameStateForNewMatch(count) {
   for (let i = 0; i < count; i++) {
     const cp = matchSettings.customPlayers[i] || PLAYER_THEMES[i];
     gameState.players.push({
+      id: i,
       name: cp.name || PLAYER_THEMES[i].name,
       isAI: cp.isAI !== undefined ? cp.isAI : (i > 0),
       cash: startCash,

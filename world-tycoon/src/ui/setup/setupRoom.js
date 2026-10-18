@@ -205,7 +205,8 @@ export function startGameFromLandingPage() {
     landingScreen.style.transform = 'scale(0.94) translateY(-20px)';
     setTimeout(() => {
       landingScreen.classList.add('hidden');
-      landingScreen.style.display = 'none';
+      landingScreen.classList.remove('flex');
+      landingScreen.style.setProperty('display', 'none', 'important');
       landingScreen.style.pointerEvents = '';
     }, 400);
   }

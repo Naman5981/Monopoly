@@ -3,13 +3,14 @@
  * Match state persistence in localStorage and resume management.
  */
 
-import { gameState, matchSettings, displayedCash, matchSeconds, isHumanTurnActionable } from './state.js';
+import { gameState, matchSettings, displayedCash, matchSeconds, setMatchSeconds, isHumanTurnActionable } from './state.js';
 import { BOARD_TILES, applyBoardEdition } from './data.js';
 import { fmtMoney } from './utils.js';
 import { refreshTileTextureAndBuildings, spawnAllPlayerTokens3D, updatePlayerTokenPositions3D, showSpeechBubble, applyBoardStyle } from '../three/scene.js';
 import { renderCornerHUDs, updateRollButtonsUI, logEvent } from '../ui/hud.js';
 import { playSFX, startAdaptiveMusic } from './audio.js';
 import { resumeActiveTurn } from './engine.js';
+import { closeAllGameModals } from '../ui/modals/common.js';
 
 const STORAGE_KEY = 'WORLD_TYCOON_SAVED_MATCH_V1';
 
@@ -125,7 +126,7 @@ export function resumeSavedMatch() {
 
     // 3. Restore clock & displayed cash
     if (typeof data.matchSeconds === 'number') {
-      window.matchSeconds = data.matchSeconds;
+      setMatchSeconds(data.matchSeconds);
     }
     if (Array.isArray(data.displayedCash)) {
       displayedCash.splice(0, displayedCash.length, ...data.displayedCash);
@@ -143,11 +144,13 @@ export function resumeSavedMatch() {
     updateRollButtonsUI(isHumanTurnActionable());
 
     // 6. Close all setup/resume modals
+    closeAllGameModals();
     closeResumeModal();
     const landing = document.getElementById('landing-setup-screen');
     if (landing) {
       landing.classList.add('hidden');
-      landing.style.display = 'none';
+      landing.classList.remove('flex');
+      landing.style.setProperty('display', 'none', 'important');
     }
 
     playSFX('win');
@@ -218,7 +221,11 @@ export function checkAndPromptResumeMatch() {
 export function closeResumeModal() {
   const m = document.getElementById('modal-resume-match');
   if (m) {
+    if (typeof anime !== 'undefined') anime.remove(m);
     m.classList.add('hidden');
     m.classList.remove('flex');
+    m.style.setProperty('display', 'none', 'important');
+    m.style.removeProperty('opacity');
+    m.style.removeProperty('pointer-events');
   }
 }

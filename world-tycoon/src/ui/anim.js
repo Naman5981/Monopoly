@@ -152,10 +152,17 @@ export function animateModalSpringOpen(modalTarget, cardTarget = null, originCoo
     cardEl = modalEl.querySelector('.game-modal-shell, .modal-card, [id$="-card"], .rounded-3xl, .rounded-2xl, .bg-white');
   }
 
-  // 1. Reveal modal container
+  // 1. Reveal modal container cleanly
   modalEl.style.removeProperty('display');
+  modalEl.style.removeProperty('pointer-events');
   modalEl.classList.remove('hidden');
   modalEl.classList.add('flex');
+
+  // Reset any leftover styles on card
+  if (cardEl) {
+    cardEl.style.removeProperty('opacity');
+    cardEl.style.removeProperty('transform');
+  }
 
   if (typeof anime === 'undefined' || isReducedMotion()) {
     if (cardEl) {
@@ -210,6 +217,7 @@ export function animateModalSpringOpen(modalTarget, cardTarget = null, originCoo
 
 /**
  * Physics-based spring exit & dismiss for game modal popups.
+ * Includes defensive timeout to prevent stuck backdrop blurs if anime is interrupted.
  * @param {string|HTMLElement} modalTarget - Modal backdrop / container
  * @param {string|HTMLElement|Function} [cardTarget=null] - Inner modal card or callback
  * @param {Function} [onDone=null] - Completion callback
@@ -229,13 +237,40 @@ export function animateModalSpringClose(modalTarget, cardTarget = null, onDone =
     cardEl = modalEl.querySelector('.game-modal-shell, .modal-card, [id$="-card"], .rounded-3xl, .rounded-2xl, .bg-white');
   }
 
-  if (typeof anime === 'undefined' || isReducedMotion() || !cardEl) {
+  // Immediately disable pointer events to prevent ghost clicks while fading
+  modalEl.style.pointerEvents = 'none';
+
+  let cleanedUp = false;
+  const finishClose = () => {
+    if (cleanedUp) return;
+    cleanedUp = true;
+    if (typeof anime !== 'undefined') {
+      anime.remove(modalEl);
+      if (cardEl) anime.remove(cardEl);
+    }
     modalEl.classList.add('hidden');
     modalEl.classList.remove('flex');
-    modalEl.style.removeProperty('display');
-    if (onDone) onDone();
+    modalEl.style.setProperty('display', 'none', 'important');
+    modalEl.style.removeProperty('opacity');
+    modalEl.style.removeProperty('pointer-events');
+    if (cardEl) {
+      cardEl.style.removeProperty('transform');
+      cardEl.style.removeProperty('opacity');
+    }
+    if (onDone) {
+      const cb = onDone;
+      onDone = null;
+      cb();
+    }
+  };
+
+  if (typeof anime === 'undefined' || isReducedMotion() || !cardEl) {
+    finishClose();
     return;
   }
+
+  // Hard safety timeout: guaranteed to clean up within 260ms even if anime is interrupted or tab is backgrounded
+  const safetyTimeout = setTimeout(finishClose, 260);
 
   anime.remove(modalEl);
   anime.remove(cardEl);
@@ -246,7 +281,7 @@ export function animateModalSpringClose(modalTarget, cardTarget = null, onDone =
     scale: [1, 0.86],
     translateY: [0, 24],
     opacity: [1, 0],
-    duration: 220,
+    duration: 200,
     easing: 'easeInQuad'
   });
 
@@ -254,16 +289,11 @@ export function animateModalSpringClose(modalTarget, cardTarget = null, onDone =
   anime({
     targets: modalEl,
     opacity: [1, 0],
-    duration: 220,
+    duration: 200,
     easing: 'easeInQuad',
     complete: () => {
-      modalEl.classList.add('hidden');
-      modalEl.classList.remove('flex');
-      modalEl.style.removeProperty('opacity');
-      modalEl.style.removeProperty('display');
-      cardEl.style.removeProperty('transform');
-      cardEl.style.removeProperty('opacity');
-      if (onDone) onDone();
+      clearTimeout(safetyTimeout);
+      finishClose();
     }
   });
 }

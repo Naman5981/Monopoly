@@ -77,7 +77,9 @@ export function showVictoryModal(winner, victoryDetails = null) {
   }
 
   const winnerObj = winner || (gameState.players && gameState.players.find(p => !p.bankrupt)) || (gameState.players && gameState.players[0]) || { id: 0, name: 'Player 1', cash: 5000000 };
-  const isLocalHuman = winnerObj && (winnerObj.id === localPlayerIdx || (!winnerObj.isAI && (localPlayerIdx === undefined || localPlayerIdx === 0)));
+  const winnerIndex = winnerObj.id !== undefined ? winnerObj.id : (gameState.players ? gameState.players.indexOf(winnerObj) : 0);
+  const myLocalIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : (typeof localPlayerIdx === 'number' ? localPlayerIdx : 0);
+  const isLocalHuman = (winnerIndex === myLocalIdx) && !winnerObj.isAI;
 
   try {
     const titleEl = document.getElementById('victory-title');
