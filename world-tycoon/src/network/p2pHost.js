@@ -157,7 +157,7 @@ function initHostPeerConnection(conn) {
   });
 }
 
-function handleHostReceivedMessage(conn, msg) {
+export function handleHostReceivedMessage(conn, msg) {
   if (!isValidPacket(msg)) {
     console.warn('[P2P Protocol] Host received invalid packet:', msg);
     return;

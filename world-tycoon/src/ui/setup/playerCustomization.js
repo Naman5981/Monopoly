@@ -331,14 +331,16 @@ export function setPlayerArchetype(playerIdx, archIdx) {
 export function randomizeAllNames() {
   if (networkState.isMultiplayer && !networkState.isHost) return;
   for (let i = 0; i < lobbyPlayerCount; i++) {
-    // In multiplayer, host does not randomize connected client names
-    if (networkState.isMultiplayer && networkState.isHost && i !== 0) {
-      const target = setupPlayers[i] || matchSettings.customPlayers[i];
-      if (target && (target.isOnlinePeer || !target.isAI)) continue;
-    }
+    const target = setupPlayers[i] || matchSettings.customPlayers[i];
+    // ONLY randomize AI bots! Human players cannot have their names randomized in the lobby.
+    if (!target || !target.isAI) continue;
+
     const list = FUN_NAMES[i % FUN_NAMES.length];
     const chosen = list[Math.floor(Math.random() * list.length)];
-    if (window.setPlayerSetupName) window.setPlayerSetupName(i, chosen);
+    target.name = chosen;
+    if (PLAYER_THEMES[i]) PLAYER_THEMES[i].name = chosen;
+    if (matchSettings.customPlayers[i]) matchSettings.customPlayers[i].name = chosen;
+    if (setupPlayers[i]) setupPlayers[i].name = chosen;
   }
   if (window.renderPlayerCards) window.renderPlayerCards();
   playSFX('dice');
@@ -348,16 +350,16 @@ export function randomizeAllNames() {
 }
 
 export function randomizeSinglePlayerName(idx) {
-  if (networkState.isMultiplayer) {
-    if (!networkState.isHost && idx !== networkState.localPlayerIdx) return;
-    if (networkState.isHost && idx !== 0) {
-      const target = setupPlayers[idx] || matchSettings.customPlayers[idx];
-      if (target && (target.isOnlinePeer || !target.isAI)) return;
-    }
-  }
+  const target = setupPlayers[idx] || matchSettings.customPlayers[idx];
+  // ONLY randomize AI bots!
+  if (!target || !target.isAI) return;
+
   const list = FUN_NAMES[idx % FUN_NAMES.length];
   const chosen = list[Math.floor(Math.random() * list.length)];
-  if (window.setPlayerSetupName) window.setPlayerSetupName(idx, chosen);
+  target.name = chosen;
+  if (PLAYER_THEMES[idx]) PLAYER_THEMES[idx].name = chosen;
+  if (matchSettings.customPlayers[idx]) matchSettings.customPlayers[idx].name = chosen;
+  if (setupPlayers[idx]) setupPlayers[idx].name = chosen;
   if (window.renderPlayerCards) window.renderPlayerCards();
   playSFX('hop');
 }

@@ -89,7 +89,7 @@ export function executeIncomingNetworkAction(msg) {
         refreshTileTextureAndBuildings(msg.tileId);
       }
       if (p) {
-        p.cash += (msg.saleVal || 0);
+        p.cash += (msg.saleVal ?? msg.saleRefund ?? 0);
         renderCornerHUDs();
       }
       logEvent(`🏷️ <strong>${p ? p.name : 'Player'}</strong> sold <strong>${t ? t.name : 'Property'}</strong> to pay rent.`);

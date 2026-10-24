@@ -7,7 +7,7 @@ import { matchSettings, lobbyPlayerCount, setupPlayers, gameState, savePlayerNam
 import { PLAYER_THEMES } from '../../game/data.js';
 import { playSFX } from '../../game/audio.js';
 import { updateAllPointsBadges } from '../wardrobe.js';
-import { renderCornerHUDs } from '../hud.js';
+import { renderCornerHUDs, showTurnLockToast } from '../hud.js';
 import { networkState, broadcastLobbySettings, sendClientProfileUpdate, broadcastFullGameState } from '../../network/p2p.js';
 import {
   ARCHETYPES,
@@ -49,9 +49,15 @@ export function renderPlayerCards() {
     profileAvatarEl.style.color = selfP?.colorHex || '#10b981';
   }
 
+  // Update Home Screen Tycoon Name display if present
+  const homeNameEl = document.getElementById('home-tycoon-name-display');
+  if (homeNameEl) homeNameEl.textContent = activeDisplayName;
+
   // Update multiplayer portal identity banner if visible
+  const portalNameDisplay = document.getElementById('portal-profile-name-display');
   const portalNameInput = document.getElementById('portal-player-name-input');
   const portalAvatar = document.getElementById('portal-profile-avatar');
+  if (portalNameDisplay) portalNameDisplay.textContent = activeDisplayName;
   if (portalNameInput && document.activeElement !== portalNameInput && portalNameInput.value !== activeDisplayName) {
     portalNameInput.value = activeDisplayName;
   }
@@ -162,12 +168,14 @@ export function renderPlayerCards() {
         avatarEl.style.boxShadow = `0 3px 0 rgba(0,0,0,0.15), 0 0 0 2px ${cp.colorHex}55${isSelected ? ', 0 0 16px rgba(245,158,11,0.6)' : ''}`;
       }
 
-      // Update name input or text
+      // Update name text
       const inputEl = row.querySelector(`#player-name-input-${i}`);
       if (inputEl) {
-        if (document.activeElement !== inputEl && inputEl.value !== cp.name) {
-          inputEl.value = cp.name;
-        }
+        const span = document.createElement('span');
+        span.className = 'player-name-display font-black text-sm sm:text-base text-slate-800 uppercase px-1.5 py-0.5 select-none truncate';
+        span.textContent = cp.name;
+        span.title = cp.isAI ? 'AI Tycoon Bot' : 'Player';
+        inputEl.replaceWith(span);
       } else {
         const textSpan = row.querySelector('.player-name-display');
         if (textSpan && textSpan.textContent !== cp.name) {
@@ -213,9 +221,8 @@ export function renderPlayerCards() {
     const youTag = isSelf ? '<span class="text-[10px] font-black uppercase tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-2xs border border-sky-300">YOU</span>' : '';
     const podiumTag = isSelected ? '<span class="text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-2.5 py-0.5 rounded-full shadow-xs border border-amber-300 flex items-center gap-1"><span>👑</span> PODIUM</span>' : '';
 
-    const nameInputHtml = canEditName
-      ? `<input type="text" id="player-name-input-${i}" data-slot-idx="${i}" value="${cp.name}" oninput="window.setPlayerSetupName(${i}, this.value)" onchange="window.setPlayerSetupName(${i}, this.value)" class="bg-transparent font-black text-sm sm:text-base text-slate-800 uppercase focus:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-lg px-1.5 py-0.5 w-24 sm:w-32 truncate transition" placeholder="YOUR NAME" title="Click to edit your name">`
-      : `<span class="player-name-display font-black text-sm sm:text-base text-slate-800 uppercase px-1.5 py-0.5 select-none truncate" title="${cp.isAI ? 'AI Tycoon Bot' : 'Player'}">${cp.name}</span>`;
+    // Names in lobby are strictly read-only for fair play
+    const nameInputHtml = `<span class="player-name-display font-black text-sm sm:text-base text-slate-800 uppercase px-1.5 py-0.5 select-none truncate" title="${cp.isAI ? 'AI Tycoon Bot' : 'Player'}">${cp.name}</span>`;
 
     let actionControlsHtml = '';
     if (!isGuest) {
@@ -305,14 +312,19 @@ export function renderPlayerCards() {
   }
 }
 
-export function setPlayerSetupName(idx, name) {
+export function setPlayerSetupName(idx, name, isSystemOrBot = false) {
+  if (!isSystemOrBot && currentLobbyView !== 'title') {
+    showTurnLockToast('Names can only be changed on the Home Screen!');
+    return;
+  }
+
   const isSelf = networkState.isMultiplayer
     ? (idx === networkState.localPlayerIdx)
     : (idx === 0);
-  if (!isSelf) return;
+  if (!isSelf && !isSystemOrBot) return;
 
   const target = matchSettings.customPlayers[idx];
-  if (!target || target.isAI) return;
+  if (!target || (target.isAI && !isSystemOrBot)) return;
 
   const savedName = savePlayerName(name);
   target.name = savedName;
@@ -332,9 +344,15 @@ export function setPlayerSetupName(idx, name) {
     pAvEl.style.color = target.colorHex || '#10b981';
   }
 
-  // Synchronize multiplayer portal input & avatar if present
+  // Synchronize Home Screen Tycoon Name display if present
+  const homeNameEl = document.getElementById('home-tycoon-name-display');
+  if (homeNameEl) homeNameEl.textContent = savedName;
+
+  // Synchronize multiplayer portal display & input if present
+  const portalNameDisplay = document.getElementById('portal-profile-name-display');
   const portalNameInput = document.getElementById('portal-player-name-input');
   const portalAvatar = document.getElementById('portal-profile-avatar');
+  if (portalNameDisplay) portalNameDisplay.textContent = savedName;
   if (portalNameInput && document.activeElement !== portalNameInput && portalNameInput.value !== savedName) {
     portalNameInput.value = savedName;
   }
@@ -342,10 +360,11 @@ export function setPlayerSetupName(idx, name) {
     portalAvatar.textContent = (savedName || 'T')[0];
   }
 
-  // Synchronize slot input if not focused
-  const slotInput = document.getElementById(`player-name-input-${idx}`);
-  if (slotInput && document.activeElement !== slotInput && slotInput.value !== savedName) {
-    slotInput.value = savedName;
+  // Synchronize slot display text if present
+  const slotCard = document.getElementById(`player-setup-card-${idx}`);
+  if (slotCard) {
+    const textSpan = slotCard.querySelector('.player-name-display');
+    if (textSpan) textSpan.textContent = savedName;
   }
 
   if (networkState.isMultiplayer) {

@@ -298,8 +298,9 @@ export function startNewMatch() {
 /**
  * Cleanly terminate the active match and return to the lobby.
  * Ensures the match does NOT keep running in the background.
+ * @param {boolean} [isRemote=false] - True if triggered remotely by Host
  */
-export function terminateMatchAndReturnToLobby() {
+export function terminateMatchAndReturnToLobby(isRemote = false) {
   cancelAllGameTimers();
 
   gameState.gameStarted = false;
@@ -338,7 +339,7 @@ export function terminateMatchAndReturnToLobby() {
     if (networkState.isHost) {
       broadcastReturnToLobby();
       logEvent('👑 Host returned table to lobby.');
-    } else {
+    } else if (!isRemote) {
       broadcastAction('ACTION_GUEST_LOBBY', {
         senderIdx: networkState.localPlayerIdx
       });

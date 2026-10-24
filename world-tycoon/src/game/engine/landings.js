@@ -12,11 +12,22 @@ import { gameState } from '../state.js';
 import { TileLandingRegistry } from './strategies/TileLandingRegistry.js';
 import { PropertyLandingStrategy } from './strategies/PropertyLandingStrategy.js';
 
-// Instantiate the landing registry with self-reference for flight hops
-const landingRegistry = new TileLandingRegistry(evaluateTileLanding);
+// Lazy instantiated landing registry to eliminate circular evaluation cycles
+let landingRegistry = null;
+export function getLandingRegistry() {
+  if (!landingRegistry) {
+    landingRegistry = new TileLandingRegistry(evaluateTileLanding);
+  }
+  return landingRegistry;
+}
 
-// Shared instance of PropertyLandingStrategy for legacy exports
-const propertyStrategy = new PropertyLandingStrategy();
+let propertyStrategy = null;
+function getPropertyStrategy() {
+  if (!propertyStrategy) {
+    propertyStrategy = new PropertyLandingStrategy();
+  }
+  return propertyStrategy;
+}
 
 /**
  * Evaluates the landing of a player on their current board tile.
@@ -34,7 +45,7 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
   const tile = BOARD_TILES[player.position];
   if (!tile) return;
 
-  const strategy = landingRegistry.resolve(tile.type);
+  const strategy = getLandingRegistry().resolve(tile.type);
   if (!strategy) {
     console.warn(`[TileLanding] No strategy registered for tile type: "${tile.type}"`);
     if (window.concludeActionPhase) {
@@ -54,15 +65,15 @@ export async function evaluateTileLanding(playerIdx, isDoubles) {
 
 // Backward-compatible delegates for any legacy external callers
 export function handleAICityDecision(playerIdx, tile, isDoubles) {
-  return propertyStrategy.handleAICityDecision(playerIdx, tile, isDoubles);
+  return getPropertyStrategy().handleAICityDecision(playerIdx, tile, isDoubles);
 }
 
 export function handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles) {
-  return propertyStrategy.handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles);
+  return getPropertyStrategy().handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles);
 }
 
 export function handleAIOwnedCityLanding(playerIdx, tile, isDoubles) {
-  return propertyStrategy.handleAIOwnedCityLanding(playerIdx, tile, isDoubles);
+  return getPropertyStrategy().handleAIOwnedCityLanding(playerIdx, tile, isDoubles);
 }
 
 export { landingRegistry };

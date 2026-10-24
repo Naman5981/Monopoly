@@ -17,6 +17,40 @@ export function setLobbyView(viewName, triggerSound = true) {
     screen.classList.add(`lobby-view-${viewName}`);
   }
 
+  // Manage first-time name heads up banner visibility
+  const headsUpEl = document.getElementById('home-name-heads-up');
+  if (headsUpEl) {
+    let isSeen = false;
+    try {
+      isSeen = !!localStorage.getItem('WORLD_TYCOON_NAME_HEADS_UP_SEEN');
+    } catch (_) {}
+    if (viewName === 'title' && !isSeen) {
+      headsUpEl.classList.remove('hidden');
+    } else {
+      headsUpEl.classList.add('hidden');
+    }
+  }
+
+  // Visual cues for name editing capability (only on home screen)
+  const profileEditIcon = document.getElementById('setup-profile-edit-icon');
+  const profileNameBtn = document.getElementById('setup-profile-name-btn');
+  if (profileEditIcon) {
+    if (viewName === 'title') {
+      profileEditIcon.className = 'fa-solid fa-pen text-[9px] text-amber-500 ml-0.5';
+    } else {
+      profileEditIcon.className = 'fa-solid fa-lock text-[9px] text-slate-400 ml-0.5';
+    }
+  }
+  if (profileNameBtn) {
+    if (viewName === 'title') {
+      profileNameBtn.title = 'Click to edit your Tycoon name';
+      profileNameBtn.classList.add('cursor-pointer');
+    } else {
+      profileNameBtn.title = 'Names are locked in lobby - return to Home Screen to change';
+      profileNameBtn.classList.remove('cursor-pointer');
+    }
+  }
+
   const backBtn = document.getElementById('btn-lobby-back-to-title');
   if (backBtn) {
     if (viewName === 'title') {

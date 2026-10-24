@@ -16,6 +16,13 @@ export class TileLandingRegistry {
   constructor(tileLandingEvaluator) {
     /** @type {Map<string, import('./ITileLandingStrategy.js').ITileLandingStrategy>} */
     this.strategies = new Map();
+    this.tileLandingEvaluator = tileLandingEvaluator;
+    this._initialized = false;
+  }
+
+  _initDefaultStrategies() {
+    if (this._initialized) return;
+    this._initialized = true;
 
     const propertyStrategy = new PropertyLandingStrategy();
     this.register('city', propertyStrategy);
@@ -25,7 +32,7 @@ export class TileLandingRegistry {
     this.register('island', new IslandLandingStrategy());
     this.register('festival', new FestivalLandingStrategy());
     this.register('start', new StartLandingStrategy());
-    this.register('worldtour', new AirportLandingStrategy(tileLandingEvaluator));
+    this.register('worldtour', new AirportLandingStrategy(this.tileLandingEvaluator));
   }
 
   /**
@@ -44,6 +51,7 @@ export class TileLandingRegistry {
    * @returns {import('./ITileLandingStrategy.js').ITileLandingStrategy | null}
    */
   resolve(tileType) {
+    this._initDefaultStrategies();
     return this.strategies.get(tileType) || null;
   }
 }

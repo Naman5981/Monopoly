@@ -251,7 +251,7 @@ export function handleGuestReceivedMessage(msg) {
 
     case 'RETURN_TO_LOBBY': {
       if (window.terminateMatchAndReturnToLobby) {
-        window.terminateMatchAndReturnToLobby();
+        window.terminateMatchAndReturnToLobby(true);
       } else {
         stopVictoryCelebration();
         document.getElementById('modal-victory')?.classList.add('hidden');

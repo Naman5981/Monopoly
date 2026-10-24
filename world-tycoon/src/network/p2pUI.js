@@ -3,7 +3,7 @@
  * Multiplayer UI state indicators, badges, invite link copying, and disconnect handlers.
  */
 
-import { gameState, setLocalPlayerIdx } from '../game/state.js';
+import { gameState, setupPlayers, setLocalPlayerIdx } from '../game/state.js';
 import { logEvent } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { networkState, networkCallbacks } from './p2pState.js';
@@ -22,6 +22,14 @@ export function leaveMultiplayerRoom() {
   networkState.connections.clear();
   networkState.status = 'offline';
   networkState.statusText = '';
+
+  setupPlayers.forEach((p, idx) => {
+    if (idx > 0) {
+      p.isOnlinePeer = false;
+      p.peerId = null;
+      p.isAI = true;
+    }
+  });
 
   updateMultiplayerUI();
   if (networkCallbacks.onLobbyUpdate) networkCallbacks.onLobbyUpdate();

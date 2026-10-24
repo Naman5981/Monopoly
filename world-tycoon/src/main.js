@@ -6,7 +6,7 @@
 import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
 import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed, getSavedPlayerName } from './game/state.js';
 import { updateMasterVolume, playSFX, initAudioUnlock, startAdaptiveMusic, stopAdaptiveMusic } from './game/audio.js';
-import { updateGameSpeedUI } from './ui/hud.js';
+import { updateGameSpeedUI, showTurnLockToast } from './ui/hud.js';
 import { initThreeScene, initTheatreSuite, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
 import { context } from './three/core/context.js';
 import { checkVictoryConditions } from './game/rules.js';
@@ -68,6 +68,7 @@ import {
   showLocalSetup,
   showMultiplayerSetup,
   setLobbyView,
+  currentLobbyView,
   joinP2PRoomFromPortal
 } from './ui/setup.js';
 import {
@@ -250,7 +251,22 @@ export function getNetworkLocalPlayerIdx() {
     : 0;
 }
 
+export function dismissNameHeadsUp(persist = true) {
+  if (persist) {
+    try {
+      localStorage.setItem('WORLD_TYCOON_NAME_HEADS_UP_SEEN', 'true');
+    } catch (_) {}
+  }
+  const el = document.getElementById('home-name-heads-up');
+  if (el) el.classList.add('hidden');
+}
+window.dismissNameHeadsUp = dismissNameHeadsUp;
+
 export function promptEditPlayerName() {
+  if (currentLobbyView !== 'title') {
+    showTurnLockToast('Names can only be changed on the Home Screen!');
+    return;
+  }
   const myIdx = getNetworkLocalPlayerIdx();
   const current = (matchSettings.customPlayers[myIdx] && matchSettings.customPlayers[myIdx].name)
     ? matchSettings.customPlayers[myIdx].name
@@ -258,6 +274,7 @@ export function promptEditPlayerName() {
   const next = window.prompt('Enter your Tycoon Name (max 14 characters):', current);
   if (next !== null && next.trim()) {
     setPlayerSetupName(myIdx, next.trim());
+    dismissNameHeadsUp(true);
   }
 }
 
@@ -470,10 +487,30 @@ function initApp() {
   const pAvEl = document.getElementById('setup-profile-avatar');
   if (pNameEl) pNameEl.textContent = savedPlayerName;
   if (pAvEl) pAvEl.textContent = (savedPlayerName || 'T')[0];
+
+  const homeNameEl = document.getElementById('home-tycoon-name-display');
+  if (homeNameEl) homeNameEl.textContent = savedPlayerName;
+
+  const portalNameDisplay = document.getElementById('portal-profile-name-display');
   const portalNameInput = document.getElementById('portal-player-name-input');
   const portalAvatar = document.getElementById('portal-profile-avatar');
+  if (portalNameDisplay) portalNameDisplay.textContent = savedPlayerName;
   if (portalNameInput) portalNameInput.value = savedPlayerName;
   if (portalAvatar) portalAvatar.textContent = (savedPlayerName || 'T')[0];
+
+  // First-time Heads Up Banner check on Home Screen
+  const headsUpEl = document.getElementById('home-name-heads-up');
+  if (headsUpEl) {
+    let isSeen = false;
+    try {
+      isSeen = !!localStorage.getItem('WORLD_TYCOON_NAME_HEADS_UP_SEEN');
+    } catch (_) {}
+    if (!isSeen && currentLobbyView === 'title') {
+      headsUpEl.classList.remove('hidden');
+    } else {
+      headsUpEl.classList.add('hidden');
+    }
+  }
 
   // Apply initial sound volume and UI state
   initAudioUnlock();
