@@ -2380,7 +2380,8 @@ body {
 }
 
 .lobby-view-multiplayer-portal #lobby-multiplayer-portal {
-  display: grid !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 .lobby-view-multiplayer-portal #btn-lobby-back-to-title {
   display: inline-flex !important;

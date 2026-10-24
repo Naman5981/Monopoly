@@ -5,6 +5,58 @@
 
 import { PLAYER_THEMES, BOARD_TILES } from './data.js';
 
+export const PLAYER_NAME_STORAGE_KEY = 'WORLD_TYCOON_PLAYER_NAME';
+
+/**
+ * Retrieve saved human player name from persistent storage.
+ * Defaults to 'TYCOON' if not set or if set to the legacy placeholder 'YOU'.
+ * @returns {string}
+ */
+export function getSavedPlayerName() {
+  if (typeof localStorage === 'undefined') return 'TYCOON';
+  try {
+    const direct = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
+    if (direct && direct.trim() && direct.trim().toUpperCase() !== 'YOU') {
+      return direct.trim().toUpperCase().slice(0, 14);
+    }
+    const profileRaw = localStorage.getItem('WORLD_TYCOON_PROFILE_V3');
+    if (profileRaw) {
+      const parsed = JSON.parse(profileRaw);
+      if (parsed && parsed.name && parsed.name.trim() && parsed.name.trim().toUpperCase() !== 'YOU') {
+        return parsed.name.trim().toUpperCase().slice(0, 14);
+      }
+    }
+  } catch (_) {}
+  return 'TYCOON';
+}
+
+/**
+ * Persist human player name to localStorage and profile store.
+ * @param {string} rawName
+ * @returns {string} The cleaned, persisted name
+ */
+export function savePlayerName(rawName) {
+  const clean = (rawName || '').trim().toUpperCase().slice(0, 14);
+  const finalName = (clean && clean !== 'YOU') ? clean : 'TYCOON';
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem(PLAYER_NAME_STORAGE_KEY, finalName);
+      const profileRaw = localStorage.getItem('WORLD_TYCOON_PROFILE_V3');
+      if (profileRaw) {
+        const parsed = JSON.parse(profileRaw);
+        parsed.name = finalName;
+        localStorage.setItem('WORLD_TYCOON_PROFILE_V3', JSON.stringify(parsed));
+      }
+    } catch (_) {}
+  }
+  return finalName;
+}
+
+const initialPlayerName = getSavedPlayerName();
+if (PLAYER_THEMES[0]) {
+  PLAYER_THEMES[0].name = initialPlayerName;
+}
+
 export const matchSettings = {
   startingCash: 2_000_000,
   turnDuration: 15,
@@ -16,7 +68,7 @@ export const matchSettings = {
   matchDurationMinutes: 15, // Match time limit (richest player by Net Worth wins, 0 for unlimited)
   gameSpeed: 1, // 1 | 2 | 4 (Fast-forward multiplier for animations and bot actions)
   customPlayers: [
-    { name: 'YOU', isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0 },
+    { name: initialPlayerName, isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0 },
     { name: 'BARON', isAI: true, charColor: 0xf97316, colorHex: '#fb923c', hatColor: 0xfde047, hatStyle: 1 },
     { name: 'ATLAS', isAI: true, charColor: 0x22c55e, colorHex: '#22c55e', hatColor: 0x1e293b, hatStyle: 2 },
     { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3 },

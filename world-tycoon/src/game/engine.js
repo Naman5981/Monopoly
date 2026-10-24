@@ -53,7 +53,8 @@ import {
   checkAndTriggerMonopoly,
   showIncomingTradeOfferModal,
   completeTradeTransfer,
-  closeIncomingTradeModal
+  closeIncomingTradeModal,
+  showChanceAwardPopup
 } from '../ui/modals.js';
 
 import { executeWorldTourFlight } from './engine/flight.js';
@@ -146,16 +147,16 @@ export function initEngine() {
         }
       } else if (msg.type === 'ACTION_TRADE_RESPONSE') {
         const p = msg.proposal;
-        if (msg.accepted) {
-          if (p) {
-            completeTradeTransfer(p.proposerIdx, p.targetIdx, p.offerCash, p.reqCash, p.offerTileIds, p.reqTileIds);
-            const proposer = gameState.players[p.proposerIdx];
-            const target = gameState.players[p.targetIdx];
+        if (p) {
+          const proposerIdx = p.proposerIdx !== undefined ? p.proposerIdx : p.giverIdx;
+          const targetIdx = p.targetIdx !== undefined ? p.targetIdx : p.receiverIdx;
+          if (msg.accepted) {
+            completeTradeTransfer(proposerIdx, targetIdx, p.offerCash, p.reqCash, p.offerTileIds, p.reqTileIds);
+            const proposer = gameState.players[proposerIdx];
+            const target = gameState.players[targetIdx];
             logEvent(`🤝 <strong>Trade Deal Struck!</strong> ${target ? target.name : 'Player'} accepted ${proposer ? proposer.name : 'Player'}'s proposal.`);
-          }
-        } else {
-          if (p) {
-            const target = gameState.players[p.targetIdx];
+          } else {
+            const target = gameState.players[targetIdx];
             logEvent(`❌ <strong>${target ? target.name : 'Player'}</strong> declined the trade offer.`);
           }
         }
@@ -186,7 +187,9 @@ export function initEngine() {
       executeWorldTourFlight(destTileId, true, playerIdx, evaluateTileLanding);
     },
     onChancePrize: (playerIdx, prize, isDoubles) => {
-      applyChancePrize(playerIdx, prize, isDoubles, true);
+      showChanceAwardPopup(prize, async () => {
+        await applyChancePrize(playerIdx, prize, isDoubles, true, false);
+      }, playerIdx);
     },
     onEndTurn: (nextPlayerIdx) => {
       advanceTurn(true, nextPlayerIdx);
@@ -244,6 +247,9 @@ export function initEngine() {
       if (typeof incomingState.currentPlayerIdx === 'number' && gameState.phase !== 'SETUP') {
         gameState.currentPlayerIdx = incomingState.currentPlayerIdx;
         refreshActivePlayerTurnStatus();
+      }
+      if (incomingState.phase && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
+        gameState.phase = incomingState.phase;
       }
       renderCornerHUDs();
       updateRollButtonsUI(isHumanTurnActionable());

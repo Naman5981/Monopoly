@@ -54,7 +54,9 @@ export function openBuyCityModal(tile, isDoubles) {
   const avatarWrap = document.getElementById('buy-modal-buyer-avatar-wrap');
   if (avatarWrap) avatarWrap.style.boxShadow = `0 0 0 2px ${theme.colorHex}`;
   if (buyerBadgeEl && p) {
-    buyerBadgeEl.textContent = p.isAI ? 'BOT' : (pIdx === 0 ? 'YOU' : `P${pIdx + 1}`);
+    const myLocalIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : 0;
+    const isLocalHuman = (pIdx === myLocalIdx) && !p.isAI;
+    buyerBadgeEl.textContent = p.isAI ? 'BOT' : (isLocalHuman ? 'YOU' : p.name);
     buyerBadgeEl.style.borderColor = theme.colorHex;
   }
   const buyerCanvas = document.getElementById('buy-modal-buyer-avatar-canvas');

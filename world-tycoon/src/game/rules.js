@@ -27,7 +27,9 @@ export function calculateTileRent(tileId) {
     const ownedResorts = BOARD_TILES.filter(
       t => t.type === 'resort' && gameState.properties[t.id]?.owner === st.owner
     ).length;
-    return tile.rent[Math.min(ownedResorts - 1, tile.rent.length - 1)] || tile.rent[0];
+    let base = tile.rent[Math.min(ownedResorts - 1, tile.rent.length - 1)] || tile.rent[0];
+    if (st.festivalBoost) base *= 2;
+    return base;
   }
 
   let base = tile.rent[st.level || 0] || tile.rent[0];

@@ -4,7 +4,7 @@
  */
 
 import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
-import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed } from './game/state.js';
+import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed, getSavedPlayerName } from './game/state.js';
 import { updateMasterVolume, playSFX, initAudioUnlock, startAdaptiveMusic, stopAdaptiveMusic } from './game/audio.js';
 import { updateGameSpeedUI } from './ui/hud.js';
 import { initThreeScene, initTheatreSuite, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
@@ -104,6 +104,7 @@ import {
   placeAuctionBid,
   passAuctionBid,
   spinChanceWheel,
+  showChanceAwardPopup,
   openInspectorModal,
   closeInspectorModal,
   upgradeCityLevel,
@@ -144,7 +145,10 @@ import {
   toggleLeaderboardModal,
   renderLeaderboardModal,
   openMonopolyCelebrationModal,
-  setLobbyCount
+  setLobbyCount,
+  openFestivalBoostModal,
+  closeFestivalBoostModal,
+  chooseFestivalBoostCity
 } from './ui/modals.js';
 import {
   fireConfettiBurst,
@@ -240,6 +244,27 @@ window.leaveP2PRoom = leaveP2PRoom;
 window.copyRoomInviteLink = copyRoomInviteLink;
 window.copyRoomCodeOnly = copyRoomCodeOnly;
 
+export function getNetworkLocalPlayerIdx() {
+  return (networkState && networkState.isMultiplayer && typeof networkState.localPlayerIdx === 'number')
+    ? networkState.localPlayerIdx
+    : 0;
+}
+
+export function promptEditPlayerName() {
+  const myIdx = getNetworkLocalPlayerIdx();
+  const current = (matchSettings.customPlayers[myIdx] && matchSettings.customPlayers[myIdx].name)
+    ? matchSettings.customPlayers[myIdx].name
+    : getSavedPlayerName();
+  const next = window.prompt('Enter your Tycoon Name (max 14 characters):', current);
+  if (next !== null && next.trim()) {
+    setPlayerSetupName(myIdx, next.trim());
+  }
+}
+
+window.getNetworkLocalPlayerIdx = getNetworkLocalPlayerIdx;
+window.promptEditPlayerName = promptEditPlayerName;
+window.updatePlayerName = (idx, name) => setPlayerSetupName(idx, name);
+
 window.handleRollButtonClick = handleRollButtonClick;
 window.handlePayIslandBail = handlePayIslandBail;
 window.openPortfolioModal = openPortfolioModal;
@@ -284,6 +309,7 @@ window.startCityAuction = startCityAuction;
 window.placeAuctionBid = placeAuctionBid;
 window.passAuctionBid = passAuctionBid;
 window.spinChanceWheel = spinChanceWheel;
+window.showChanceAwardPopup = showChanceAwardPopup;
 window.executeWorldTourFlight = executeWorldTourFlight;
 window.triggerTileButtonPress = triggerTileButtonPress;
 window.closeInspectorModal = closeInspectorModal;
@@ -295,6 +321,9 @@ window.openLeaderboardModal = openLeaderboardModal;
 window.closeLeaderboardModal = closeLeaderboardModal;
 window.toggleLeaderboardModal = toggleLeaderboardModal;
 window.renderLeaderboardModal = renderLeaderboardModal;
+window.openFestivalBoostModal = openFestivalBoostModal;
+window.closeFestivalBoostModal = closeFestivalBoostModal;
+window.chooseFestivalBoostCity = chooseFestivalBoostCity;
 
 // Wardrobe & Cosmetics System
 window.openWardrobeModal = openWardrobeModal;
@@ -435,6 +464,17 @@ function initApp() {
   // Apply initial lighting mode
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
 
+  // Synchronize saved player identity across all UI panels
+  const savedPlayerName = getSavedPlayerName();
+  const pNameEl = document.getElementById('setup-profile-name');
+  const pAvEl = document.getElementById('setup-profile-avatar');
+  if (pNameEl) pNameEl.textContent = savedPlayerName;
+  if (pAvEl) pAvEl.textContent = (savedPlayerName || 'T')[0];
+  const portalNameInput = document.getElementById('portal-player-name-input');
+  const portalAvatar = document.getElementById('portal-profile-avatar');
+  if (portalNameInput) portalNameInput.value = savedPlayerName;
+  if (portalAvatar) portalAvatar.textContent = (savedPlayerName || 'T')[0];
+
   // Apply initial sound volume and UI state
   initAudioUnlock();
   updateSoundUI();
@@ -494,7 +534,7 @@ function initApp() {
   window.addEventListener('keydown', (e) => {
     if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
     if (e.code === 'Space' || e.key === ' ') {
-      const hasActiveModal = document.querySelector('.game-modal-shell:not(.hidden), #modal-chance-result:not(.hidden), #modal-portfolio:not(.hidden), #modal-trade:not(.hidden), #modal-rules:not(.hidden), #modal-leaderboard:not(.hidden), #modal-wardrobe:not(.hidden)');
+      const hasActiveModal = document.querySelector('.game-modal-shell:not(.hidden), #modal-chance-result:not(.hidden), #modal-portfolio:not(.hidden), #modal-trade:not(.hidden), #modal-rules:not(.hidden), #modal-leaderboard:not(.hidden), #modal-wardrobe:not(.hidden), #modal-festival-boost:not(.hidden)');
       if (!hasActiveModal && gameState.gameStarted && (gameState.phase === 'ROLL' || gameState.phase === 'END') && isHumanTurnActionable()) {
         e.preventDefault();
         handleRollButtonClick();

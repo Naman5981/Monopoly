@@ -53,6 +53,7 @@ export function closeAllGameModals() {
     'modal-sell-cities',
     'modal-upgrade-city',
     'modal-auction',
+    'modal-festival-boost',
     'modal-chance-wheel',
     'modal-chance-result',
     'modal-tile-inspector',

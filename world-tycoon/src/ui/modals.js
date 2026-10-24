@@ -13,3 +13,4 @@ export * from './modals/trade.js';
 export * from './modals/victory.js';
 export * from './modals/system.js';
 export * from './modals/leaderboard.js';
+export * from './modals/festivalBoost.js';

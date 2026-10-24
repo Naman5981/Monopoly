@@ -8,6 +8,7 @@ import { gameState, lobbyPlayerCount, setLobbyPlayerCount } from '../../game/sta
 import { playSFX } from '../../game/audio.js';
 import { showSpeechBubble } from '../../three/scene.js';
 import { stopVictoryCelebration } from '../../three/effects.js';
+import { networkState } from '../../network/p2pState.js';
 import { closeAllGameModals } from './common.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -43,15 +44,16 @@ export function renderLobbyControls() {
   const list = document.getElementById('lobby-players-list');
   if (!list) return;
   list.innerHTML = '';
+  const myIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : 0;
   for (let i = 0; i < lobbyPlayerCount; i++) {
-    const th = PLAYER_THEMES[i];
+    const th = PLAYER_THEMES[i] || { name: `PLAYER ${i + 1}`, colorHex: '#3b82f6', isAI: i > 0 };
     list.innerHTML += `
       <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-2xl border border-slate-200">
         <div class="flex items-center gap-2">
           <span class="w-3.5 h-3.5 rounded-full" style="background:${th.colorHex}"></span>
-          <input type="text" value="${th.name}" onchange="window.updatePlayerName(${i}, this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-extrabold w-28">
+          <input type="text" value="${th.name}" oninput="window.setPlayerSetupName(${i}, this.value)" onchange="window.setPlayerSetupName(${i}, this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-extrabold w-28 uppercase">
         </div>
-        <span class="text-xs font-bold text-slate-500">${i === 0 ? 'Human (YOU)' : 'Smart AI Bot'}</span>
+        <span class="text-xs font-bold text-slate-500">${i === myIdx ? 'Human (YOU)' : (th.isAI ? 'Smart AI Bot' : 'Player')}</span>
       </div>
     `;
   }

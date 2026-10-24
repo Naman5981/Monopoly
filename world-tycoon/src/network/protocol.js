@@ -11,11 +11,17 @@ const VALID_PACKET_TYPES = new Set([
   'CLIENT_UPDATE_PROFILE',
   'LOBBY_STATE',
   'FULL_STATE_SYNC',
+  'START_MATCH',
+  'RETURN_TO_LOBBY',
   'ACTION_ROLL',
   'ACTION_BUY_CITY',
   'ACTION_BUYOUT_CITY',
   'ACTION_UPGRADE_CITY',
   'ACTION_PAY_BAIL',
+  'ACTION_SELL_CITY_FOR_RENT',
+  'ACTION_SETTLE_RENT',
+  'ACTION_BANKRUPTCY',
+  'ACTION_FESTIVAL_BOOST',
   'ACTION_AUCTION_BID',
   'ACTION_AUCTION_PASS',
   'ACTION_TRADE_OFFER',
@@ -23,6 +29,7 @@ const VALID_PACKET_TYPES = new Set([
   'ACTION_WORLD_TOUR',
   'ACTION_CHANCE_PRIZE',
   'ACTION_MONOPOLY',
+  'ACTION_SYNC_BOARD_EDITION',
   'ACTION_END_TURN',
   'ACTION_REACTION',
   'ACTION_REQUEST_PLAY_AGAIN',
@@ -52,7 +59,8 @@ export function sanitizeProfileUpdate(raw) {
   const clean = {};
 
   if (typeof raw.name === 'string') {
-    clean.name = raw.name.trim().toUpperCase().slice(0, 14) || 'YOU';
+    const trimmed = raw.name.trim().toUpperCase().slice(0, 14);
+    clean.name = (trimmed && trimmed !== 'YOU') ? trimmed : 'PLAYER';
   }
 
   if (typeof raw.colorHex === 'string' && /^#[0-9a-fA-F]{6}$/.test(raw.colorHex)) {

@@ -3,7 +3,7 @@
  * Room hosting, connection acceptance, host message routing, and state broadcasting.
  */
 
-import { gameState, setupPlayers, matchSettings, lobbyPlayerCount, setLobbyPlayerCount, setLocalPlayerIdx } from '../game/state.js';
+import { gameState, setupPlayers, matchSettings, lobbyPlayerCount, setLobbyPlayerCount, setLocalPlayerIdx, getSavedPlayerName } from '../game/state.js';
 import { logEvent, renderCornerHUDs } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { PLAYER_THEMES } from '../game/data.js';
@@ -52,7 +52,10 @@ export function hostRoom(customCode = null) {
       networkState.peerId = id;
       networkState.status = 'hosting';
       networkState.statusText = `Hosting Room: ${code}`;
-      setupPlayers[0].name = (matchSettings.customPlayers[0]?.name || 'YOU').trim().toUpperCase().slice(0, 14);
+      const hostSavedName = getSavedPlayerName();
+      setupPlayers[0].name = hostSavedName;
+      if (matchSettings.customPlayers[0]) matchSettings.customPlayers[0].name = hostSavedName;
+      if (PLAYER_THEMES[0]) PLAYER_THEMES[0].name = hostSavedName;
       setupPlayers[0].isAI = false;
       setupPlayers[0].isOnlinePeer = false;
       setupPlayers[0].peerId = id;
@@ -232,13 +235,21 @@ function handleHostReceivedMessage(conn, msg) {
         setupPlayers[slotIdx].isAI = false;
         setupPlayers[slotIdx].isOnlinePeer = true;
         setupPlayers[slotIdx].peerId = conn.peer;
-        if (msg.name) setupPlayers[slotIdx].name = msg.name.trim().toUpperCase().slice(0, 14);
+        const incomingName = (msg.name || '').trim().toUpperCase().slice(0, 14);
+        const guestName = (incomingName && incomingName !== 'YOU') ? incomingName : `PLAYER ${slotIdx + 1}`;
+        setupPlayers[slotIdx].name = guestName;
         if (msg.archetype !== undefined) {
           setupPlayers[slotIdx].hatStyle = msg.archetype;
           setupPlayers[slotIdx].archetype = msg.archetype;
         }
         if (msg.charColor) {
-          setupPlayers[slotIdx].colorHex = msg.charColor;
+          const parsedCharColor = typeof msg.charColor === 'string'
+            ? parseInt(msg.charColor.replace('#', ''), 16)
+            : msg.charColor;
+          setupPlayers[slotIdx].charColor = parsedCharColor;
+          setupPlayers[slotIdx].colorHex = typeof msg.charColor === 'string'
+            ? msg.charColor
+            : `#${parsedCharColor.toString(16).padStart(6, '0')}`;
         }
 
         // Also sync matchSettings.customPlayers and PLAYER_THEMES
@@ -246,12 +257,18 @@ function handleHostReceivedMessage(conn, msg) {
           matchSettings.customPlayers[slotIdx].isAI = false;
           matchSettings.customPlayers[slotIdx].name = setupPlayers[slotIdx].name;
           if (msg.archetype !== undefined) matchSettings.customPlayers[slotIdx].hatStyle = msg.archetype;
-          if (msg.charColor) matchSettings.customPlayers[slotIdx].colorHex = msg.charColor;
+          if (msg.charColor) {
+            matchSettings.customPlayers[slotIdx].colorHex = setupPlayers[slotIdx].colorHex;
+            matchSettings.customPlayers[slotIdx].charColor = setupPlayers[slotIdx].charColor;
+          }
         }
         if (PLAYER_THEMES[slotIdx]) {
           PLAYER_THEMES[slotIdx].name = setupPlayers[slotIdx].name;
           PLAYER_THEMES[slotIdx].isAI = false;
-          if (msg.charColor) PLAYER_THEMES[slotIdx].colorHex = msg.charColor;
+          if (msg.charColor) {
+            PLAYER_THEMES[slotIdx].colorHex = setupPlayers[slotIdx].colorHex;
+            PLAYER_THEMES[slotIdx].color = setupPlayers[slotIdx].charColor;
+          }
         }
 
         conn.send({
@@ -290,6 +307,7 @@ function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_SELL_CITY_FOR_RENT':
     case 'ACTION_SETTLE_RENT':
     case 'ACTION_BANKRUPTCY':
+    case 'ACTION_FESTIVAL_BOOST':
     case 'ACTION_AUCTION_BID':
     case 'ACTION_AUCTION_PASS':
     case 'ACTION_TRADE_OFFER':
@@ -328,12 +346,7 @@ export function broadcastToAll(msg) {
 
 export function broadcastLobbySettings() {
   if (!networkState.isHost) return;
-  broadcastToAll({
-    type: 'LOBBY_STATE',
-    matchSettings,
-    setupPlayers,
-    lobbyPlayerCount
-  });
+  broadcastToAll(createSafeLobbyStatePacket(matchSettings, setupPlayers, lobbyPlayerCount));
 }
 
 export function broadcastStartOnlineMatch() {
@@ -381,7 +394,8 @@ export function broadcastFullGameState() {
           acc[k] = {
             owner: prop.owner,
             level: prop.level,
-            festival: Boolean(prop.festival),
+            festival: Boolean(prop.festivalBoost || prop.festival),
+            festivalBoost: Boolean(prop.festivalBoost || prop.festival),
             festivalMultiplier: prop.festivalMultiplier || 1
           };
         }

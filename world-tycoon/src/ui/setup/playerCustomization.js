@@ -3,7 +3,7 @@
  * Player archetypes, colors, avatar cycling, slot addition/removal, and customization permissions.
  */
 
-import { matchSettings, lobbyPlayerCount, setLobbyPlayerCount, setupPlayers } from '../../game/state.js';
+import { matchSettings, lobbyPlayerCount, setLobbyPlayerCount, setupPlayers, getSavedPlayerName } from '../../game/state.js';
 import { PLAYER_THEMES } from '../../game/data.js';
 import { playSFX } from '../../game/audio.js';
 import { updateLobbyHeroAvatar } from '../../three/scene.js';
@@ -161,7 +161,7 @@ export function removePlayerAt(idx) {
   matchSettings.customPlayers.splice(idx, 1);
 
   const defaultThemes = [
-    { name: 'YOU', isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0 },
+    { name: getSavedPlayerName(), isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0 },
     { name: 'BARON', isAI: true, charColor: 0xf97316, colorHex: '#fb923c', hatColor: 0xfde047, hatStyle: 1 },
     { name: 'ATLAS', isAI: true, charColor: 0x22c55e, colorHex: '#22c55e', hatColor: 0x1e293b, hatStyle: 2 },
     { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3 },

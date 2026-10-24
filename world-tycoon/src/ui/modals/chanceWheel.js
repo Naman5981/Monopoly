@@ -3,7 +3,7 @@
  * Chance wheel canvas rendering, rotation physics, audio ticks, and award popups.
  */
 
-import { CHANCE_WHEEL_PRIZES } from '../../game/data.js';
+import { CHANCE_WHEEL_PRIZES, PLAYER_THEMES } from '../../game/data.js';
 import { gameState } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
@@ -12,6 +12,7 @@ import { getTileScreenPosition } from '../../three/scene.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateChanceDeckDraw, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { setPlayerPortraitMood } from '../portraitRenderer.js';
+import { networkState, broadcastAction } from '../../network/p2p.js';
 
 const WHEEL_VECTOR_ICONS = {
   money: new Path2D('M2 6h20v12H2V6zm2 2v8h16V8H4zm8 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm-6 2h1v2H6v-2zm11 0h1v2h-1v-2z'),
@@ -269,16 +270,59 @@ export function openChanceWheelModal(isDoubles) {
   animateModalSpringOpen(m);
 }
 
-export function showChanceAwardPopup(prize, onDone) {
+export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
   const m = document.getElementById('modal-chance-result');
   if (!m) {
     if (onDone) onDone();
     return;
   }
 
+  // Dismiss any overlapping informational drawers
+  const portfolioModal = document.getElementById('modal-portfolio');
+  if (portfolioModal && !portfolioModal.classList.contains('hidden')) {
+    if (window.closePortfolioModal) window.closePortfolioModal();
+  }
+  const rulesModal = document.getElementById('modal-rules');
+  if (rulesModal && !rulesModal.classList.contains('hidden')) {
+    if (window.closeRulesModal) window.closeRulesModal();
+  }
+  const inspModal = document.getElementById('modal-tile-inspector');
+  if (inspModal && !inspModal.classList.contains('hidden')) {
+    if (window.closeInspectorModal) window.closeInspectorModal();
+  }
+
+  const pIdx = (playerIdx !== null && playerIdx !== undefined) ? playerIdx : gameState.currentPlayerIdx;
+  const player = (gameState.players && gameState.players[pIdx]) || null;
+  const isLocalUser = !networkState.isMultiplayer || pIdx === networkState.localPlayerIdx;
+  const playerName = player ? player.name : `Player ${pIdx + 1}`;
+  const playerColor = (player && player.colorHex) || (PLAYER_THEMES[pIdx] && PLAYER_THEMES[pIdx].colorHex) || '#f59e0b';
+
+  // Update Player Context Strip
+  const playerRow = document.getElementById('chance-result-player-row');
+  const playerDot = document.getElementById('chance-result-player-dot');
+  const playerNameEl = document.getElementById('chance-result-player-name');
+  const playerBadgeEl = document.getElementById('chance-result-player-badge');
+
+  if (playerRow) {
+    if (playerDot) playerDot.style.backgroundColor = playerColor;
+    if (playerNameEl) playerNameEl.textContent = isLocalUser ? `${playerName} (YOU)` : playerName;
+    if (playerBadgeEl) {
+      if (player?.isAI) {
+        playerBadgeEl.textContent = 'AI BOT';
+        playerBadgeEl.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-indigo-100 text-indigo-800 border border-indigo-200';
+      } else if (isLocalUser) {
+        playerBadgeEl.textContent = 'YOUR CARD';
+        playerBadgeEl.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200';
+      } else {
+        playerBadgeEl.textContent = 'CHANCE CARD';
+        playerBadgeEl.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-200';
+      }
+    }
+  }
+
   let icon = '🎁';
   let title = prize.label.toUpperCase();
-  let actionText = 'Applying rewards to your empire...';
+  let actionText = isLocalUser ? 'Applying rewards to your empire...' : `Applying rewards to ${playerName}...`;
   let tag = 'CHANCE REWARD';
   let tagClass = 'bg-amber-100 text-amber-900 border border-amber-300';
   let iconBg = 'bg-amber-50 text-amber-600';
@@ -287,7 +331,7 @@ export function showChanceAwardPopup(prize, onDone) {
   if (prize.type === 'cash') {
     icon = prize.amount >= 300000 ? '💰' : '💎';
     title = `+${fmtMoney(prize.amount)} CASH!`;
-    actionText = 'Cash deposited directly into your treasury!';
+    actionText = isLocalUser ? 'Cash deposited directly into your treasury!' : `Cash deposited into ${playerName}'s treasury!`;
     tag = 'CASH GRANT';
     tagClass = 'bg-emerald-100 text-emerald-900 border border-emerald-300';
     iconBg = 'bg-emerald-50 text-emerald-600';
@@ -295,7 +339,7 @@ export function showChanceAwardPopup(prize, onDone) {
   } else if (prize.type === 'tax') {
     icon = '⚠️';
     title = `TAX AUDIT: -${fmtMoney(prize.amount)}`;
-    actionText = 'Fine transferred directly into Festival Pool!';
+    actionText = isLocalUser ? 'Fine transferred directly into Festival Pool!' : `Fine transferred from ${playerName} to Festival Pool!`;
     tag = 'LUXURY TAX AUDIT';
     tagClass = 'bg-rose-100 text-rose-900 border border-rose-300';
     iconBg = 'bg-rose-50 text-rose-600';
@@ -303,7 +347,7 @@ export function showChanceAwardPopup(prize, onDone) {
   } else if (prize.type === 'island') {
     icon = '🏝️';
     title = 'DETAINED ON ISLAND!';
-    actionText = 'Flying to Island! Roll doubles or pay bail to escape.';
+    actionText = isLocalUser ? 'Flying to Island! Roll doubles or pay bail to escape.' : `${playerName} detained! Roll doubles or pay bail to escape.`;
     tag = 'DETENTION SURPRISE';
     tagClass = 'bg-orange-100 text-orange-900 border border-orange-300';
     iconBg = 'bg-orange-50 text-orange-600';
@@ -312,7 +356,7 @@ export function showChanceAwardPopup(prize, onDone) {
     if (prize.target === 0) {
       icon = '🚀';
       title = 'EXPRESS JET TO START!';
-      actionText = 'Flying to START to collect +$300,000 salary!';
+      actionText = isLocalUser ? 'Flying to START to collect +$300,000 salary!' : `${playerName} flying to START for +$300,000 salary!`;
       tag = 'BOARD WARP';
       tagClass = 'bg-sky-100 text-sky-900 border border-sky-300';
       iconBg = 'bg-sky-50 text-sky-600';
@@ -320,7 +364,7 @@ export function showChanceAwardPopup(prize, onDone) {
     } else {
       icon = '✈️';
       title = 'WORLD TOUR FLIGHT!';
-      actionText = 'Flying to Airport for VIP world travel!';
+      actionText = isLocalUser ? 'Flying to Airport for VIP world travel!' : `${playerName} flying to Airport for VIP world travel!`;
       tag = 'BOARD WARP';
       tagClass = 'bg-purple-100 text-purple-900 border border-purple-300';
       iconBg = 'bg-purple-50 text-purple-600';
@@ -351,23 +395,39 @@ export function showChanceAwardPopup(prize, onDone) {
     actionContainer.className = `py-2.5 px-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 ${actionClass}`;
   }
 
+  // Synchronized status pill and sound effect
+  setStatusPill(`🌈 <strong>${playerName}</strong> drew Chance: <strong>${prize.label}</strong>!`, { isThinking: false, playerIdx: pIdx });
+  playSFX('win', 0.8);
+
+  // Synchronized emotional portrait mood
+  if (prize.type === 'tax') {
+    setPlayerPortraitMood(pIdx, 'crying', 3500);
+  } else if (prize.type === 'island') {
+    setPlayerPortraitMood(pIdx, 'shocked', 3500);
+  } else if (prize.type === 'cash' && prize.amount >= 300000) {
+    setPlayerPortraitMood(pIdx, 'smug', 3500);
+  } else {
+    setPlayerPortraitMood(pIdx, 'cheering', 3500);
+  }
+
+  const popupDuration = 2200;
   if (timerBar) {
     timerBar.style.transition = 'none';
     timerBar.style.width = '100%';
     void timerBar.offsetWidth;
-    timerBar.style.transition = 'width 2000ms linear';
+    timerBar.style.transition = `width ${popupDuration}ms linear`;
     timerBar.style.width = '0%';
   }
 
-  const currentTileId = gameState.players[gameState.currentPlayerIdx]?.position || 8;
+  const currentTileId = player?.position ?? 2;
   const origin = getTileScreenPosition(currentTileId);
   animateModalSpringOpen(m, '#modal-chance-result .game-modal-shell', origin);
   animateChanceDeckDraw('#modal-chance-result .game-modal-shell', origin);
 
-  // Exactly 2000ms (2 seconds)
+  // Exactly 2200ms
   setTimeout(() => {
     animateModalSpringClose(m, '#modal-chance-result .game-modal-shell', onDone);
-  }, 2000);
+  }, popupDuration);
 }
 
 export function spinChanceWheel() {
@@ -469,12 +529,21 @@ export function spinChanceWheel() {
     // 3. Close the wheel modal
     animateModalSpringClose('#modal-chance-wheel');
 
-    // 4. Show the dedicated, 100% solid, crystal-clear 2-second award popup
+    // Broadcast immediately so ALL peers in multiplayer open the card popup together!
+    if (networkState.isMultiplayer) {
+      broadcastAction('ACTION_CHANCE_PRIZE', {
+        playerIdx: activePIdx,
+        prize,
+        isDoubles: Boolean(gameState.pendingDoubles)
+      });
+    }
+
+    // 4. Show the dedicated, 100% solid, crystal-clear 2.2-second award popup
     showChanceAwardPopup(prize, async () => {
       // 5. Run the in-game 3D flight/tax/cash animation!
       if (engineCallbacks.applyChancePrize) {
-        await engineCallbacks.applyChancePrize(activePIdx, prize, gameState.pendingDoubles);
+        await engineCallbacks.applyChancePrize(activePIdx, prize, gameState.pendingDoubles, false, false);
       }
-    });
+    }, activePIdx);
   }, 2650);
 }

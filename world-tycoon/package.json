@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "World Tycoon: Global Edition — 3D Isometric Monopoly-style board game",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build:css": "tailwindcss -i ./src/style.css -o ./public/compiled.css --minify",
     "build": "npm run build:css && vite build",
     "preview": "vite preview",
+    "test": "node --test test/**/*.test.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

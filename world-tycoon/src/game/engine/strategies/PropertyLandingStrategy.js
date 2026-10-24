@@ -60,6 +60,10 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
 
   async handleUnownedProperty(playerIdx, player, tile, isDoubles) {
     if (player.isAI) {
+      if (networkState.isMultiplayer && !networkState.isHost) {
+        showSpeechBubble(`${player.name} is deciding on ${tile.name}...`, 2500);
+        return;
+      }
       await this.handleAICityDecision(playerIdx, tile, isDoubles);
       return;
     }
@@ -82,6 +86,10 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
 
       if (owned.length > 0) {
         if (player.isAI) {
+          if (networkState.isMultiplayer && !networkState.isHost) {
+            showSpeechBubble(`${player.name} is selling cities to pay rent...`, 2500);
+            return;
+          }
           await this.handleAIDebtorLiquidation(playerIdx, player, owner, rent, isDoubles);
           return;
         } else {
@@ -114,6 +122,10 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     const buyoutCost = calculateBuyoutCost(tile, st);
     if (buyoutCost > 0 && player.cash >= buyoutCost) {
       if (player.isAI) {
+        if (networkState.isMultiplayer && !networkState.isHost) {
+          showSpeechBubble(`${player.name} is considering a buyout of ${tile.name}...`, 2500);
+          return;
+        }
         await this.handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles);
         return;
       } else {
@@ -139,6 +151,10 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         logEvent(`👑 <strong>${player.name}</strong> visited their maxed <strong>Skyscraper</strong> in <strong>${tile.name}</strong> (Generating <strong>${fmtMoney(rent)}</strong> rent).`);
         if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
       } else if (player.isAI) {
+        if (networkState.isMultiplayer && !networkState.isHost) {
+          showSpeechBubble(`${player.name} is checking their estate in ${tile.name}...`, 2500);
+          return;
+        }
         await this.handleAIOwnedCityLanding(playerIdx, tile, isDoubles);
       } else {
         if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
@@ -207,6 +223,17 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     spawnShatterDebris(0, 0, 0xef4444, 36);
     triggerBoardShockwave(0, 0, 26, 32);
 
+    if (networkState.isMultiplayer) {
+      broadcastAction('ACTION_BANKRUPTCY', {
+        bankruptIdx: playerIdx,
+        creditorIdx: owner ? owner.id : undefined,
+        paidCash: paid
+      });
+      if (networkState.isHost) {
+        broadcastFullGameState();
+      }
+    }
+
     if (window.concludeActionPhase) {
       window.concludeActionPhase(isDoubles);
     }
@@ -273,7 +300,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         checkAndTriggerMonopoly(playerIdx, tile.group);
       }
       if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_BUYOUT_CITY', { playerIdx, tileId: tile.id, buyoutCost, previousOwnerIdx });
+        broadcastAction('ACTION_BUYOUT_CITY', { playerIdx, tileId: tile.id, buyoutCost, prevOwnerIdx: previousOwnerIdx, previousOwnerIdx });
         broadcastFullGameState();
       }
     } else {
@@ -300,7 +327,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       showSpeechBubble(`Upgraded ${tile.name}! 🏗️`, 1800);
       logEvent(`🏗️ <strong>${player.name}</strong> upgraded estate in <strong>${tile.name}</strong>.`);
       if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, levelsToAdd: 1 });
+        broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, count: 1, levelsToAdd: 1 });
         broadcastFullGameState();
       }
     } else {

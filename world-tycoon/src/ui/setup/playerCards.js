@@ -3,7 +3,7 @@
  * Renders the roster of player cards, names, roles (Human/AI), and podium selection.
  */
 
-import { matchSettings, lobbyPlayerCount, setupPlayers, gameState } from '../../game/state.js';
+import { matchSettings, lobbyPlayerCount, setupPlayers, gameState, savePlayerName, getSavedPlayerName } from '../../game/state.js';
 import { PLAYER_THEMES } from '../../game/data.js';
 import { playSFX } from '../../game/audio.js';
 import { updateAllPointsBadges } from '../wardrobe.js';
@@ -37,14 +37,28 @@ export function renderPlayerCards() {
   const p0 = matchSettings.customPlayers[0];
   const mySelfIdx = isGuest ? (networkState.localPlayerIdx || 0) : 0;
   const selfP = matchSettings.customPlayers[mySelfIdx] || p0;
+  const currentSavedName = getSavedPlayerName();
+  const activeDisplayName = selfP?.name || currentSavedName || 'TYCOON';
+
   const profileNameEl = document.getElementById('setup-profile-name');
   const profileAvatarEl = document.getElementById('setup-profile-avatar');
-  if (profileNameEl && selfP) profileNameEl.textContent = selfP.name || 'YOU';
-  if (profileAvatarEl && selfP) {
-    profileAvatarEl.textContent = (selfP.name || 'Y')[0].toUpperCase();
-    profileAvatarEl.style.borderColor = selfP.colorHex || '#10b981';
-    profileAvatarEl.style.color = selfP.colorHex || '#10b981';
+  if (profileNameEl) profileNameEl.textContent = activeDisplayName;
+  if (profileAvatarEl) {
+    profileAvatarEl.textContent = (activeDisplayName || 'T')[0].toUpperCase();
+    profileAvatarEl.style.borderColor = selfP?.colorHex || '#10b981';
+    profileAvatarEl.style.color = selfP?.colorHex || '#10b981';
   }
+
+  // Update multiplayer portal identity banner if visible
+  const portalNameInput = document.getElementById('portal-player-name-input');
+  const portalAvatar = document.getElementById('portal-profile-avatar');
+  if (portalNameInput && document.activeElement !== portalNameInput && portalNameInput.value !== activeDisplayName) {
+    portalNameInput.value = activeDisplayName;
+  }
+  if (portalAvatar) {
+    portalAvatar.textContent = (activeDisplayName || 'T')[0].toUpperCase();
+  }
+
   updateAllPointsBadges();
 
   // Update center hero archetype pill indicator based on selected player
@@ -196,7 +210,7 @@ export function renderPlayerCards() {
 
     const isOnline = networkState.isMultiplayer;
     const hostCrown = (isOnline && i === 0) ? '<span class="text-sm" title="Table Host">👑</span>' : '';
-    const youTag = (isOnline && isGuest && i === networkState.localPlayerIdx) ? '<span class="text-[10px] font-black uppercase tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-2xs border border-sky-300">YOU</span>' : '';
+    const youTag = isSelf ? '<span class="text-[10px] font-black uppercase tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-2xs border border-sky-300">YOU</span>' : '';
     const podiumTag = isSelected ? '<span class="text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-2.5 py-0.5 rounded-full shadow-xs border border-amber-300 flex items-center gap-1"><span>👑</span> PODIUM</span>' : '';
 
     const nameInputHtml = canEditName
@@ -205,21 +219,29 @@ export function renderPlayerCards() {
 
     let actionControlsHtml = '';
     if (!isGuest) {
-      actionControlsHtml = `
-        <div class="flex items-center gap-1.5 flex-shrink-0">
-          <button onclick="window.togglePlayerRole(${i})" class="text-xs font-black px-2.5 py-1 rounded-xl border-2 transition cursor-pointer ${
-            isHuman ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 shadow-2xs' : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-          }" title="Toggle Player / Bot">
-            <i class="${isHuman ? 'fa-solid fa-user' : 'fa-solid fa-robot'} mr-1 text-xs"></i>
-            ${isHuman ? 'Player' : 'Bot'}
-          </button>
-          ${(i > 0 && lobbyPlayerCount > 2) ? `
-          <button onclick="window.removePlayerAt(${i})" class="text-xs font-black px-2 py-1 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition cursor-pointer shadow-2xs" title="Remove player slot">
-            <i class="fa-solid fa-xmark text-xs font-black"></i>
-          </button>
-          ` : ''}
-        </div>
-      `;
+      if (isOnline && i === 0) {
+        actionControlsHtml = `
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span class="text-xs font-black px-2.5 py-1 rounded-xl bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">HOST (YOU)</span>
+          </div>
+        `;
+      } else {
+        actionControlsHtml = `
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button onclick="window.togglePlayerRole(${i})" class="text-xs font-black px-2.5 py-1 rounded-xl border-2 transition cursor-pointer ${
+              isHuman ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 shadow-2xs' : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
+            }" title="Toggle Player / Bot">
+              <i class="${isHuman ? 'fa-solid fa-user' : 'fa-solid fa-robot'} mr-1 text-xs"></i>
+              ${isHuman ? 'Player' : 'Bot'}
+            </button>
+            ${(i > 0 && lobbyPlayerCount > 2) ? `
+            <button onclick="window.removePlayerAt(${i})" class="text-xs font-black px-2 py-1 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition cursor-pointer shadow-2xs" title="Remove player slot">
+              <i class="fa-solid fa-xmark text-xs font-black"></i>
+            </button>
+            ` : ''}
+          </div>
+        `;
+      }
     } else {
       actionControlsHtml = `
         <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -292,18 +314,39 @@ export function setPlayerSetupName(idx, name) {
   const target = matchSettings.customPlayers[idx];
   if (!target || target.isAI) return;
 
-  const clean = (name || '').trim().toUpperCase().slice(0, 14);
-  target.name = clean || 'YOU';
-  if (PLAYER_THEMES[idx]) PLAYER_THEMES[idx].name = target.name;
-  if (setupPlayers[idx]) setupPlayers[idx].name = target.name;
+  const savedName = savePlayerName(name);
+  target.name = savedName;
+  if (PLAYER_THEMES[idx]) PLAYER_THEMES[idx].name = savedName;
+  if (setupPlayers[idx]) setupPlayers[idx].name = savedName;
   if (gameState && gameState.players && gameState.players[idx]) {
-    gameState.players[idx].name = target.name;
+    gameState.players[idx].name = savedName;
   }
 
+  // Synchronize header profile badge
   const pNameEl = document.getElementById('setup-profile-name');
   const pAvEl = document.getElementById('setup-profile-avatar');
-  if (pNameEl) pNameEl.textContent = target.name;
-  if (pAvEl) pAvEl.textContent = (target.name || 'Y')[0];
+  if (pNameEl) pNameEl.textContent = savedName;
+  if (pAvEl) {
+    pAvEl.textContent = (savedName || 'T')[0];
+    pAvEl.style.borderColor = target.colorHex || '#10b981';
+    pAvEl.style.color = target.colorHex || '#10b981';
+  }
+
+  // Synchronize multiplayer portal input & avatar if present
+  const portalNameInput = document.getElementById('portal-player-name-input');
+  const portalAvatar = document.getElementById('portal-profile-avatar');
+  if (portalNameInput && document.activeElement !== portalNameInput && portalNameInput.value !== savedName) {
+    portalNameInput.value = savedName;
+  }
+  if (portalAvatar) {
+    portalAvatar.textContent = (savedName || 'T')[0];
+  }
+
+  // Synchronize slot input if not focused
+  const slotInput = document.getElementById(`player-name-input-${idx}`);
+  if (slotInput && document.activeElement !== slotInput && slotInput.value !== savedName) {
+    slotInput.value = savedName;
+  }
 
   if (networkState.isMultiplayer) {
     if (networkState.isHost) {
@@ -313,7 +356,7 @@ export function setPlayerSetupName(idx, name) {
         broadcastFullGameState();
       }
     } else {
-      sendClientProfileUpdate({ name: target.name });
+      sendClientProfileUpdate({ name: savedName });
     }
   }
 }

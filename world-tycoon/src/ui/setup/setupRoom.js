@@ -3,7 +3,7 @@
  * Room creation, P2P joining/leaving, start match CTA, and full setup lobby lifecycle.
  */
 
-import { gameState, matchSettings, lobbyPlayerCount, setupPlayers } from '../../game/state.js';
+import { gameState, matchSettings, lobbyPlayerCount, setupPlayers, getSavedPlayerName } from '../../game/state.js';
 import { PLAYER_THEMES } from '../../game/data.js';
 import { playSFX } from '../../game/audio.js';
 import { fireConfettiBurst, applyLightingMode } from '../../three/effects.js';
@@ -31,6 +31,17 @@ export function initLandingSetup() {
   setLobbyView('title', false);
 
   try {
+    const savedName = getSavedPlayerName();
+    if (matchSettings.customPlayers[0]) {
+      matchSettings.customPlayers[0].name = savedName;
+    }
+    if (setupPlayers[0]) {
+      setupPlayers[0].name = savedName;
+    }
+    if (PLAYER_THEMES[0]) {
+      PLAYER_THEMES[0].name = savedName;
+    }
+
     // Ensure the 5 AI bots have fixed, immutable names
     matchSettings.customPlayers.forEach((cp, idx) => {
       if (idx > 0 && cp.isAI) {
@@ -141,9 +152,11 @@ export async function joinP2PRoom() {
     if (statusEl) statusEl.innerHTML = loadingHtml;
     if (portalStatusEl) portalStatusEl.innerHTML = loadingHtml;
 
+    const savedName = getSavedPlayerName();
     const myInfo = matchSettings.customPlayers[0] || {};
+    const effectiveName = (myInfo.name && myInfo.name !== 'YOU') ? myInfo.name : savedName;
     await joinRoom(code, {
-      name: myInfo.name || 'Tycoon Friend',
+      name: effectiveName,
       archetype: myInfo.hatStyle,
       charColor: myInfo.colorHex
     });

@@ -20,25 +20,39 @@ import {
 import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setStatusPill } from '../../ui/hud.js';
 import { networkState, broadcastAction } from '../../network/p2p.js';
 import { animateGoSalaryStream } from '../../ui/anim.js';
+import { showChanceAwardPopup } from '../../ui/modals/chanceWheel.js';
 
 export async function executeAIChanceSpin(playerIdx, isDoubles, getGameDelay) {
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   const p = gameState.players[playerIdx];
   setStatusPill(`🎡 <strong>${p.name}</strong> is spinning the Chance Wheel...`, { isThinking: true, playerIdx });
   const prize = CHANCE_WHEEL_PRIZES[Math.floor(Math.random() * CHANCE_WHEEL_PRIZES.length)];
-  showSpeechBubble(`Chance: ${prize.label}!`, 2000);
+  showSpeechBubble(`Chance: ${prize.label}!`, 1800);
   const delay = typeof getGameDelay === 'function' ? getGameDelay(700) : 700;
   await new Promise(r => setTimeout(r, delay));
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
-  await applyChancePrize(playerIdx, prize, isDoubles);
+
+  // Broadcast to all peers in multiplayer so guests also see the AI bot's chance card popup
+  if (networkState.isMultiplayer && networkState.isHost) {
+    broadcastAction('ACTION_CHANCE_PRIZE', {
+      playerIdx,
+      prize,
+      isDoubles: Boolean(isDoubles)
+    });
+  }
+
+  // Show the chance award popup
+  showChanceAwardPopup(prize, async () => {
+    await applyChancePrize(playerIdx, prize, isDoubles, false, false);
+  }, playerIdx);
 }
 
-export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = false) {
+export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = false, shouldBroadcast = false) {
   const p = gameState.players[playerIdx];
   if (!p) return;
 
-  if (networkState.isMultiplayer && !isRemote) {
-    broadcastAction('ACTION_CHANCE_PRIZE', { playerIdx, prize, isDoubles });
+  if (shouldBroadcast && networkState.isMultiplayer && !isRemote) {
+    broadcastAction('ACTION_CHANCE_PRIZE', { playerIdx, prize, isDoubles: Boolean(isDoubles) });
   }
 
   logEvent(`🌈 <strong>${p.name}</strong> spun Chance: <em>${prize.desc}</em>`);

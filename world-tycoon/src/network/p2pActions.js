@@ -51,13 +51,15 @@ export function executeIncomingNetworkAction(msg) {
 
     case 'ACTION_BUYOUT_CITY':
       if (networkCallbacks.onBuyoutCity) {
-        networkCallbacks.onBuyoutCity(msg.playerIdx, msg.tileId, msg.prevOwnerIdx, msg.buyoutCost);
+        const prevOwnerIdx = msg.prevOwnerIdx !== undefined ? msg.prevOwnerIdx : msg.previousOwnerIdx;
+        networkCallbacks.onBuyoutCity(msg.playerIdx, msg.tileId, prevOwnerIdx, msg.buyoutCost);
       }
       break;
 
     case 'ACTION_UPGRADE_CITY':
       if (networkCallbacks.onUpgradeCity) {
-        networkCallbacks.onUpgradeCity(msg.playerIdx, msg.tileId, msg.count || 1);
+        const count = msg.count !== undefined ? msg.count : (msg.levelsToAdd || 1);
+        networkCallbacks.onUpgradeCity(msg.playerIdx, msg.tileId, count);
       }
       break;
 
@@ -71,6 +73,9 @@ export function executeIncomingNetworkAction(msg) {
         renderCornerHUDs();
       }
       logEvent(`🏝️ <strong>${p ? p.name : 'Player'}</strong> paid 150K Island Bail.`);
+      if (networkState.isHost) {
+        broadcastFullGameState();
+      }
       break;
     }
 
@@ -88,6 +93,9 @@ export function executeIncomingNetworkAction(msg) {
         renderCornerHUDs();
       }
       logEvent(`🏷️ <strong>${p ? p.name : 'Player'}</strong> sold <strong>${t ? t.name : 'Property'}</strong> to pay rent.`);
+      if (networkState.isHost) {
+        broadcastFullGameState();
+      }
       break;
     }
 
@@ -100,6 +108,9 @@ export function executeIncomingNetworkAction(msg) {
         playSFX('cash');
         logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(msg.rentOwed)}</strong> rent to <strong>${creditor.name}</strong>.`);
         renderCornerHUDs();
+      }
+      if (networkState.isHost) {
+        broadcastFullGameState();
       }
       break;
     }
@@ -128,6 +139,9 @@ export function executeIncomingNetworkAction(msg) {
         if (vic) {
           showVictoryModal(vic.winner, vic);
         }
+      }
+      if (networkState.isHost) {
+        broadcastFullGameState();
       }
       break;
     }
@@ -163,6 +177,24 @@ export function executeIncomingNetworkAction(msg) {
         networkCallbacks.onMonopoly(msg.playerIdx, msg.groupKey);
       }
       break;
+
+    case 'ACTION_FESTIVAL_BOOST': {
+      const p = gameState.players ? gameState.players[msg.playerIdx] : null;
+      const t = BOARD_TILES[msg.tileId];
+      const st = gameState.properties[msg.tileId];
+      if (st) {
+        st.festivalBoost = true;
+        refreshTileTextureAndBuildings(msg.tileId);
+      }
+      if (p && t) {
+        logEvent(`🎉 <strong>${p.name}</strong> selected <strong>${t.name}</strong> to host the World Festival (2× Rent Boost)!`);
+      }
+      renderCornerHUDs();
+      if (networkState.isHost) {
+        broadcastFullGameState();
+      }
+      break;
+    }
 
     case 'ACTION_REACTION':
       if (msg.reactionType) {

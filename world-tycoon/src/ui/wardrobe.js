@@ -5,7 +5,7 @@
  */
 
 import { playSFX } from '../game/audio.js';
-import { gameState, matchSettings } from '../game/state.js';
+import { gameState, matchSettings, getSavedPlayerName, PLAYER_NAME_STORAGE_KEY } from '../game/state.js';
 import { context } from '../three/core/context.js';
 import { spawnAllPlayerTokens3D } from '../three/pawns/tokens.js';
 import { updateLobbyHeroAvatar, updateLobbyHeroDiceSkin } from '../three/stages/lobbyStage.js';
@@ -63,28 +63,20 @@ let previewState = {
  * @returns {object}
  */
 export function getTycoonProfile() {
+  const currentSavedName = getSavedPlayerName();
   if (typeof localStorage === 'undefined') {
-    return getDefaultProfile();
+    return getDefaultProfile(currentSavedName);
   }
   try {
     const raw = localStorage.getItem(WARDROBE_STORAGE_KEY);
     if (!raw) {
-      // Migrate existing name if present in previous profile versions
-      let existingName = 'NAMAN';
-      const oldRaw = localStorage.getItem('WORLD_TYCOON_PROFILE_V2') || localStorage.getItem('WORLD_TYCOON_PROFILE_V1');
-      if (oldRaw) {
-        try {
-          const old = JSON.parse(oldRaw);
-          if (old.name) existingName = old.name;
-        } catch (_) {}
-      }
-      const def = getDefaultProfile(existingName);
+      const def = getDefaultProfile(currentSavedName);
       saveTycoonProfile(def);
       return def;
     }
     const parsed = JSON.parse(raw);
     return {
-      name: parsed.name || 'NAMAN',
+      name: currentSavedName || parsed.name || 'TYCOON',
       tycoonStars: typeof parsed.tycoonStars === 'number' ? parsed.tycoonStars : 150,
       unlockedItems: Array.isArray(parsed.unlockedItems) ? parsed.unlockedItems : ['hat_aviator', 'hat_banker', 'hat_safari', 'hat_cyber', 'dice_classic', 'pedestal_classic'],
       equipped: {
@@ -95,13 +87,13 @@ export function getTycoonProfile() {
     };
   } catch (e) {
     console.warn('Failed to parse wardrobe profile, using defaults:', e);
-    return getDefaultProfile();
+    return getDefaultProfile(currentSavedName);
   }
 }
 
-function getDefaultProfile(name = 'NAMAN') {
+function getDefaultProfile(name = 'TYCOON') {
   return {
-    name,
+    name: name || getSavedPlayerName() || 'TYCOON',
     tycoonStars: 150, // Balanced starter wallet
     unlockedItems: ['hat_aviator', 'hat_banker', 'hat_safari', 'hat_cyber', 'dice_classic', 'pedestal_classic'],
     equipped: {
@@ -133,6 +125,9 @@ export function saveTycoonProfile(profile) {
   if (typeof localStorage === 'undefined') return;
   try {
     localStorage.setItem(WARDROBE_STORAGE_KEY, JSON.stringify(profile));
+    if (profile && profile.name) {
+      localStorage.setItem(PLAYER_NAME_STORAGE_KEY, profile.name);
+    }
   } catch (e) {
     console.error('Failed to save wardrobe profile:', e);
   }

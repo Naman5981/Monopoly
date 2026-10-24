@@ -405,7 +405,9 @@ export function showRentTransferBanner(fromName, toName, amount, fromIdx = null,
     banner.classList.remove('active', 'exit');
   }, 3450);
 }
-window.showRentTransferBanner = showRentTransferBanner;
+if (typeof window !== 'undefined') {
+  window.showRentTransferBanner = showRentTransferBanner;
+}
 
 
 /** Show the turn-lock warning toast. */
@@ -478,8 +480,10 @@ export function hideDiceSumBadge() {
   }, 220);
 }
 
-window.showDiceSumBadge = showDiceSumBadge;
-window.hideDiceSumBadge = hideDiceSumBadge;
+if (typeof window !== 'undefined') {
+  window.showDiceSumBadge = showDiceSumBadge;
+  window.hideDiceSumBadge = hideDiceSumBadge;
+}
 
 let statusPillResetTimer = null;
 let currentThinkingState = null;

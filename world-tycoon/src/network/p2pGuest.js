@@ -3,7 +3,7 @@
  * Guest peer connection, room joining, profile synchronization, and incoming host message reception.
  */
 
-import { gameState, setupPlayers, matchSettings, setLobbyPlayerCount, setLocalPlayerIdx } from '../game/state.js';
+import { gameState, setupPlayers, matchSettings, setLobbyPlayerCount, setLocalPlayerIdx, getSavedPlayerName } from '../game/state.js';
 import { PLAYER_THEMES, applyBoardEdition } from '../game/data.js';
 import { getSceneLighting, applyBoardStyle, refreshAllTileTexturesAndMaterials, updateLobbyHeroAvatar } from '../three/scene.js';
 import { applyLightingMode, stopVictoryCelebration } from '../three/effects.js';
@@ -158,6 +158,17 @@ export function handleGuestReceivedMessage(msg) {
           }
         });
       }
+      const mySavedName = getSavedPlayerName();
+      if (matchSettings.customPlayers[msg.assignedSlot]) {
+        if (!matchSettings.customPlayers[msg.assignedSlot].name || matchSettings.customPlayers[msg.assignedSlot].name === 'YOU') {
+          matchSettings.customPlayers[msg.assignedSlot].name = mySavedName;
+        }
+        setupPlayers[msg.assignedSlot].name = matchSettings.customPlayers[msg.assignedSlot].name;
+        if (PLAYER_THEMES[msg.assignedSlot]) {
+          PLAYER_THEMES[msg.assignedSlot].name = matchSettings.customPlayers[msg.assignedSlot].name;
+        }
+        sendClientProfileUpdate({ name: matchSettings.customPlayers[msg.assignedSlot].name });
+      }
       if (window.selectSetupPlayer) {
         window.selectSetupPlayer(msg.assignedSlot);
       }
@@ -211,6 +222,16 @@ export function handleGuestReceivedMessage(msg) {
     case 'PLAYER_DISCONNECTED': {
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
+        setupPlayers.forEach((sp, idx) => {
+          if (!matchSettings.customPlayers[idx]) {
+            matchSettings.customPlayers[idx] = { ...sp };
+          } else {
+            Object.assign(matchSettings.customPlayers[idx], sp);
+          }
+          if (PLAYER_THEMES[idx]) {
+            Object.assign(PLAYER_THEMES[idx], sp);
+          }
+        });
       }
       if (msg.lobbyPlayerCount) {
         setLobbyPlayerCount(msg.lobbyPlayerCount);
@@ -246,6 +267,16 @@ export function handleGuestReceivedMessage(msg) {
       if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
+        setupPlayers.forEach((sp, idx) => {
+          if (!matchSettings.customPlayers[idx]) {
+            matchSettings.customPlayers[idx] = { ...sp };
+          } else {
+            Object.assign(matchSettings.customPlayers[idx], sp);
+          }
+          if (PLAYER_THEMES[idx]) {
+            Object.assign(PLAYER_THEMES[idx], sp);
+          }
+        });
       }
       logEvent('👑 Table Host brought all room players back to the lobby.');
       break;
@@ -274,6 +305,16 @@ export function handleGuestReceivedMessage(msg) {
       if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
+        setupPlayers.forEach((sp, idx) => {
+          if (!matchSettings.customPlayers[idx]) {
+            matchSettings.customPlayers[idx] = { ...sp };
+          } else {
+            Object.assign(matchSettings.customPlayers[idx], sp);
+          }
+          if (PLAYER_THEMES[idx]) {
+            Object.assign(PLAYER_THEMES[idx], sp);
+          }
+        });
       }
       if (networkCallbacks.onStartGame) {
         networkCallbacks.onStartGame();
@@ -303,6 +344,7 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_TRADE_RESPONSE':
     case 'ACTION_SETTLE_RENT':
     case 'ACTION_BANKRUPTCY':
+    case 'ACTION_FESTIVAL_BOOST':
     case 'ACTION_WORLD_TOUR':
     case 'ACTION_CHANCE_PRIZE':
     case 'ACTION_MONOPOLY':

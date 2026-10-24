@@ -20,6 +20,10 @@ export class ChanceLandingStrategy extends ITileLandingStrategy {
     const { playerIdx, player, isDoubles } = context;
 
     if (player.isAI) {
+      if (networkState.isMultiplayer && !networkState.isHost) {
+        showSpeechBubble(`${player.name} is spinning Chance...`, 3000);
+        return;
+      }
       await executeAIChanceSpin(playerIdx, isDoubles, getGameDelay);
       return;
     }

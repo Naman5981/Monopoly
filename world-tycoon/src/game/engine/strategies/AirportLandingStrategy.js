@@ -21,6 +21,10 @@ export class AirportLandingStrategy extends ITileLandingStrategy {
     const { playerIdx, player } = context;
 
     if (player.isAI) {
+      if (networkState.isMultiplayer && !networkState.isHost) {
+        showSpeechBubble(`✈️ ${player.name} landed on World Tour! Planning flight...`, 2500);
+        return;
+      }
       showSpeechBubble(`✈️ ${player.name} landed on World Tour! Planning flight...`, 2500);
       await new Promise(r => setTimeout(r, Math.max(200, Math.round(900 / (matchSettings.gameSpeed || 1)))));
       const unowned = BOARD_TILES.filter(t => (t.type === 'city' || t.type === 'resort') && !gameState.properties[t.id]?.owner);
