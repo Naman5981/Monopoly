@@ -25,7 +25,7 @@ import { animateLobbyEntrance } from '../anim.js';
 import { setLobbyView, showTitleScreen, showMultiplayerSetup } from './lobbyNavigation.js';
 import { renderPlayerCards } from './playerCards.js';
 import { renderMatchSettingButtons } from './matchSettingsUI.js';
-import { addBotOrSlot, selectedSetupPlayerIdx, FIXED_AI_NAMES } from './playerCustomization.js';
+import { addBotOrSlot, selectedSetupPlayerIdx, FIXED_AI_NAMES, ARCHETYPES, generateRandomBotAppearance } from './playerCustomization.js';
 
 export function initLandingSetup() {
   setLobbyView('title', false);
@@ -42,12 +42,32 @@ export function initLandingSetup() {
       PLAYER_THEMES[0].name = savedName;
     }
 
-    // Ensure the 5 AI bots have fixed, immutable names
+    // Ensure the 5 AI bots have fixed names and dynamic randomized appearances
+    const usedColors = [(matchSettings.customPlayers[0]?.colorHex || '#3b82f6').toLowerCase()];
     matchSettings.customPlayers.forEach((cp, idx) => {
       if (idx > 0 && cp.isAI) {
         cp.name = FIXED_AI_NAMES[(idx - 1) % FIXED_AI_NAMES.length];
-        if (PLAYER_THEMES[idx]) PLAYER_THEMES[idx].name = cp.name;
-        if (setupPlayers[idx]) setupPlayers[idx].name = cp.name;
+        const botLook = generateRandomBotAppearance(usedColors);
+        usedColors.push(botLook.colorHex.toLowerCase());
+
+        cp.hatStyle = botLook.hatStyle;
+        cp.hatColor = botLook.hatColor;
+        cp.colorHex = botLook.colorHex;
+        cp.charColor = botLook.charColor;
+
+        if (PLAYER_THEMES[idx]) {
+          PLAYER_THEMES[idx].name = cp.name;
+          PLAYER_THEMES[idx].hatColor = botLook.hatColor;
+          PLAYER_THEMES[idx].colorHex = botLook.colorHex;
+          PLAYER_THEMES[idx].charColor = botLook.charColor;
+        }
+        if (setupPlayers[idx]) {
+          setupPlayers[idx].name = cp.name;
+          setupPlayers[idx].hatStyle = botLook.hatStyle;
+          setupPlayers[idx].hatColor = botLook.hatColor;
+          setupPlayers[idx].colorHex = botLook.colorHex;
+          setupPlayers[idx].charColor = botLook.charColor;
+        }
       }
     });
 
@@ -155,10 +175,15 @@ export async function joinP2PRoom() {
     const savedName = getSavedPlayerName();
     const myInfo = matchSettings.customPlayers[0] || {};
     const effectiveName = (myInfo.name && myInfo.name !== 'YOU') ? myInfo.name : savedName;
+    const selectedHatStyle = myInfo.hatStyle !== undefined ? myInfo.hatStyle : 0;
     await joinRoom(code, {
       name: effectiveName,
-      archetype: myInfo.hatStyle,
-      charColor: myInfo.colorHex
+      archetype: selectedHatStyle,
+      hatStyle: selectedHatStyle,
+      hatColor: myInfo.hatColor || ARCHETYPES[selectedHatStyle]?.hatColor || 0x334155,
+      charColor: myInfo.charColor || 0x3b82f6,
+      colorHex: myInfo.colorHex || '#3b82f6',
+      pedestal: myInfo.pedestal
     });
 
     const successHtml = `🟢 <strong>Joined Room ${code}!</strong> Waiting for Host to start match...`;

@@ -12,6 +12,8 @@ import { updateLobbyHeroAvatar, updateLobbyHeroDiceSkin } from '../three/stages/
 import { applyEquippedDiceSkin } from '../three/assets/dice.js';
 import { animateWardrobeGridCascade, animateNumberCounter } from './anim.js';
 import { networkState, sendClientProfileUpdate, broadcastLobbySettings } from '../network/p2p.js';
+import { currentLobbyView } from './setup/lobbyNavigation.js';
+import { showTurnLockToast } from './hud.js';
 
 export const WARDROBE_STORAGE_KEY = 'WORLD_TYCOON_PROFILE_V3';
 
@@ -495,6 +497,10 @@ export function updateAllPointsBadges() {
  * Opens the Wardrobe modal with seamless avatar slide and right drawer entrance.
  */
 export function openWardrobeModal() {
+  if (currentLobbyView !== 'title') {
+    showTurnLockToast('Wardrobe can only be accessed on the Home Screen!');
+    return;
+  }
   if (networkState?.isMultiplayer) {
     const myIdx = networkState.isHost ? 0 : (networkState.localPlayerIdx || 0);
     window.selectSetupPlayer?.(myIdx);

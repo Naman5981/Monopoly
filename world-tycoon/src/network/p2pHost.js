@@ -11,6 +11,7 @@ import { networkState, networkCallbacks, generateRoomCode, formatPeerRoomId } fr
 import { updateMultiplayerUI } from './p2pUI.js';
 import { executeIncomingNetworkAction } from './p2pActions.js';
 import { isValidPacket, sanitizeProfileUpdate, createSafeLobbyStatePacket } from './protocol.js';
+import { CANDY_PALETTE } from '../ui/setup/playerCustomization.js';
 
 export function hostRoom(customCode = null) {
   return new Promise((resolve, reject) => {
@@ -238,37 +239,60 @@ export function handleHostReceivedMessage(conn, msg) {
         const incomingName = (msg.name || '').trim().toUpperCase().slice(0, 14);
         const guestName = (incomingName && incomingName !== 'YOU') ? incomingName : `PLAYER ${slotIdx + 1}`;
         setupPlayers[slotIdx].name = guestName;
-        if (msg.archetype !== undefined) {
-          setupPlayers[slotIdx].hatStyle = msg.archetype;
-          setupPlayers[slotIdx].archetype = msg.archetype;
+        
+        // Preserve guest's pre-selected appearance from their side
+        const guestHatStyle = msg.hatStyle !== undefined ? msg.hatStyle : (msg.archetype !== undefined ? msg.archetype : 0);
+        setupPlayers[slotIdx].hatStyle = guestHatStyle;
+        setupPlayers[slotIdx].archetype = guestHatStyle;
+        if (msg.hatColor) setupPlayers[slotIdx].hatColor = msg.hatColor;
+        if (msg.pedestal) setupPlayers[slotIdx].pedestal = msg.pedestal;
+
+        let guestColorHex = msg.colorHex || (typeof msg.charColor === 'string' ? msg.charColor : null);
+        let guestCharColor = typeof msg.charColor === 'number' ? msg.charColor : null;
+        if (guestColorHex && !guestCharColor) {
+          guestCharColor = parseInt(guestColorHex.replace('#', ''), 16);
         }
-        if (msg.charColor) {
-          const parsedCharColor = typeof msg.charColor === 'string'
-            ? parseInt(msg.charColor.replace('#', ''), 16)
-            : msg.charColor;
-          setupPlayers[slotIdx].charColor = parsedCharColor;
-          setupPlayers[slotIdx].colorHex = typeof msg.charColor === 'string'
-            ? msg.charColor
-            : `#${parsedCharColor.toString(16).padStart(6, '0')}`;
+        if (!guestColorHex && guestCharColor) {
+          guestColorHex = `#${guestCharColor.toString(16).padStart(6, '0')}`;
         }
+        if (!guestColorHex) {
+          guestColorHex = '#3b82f6';
+          guestCharColor = 0x3b82f6;
+        }
+
+        // Avoid color conflicts with already taken slots (e.g. host slot 0)
+        const usedColors = setupPlayers
+          .slice(0, slotIdx)
+          .map(p => (p.colorHex || '').toLowerCase());
+        if (usedColors.includes(guestColorHex.toLowerCase())) {
+          const free = CANDY_PALETTE.find(c => !usedColors.includes(c.hex.toLowerCase()));
+          if (free) {
+            guestColorHex = free.hex;
+            guestCharColor = free.charColor;
+          }
+        }
+
+        setupPlayers[slotIdx].colorHex = guestColorHex;
+        setupPlayers[slotIdx].charColor = guestCharColor;
 
         // Also sync matchSettings.customPlayers and PLAYER_THEMES
         if (matchSettings.customPlayers[slotIdx]) {
           matchSettings.customPlayers[slotIdx].isAI = false;
+          matchSettings.customPlayers[slotIdx].isOnlinePeer = true;
           matchSettings.customPlayers[slotIdx].name = setupPlayers[slotIdx].name;
-          if (msg.archetype !== undefined) matchSettings.customPlayers[slotIdx].hatStyle = msg.archetype;
-          if (msg.charColor) {
-            matchSettings.customPlayers[slotIdx].colorHex = setupPlayers[slotIdx].colorHex;
-            matchSettings.customPlayers[slotIdx].charColor = setupPlayers[slotIdx].charColor;
-          }
+          matchSettings.customPlayers[slotIdx].hatStyle = guestHatStyle;
+          if (msg.hatColor) matchSettings.customPlayers[slotIdx].hatColor = msg.hatColor;
+          matchSettings.customPlayers[slotIdx].colorHex = guestColorHex;
+          matchSettings.customPlayers[slotIdx].charColor = guestCharColor;
+          if (msg.pedestal) matchSettings.customPlayers[slotIdx].pedestal = msg.pedestal;
         }
         if (PLAYER_THEMES[slotIdx]) {
           PLAYER_THEMES[slotIdx].name = setupPlayers[slotIdx].name;
           PLAYER_THEMES[slotIdx].isAI = false;
-          if (msg.charColor) {
-            PLAYER_THEMES[slotIdx].colorHex = setupPlayers[slotIdx].colorHex;
-            PLAYER_THEMES[slotIdx].color = setupPlayers[slotIdx].charColor;
-          }
+          if (msg.hatColor) PLAYER_THEMES[slotIdx].hatColor = msg.hatColor;
+          PLAYER_THEMES[slotIdx].colorHex = guestColorHex;
+          PLAYER_THEMES[slotIdx].charColor = guestCharColor;
+          PLAYER_THEMES[slotIdx].color = guestCharColor;
         }
 
         conn.send({

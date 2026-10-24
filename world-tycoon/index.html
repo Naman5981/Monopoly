@@ -309,13 +309,13 @@
 
         <!-- Archetype Carousel Top Selector -->
         <div class="relative z-20 flex items-center justify-center gap-3 w-full">
-          <button onclick="window.cycleAvatarPrev()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-lg shadow-lg cursor-pointer" title="Previous Archetype">
+          <button id="setup-archetype-carousel-prev" onclick="window.cycleAvatarPrev()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-lg shadow-lg cursor-pointer" title="Previous Archetype">
             <i class="fa-solid fa-chevron-left"></i>
           </button>
           <div id="setup-character-archetype-name" class="px-6 py-2 rounded-full bg-white/95 text-slate-800 font-black text-sm sm:text-base shadow-md border-2 border-white flex items-center gap-2 cursor-pointer hover:bg-white" onclick="window.cycleAvatarNext()">
             <span>🎩</span><span>BANKER</span>
           </div>
-          <button onclick="window.cycleAvatarNext()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-lg shadow-lg cursor-pointer" title="Next Archetype">
+          <button id="setup-archetype-carousel-next" onclick="window.cycleAvatarNext()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-lg shadow-lg cursor-pointer" title="Next Archetype">
             <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>

@@ -9,6 +9,8 @@ import { playSFX } from '../../game/audio.js';
 import { updateLobbyHeroAvatar } from '../../three/scene.js';
 import { networkState, broadcastLobbySettings, sendClientProfileUpdate } from '../../network/p2p.js';
 import { animatePlayerJoinRadarPing } from '../anim.js';
+import { currentLobbyView } from './lobbyNavigation.js';
+import { showTurnLockToast } from '../hud.js';
 
 export const ARCHETYPES = [
   { id: 0, name: 'Aviator', icon: '✈️', hatColor: 0x334155, desc: 'Sky Captain Goggles' },
@@ -48,29 +50,36 @@ export function setSelectedSetupPlayerIdx(val) {
   selectedSetupPlayerIdx = val;
 }
 
+/**
+ * Generates a completely randomized appearance (archetype & candy color) for an AI bot.
+ * @param {string[]} [excludeColors=[]] - List of hex color strings to avoid duplicates
+ */
+export function generateRandomBotAppearance(excludeColors = []) {
+  const arch = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
+  const lowerExcludes = excludeColors.map(c => (c || '').toLowerCase());
+  const available = CANDY_PALETTE.filter(c => !lowerExcludes.includes(c.hex.toLowerCase()));
+  const chosenColor = available.length > 0
+    ? available[Math.floor(Math.random() * available.length)]
+    : CANDY_PALETTE[Math.floor(Math.random() * CANDY_PALETTE.length)];
+
+  return {
+    hatStyle: arch.id,
+    hatColor: arch.hatColor,
+    colorHex: chosenColor.hex,
+    charColor: chosenColor.charColor
+  };
+}
+
 export function canCurrentPlayerEditSlot(slotIdx) {
-  if (slotIdx < 0 || slotIdx >= lobbyPlayerCount) return false;
-  if (!networkState.isMultiplayer) {
-    // In local Pass & Play on same device, any active slot can be customized
-    return true;
+  // In any lobby (Local Play, Multiplayer Portal, Multiplayer Room), nobody can change appearance!
+  if (currentLobbyView !== 'title') {
+    return false;
   }
-  
-  if (networkState.isHost) {
-    // Host can edit own slot 0
-    if (slotIdx === 0) return true;
-    // Host can edit AI bots, but CANNOT edit connected online human client players
-    const cp = matchSettings.customPlayers[slotIdx];
-    return Boolean(cp && cp.isAI && !cp.isOnlinePeer);
-  }
-  
-  // Guest can ONLY edit their own assigned slot
-  return slotIdx === networkState.localPlayerIdx;
+  // On the Home/Title Screen, only the local human player (slot 0) can customize their own appearance
+  return slotIdx === 0;
 }
 
 export function selectSetupPlayer(idx) {
-  if (networkState.isMultiplayer && !canCurrentPlayerEditSlot(idx)) {
-    return;
-  }
   if (idx >= 0 && idx < lobbyPlayerCount) {
     selectedSetupPlayerIdx = idx;
     const cp = matchSettings.customPlayers[selectedSetupPlayerIdx];
@@ -122,26 +131,30 @@ export function addBotOrSlot() {
     if (matchSettings.customPlayers[newIdx]) {
       matchSettings.customPlayers[newIdx].isAI = true;
       matchSettings.customPlayers[newIdx].name = FIXED_AI_NAMES[(newIdx - 1) % FIXED_AI_NAMES.length];
+      
+      // Assign unique, randomized bot appearance
+      const usedColors = matchSettings.customPlayers
+        .slice(0, newIdx)
+        .map(p => (p.colorHex || '').toLowerCase());
+      const botLook = generateRandomBotAppearance(usedColors);
+
+      matchSettings.customPlayers[newIdx].hatStyle = botLook.hatStyle;
+      matchSettings.customPlayers[newIdx].hatColor = botLook.hatColor;
+      matchSettings.customPlayers[newIdx].colorHex = botLook.colorHex;
+      matchSettings.customPlayers[newIdx].charColor = botLook.charColor;
+
       if (PLAYER_THEMES[newIdx]) {
         PLAYER_THEMES[newIdx].name = matchSettings.customPlayers[newIdx].name;
+        PLAYER_THEMES[newIdx].hatColor = botLook.hatColor;
+        PLAYER_THEMES[newIdx].colorHex = botLook.colorHex;
+        PLAYER_THEMES[newIdx].charColor = botLook.charColor;
       }
       if (setupPlayers[newIdx]) {
         setupPlayers[newIdx].name = matchSettings.customPlayers[newIdx].name;
-      }
-      // Ensure the new player has a unique color not already taken by existing active players
-      const usedColors = new Set(
-        matchSettings.customPlayers
-          .slice(0, newIdx)
-          .map(p => (p.colorHex || '').toLowerCase())
-      );
-      const free = CANDY_PALETTE.find(c => !usedColors.has(c.hex.toLowerCase()));
-      if (free) {
-        matchSettings.customPlayers[newIdx].colorHex = free.hex;
-        matchSettings.customPlayers[newIdx].charColor = free.charColor;
-        if (PLAYER_THEMES[newIdx]) {
-          PLAYER_THEMES[newIdx].colorHex = free.hex;
-          PLAYER_THEMES[newIdx].charColor = free.charColor;
-        }
+        setupPlayers[newIdx].hatStyle = botLook.hatStyle;
+        setupPlayers[newIdx].hatColor = botLook.hatColor;
+        setupPlayers[newIdx].colorHex = botLook.colorHex;
+        setupPlayers[newIdx].charColor = botLook.charColor;
       }
     }
     if (window.renderPlayerCards) window.renderPlayerCards();
@@ -207,8 +220,12 @@ export function removeBotOrSlot() {
 }
 
 export function cycleAvatarPrev() {
-  const isGuest = networkState.isMultiplayer && !networkState.isHost;
-  const curIdx = isGuest ? networkState.localPlayerIdx : ((selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0);
+  if (currentLobbyView !== 'title') {
+    playSFX('flinch');
+    showTurnLockToast('Appearance cannot be changed in the lobby!');
+    return;
+  }
+  const curIdx = 0;
   if (!canCurrentPlayerEditSlot(curIdx)) {
     playSFX('flinch');
     return;
@@ -231,8 +248,12 @@ export function cycleAvatarPrev() {
 }
 
 export function cycleAvatarNext() {
-  const isGuest = networkState.isMultiplayer && !networkState.isHost;
-  const curIdx = isGuest ? networkState.localPlayerIdx : ((selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0);
+  if (currentLobbyView !== 'title') {
+    playSFX('flinch');
+    showTurnLockToast('Appearance cannot be changed in the lobby!');
+    return;
+  }
+  const curIdx = 0;
   if (!canCurrentPlayerEditSlot(curIdx)) {
     playSFX('flinch');
     return;
@@ -255,11 +276,15 @@ export function cycleAvatarNext() {
 }
 
 export function setLocalPlayerColor(hex, charColor) {
-  const isGuest = networkState.isMultiplayer && !networkState.isHost;
-  const curIdx = isGuest ? networkState.localPlayerIdx : ((selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0);
+  if (currentLobbyView !== 'title') {
+    playSFX('flinch');
+    showTurnLockToast('Appearance cannot be changed in the lobby!');
+    return false;
+  }
+  const curIdx = 0;
   if (!canCurrentPlayerEditSlot(curIdx)) {
     playSFX('flinch');
-    return;
+    return false;
   }
   const success = setPlayerColor(curIdx, hex, charColor);
   if (success) {
@@ -268,9 +293,14 @@ export function setLocalPlayerColor(hex, charColor) {
       updateLobbyHeroAvatar(p.hatStyle || 0, hex, charColor);
     }
   }
+  return success;
 }
 
 export function setPlayerColor(playerIdx, hex, charColor) {
+  if (currentLobbyView !== 'title') {
+    showTurnLockToast('Appearance cannot be changed in the lobby!');
+    return false;
+  }
   if (!canCurrentPlayerEditSlot(playerIdx)) return false;
   const normHex = (hex || '').toLowerCase();
   const isTaken = matchSettings.customPlayers.some((p, idx) => 
@@ -308,6 +338,7 @@ export function setPlayerColor(playerIdx, hex, charColor) {
 }
 
 export function setPlayerArchetype(playerIdx, archIdx) {
+  if (currentLobbyView !== 'title') return;
   if (!canCurrentPlayerEditSlot(playerIdx)) return;
   if (matchSettings.customPlayers[playerIdx]) {
     matchSettings.customPlayers[playerIdx].hatStyle = archIdx;
@@ -330,17 +361,47 @@ export function setPlayerArchetype(playerIdx, archIdx) {
 
 export function randomizeAllNames() {
   if (networkState.isMultiplayer && !networkState.isHost) return;
+  const usedColors = [(matchSettings.customPlayers[0]?.colorHex || '#3b82f6').toLowerCase()];
   for (let i = 0; i < lobbyPlayerCount; i++) {
     const target = setupPlayers[i] || matchSettings.customPlayers[i];
-    // ONLY randomize AI bots! Human players cannot have their names randomized in the lobby.
-    if (!target || !target.isAI) continue;
+    // ONLY randomize AI bots! Human players cannot have their names/appearance randomized in the lobby.
+    if (!target || !target.isAI) {
+      if (target?.colorHex) usedColors.push(target.colorHex.toLowerCase());
+      continue;
+    }
 
     const list = FUN_NAMES[i % FUN_NAMES.length];
     const chosen = list[Math.floor(Math.random() * list.length)];
     target.name = chosen;
-    if (PLAYER_THEMES[i]) PLAYER_THEMES[i].name = chosen;
-    if (matchSettings.customPlayers[i]) matchSettings.customPlayers[i].name = chosen;
-    if (setupPlayers[i]) setupPlayers[i].name = chosen;
+
+    const botLook = generateRandomBotAppearance(usedColors);
+    usedColors.push(botLook.colorHex.toLowerCase());
+
+    target.hatStyle = botLook.hatStyle;
+    target.hatColor = botLook.hatColor;
+    target.colorHex = botLook.colorHex;
+    target.charColor = botLook.charColor;
+
+    if (PLAYER_THEMES[i]) {
+      PLAYER_THEMES[i].name = chosen;
+      PLAYER_THEMES[i].hatColor = botLook.hatColor;
+      PLAYER_THEMES[i].colorHex = botLook.colorHex;
+      PLAYER_THEMES[i].charColor = botLook.charColor;
+    }
+    if (matchSettings.customPlayers[i]) {
+      matchSettings.customPlayers[i].name = chosen;
+      matchSettings.customPlayers[i].hatStyle = botLook.hatStyle;
+      matchSettings.customPlayers[i].hatColor = botLook.hatColor;
+      matchSettings.customPlayers[i].colorHex = botLook.colorHex;
+      matchSettings.customPlayers[i].charColor = botLook.charColor;
+    }
+    if (setupPlayers[i]) {
+      setupPlayers[i].name = chosen;
+      setupPlayers[i].hatStyle = botLook.hatStyle;
+      setupPlayers[i].hatColor = botLook.hatColor;
+      setupPlayers[i].colorHex = botLook.colorHex;
+      setupPlayers[i].charColor = botLook.charColor;
+    }
   }
   if (window.renderPlayerCards) window.renderPlayerCards();
   playSFX('dice');

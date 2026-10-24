@@ -14,7 +14,8 @@ import {
   canCurrentPlayerEditSlot,
   selectedSetupPlayerIdx,
   setSelectedSetupPlayerIdx,
-  FIXED_AI_NAMES
+  FIXED_AI_NAMES,
+  generateRandomBotAppearance
 } from './playerCustomization.js';
 import { currentLobbyView } from './lobbyNavigation.js';
 
@@ -387,11 +388,36 @@ export function togglePlayerRole(idx) {
     matchSettings.customPlayers[idx].isAI = turningToAI;
     if (turningToAI) {
       matchSettings.customPlayers[idx].name = FIXED_AI_NAMES[Math.max(0, idx - 1) % FIXED_AI_NAMES.length];
+      const usedColors = matchSettings.customPlayers
+        .map((p, k) => (k !== idx ? (p.colorHex || '').toLowerCase() : null))
+        .filter(Boolean);
+      const botLook = generateRandomBotAppearance(usedColors);
+      matchSettings.customPlayers[idx].hatStyle = botLook.hatStyle;
+      matchSettings.customPlayers[idx].hatColor = botLook.hatColor;
+      matchSettings.customPlayers[idx].colorHex = botLook.colorHex;
+      matchSettings.customPlayers[idx].charColor = botLook.charColor;
     } else {
       matchSettings.customPlayers[idx].name = `PLAYER ${idx + 1}`;
     }
-    if (PLAYER_THEMES[idx]) PLAYER_THEMES[idx].name = matchSettings.customPlayers[idx].name;
-    if (setupPlayers[idx]) setupPlayers[idx].name = matchSettings.customPlayers[idx].name;
+    if (PLAYER_THEMES[idx]) {
+      PLAYER_THEMES[idx].name = matchSettings.customPlayers[idx].name;
+      PLAYER_THEMES[idx].isAI = matchSettings.customPlayers[idx].isAI;
+      if (turningToAI) {
+        PLAYER_THEMES[idx].hatColor = matchSettings.customPlayers[idx].hatColor;
+        PLAYER_THEMES[idx].colorHex = matchSettings.customPlayers[idx].colorHex;
+        PLAYER_THEMES[idx].charColor = matchSettings.customPlayers[idx].charColor;
+      }
+    }
+    if (setupPlayers[idx]) {
+      setupPlayers[idx].name = matchSettings.customPlayers[idx].name;
+      setupPlayers[idx].isAI = matchSettings.customPlayers[idx].isAI;
+      if (turningToAI) {
+        setupPlayers[idx].hatStyle = matchSettings.customPlayers[idx].hatStyle;
+        setupPlayers[idx].hatColor = matchSettings.customPlayers[idx].hatColor;
+        setupPlayers[idx].colorHex = matchSettings.customPlayers[idx].colorHex;
+        setupPlayers[idx].charColor = matchSettings.customPlayers[idx].charColor;
+      }
+    }
     renderPlayerCards();
     playSFX('hop');
     if (networkState.isMultiplayer && networkState.isHost) {

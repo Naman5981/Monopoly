@@ -2259,9 +2259,20 @@ body {
 .lobby-view-title #lobby-settings-column,
 .lobby-view-title #lobby-multiplayer-portal,
 .lobby-view-title #lobby-setup-actions,
-.lobby-view-title #btn-lobby-back-to-title,
-.lobby-view-title #setup-color-swatches-container {
+.lobby-view-title #btn-lobby-back-to-title {
   display: none !important;
+}
+
+.lobby-view-title #setup-color-swatches-container,
+.lobby-view-title #btn-open-wardrobe,
+.lobby-view-title #setup-archetype-carousel-prev,
+.lobby-view-title #setup-archetype-carousel-next {
+  display: flex !important;
+}
+
+.lobby-view-title #setup-character-archetype-name {
+  cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 .lobby-view-title #lobby-main-arena {
@@ -2346,9 +2357,31 @@ body {
 }
 
 .lobby-view-local #lobby-roster-column,
-.lobby-view-local #lobby-settings-column,
-.lobby-view-local #setup-color-swatches-container {
+.lobby-view-local #lobby-settings-column {
   display: flex !important;
+}
+
+/* In all lobby views, player and bot appearances cannot be edited */
+.lobby-view-local #setup-color-swatches-container,
+.lobby-view-local #btn-open-wardrobe,
+.lobby-view-local #setup-archetype-carousel-prev,
+.lobby-view-local #setup-archetype-carousel-next,
+.lobby-view-multiplayer-portal #setup-color-swatches-container,
+.lobby-view-multiplayer-portal #btn-open-wardrobe,
+.lobby-view-multiplayer-portal #setup-archetype-carousel-prev,
+.lobby-view-multiplayer-portal #setup-archetype-carousel-next,
+.lobby-view-multiplayer-room #setup-color-swatches-container,
+.lobby-view-multiplayer-room #btn-open-wardrobe,
+.lobby-view-multiplayer-room #setup-archetype-carousel-prev,
+.lobby-view-multiplayer-room #setup-archetype-carousel-next {
+  display: none !important;
+}
+
+.lobby-view-local #setup-character-archetype-name,
+.lobby-view-multiplayer-portal #setup-character-archetype-name,
+.lobby-view-multiplayer-room #setup-character-archetype-name {
+  cursor: default !important;
+  pointer-events: none !important;
 }
 
 .lobby-view-local #lobby-hero-column {
@@ -2396,8 +2429,7 @@ body {
 }
 
 .lobby-view-multiplayer-room #lobby-roster-column,
-.lobby-view-multiplayer-room #lobby-settings-column,
-.lobby-view-multiplayer-room #setup-color-swatches-container {
+.lobby-view-multiplayer-room #lobby-settings-column {
   display: flex !important;
 }
 
