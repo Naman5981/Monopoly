@@ -224,6 +224,27 @@ export function startGameFromLandingPage() {
     addBotOrSlot();
   }
 
+  // Defensive check: ensure host and all connected peers are marked as human (isAI: false)
+  if (networkState.isMultiplayer) {
+    for (let i = 0; i < lobbyPlayerCount; i++) {
+      const sp = setupPlayers[i];
+      const cp = matchSettings.customPlayers[i];
+      if (i === 0 || sp?.isOnlinePeer || cp?.isOnlinePeer || sp?.peerId) {
+        if (cp) {
+          cp.isAI = false;
+          cp.isOnlinePeer = (i > 0);
+        }
+        if (sp) {
+          sp.isAI = false;
+          sp.isOnlinePeer = (i > 0);
+        }
+        if (PLAYER_THEMES[i]) {
+          PLAYER_THEMES[i].isAI = false;
+        }
+      }
+    }
+  }
+
   // If in P2P multiplayer as host, broadcast match start to all connected clients!
   if (networkState.isMultiplayer && networkState.isHost) {
     broadcastStartOnlineMatch();

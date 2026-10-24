@@ -38,6 +38,7 @@ import {
   spawnFloatingCashOnHUD
 } from '../ui/hud.js';
 import { stopVictoryCelebration } from '../three/effects.js';
+import { animateDoublesBurstBanner } from '../ui/anim.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from './persistence.js';
 import {
   networkState,
@@ -96,7 +97,27 @@ export function initEngine() {
     },
     onDiceRoll: async (playerIdx, d1, d2, total, isDoubles) => {
       gameState.currentPlayerIdx = playerIdx;
+      refreshActivePlayerTurnStatus();
       await executePlayerRoll(d1, d2);
+    },
+    onDoublesRoll: (playerIdx, doublesCount, turnTimeLeft = 15) => {
+      gameState.currentPlayerIdx = playerIdx;
+      gameState.doublesCount = typeof doublesCount === 'number' ? doublesCount : ((gameState.doublesCount || 0) + 1);
+      gameState.phase = 'ROLL';
+      gameState.turnTimeLeft = typeof turnTimeLeft === 'number' ? turnTimeLeft : 15;
+
+      const p = gameState.players ? gameState.players[playerIdx] : null;
+      if (p) {
+        logEvent(`🎲 <strong>${p.name}</strong> rolled doubles! Granted an extra roll.`);
+        animateDoublesBurstBanner(p.name);
+      }
+
+      renderCornerHUDs();
+      refreshActivePlayerTurnStatus();
+      updateRollButtonsUI(isHumanTurnActionable());
+
+      const controller = PlayerControllerFactory.create(playerIdx);
+      controller.onTurnStart({ executeRollFn: executePlayerRoll });
     },
     onBuyCity: (playerIdx, tileId) => {
       const tile = BOARD_TILES[tileId];
@@ -247,6 +268,12 @@ export function initEngine() {
       if (typeof incomingState.currentPlayerIdx === 'number' && gameState.phase !== 'SETUP') {
         gameState.currentPlayerIdx = incomingState.currentPlayerIdx;
         refreshActivePlayerTurnStatus();
+      }
+      if (typeof incomingState.doublesCount === 'number') {
+        gameState.doublesCount = incomingState.doublesCount;
+      }
+      if (typeof incomingState.turnTimeLeft === 'number') {
+        gameState.turnTimeLeft = incomingState.turnTimeLeft;
       }
       if (incomingState.phase && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
         gameState.phase = incomingState.phase;

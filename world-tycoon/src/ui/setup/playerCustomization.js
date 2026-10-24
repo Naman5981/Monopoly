@@ -71,12 +71,36 @@ export function generateRandomBotAppearance(excludeColors = []) {
 }
 
 export function canCurrentPlayerEditSlot(slotIdx) {
-  // In any lobby (Local Play, Multiplayer Portal, Multiplayer Room), nobody can change appearance!
+  // In any lobby (Local Play, Multiplayer Portal, Multiplayer Room), nobody can change archetypes or wardrobe!
   if (currentLobbyView !== 'title') {
     return false;
   }
   // On the Home/Title Screen, only the local human player (slot 0) can customize their own appearance
   return slotIdx === 0;
+}
+
+/**
+ * Determines if the current player is allowed to change the color of the specified slot.
+ * Real players can change their OWN color in the lobby and on the home screen.
+ * AI bots' colors CANNOT be changed by players.
+ * In multiplayer, players cannot change other players' colors.
+ * @param {number} slotIdx - Player slot index
+ * @returns {boolean}
+ */
+export function canCurrentPlayerChangeColor(slotIdx) {
+  if (slotIdx < 0 || slotIdx >= lobbyPlayerCount) return false;
+  const target = matchSettings.customPlayers[slotIdx];
+  if (!target || target.isAI) return false;
+
+  if (networkState.isMultiplayer) {
+    if (networkState.isHost) {
+      return slotIdx === 0;
+    }
+    return slotIdx === networkState.localPlayerIdx;
+  }
+
+  // Local Play / Title Screen: human players can customize their color
+  return slotIdx === 0 || !target.isAI;
 }
 
 export function selectSetupPlayer(idx) {
@@ -171,7 +195,17 @@ export function removePlayerAt(idx) {
   if (networkState.isMultiplayer && !networkState.isHost) return;
   if (lobbyPlayerCount <= 2 || idx <= 0 || idx >= lobbyPlayerCount) return;
 
+  const sp = setupPlayers[idx];
+  const cp = matchSettings.customPlayers[idx];
+  if (networkState.isMultiplayer && (sp?.isOnlinePeer || cp?.isOnlinePeer || Boolean(sp?.peerId))) {
+    showTurnLockToast('Connected online players cannot be removed!');
+    return;
+  }
+
   matchSettings.customPlayers.splice(idx, 1);
+  if (setupPlayers !== matchSettings.customPlayers && setupPlayers.length > idx) {
+    setupPlayers.splice(idx, 1);
+  }
 
   const defaultThemes = [
     { name: getSavedPlayerName(), isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0 },
@@ -276,20 +310,20 @@ export function cycleAvatarNext() {
 }
 
 export function setLocalPlayerColor(hex, charColor) {
-  if (currentLobbyView !== 'title') {
+  const isGuest = networkState.isMultiplayer && !networkState.isHost;
+  const targetIdx = isGuest
+    ? (networkState.localPlayerIdx || 0)
+    : (selectedSetupPlayerIdx < lobbyPlayerCount && !matchSettings.customPlayers[selectedSetupPlayerIdx]?.isAI ? selectedSetupPlayerIdx : 0);
+
+  if (!canCurrentPlayerChangeColor(targetIdx)) {
     playSFX('flinch');
-    showTurnLockToast('Appearance cannot be changed in the lobby!');
+    showTurnLockToast('You can only change your own player color!');
     return false;
   }
-  const curIdx = 0;
-  if (!canCurrentPlayerEditSlot(curIdx)) {
-    playSFX('flinch');
-    return false;
-  }
-  const success = setPlayerColor(curIdx, hex, charColor);
+  const success = setPlayerColor(targetIdx, hex, charColor);
   if (success) {
-    const p = matchSettings.customPlayers[curIdx];
-    if (p) {
+    const p = matchSettings.customPlayers[targetIdx];
+    if (p && selectedSetupPlayerIdx === targetIdx) {
       updateLobbyHeroAvatar(p.hatStyle || 0, hex, charColor);
     }
   }
@@ -297,11 +331,7 @@ export function setLocalPlayerColor(hex, charColor) {
 }
 
 export function setPlayerColor(playerIdx, hex, charColor) {
-  if (currentLobbyView !== 'title') {
-    showTurnLockToast('Appearance cannot be changed in the lobby!');
-    return false;
-  }
-  if (!canCurrentPlayerEditSlot(playerIdx)) return false;
+  if (!canCurrentPlayerChangeColor(playerIdx)) return false;
   const normHex = (hex || '').toLowerCase();
   const isTaken = matchSettings.customPlayers.some((p, idx) => 
     idx !== playerIdx && idx < lobbyPlayerCount && (p.colorHex || '').toLowerCase() === normHex
@@ -317,6 +347,11 @@ export function setPlayerColor(playerIdx, hex, charColor) {
     if (PLAYER_THEMES[playerIdx]) {
       PLAYER_THEMES[playerIdx].colorHex = hex;
       PLAYER_THEMES[playerIdx].charColor = charColor;
+      PLAYER_THEMES[playerIdx].color = charColor;
+    }
+    if (setupPlayers[playerIdx]) {
+      setupPlayers[playerIdx].colorHex = hex;
+      setupPlayers[playerIdx].charColor = charColor;
     }
     if (playerIdx === selectedSetupPlayerIdx) {
       updateLobbyHeroAvatar(matchSettings.customPlayers[playerIdx].hatStyle || 0, hex, charColor);

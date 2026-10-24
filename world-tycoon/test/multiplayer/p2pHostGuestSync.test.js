@@ -166,12 +166,16 @@ describe('P2P Host-Guest Lifecycle & State Sync', () => {
 
       // Property 1 has festivalBoost = true
       gameState.properties[1].festivalBoost = true;
+      gameState.doublesCount = 1;
+      gameState.turnTimeLeft = 14;
       broadcastFullGameState();
 
       assert.notEqual(broadcastedPayload, null);
       assert.equal(broadcastedPayload.type, 'FULL_STATE_SYNC');
       assert.equal(broadcastedPayload.gameState.properties['1'].festivalBoost, true);
       assert.equal(broadcastedPayload.gameState.properties['1'].festival, true);
+      assert.equal(broadcastedPayload.gameState.doublesCount, 1);
+      assert.equal(broadcastedPayload.gameState.turnTimeLeft, 14);
 
       // Now test Guest receiving this FULL_STATE_SYNC
       networkState.isHost = false;

@@ -43,6 +43,15 @@ export function executeIncomingNetworkAction(msg) {
       }
       break;
 
+    case 'ACTION_DOUBLES_ROLL':
+      if (networkCallbacks.onDoublesRoll) {
+        networkCallbacks.onDoublesRoll(msg.playerIdx, msg.doublesCount, msg.turnTimeLeft);
+      }
+      if (networkState.isHost) {
+        broadcastFullGameState();
+      }
+      break;
+
     case 'ACTION_BUY_CITY':
       if (networkCallbacks.onBuyCity) {
         networkCallbacks.onBuyCity(msg.playerIdx, msg.tileId);

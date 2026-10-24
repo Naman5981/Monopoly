@@ -9,7 +9,7 @@ import { playSFX } from '../../game/audio.js';
 import { applyLightingMode } from '../../three/effects.js';
 import { getSceneLighting, applyBoardStyle, refreshAllTileTexturesAndMaterials } from '../../three/scene.js';
 import { networkState, broadcastLobbySettings, broadcastAction } from '../../network/p2p.js';
-import { CANDY_PALETTE, canCurrentPlayerEditSlot, selectedSetupPlayerIdx } from './playerCustomization.js';
+import { CANDY_PALETTE, canCurrentPlayerEditSlot, canCurrentPlayerChangeColor, selectedSetupPlayerIdx } from './playerCustomization.js';
 
 export const MATCH_DURATION_OPTIONS = [15, 30, 45, 60, 75];
 
@@ -280,7 +280,7 @@ export function renderMatchSettingButtons() {
     const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
     const curPlayer = matchSettings.customPlayers[curIdx];
     const curHex = (curPlayer?.colorHex || '#3b82f6').toLowerCase();
-    const canEditColor = canCurrentPlayerEditSlot(curIdx);
+    const canEditColor = canCurrentPlayerChangeColor(curIdx);
 
     colorContainer.innerHTML = CANDY_PALETTE.map(c => {
       const cHex = c.hex.toLowerCase();

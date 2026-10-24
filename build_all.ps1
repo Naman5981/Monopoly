@@ -4,6 +4,16 @@ Write-Host "==========================================================" -Foregro
 Write-Host "   BUILDING WORLD TYCOON STANDALONE PACKAGES              " -ForegroundColor Yellow
 Write-Host "==========================================================" -ForegroundColor Cyan
 
+# When running in GitHub Actions CI, ensure debug mode is disabled for all released packages
+if ($env:GITHUB_ACTIONS -eq "true" -or $env:CI -eq "true" -or $env:WT_NO_DEBUG -eq "true") {
+    Write-Host "`n[CI Release Build] Stripping debug mode for distribution artifacts..." -ForegroundColor Yellow
+    if (Test-Path "$PSScriptRoot\scripts\set-debug-mode.ps1") {
+        & "$PSScriptRoot\scripts\set-debug-mode.ps1" -Disable
+    } elseif (Test-Path "$PSScriptRoot\scripts\set-debug-mode.js") {
+        node "$PSScriptRoot\scripts\set-debug-mode.js" --disable
+    }
+}
+
 # 1. Build Windows Asset Zip & Standalone .EXE
 Write-Host "`n[1/3] Packaging Windows Game Assets & Compiling WorldTycoon.exe..." -ForegroundColor Magenta
 & "$PSScriptRoot\build_zip.ps1"

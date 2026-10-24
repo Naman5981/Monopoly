@@ -144,6 +144,15 @@ function initHostPeerConnection(conn) {
       setupPlayers[leavingIdx].isOnlinePeer = false;
       setupPlayers[leavingIdx].peerId = null;
       setupPlayers[leavingIdx].name = `${setupPlayers[leavingIdx].name} (AI)`;
+      if (matchSettings.customPlayers[leavingIdx]) {
+        matchSettings.customPlayers[leavingIdx].isAI = true;
+        matchSettings.customPlayers[leavingIdx].isOnlinePeer = false;
+        matchSettings.customPlayers[leavingIdx].name = setupPlayers[leavingIdx].name;
+      }
+      if (PLAYER_THEMES[leavingIdx]) {
+        PLAYER_THEMES[leavingIdx].isAI = true;
+        PLAYER_THEMES[leavingIdx].name = setupPlayers[leavingIdx].name;
+      }
       broadcastToAll({
         type: 'PLAYER_DISCONNECTED',
         playerIdx: leavingIdx,
@@ -324,6 +333,7 @@ export function handleHostReceivedMessage(conn, msg) {
     }
 
     case 'ACTION_ROLL':
+    case 'ACTION_DOUBLES_ROLL':
     case 'ACTION_BUY_CITY':
     case 'ACTION_BUYOUT_CITY':
     case 'ACTION_UPGRADE_CITY':
@@ -400,6 +410,8 @@ export function broadcastFullGameState() {
     gameState: {
       currentPlayerIdx: gameState.currentPlayerIdx,
       phase: gameState.phase,
+      doublesCount: gameState.doublesCount || 0,
+      turnTimeLeft: gameState.turnTimeLeft || 15,
       matchSeconds: gameState.matchSeconds,
       festivalPot: gameState.festivalPot,
       players: gameState.players.map(p => ({

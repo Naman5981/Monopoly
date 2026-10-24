@@ -64,8 +64,14 @@ export function setupBrowserMocks() {
 
     const dummyElement = createMockElement();
 
+    const elementsById = new Map();
     globalThis.document = {
-      getElementById: (id) => createMockElement('DIV', id),
+      getElementById: (id) => {
+        if (!elementsById.has(id)) {
+          elementsById.set(id, createMockElement('DIV', id));
+        }
+        return elementsById.get(id);
+      },
       querySelector: () => createMockElement(),
       querySelectorAll: () => [],
       createElement: (tag) => createMockElement(tag),

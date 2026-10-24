@@ -144,6 +144,30 @@ describe('P2P Action Dispatcher & Executor', () => {
       });
     });
 
+    it('handles ACTION_DOUBLES_ROLL by delegating to networkCallbacks.onDoublesRoll', () => {
+      networkState.localPlayerIdx = 1;
+      let doublesData = null;
+      registerNetworkCallbacks({
+        onDoublesRoll: (playerIdx, doublesCount, turnTimeLeft) => {
+          doublesData = { playerIdx, doublesCount, turnTimeLeft };
+        }
+      });
+
+      executeIncomingNetworkAction({
+        type: 'ACTION_DOUBLES_ROLL',
+        senderIdx: 0,
+        playerIdx: 0,
+        doublesCount: 1,
+        turnTimeLeft: 15
+      });
+
+      assert.deepEqual(doublesData, {
+        playerIdx: 0,
+        doublesCount: 1,
+        turnTimeLeft: 15
+      });
+    });
+
     it('handles ACTION_BUY_CITY', () => {
       let buyData = null;
       registerNetworkCallbacks({

@@ -4,6 +4,7 @@
  */
 
 import { PLAYER_THEMES, BOARD_TILES } from './data.js';
+import { networkState } from '../network/p2pState.js';
 
 export const PLAYER_NAME_STORAGE_KEY = 'WORLD_TYCOON_PLAYER_NAME';
 
@@ -184,10 +185,36 @@ export function resetGameStateForNewMatch(count) {
 
   for (let i = 0; i < count; i++) {
     const cp = matchSettings.customPlayers[i] || PLAYER_THEMES[i];
+    const isOnline = Boolean(networkState && networkState.isMultiplayer);
+    const isConnectedPeer = isOnline && (
+      Boolean(cp.isOnlinePeer) ||
+      Boolean(cp.peerId) ||
+      (networkState.isHost && i > 0 && cp.isAI === false)
+    );
+
+    let isAI = false;
+    if (isOnline) {
+      if (i === 0) {
+        isAI = false;
+      } else if (isConnectedPeer) {
+        isAI = false;
+        if (cp) {
+          cp.isAI = false;
+          cp.isOnlinePeer = true;
+        }
+      } else {
+        isAI = cp.isAI !== undefined ? cp.isAI : true;
+      }
+    } else {
+      isAI = cp.isAI !== undefined ? cp.isAI : (i > 0);
+    }
+
     gameState.players.push({
       id: i,
       name: cp.name || PLAYER_THEMES[i].name,
-      isAI: cp.isAI !== undefined ? cp.isAI : (i > 0),
+      isAI,
+      isOnlinePeer: isConnectedPeer,
+      peerId: cp.peerId || null,
       cash: startCash,
       position: 0,
       inIsland: false,

@@ -243,7 +243,7 @@
 
       <!-- Right: Rules, Audio & Quick Action Buttons (Unified 42px Height) -->
       <div class="flex items-center gap-2">
-        <button onclick="window.toggleDebugPanel()" class="h-[42px] top-pill px-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5 flex-shrink-0" title="Open Debug & QA Suite [Key: ~ or F2]">
+        <button data-debug-ui="true" onclick="window.toggleDebugPanel()" class="h-[42px] top-pill px-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5 flex-shrink-0" title="Open Debug & QA Suite [Key: ~ or F2]">
           <i class="fa-solid fa-bug text-slate-900 text-xs"></i>
           <span>DEBUG</span>
         </button>
@@ -747,10 +747,10 @@
   </div>
 
   <!-- 4. STREAMLINED SPATIAL TOP HUD HEADER (Antigravity Design Expert) -->
-  <header id="main-game-hud-bar" class="fixed top-3 inset-x-3 sm:inset-x-5 z-30 flex items-center justify-between pointer-events-none select-none gap-2">
+  <header id="main-game-hud-bar" class="fixed top-3 inset-x-3 sm:inset-x-5 z-40 flex items-center justify-between pointer-events-none select-none gap-2">
     <!-- Left Pod: Navigation & Primary Actions -->
     <div class="flex items-center gap-2 pointer-events-auto flex-shrink-0">
-      <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="hud-pill text-indigo-950 font-bold" title="Return to Lobby">
+      <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby">
         <i class="fa-solid fa-house text-indigo-600"></i>
         <span class="hidden sm:inline">Lobby</span>
       </button>
@@ -847,7 +847,7 @@
       </button>
 
       <!-- Compact Debug Trigger -->
-      <button onclick="window.toggleDebugPanel()" class="hud-pill !bg-amber-400 hover:!bg-amber-300 text-slate-950 font-black border border-amber-300 !px-2.5 !py-1 text-xs flex items-center gap-1 cursor-pointer" title="Open Debug & QA Suite [Key: ~ or F2]">
+      <button data-debug-ui="true" onclick="window.toggleDebugPanel()" class="hud-pill !bg-amber-400 hover:!bg-amber-300 text-slate-950 font-black border border-amber-300 !px-2.5 !py-1 text-xs flex items-center gap-1 cursor-pointer" title="Open Debug & QA Suite [Key: ~ or F2]">
         <i class="fa-solid fa-bug text-xs"></i>
         <span class="hidden 2xl:inline text-[11px]">DEBUG</span>
       </button>
@@ -2003,11 +2003,11 @@
         <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-rose-100 shadow-xs mb-1 border border-white/20 relative z-10">
           <svg class="ui-icon w-3 h-3 text-rose-200" aria-hidden="true"><use href="#icon-door"></use></svg> QUIT MATCH
         </div>
-        <h2 class="font-rounded font-black text-xl text-white tracking-wide drop-shadow relative z-10">EXIT TO LOBBY?</h2>
+        <h2 id="confirm-exit-lobby-title" class="font-rounded font-black text-xl text-white tracking-wide drop-shadow relative z-10">EXIT TO LOBBY?</h2>
       </div>
 
       <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70">
-        <p class="text-xs font-bold text-slate-600 leading-snug">
+        <p id="confirm-exit-lobby-desc" class="text-xs font-bold text-slate-600 leading-snug">
           End current game session and return to lobby? Unsaved progress will be lost.
         </p>
 

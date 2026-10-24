@@ -158,6 +158,10 @@ export function passBuyCity() {
   animateModalSpringClose('#modal-buy-city', '#modal-buy-city-card');
   gameState.pendingBuyTile = null;
 
+  if (networkState.isMultiplayer && networkState.isHost) {
+    broadcastFullGameState();
+  }
+
   if (engineCallbacks.concludeActionPhase) {
     engineCallbacks.concludeActionPhase(isDoubles);
   }

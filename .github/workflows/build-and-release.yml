@@ -33,6 +33,11 @@ jobs:
           node ./node_modules/tailwindcss/lib/cli.js -i ./src/style.css -o ./src/compiled.css --minify
           node ./node_modules/tailwindcss/lib/cli.js -i ./src/style.css -o ./public/compiled.css --minify
 
+      - name: Strip Debug Mode for Production Release
+        shell: pwsh
+        run: |
+          node ./scripts/set-debug-mode.js --disable
+
       - name: Build Windows Standalone Executable & Packages
         shell: pwsh
         run: |

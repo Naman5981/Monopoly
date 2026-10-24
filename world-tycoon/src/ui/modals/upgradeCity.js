@@ -291,6 +291,10 @@ export function closeUpgradeCityModal() {
     playLandmarkCinematicReveal(landmarkTileId);
   }
 
+  if (networkState.isMultiplayer && networkState.isHost) {
+    broadcastFullGameState();
+  }
+
   if (engineCallbacks.concludeActionPhase) {
     engineCallbacks.concludeActionPhase(gameState.pendingDoubles);
   }

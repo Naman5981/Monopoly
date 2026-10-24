@@ -229,6 +229,23 @@ export function concludeActionPhase(isDoubles) {
     gameState.doublesCount++;
     gameState.phase = 'ROLL';
     gameState.turnTimeLeft = 15;
+
+    if (networkState.isMultiplayer) {
+      broadcastAction('ACTION_DOUBLES_ROLL', {
+        playerIdx: pIdx,
+        doublesCount: gameState.doublesCount,
+        turnTimeLeft: 15
+      });
+      if (networkState.isHost) {
+        broadcastFullGameState();
+      }
+    }
+
+    renderCornerHUDs();
+    refreshActivePlayerTurnStatus();
+    updateRollButtonsUI(isHumanTurnActionable());
+    animateDoublesBurstBanner(p.name);
+
     const controller = PlayerControllerFactory.create(pIdx);
     controller.onTurnStart({ executeRollFn: executePlayerRoll });
     return;
@@ -301,6 +318,7 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
 
   renderCornerHUDs();
   animateActiveTurnSwitch(next);
+  refreshActivePlayerTurnStatus();
   updateRollButtonsUI(isHumanTurnActionable());
   saveCurrentMatchToStorage();
 

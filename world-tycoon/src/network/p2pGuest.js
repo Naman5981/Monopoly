@@ -333,6 +333,7 @@ export function handleGuestReceivedMessage(msg) {
     }
 
     case 'ACTION_ROLL':
+    case 'ACTION_DOUBLES_ROLL':
     case 'ACTION_BUY_CITY':
     case 'ACTION_BUYOUT_CITY':
     case 'ACTION_UPGRADE_CITY':

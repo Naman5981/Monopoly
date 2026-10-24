@@ -586,7 +586,11 @@ export function refreshActivePlayerTurnStatus() {
     if (p.inIsland) {
       setStatusPill(`🏝️ <strong>Your Turn</strong> — Roll doubles to escape or pay bail!`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
     } else if (gameState.phase === 'ROLL') {
-      setStatusPill(`🎲 <strong>Your Turn</strong> — Roll the dice or press Space!`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
+      const isDoublesReRoll = (gameState.doublesCount || 0) > 0;
+      const rollPrompt = isDoublesReRoll
+        ? `🎲 <strong>Doubles Re-Roll!</strong> — Roll the dice or press Space!`
+        : `🎲 <strong>Your Turn</strong> — Roll the dice or press Space!`;
+      setStatusPill(rollPrompt, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
     } else if (gameState.phase === 'END') {
       setStatusPill(`✨ <strong>Turn ending</strong>...`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
     }
@@ -597,7 +601,11 @@ export function refreshActivePlayerTurnStatus() {
       setStatusPill(`🤔 <strong>${p.name}</strong> is thinking...`, { isThinking: true, playerIdx: curIdx });
     }
   } else {
-    setStatusPill(`⏳ Waiting for <strong>${p.name}</strong>'s move...`, { isThinking: true, playerIdx: curIdx });
+    if ((gameState.doublesCount || 0) > 0 && gameState.phase === 'ROLL') {
+      setStatusPill(`🎲 <strong>${p.name}</strong> rolled doubles! Waiting for their extra roll...`, { isThinking: true, playerIdx: curIdx });
+    } else {
+      setStatusPill(`⏳ Waiting for <strong>${p.name}</strong>'s move...`, { isThinking: true, playerIdx: curIdx });
+    }
   }
 }
 

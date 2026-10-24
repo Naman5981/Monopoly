@@ -1408,6 +1408,16 @@ body {
   pointer-events: auto !important;
 }
 
+/* Debug Suite Visibility Policy (Disabled in Production/CI Releases) */
+body[data-debug-disabled="true"] [data-debug-ui],
+body.production-build [data-debug-ui],
+body[data-debug-disabled="true"] #debug-modal,
+body.production-build #debug-modal {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .victory-card-animate {
   animation: victoryCardPop 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
@@ -2361,8 +2371,12 @@ body {
   display: flex !important;
 }
 
-/* In all lobby views, player and bot appearances cannot be edited */
+/* In lobby views, players can choose their color, but wardrobe and archetype cycling are hidden */
 .lobby-view-local #setup-color-swatches-container,
+.lobby-view-multiplayer-room #setup-color-swatches-container {
+  display: flex !important;
+}
+
 .lobby-view-local #btn-open-wardrobe,
 .lobby-view-local #setup-archetype-carousel-prev,
 .lobby-view-local #setup-archetype-carousel-next,
@@ -2370,7 +2384,6 @@ body {
 .lobby-view-multiplayer-portal #btn-open-wardrobe,
 .lobby-view-multiplayer-portal #setup-archetype-carousel-prev,
 .lobby-view-multiplayer-portal #setup-archetype-carousel-next,
-.lobby-view-multiplayer-room #setup-color-swatches-container,
 .lobby-view-multiplayer-room #btn-open-wardrobe,
 .lobby-view-multiplayer-room #setup-archetype-carousel-prev,
 .lobby-view-multiplayer-room #setup-archetype-carousel-next {

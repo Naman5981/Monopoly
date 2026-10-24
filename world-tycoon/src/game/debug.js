@@ -8,6 +8,7 @@
  */
 
 import { gameState, debugState, matchSettings } from './state.js';
+import { BUILD_CONFIG } from './buildConfig.js';
 import {
   ensureGameStarted,
   debugRoll,
@@ -52,6 +53,28 @@ export * from './debug/ui.js';
  * Initialize Developer & QA Testing Suite
  */
 export function initDebugSuite() {
+  const isDebugAllowed = BUILD_CONFIG?.DEBUG_ENABLED !== false &&
+    (typeof __DEBUG_ALLOWED__ === 'undefined' || __DEBUG_ALLOWED__ !== false);
+
+  if (!isDebugAllowed) {
+    // Production / CI Release Build: completely disable debug suite
+    window.toggleDebugPanel = () => {};
+    if (window.debug) delete window.debug;
+    if (window.WorldTycoonDebug) delete window.WorldTycoonDebug;
+
+    // Remove any debug trigger buttons from DOM
+    if (typeof document !== 'undefined') {
+      try {
+        document.querySelectorAll('[data-debug-ui], [data-debug-btn], button[onclick*="toggleDebugPanel"]').forEach(el => el.remove());
+        const debugModal = document.getElementById('debug-modal');
+        if (debugModal) debugModal.remove();
+      } catch (err) {
+        // Silently handle in non-DOM test environments
+      }
+    }
+    return;
+  }
+
   injectDebugUI();
   bindDebugKeyboardShortcuts();
   populateDropdownOptions();
