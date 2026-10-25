@@ -83,8 +83,6 @@ export function hopPlayerStepAnimation(playerIdx, startPos, endPos, step, totalS
         mesh.scale.set(baseScale / Math.sqrt(stretch), baseScale * stretch, baseScale / Math.sqrt(stretch));
       }
 
-      updateSpeechBubbleScreenPosition();
-
       if (rawT < 1) {
         requestAnimationFrame(stepHop);
       } else {

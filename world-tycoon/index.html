@@ -24,7 +24,7 @@
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <!-- Anime.js Animation Engine (animejs-animation) -->
-  <script src="./src/vendor/anime.min.js"></script>
+  <script src="/vendor/anime.min.js"></script>
 
   <!-- Import map for Three.js ES module resolution -->
   <script type="importmap">
@@ -40,7 +40,8 @@
 </head>
 <body class="h-screen w-screen relative select-none overflow-hidden">
 
-  <!-- ═══ CONSOLIDATED SVG VECTOR SPRITE LIBRARY (clean-code / better-ui) ═══ -->
+  <!-- ═══ CONSOLIDATED SVG VECTOR SPRITE LIBRARY ═══ -->
+    <!-- ═══ CONSOLIDATED SVG VECTOR SPRITE LIBRARY (clean-code / better-ui) ═══ -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display: none;" id="game-svg-symbols">
     <defs>
       <!-- Crown / Royalty / Victory -->
@@ -189,7 +190,8 @@
   </svg>
 
   <!-- 0. FULL-SCREEN CASUAL 3D GAME LOBBY: WORLD TYCOON ORIGINAL INTERFACE -->
-  <div id="landing-setup-screen" class="lobby-view-title fixed inset-0 z-50 flex flex-col justify-between p-4 sm:p-6 lg:p-7 overflow-y-auto overflow-x-hidden">
+    <!-- 0. FULL-SCREEN CASUAL 3D GAME LOBBY: WORLD TYCOON ORIGINAL INTERFACE -->
+  <div id="landing-setup-screen" class="lobby-view-title fixed inset-0 z-50 flex flex-col justify-between p-2 sm:p-3 md:p-4 overflow-y-auto overflow-x-hidden">
 
     <!-- Floating Atmosphere Clouds -->
     <div id="setup-atmosphere-sky-elements" class="absolute bottom-0 left-0 right-0 pointer-events-none opacity-45 flex justify-between select-none transition-opacity duration-700 px-6">
@@ -199,76 +201,82 @@
     </div>
 
     <!-- TOP HEADER BAR: WORLD TYCOON BRANDING & PROFILE -->
-    <div class="relative z-20 max-w-7xl w-full mx-auto flex items-center justify-between gap-4 flex-shrink-0 pt-1 pb-3">
-      <!-- Left: Navigation & Player Profile Capsule (Unified 42px Height) -->
-      <div class="flex items-center gap-2.5">
-        <button id="btn-lobby-back-to-title" onclick="window.showTitleScreen()" class="hidden h-[42px] px-3.5 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-black text-xs shadow-md border-2 border-slate-200 cursor-pointer inline-flex items-center justify-center gap-2 flex-shrink-0 whitespace-nowrap transition-transform hover:scale-[1.02] active:scale-[0.98]" title="Return to Title Menu">
-          <i class="fa-solid fa-arrow-left text-sky-600 text-sm"></i>
+    <div class="relative z-20 max-w-7xl w-full mx-auto flex items-center justify-between gap-3 flex-shrink-0 pt-0.5 pb-1.5 sm:pb-2 mb-1">
+      <!-- Left: Navigation & Player Profile Capsule (Unified 38px Height) -->
+      <div class="flex items-center gap-2">
+        <button id="btn-lobby-back-to-title" onclick="window.showTitleScreen()" class="hidden h-[38px] px-3 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-black text-xs shadow-md border-2 border-slate-200 cursor-pointer inline-flex items-center justify-center gap-1.5 flex-shrink-0 whitespace-nowrap transition-transform hover:scale-[1.02] active:scale-[0.98]" title="Return to Title Menu">
+          <i class="fa-solid fa-arrow-left text-sky-600 text-xs"></i>
           <span class="font-black text-xs uppercase tracking-wider">Back</span>
         </button>
 
-        <div class="h-[42px] flex items-center gap-2.5 bg-white/95 rounded-full px-2 py-1 pr-3.5 shadow-md border-2 border-white backdrop-blur-sm flex-shrink-0">
-          <div id="setup-profile-avatar" class="w-8 h-8 rounded-full border-2 border-emerald-400 overflow-hidden flex items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-200 font-black text-emerald-800 text-sm shadow-inner flex-shrink-0">
+        <div class="h-[38px] flex items-center gap-2 bg-white/95 rounded-full px-1.5 py-0.5 pr-3 shadow-md border-2 border-white backdrop-blur-sm flex-shrink-0">
+          <div id="setup-profile-avatar" class="w-7 h-7 rounded-full border-2 border-emerald-400 overflow-hidden flex items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-200 font-black text-emerald-800 text-xs shadow-inner flex-shrink-0">
             Y
           </div>
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2">
             <div id="setup-profile-name-btn" class="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition" onclick="window.promptEditPlayerName()" title="Click to edit your tycoon name">
-              <span id="setup-profile-name" class="text-sm font-black uppercase text-slate-800 tracking-wider">
+              <span id="setup-profile-name" class="text-xs sm:text-sm font-black uppercase text-slate-800 tracking-wider">
                 TYCOON
               </span>
-              <svg class="ui-icon w-3.5 h-3.5 text-amber-500" aria-hidden="true"><use href="#icon-crown"></use></svg>
-              <i id="setup-profile-edit-icon" class="fa-solid fa-pen text-[9px] text-amber-500 ml-0.5"></i>
+              <svg class="ui-icon w-3 h-3 text-amber-500" aria-hidden="true"><use href="#icon-crown"></use></svg>
+              <i id="setup-profile-edit-icon" class="fa-solid fa-pen text-[8px] text-amber-500 ml-0.5"></i>
             </div>
-            <span class="w-px h-4 bg-slate-200"></span>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow-xs border border-amber-300" title="Your Tycoon Stars">
-              <svg class="ui-icon w-3.5 h-3.5 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
-              <span id="setup-profile-stars" class="font-mono tabular-nums text-xs font-black">558</span>
-              <span class="text-[10px] uppercase tracking-wider font-extrabold text-amber-950">STARS</span>
+            <span class="w-px h-3.5 bg-slate-200"></span>
+            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[11px] shadow-xs border border-amber-300" title="Your Tycoon Stars">
+              <svg class="ui-icon w-3 h-3 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
+              <span id="setup-profile-stars" class="font-mono tabular-nums text-[11px] font-black">558</span>
+              <span class="text-[9px] uppercase tracking-wider font-extrabold text-amber-950">STARS</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Center: Original World Tycoon 3D Game Logo -->
-      <div class="flex flex-col items-center">
+      <div class="flex flex-col items-center flex-shrink-0">
         <div class="game-logo-3d cursor-default flex items-center gap-2">
-          <svg class="ui-icon w-8 h-8 text-sky-400 logo-globe-icon drop-shadow" aria-hidden="true"><use href="#icon-globe"></use></svg>
+          <svg class="ui-icon w-7 h-7 text-sky-400 logo-globe-icon drop-shadow" aria-hidden="true"><use href="#icon-globe"></use></svg>
           <span class="logo-brand-world">WORLD</span>
           <span class="logo-brand-tycoon">TYCOON</span>
         </div>
-        <div class="logo-edition-pill mt-1">
-          GLOBAL EDITION
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <div class="logo-edition-pill">
+            GLOBAL EDITION
+          </div>
+          <button id="btn-version-pill" onclick="window.checkGameUpdateManually()" class="logo-edition-pill !bg-slate-800/80 hover:!bg-slate-700/90 text-sky-300 border border-sky-400/30 px-2 py-0.5 text-[10px] font-mono cursor-pointer transition-all flex items-center gap-1 active:scale-95" title="Game Version — Click to check for updates" aria-label="Game Version and Update Status">
+            <span id="version-pill-dot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+            <span id="version-pill-text">v1.0.0</span>
+          </button>
         </div>
       </div>
 
-      <!-- Right: Rules, Audio & Quick Action Buttons (Unified 42px Height) -->
-      <div class="flex items-center gap-2">
-        <button data-debug-ui="true" onclick="window.toggleDebugPanel()" class="h-[42px] top-pill px-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5 flex-shrink-0" title="Open Debug & QA Suite [Key: ~ or F2]">
+      <!-- Right: Rules, Audio & Quick Action Buttons (Unified 38px Height) -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button data-debug-ui="true" onclick="window.toggleDebugPanel()" class="h-[38px] top-pill px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1 flex-shrink-0" title="Open Debug & QA Suite [Key: ~ or F2]">
           <i class="fa-solid fa-bug text-slate-900 text-xs"></i>
           <span>DEBUG</span>
         </button>
-        <button onclick="window.openRulesModal()" class="h-[42px] top-pill px-4 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-2 flex-shrink-0" title="How to Play & Rules">
+        <button onclick="window.openRulesModal()" class="h-[38px] top-pill px-3.5 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5 flex-shrink-0" title="How to Play & Rules">
           <i class="fa-solid fa-book-open text-sky-600 text-xs"></i>
           <span>RULES</span>
         </button>
-        <div class="h-[42px] flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
+        <div class="h-[38px] flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
           <button onclick="window.toggleSound()" id="setup-btn-sound" class="text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center p-1" title="Mute / Unmute Sound">
             <i id="setup-btn-sound-icon" class="fa-solid fa-volume-high text-xs text-sky-600"></i>
           </button>
-          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-16 sm:w-20 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume">
-          <span id="setup-sound-volume-val" class="text-xs font-black tabular-nums text-slate-700 w-6">75%</span>
+          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-14 sm:w-18 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume">
+          <span id="setup-sound-volume-val" class="text-[11px] font-black tabular-nums text-slate-700 w-5">75%</span>
         </div>
-        <button onclick="if(confirm('Reset match settings to defaults?')) window.location.reload()" class="w-[42px] h-[42px] rounded-full border-2 border-white bg-rose-500 hover:bg-rose-600 text-white shadow-md flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer" title="Reset Lobby">
+        <button onclick="if(confirm('Reset match settings to defaults?')) window.location.reload()" class="w-[38px] h-[38px] rounded-full border-2 border-white bg-rose-500 hover:bg-rose-600 text-white shadow-md flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer" title="Reset Lobby">
           <i class="fa-solid fa-rotate-left text-xs font-black"></i>
         </button>
       </div>
     </div>
 
     <!-- MAIN 3-COLUMN LOBBY CONTENT ARENA -->
-    <div id="lobby-main-arena" class="relative z-10 flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch my-auto py-2">
+    <div id="lobby-main-arena" class="relative z-10 flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4.5 items-stretch my-auto py-1 sm:py-2">
 
       <!-- LEFT COLUMN: PLAYERS AT THE TABLE -->
-      <div id="lobby-roster-column" class="col-span-12 lg:col-span-4 game-panel-card p-5 sm:p-6 flex flex-col justify-between shadow-xl min-h-[580px]">
+      <div id="lobby-roster-column" class="col-span-12 lg:col-span-4 game-panel-card p-3.5 sm:p-5 flex flex-col justify-between shadow-xl min-h-[460px] lg:min-h-[500px]">
         <div class="flex-1 flex flex-col">
           <!-- Header -->
           <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3 mb-3 flex-shrink-0">
@@ -303,116 +311,116 @@
       </div>
 
       <!-- CENTER COLUMN: HERO 3D PODIUM & BIG PLAY BUTTON -->
-      <div id="lobby-hero-column" class="col-span-12 lg:col-span-4 flex flex-col items-center justify-between min-h-[580px] py-2 relative">
+      <div id="lobby-hero-column" class="col-span-12 lg:col-span-4 flex flex-col items-center justify-between min-h-[460px] lg:min-h-[500px] py-1 relative">
         <!-- Sunburst Radial Halo with Depth Glow -->
         <div class="lobby-podium-halo"></div>
 
         <!-- Archetype Carousel Top Selector -->
-        <div class="relative z-20 flex items-center justify-center gap-3 w-full">
-          <button id="setup-archetype-carousel-prev" onclick="window.cycleAvatarPrev()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-lg shadow-lg cursor-pointer" title="Previous Archetype">
-            <i class="fa-solid fa-chevron-left"></i>
+        <div class="relative z-20 flex items-center justify-center gap-2.5 w-full">
+          <button id="setup-archetype-carousel-prev" onclick="window.cycleAvatarPrev()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-sm shadow-md cursor-pointer" title="Previous Archetype" aria-label="Previous Archetype">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
           </button>
-          <div id="setup-character-archetype-name" class="px-6 py-2 rounded-full bg-white/95 text-slate-800 font-black text-sm sm:text-base shadow-md border-2 border-white flex items-center gap-2 cursor-pointer hover:bg-white" onclick="window.cycleAvatarNext()">
+          <div id="setup-character-archetype-name" class="px-4 py-1 rounded-full bg-white/95 text-slate-800 font-black text-xs sm:text-sm shadow-md border-2 border-white flex items-center gap-1.5 cursor-pointer hover:bg-white" onclick="window.cycleAvatarNext()">
             <span>🎩</span><span>BANKER</span>
           </div>
-          <button id="setup-archetype-carousel-next" onclick="window.cycleAvatarNext()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-lg shadow-lg cursor-pointer" title="Next Archetype">
-            <i class="fa-solid fa-chevron-right"></i>
+          <button id="setup-archetype-carousel-next" onclick="window.cycleAvatarNext()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-sm shadow-md cursor-pointer" title="Next Archetype" aria-label="Next Archetype">
+            <i class="fa-solid fa-chevron-right text-xs"></i>
           </button>
         </div>
 
         <!-- 3D Canvas Stage -->
         <div id="lobby-avatar-3d-canvas-wrapper" class="relative flex items-center justify-center">
-          <canvas id="lobby-avatar-3d-canvas" width="380" height="400" class="w-[320px] h-[340px] sm:w-[360px] sm:h-[380px] pointer-events-auto filter drop-shadow-2xl relative z-10"></canvas>
+          <canvas id="lobby-avatar-3d-canvas" width="380" height="400" class="w-[190px] h-[190px] sm:w-[210px] sm:h-[210px] pointer-events-auto filter drop-shadow-2xl relative z-10"></canvas>
         </div>
 
         <!-- Bottom Controls: Default Setup Mode -->
-        <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-3 w-full">
+        <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-2 w-full">
           <!-- Customization Row: Wardrobe & Colors (Always accessible) -->
-          <div class="flex items-center gap-2 flex-wrap justify-center">
+          <div class="flex items-center gap-1.5 flex-wrap justify-center">
             <!-- Wardrobe & Outfits Button -->
-            <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-5 py-2.5 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs sm:text-sm shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-2.5 cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Customize Outfits, Hats, Dice & Pedestals">
-              <svg class="ui-icon w-4 h-4 text-amber-600" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
-              <span class="tracking-wide">WARDROBE</span>
-              <span class="ml-1 px-3 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-xs shadow-2xs border border-amber-500/20 tabular-nums inline-flex items-center gap-1.5">
-                <svg class="ui-icon w-3.5 h-3.5 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
-                <span id="wardrobe-button-stars-badge" class="font-mono tabular-nums text-xs font-black">500</span>
+            <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-3 py-1.5 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-1.5 cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Customize Outfits, Hats, Dice & Pedestals">
+              <svg class="ui-icon w-3.5 h-3.5 text-amber-600" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
+              <span class="tracking-wide text-[11px]">WARDROBE</span>
+              <span class="ml-0.5 px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] shadow-2xs border border-amber-500/20 tabular-nums inline-flex items-center gap-1">
+                <svg class="ui-icon w-2.5 h-2.5 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
+                <span id="wardrobe-button-stars-badge" class="font-mono tabular-nums text-[10px] font-black">500</span>
               </span>
             </button>
 
             <!-- Color Swatches Bar -->
-            <div id="setup-color-swatches-container" class="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-white shadow-md flex items-center gap-2">
-              <span class="text-xs font-black uppercase text-slate-600 tracking-wider mr-1">COLOR</span>
-              <div id="setup-color-swatches" class="flex items-center gap-1.5">
+            <div id="setup-color-swatches-container" class="bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 border-2 border-white shadow-md flex items-center gap-1">
+              <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider mr-0.5">COLOR</span>
+              <div id="setup-color-swatches" class="flex items-center gap-1">
                 <!-- Dynamically populated candy circles -->
               </div>
             </div>
           </div>
 
           <!-- A. Title Screen Primary Menu (LOCAL vs MULTIPLAYER) -->
-          <div id="title-menu-actions" class="w-full max-w-sm flex flex-col items-center gap-3 mt-1 relative z-30 pointer-events-auto">
+          <div id="title-menu-actions" class="w-full max-w-sm flex flex-col items-center gap-2 mt-0.5 relative z-30 pointer-events-auto">
             <!-- First-Time Name Heads Up Notification Banner -->
-            <div id="home-name-heads-up" class="w-full rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 p-3.5 shadow-xl border-2 border-white flex flex-col gap-2 relative hidden">
+            <div id="home-name-heads-up" class="w-full rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 p-3 shadow-xl border-2 border-white flex flex-col gap-1.5 relative hidden">
               <div class="flex items-start justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-full bg-slate-950 text-amber-300 flex items-center justify-center text-xs shadow-inner flex-shrink-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-5 h-5 rounded-full bg-slate-950 text-amber-300 flex items-center justify-center text-[10px] shadow-inner flex-shrink-0">
                     <i class="fa-solid fa-lightbulb"></i>
                   </span>
-                  <span class="font-black text-xs uppercase tracking-wider text-slate-950">Heads Up! Tycoon Name</span>
+                  <span class="font-black text-[11px] uppercase tracking-wider text-slate-950">Heads Up! Tycoon Name</span>
                 </div>
-                <button onclick="window.dismissNameHeadsUp(true)" class="w-6 h-6 rounded-full bg-slate-950/10 hover:bg-slate-950/20 text-slate-800 flex items-center justify-center text-xs cursor-pointer transition" title="Dismiss">
-                  <i class="fa-solid fa-xmark"></i>
+                <button onclick="window.dismissNameHeadsUp(true)" class="w-5 h-5 rounded-full bg-slate-950/10 hover:bg-slate-950/20 text-slate-800 flex items-center justify-center text-xs cursor-pointer transition" title="Dismiss" aria-label="Dismiss name change hint">
+                  <i class="fa-solid fa-xmark text-[10px]"></i>
                 </button>
               </div>
-              <p class="text-xs font-bold text-slate-900 leading-snug">
+              <p class="text-[11px] font-bold text-slate-900 leading-snug">
                 You can customize your player name right here on the Home Screen! Once you enter Local or Multiplayer lobbies, names are locked.
               </p>
               <div class="flex items-center gap-2 mt-0.5">
-                <button onclick="window.promptEditPlayerName(); window.dismissNameHeadsUp(true);" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition">
-                  <i class="fa-solid fa-pen text-[10px]"></i> Change Name
+                <button onclick="window.promptEditPlayerName(); window.dismissNameHeadsUp(true);" class="flex-1 py-1 px-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs flex items-center justify-center gap-1 shadow-md cursor-pointer transition">
+                  <i class="fa-solid fa-pen text-[9px]"></i> Change Name
                 </button>
-                <button onclick="window.dismissNameHeadsUp(true)" class="py-1.5 px-3 rounded-xl bg-white/90 hover:bg-white text-slate-900 font-black text-xs shadow-2xs border border-white cursor-pointer transition">
+                <button onclick="window.dismissNameHeadsUp(true)" class="py-1 px-2.5 rounded-xl bg-white/90 hover:bg-white text-slate-900 font-black text-xs shadow-2xs border border-white cursor-pointer transition">
                   Got It!
                 </button>
               </div>
             </div>
 
             <!-- Tycoon Profile Quick Card on Home Screen -->
-            <div class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-white/95 border-2 border-amber-300/80 shadow-md">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
-                <span class="text-[11px] font-black uppercase text-amber-800 tracking-wider flex-shrink-0">YOUR NAME:</span>
-                <strong id="home-tycoon-name-display" class="text-sm font-black text-slate-800 uppercase truncate">TYCOON</strong>
+            <div class="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl bg-white/95 border-2 border-amber-300/80 shadow-xs">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
+                <span class="text-[10px] font-black uppercase text-amber-800 tracking-wider flex-shrink-0">YOUR NAME:</span>
+                <strong id="home-tycoon-name-display" class="text-xs sm:text-sm font-black text-slate-800 uppercase truncate">TYCOON</strong>
               </div>
-              <button onclick="window.promptEditPlayerName()" class="px-3 py-1 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-xs cursor-pointer transition shadow-2xs flex items-center gap-1.5 flex-shrink-0" title="Edit your Tycoon name">
-                <i class="fa-solid fa-pen text-[10px]"></i>
+              <button onclick="window.promptEditPlayerName()" class="px-2.5 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-[11px] cursor-pointer transition shadow-2xs flex items-center gap-1 flex-shrink-0" title="Edit your Tycoon name">
+                <i class="fa-solid fa-pen text-[9px]"></i>
                 <span>EDIT</span>
               </button>
             </div>
 
-            <button onclick="window.showLocalSetup()" class="w-full py-4 px-6 rounded-3xl font-rounded font-black text-white game-btn game-btn-green shadow-xl flex items-center justify-between group cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]" title="Play solo against bots or pass-and-play">
-              <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-2xl shadow-inner border border-white/30">
+            <button onclick="window.showLocalSetup()" class="w-full py-2.5 px-4 sm:px-5 rounded-2xl font-rounded font-black text-white game-btn game-btn-green shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Play solo against bots or pass-and-play">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg sm:text-xl shadow-inner border border-white/30">
                   <i class="fa-solid fa-gamepad text-white"></i>
                 </div>
                 <div class="text-left">
-                  <div class="text-lg sm:text-xl font-black leading-tight tracking-wider">LOCAL PLAY</div>
-                  <div class="text-[10px] font-extrabold text-emerald-100 uppercase tracking-widest">Pass & Play + AI Bots</div>
+                  <div class="text-base sm:text-lg font-black leading-tight tracking-wider">LOCAL PLAY</div>
+                  <div class="text-[9px] font-extrabold text-emerald-100 uppercase tracking-widest">Pass & Play + AI Bots</div>
                 </div>
               </div>
-              <i class="fa-solid fa-chevron-right text-emerald-200 group-hover:translate-x-1 transition-transform"></i>
+              <i class="fa-solid fa-chevron-right text-emerald-200 text-xs group-hover:translate-x-1 transition-transform"></i>
             </button>
 
-            <button onclick="window.showMultiplayerSetup()" class="w-full py-3.5 px-6 rounded-3xl font-rounded font-black text-white game-btn game-btn-blue shadow-lg flex items-center justify-between group cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]" title="Host private room or join via room code">
-              <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-2xl shadow-inner border border-white/30">
+            <button onclick="window.showMultiplayerSetup()" class="w-full py-2.5 px-4 sm:px-5 rounded-2xl font-rounded font-black text-white game-btn game-btn-blue shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Host private room or join via room code">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg sm:text-xl shadow-inner border border-white/30">
                   <i class="fa-solid fa-globe text-white"></i>
                 </div>
                 <div class="text-left">
-                  <div class="text-lg sm:text-xl font-black leading-tight tracking-wider">MULTIPLAYER</div>
-                  <div class="text-[10px] font-extrabold text-sky-100 uppercase tracking-widest">Host or Join via Room Code</div>
+                  <div class="text-base sm:text-lg font-black leading-tight tracking-wider">MULTIPLAYER</div>
+                  <div class="text-[9px] font-extrabold text-sky-100 uppercase tracking-widest">Host or Join via Room Code</div>
                 </div>
               </div>
-              <i class="fa-solid fa-chevron-right text-sky-200 group-hover:translate-x-1 transition-transform"></i>
+              <i class="fa-solid fa-chevron-right text-sky-200 text-xs group-hover:translate-x-1 transition-transform"></i>
             </button>
           </div>
 
@@ -460,7 +468,7 @@
       </div>
 
       <!-- RIGHT COLUMN: MATCH CONFIGURATION & RULES -->
-      <div id="lobby-settings-column" class="col-span-12 lg:col-span-4 game-panel-card p-5 sm:p-6 flex flex-col justify-between shadow-xl min-h-[580px] space-y-4">
+      <div id="lobby-settings-column" class="col-span-12 lg:col-span-4 game-panel-card p-3.5 sm:p-5 flex flex-col justify-between shadow-xl min-h-[460px] lg:min-h-[500px] space-y-3">
         <div class="space-y-4">
           <!-- Header -->
           <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3">
@@ -725,7 +733,8 @@
 
   </div>
 
-  <!-- 1. THREE.JS FULL-SCREEN ISOMETRIC 3D DIORAMA CANVAS -->
+  <!-- 1-10. THREE.JS CANVAS & HUD ACTION STATIONS -->
+    <!-- 1. THREE.JS FULL-SCREEN ISOMETRIC 3D DIORAMA CANVAS -->
   <div id="three-canvas-container" class="fixed inset-0 z-0"></div>
 
   <!-- 2. FLOATING SPEECH BUBBLE OVER ACTIVE PLAYER TOKEN -->
@@ -746,29 +755,37 @@
     <span>WORLD TOUR! Click any tile to fly.</span>
   </div>
 
+  <!-- 3B. WORLD FESTIVAL SELECTION BANNER -->
+  <div id="festival-select-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white px-5 py-2.5 rounded-full font-extrabold text-xs shadow-2xl border-2 border-white items-center gap-2.5 animate-pulse">
+    <i class="fa-solid fa-champagne-glasses text-amber-300 text-sm"></i>
+    <span>WORLD FESTIVAL! Click any highlighted property on the board (or open list) to activate 2× Rent!</span>
+    <button onclick="window.openFestivalBoostModalFromBanner()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-full text-[11px] font-black underline cursor-pointer ml-1" title="Open Property List">Open List</button>
+  </div>
+
   <!-- 4. STREAMLINED SPATIAL TOP HUD HEADER (Antigravity Design Expert) -->
-  <header id="main-game-hud-bar" class="fixed top-3 inset-x-3 sm:inset-x-5 z-40 flex items-center justify-between pointer-events-none select-none gap-2">
+  <header id="main-game-hud-bar" class="fixed top-2.5 sm:top-3 inset-x-3 sm:inset-x-5 z-[100] hidden flex items-center justify-between pointer-events-none select-none gap-2 flex-nowrap">
     <!-- Left Pod: Navigation & Primary Actions -->
-    <div class="flex items-center gap-2 pointer-events-auto flex-shrink-0">
-      <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby">
+    <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-shrink-0">
+      <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby" aria-label="Return to Lobby" style="pointer-events: auto !important; position: relative; z-index: 101;">
         <i class="fa-solid fa-house text-indigo-600"></i>
         <span class="hidden sm:inline">Lobby</span>
       </button>
 
       <div class="h-5 w-px bg-slate-300/60 hidden sm:block"></div>
 
-      <button id="btn-manage-cities" onclick="window.openPortfolioModal()" class="hud-pill text-indigo-950" title="Manage Cities">
+      <button id="btn-manage-cities" onclick="window.openPortfolioModal()" class="hud-pill text-indigo-950" title="Manage Cities" aria-label="Manage Cities Portfolio">
         <i id="icon-manage-cities" class="fa-solid fa-city text-indigo-600"></i>
-        <span>Manage Cities</span>
+        <span class="hidden md:inline">Manage Cities</span>
+        <span class="hidden sm:inline md:hidden">Cities</span>
       </button>
-      <button id="btn-trade" onclick="window.openTradeModal()" class="hud-pill text-emerald-950" title="Trade Properties & Cash with Opponents">
+      <button id="btn-trade" onclick="window.openTradeModal()" class="hud-pill text-emerald-950" title="Trade Properties & Cash with Opponents" aria-label="Trade Properties and Cash">
         <i id="icon-trade" class="fa-solid fa-handshake text-emerald-600"></i>
-        <span>Trade</span>
+        <span class="hidden sm:inline">Trade</span>
       </button>
     </div>
 
     <!-- Center Pod: Match Status Capsule (Spatial Glass Island) -->
-    <div id="hud-match-status-capsule" class="hud-glass-capsule pointer-events-auto hidden md:flex items-center gap-2.5 px-3.5 shadow-sm">
+    <div id="hud-match-status-capsule" class="hud-glass-capsule pointer-events-auto hidden md:flex items-center gap-2.5 px-3.5 shadow-sm flex-shrink-0">
       <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700" title="Elapsed Match Time">
         <i class="fa-regular fa-clock text-slate-500"></i>
         <span id="hud-game-clock" class="tabular-nums font-black text-slate-800">00:00</span>
@@ -776,7 +793,7 @@
 
       <span class="hud-capsule-divider"></span>
 
-      <button id="btn-game-speed" onclick="window.cycleGameSpeed()" class="hud-capsule-btn px-2 py-0.5 rounded-full text-slate-700 hover:text-sky-600 hover:bg-slate-100 text-xs font-black cursor-pointer transition" title="Game Speed (1x, 2x, 4x Turbo)">
+      <button id="btn-game-speed" onclick="window.cycleGameSpeed()" class="hud-capsule-btn px-2 py-0.5 rounded-full text-slate-700 hover:text-sky-600 hover:bg-slate-100 text-xs font-black cursor-pointer transition" title="Game Speed (1x, 2x, 4x Turbo)" aria-label="Cycle Game Speed">
         <span id="game-speed-label">⚡ 1×</span>
       </button>
 
@@ -789,7 +806,7 @@
 
       <span class="hud-capsule-divider"></span>
 
-      <button id="btn-top-leaderboard" onclick="window.toggleLeaderboardModal()" class="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-amber-600 transition cursor-pointer" title="View Tycoon Leaderboard & Net Worth Standings [Hotkey: Tab or L]">
+      <button id="btn-top-leaderboard" onclick="window.toggleLeaderboardModal()" class="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-amber-600 transition cursor-pointer" title="View Tycoon Leaderboard & Net Worth Standings [Hotkey: Tab or L]" aria-label="View Net Worth Leaderboard">
         <i class="fa-solid fa-trophy text-amber-500"></i>
         <span id="hud-player-count" class="tabular-nums font-black text-slate-800">2/2</span>
       </button>
@@ -798,56 +815,58 @@
     <!-- Right Pod: Settings, Atmosphere & Tools -->
     <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-shrink-0">
       <!-- WebRTC P2P Room Status Pill -->
-      <button id="hud-multiplayer-pill" onclick="window.copyRoomInviteLink()" class="hud-pill hidden !bg-indigo-50 border-indigo-200 text-indigo-900 cursor-pointer" title="Click to copy room invite link">
+      <button id="hud-multiplayer-pill" onclick="window.copyRoomInviteLink()" class="hud-pill hidden !bg-indigo-50 border-indigo-200 text-indigo-900 cursor-pointer" title="Click to copy room invite link" aria-label="Copy Room Invite Link">
         <span id="hud-multiplayer-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="hud-multiplayer-text" class="font-extrabold text-xs">Room: ----</span>
         <i class="fa-regular fa-copy text-xs text-indigo-500"></i>
       </button>
 
       <!-- Atmosphere Lighting Mode -->
-      <button id="btn-lighting-mode" onclick="window.cycleLightingMode()" class="hud-pill text-slate-700" title="Toggle Lighting Theme (Morning, Sunset, Night)">
+      <button id="btn-lighting-mode" onclick="window.cycleLightingMode()" class="hud-pill text-slate-700" title="Toggle Lighting Theme (Morning, Sunset, Night)" aria-label="Toggle Lighting Atmosphere">
         <i class="fa-solid fa-sun text-amber-500"></i>
         <span class="hidden xl:inline text-xs">Day</span>
       </button>
 
       <!-- Sound Volume Control Pill -->
-      <div class="hud-pill flex items-center gap-1.5 px-2.5 py-1" title="Adjust Sound Volume">
-        <button onclick="window.toggleSound()" id="btn-sound" class="text-slate-700 hover:text-slate-950 transition cursor-pointer flex items-center justify-center p-0.5" title="Mute / Unmute Sound">
+      <div class="hud-pill flex items-center gap-1.5 px-2 sm:px-2.5 py-1" title="Adjust Sound Volume">
+        <button onclick="window.toggleSound()" id="btn-sound" class="text-slate-700 hover:text-slate-950 transition cursor-pointer flex items-center justify-center p-0.5" title="Mute / Unmute Sound" aria-label="Mute or Unmute Sound">
           <i id="btn-sound-icon" class="fa-solid fa-volume-high text-xs text-sky-600"></i>
         </button>
-        <input type="range" id="sound-volume-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-12 sm:w-16 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume">
-        <span id="sound-volume-val" class="text-xs font-black tabular-nums text-slate-700 w-6 text-right">75%</span>
+        <div class="hidden md:flex items-center gap-1.5">
+          <input type="range" id="sound-volume-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-12 sm:w-16 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume" aria-label="Sound volume slider">
+          <span id="sound-volume-val" class="text-xs font-black tabular-nums text-slate-700 w-6 text-right">75%</span>
+        </div>
       </div>
 
       <!-- Compact Camera Orbit Controls -->
-      <div class="hud-pill !px-1.5 !gap-0.5 hidden sm:flex items-center" title="Camera Rotation Controls">
-        <button onclick="window.rotateBoardLeft()" class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Rotate Board 45° Left">
+      <div class="hud-pill !px-1.5 !gap-0.5 hidden lg:flex items-center" title="Camera Rotation Controls">
+        <button onclick="window.rotateBoardLeft()" class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Rotate Board 45° Left" aria-label="Rotate Board Left">
           <i class="fa-solid fa-rotate-left text-xs"></i>
         </button>
-        <button onclick="window.resetCameraView()" class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Reset Isometric Camera">
+        <button onclick="window.resetCameraView()" class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Reset Isometric Camera" aria-label="Reset Camera View">
           <i class="fa-solid fa-compress text-xs"></i>
         </button>
-        <button onclick="window.rotateBoardRight()" class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Rotate Board 45° Right">
+        <button onclick="window.rotateBoardRight()" class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Rotate Board 45° Right" aria-label="Rotate Board Right">
           <i class="fa-solid fa-rotate-right text-xs"></i>
         </button>
       </div>
 
       <!-- Quick Utility Icon Buttons -->
-      <button onclick="window.openRulesModal()" class="hud-circle-icon-btn" title="How to Play & Game Rules">
+      <button onclick="window.openRulesModal()" class="hud-circle-icon-btn" title="How to Play & Game Rules" aria-label="How to Play and Rules">
         <i class="fa-regular fa-circle-question text-slate-700 text-sm"></i>
       </button>
 
-      <button onclick="window.toggleEventLogDrawer()" class="hud-circle-icon-btn" title="Open Activity Event Log">
+      <button onclick="window.toggleEventLogDrawer()" class="hud-circle-icon-btn" title="Open Activity Event Log" aria-label="Open Activity Event Log">
         <i class="fa-regular fa-file-lines text-slate-700 text-xs"></i>
       </button>
 
-      <button onclick="window.triggerReaction('tomato')" class="hud-circle-icon-btn hidden sm:inline-flex" title="Throw a fun Tomato at opponent!">
+      <button onclick="window.triggerReaction('tomato')" class="hud-circle-icon-btn hidden xl:inline-flex" title="Throw a fun Tomato at opponent!" aria-label="Throw Tomato Reaction">
         <span class="text-xs leading-none">🍅</span>
         <span id="tomato-counter" class="hidden">0</span>
       </button>
 
       <!-- Compact Debug Trigger -->
-      <button data-debug-ui="true" onclick="window.toggleDebugPanel()" class="hud-pill !bg-amber-400 hover:!bg-amber-300 text-slate-950 font-black border border-amber-300 !px-2.5 !py-1 text-xs flex items-center gap-1 cursor-pointer" title="Open Debug & QA Suite [Key: ~ or F2]">
+      <button data-debug-ui="true" onclick="window.toggleDebugPanel()" class="hud-pill !bg-amber-400 hover:!bg-amber-300 text-slate-950 font-black border border-amber-300 !px-2.5 !py-1 text-xs flex items-center gap-1 cursor-pointer" title="Open Debug & QA Suite [Key: ~ or F2]" aria-label="Open Debug Panel">
         <i class="fa-solid fa-bug text-xs"></i>
         <span class="hidden 2xl:inline text-[11px]">DEBUG</span>
       </button>
@@ -868,18 +887,24 @@
   </div>
 
   <!-- 7. CORNER PLAYER HUD CARDS -->
-  <div id="hud-left-players" class="fixed top-[74px] left-4 z-30 flex flex-col gap-2.5 sm:gap-3 pointer-events-auto"></div>
-  <div id="hud-right-players" class="fixed top-[74px] right-4 z-30 flex flex-col gap-2.5 sm:gap-3 items-end pointer-events-auto"></div>
+  <div id="hud-left-players" class="fixed top-[54px] sm:top-[58px] left-3 sm:left-5 z-30 hidden flex flex-col gap-2.5 sm:gap-3 pointer-events-auto"></div>
+  <div id="hud-right-players" class="fixed top-[54px] sm:top-[58px] right-3 sm:right-5 z-30 hidden flex flex-col gap-2.5 sm:gap-3 items-end pointer-events-auto"></div>
 
   <!-- 8. CENTER BOARD FLOATING "ROLL" PILL BUTTON -->
-  <div id="center-park-controls" class="fixed left-1/2 top-[51%] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none flex flex-col items-center gap-2 transition-opacity duration-300">
+  <div id="center-park-controls" class="fixed left-1/2 top-[51%] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none flex flex-col items-center gap-2.5 transition-opacity duration-300">
     <div id="dice-sum-badge" class="hidden px-3.5 py-1 rounded-full bg-slate-900/90 text-white font-rounded font-extrabold text-xs shadow-lg border border-white/20 tracking-wider pointer-events-none transition-all duration-200" style="display: none; opacity: 0; transform: scale(0.85);">
       🎲 Rolled 7
     </div>
-    <button id="btn-center-roll" onclick="window.handleRollButtonClick()" class="center-roll-btn hidden pointer-events-auto">
-      <i class="fa-solid fa-dice text-lg"></i>
-      <span id="center-roll-label">Roll</span>
-    </button>
+    <div class="flex items-center justify-center gap-2.5 flex-wrap">
+      <button id="btn-center-escape-island" onclick="window.handlePayIslandBail()" class="center-bail-btn hidden pointer-events-auto" title="Pay $150K bail to exit Island immediately">
+        <i class="fa-solid fa-lock-open text-base"></i>
+        <span id="center-bail-label">Pay 150K Bail</span>
+      </button>
+      <button id="btn-center-roll" onclick="window.handleRollButtonClick()" class="center-roll-btn hidden pointer-events-auto">
+        <i class="fa-solid fa-dice text-lg"></i>
+        <span id="center-roll-label">Roll</span>
+      </button>
+    </div>
   </div>
 
   <!-- 8B. SCREEN DICE BOUNCE OVERLAY -->
@@ -942,9 +967,10 @@
 
     <!-- Main Action Station: Centered Roll Button flanked by Bail (left) and 15s Timer (right) -->
     <div id="hud-roll-station" class="relative flex items-center justify-center pointer-events-auto">
-      <!-- Jail Pay Bail Quick Button (When on Island) - Flanks left without pulling center -->
-      <button id="btn-escape-island" onclick="window.handlePayIslandBail()" class="hidden absolute right-full mr-3 px-4 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs shadow-lg transition items-center gap-1.5 whitespace-nowrap cursor-pointer" title="Pay 150K bail to exit Island immediately">
-        <i class="fa-solid fa-umbrella-beach"></i> Pay 150K Bail
+      <!-- Jail Pay Bail Quick Button (When on Island) - Flanks left on wider screens, inline on mobile -->
+      <button id="btn-escape-island" onclick="window.handlePayIslandBail()" class="bottom-bail-btn hidden max-sm:static max-sm:mr-2 sm:absolute sm:right-full sm:mr-3 items-center gap-1.5 whitespace-nowrap cursor-pointer" title="Pay 150K bail to exit Island immediately">
+        <i class="fa-solid fa-lock-open text-sm"></i>
+        <span id="bottom-bail-label">Pay 150K Bail</span>
       </button>
 
       <!-- Primary Action: Perfectly centered on screen horizontal axis -->
@@ -995,8 +1021,7 @@
   <!-- ================================================================= -->
   <!-- MODALS & POPUPS                                                   -->
   <!-- ================================================================= -->
-
-  <!-- A. BUY CITY / AUCTION MODAL (Victory-Inspired) -->
+    <!-- A. BUY CITY / AUCTION MODAL (Victory-Inspired) -->
   <div id="modal-buy-city" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-sm w-full flex flex-col overflow-hidden shadow-2xl">
       <!-- 1. Header with Country, 3D landmark canvas, and City Title -->
@@ -1076,8 +1101,7 @@
         </div>
       </div>
     </div>
-  <!-- A1.4 WORLD FESTIVAL BOOST SELECTION MODAL -->
-  <div id="modal-festival-boost" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-festival-boost" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div id="modal-festival-boost-card" class="game-modal-shell modal-shell-emerald max-w-lg w-full flex flex-col overflow-hidden shadow-2xl max-h-[90vh]">
       <!-- Header -->
       <div class="game-modal-header h-28 p-3 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
@@ -1089,7 +1113,8 @@
           <i class="fa-solid fa-champagne-glasses text-amber-300"></i> WORLD FESTIVAL CELEBRATION
         </span>
         <h3 class="modal-city-title text-xl sm:text-2xl tracking-wide font-black drop-shadow-sm">HOST THE FESTIVAL</h3>
-        <span class="text-[11px] font-black uppercase text-emerald-100 tracking-wider">Select a city to permanently receive a 2× Rent Boost!</span>
+        <span class="text-[11px] font-black uppercase text-emerald-100 tracking-wider">Select a city to receive the exclusive 2× World Festival Rent Boost!</span>
+        <button onclick="window.closeFestivalBoostModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center cursor-pointer transition-colors z-10" title="Close and select on 3D board [Esc]" aria-label="Close modal to pick on board"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
 
       <!-- Player Context Strip -->
@@ -1108,11 +1133,53 @@
       <div id="festival-boost-grid" class="p-4 sm:p-5 overflow-y-auto space-y-3 bg-gradient-to-b from-white to-slate-50/70 max-h-[50vh]">
         <!-- Rendered dynamically by renderFestivalBoostModal -->
       </div>
+      <!-- Modal Footer -->
+      <div class="p-3 bg-white border-t border-slate-100 flex items-center justify-between gap-2 shrink-0">
+        <button onclick="window.closeFestivalBoostModal()" class="w-full py-2.5 rounded-xl text-xs font-black text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"><i class="fa-solid fa-cube text-xs"></i><span>Or Click Directly on the 3D Board</span></button>
+      </div>
     </div>
   </div>
 
-  <!-- A1.5 HOSTILE BUYOUT CITY MODAL -->
-  <div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+  <!-- A1.4B WORLD FESTIVAL NO PROPERTIES ALERT MODAL (better-interface compliant) -->
+  <div id="modal-festival-no-properties" role="alertdialog" aria-modal="true" aria-labelledby="festival-no-props-title" aria-describedby="festival-no-props-desc" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-festival-no-properties-card" class="game-modal-shell modal-shell-amber relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border-4 !border-amber-400 focus:outline-hidden" tabindex="-1">
+      <!-- Header -->
+      <div class="game-modal-header bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10 shrink-0">
+          <i class="fa-solid fa-champagne-glasses text-amber-100"></i>
+        </div>
+        <div class="relative z-10 flex-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs mb-1 border border-white/20">
+            <i class="fa-solid fa-circle-exclamation text-amber-200"></i> WORLD FESTIVAL
+          </div>
+          <h2 id="festival-no-props-title" class="font-rounded font-black text-xl text-white tracking-wide drop-shadow">NO PROPERTIES OWNED</h2>
+          <p class="text-xs font-bold text-amber-100 drop-shadow mt-0.5">Cannot increase rent yet</p>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50/70">
+        <div class="bg-amber-50/90 border-2 border-amber-200/90 rounded-2xl p-3.5 flex items-start gap-3 shadow-xs">
+          <i class="fa-solid fa-building-circle-xmark text-amber-600 text-xl mt-0.5 shrink-0"></i>
+          <p id="festival-no-props-desc" class="text-xs font-bold text-amber-950 leading-relaxed">
+            You visited the <strong class="text-amber-900">World Festival</strong>! However, you currently do not own any cities or resorts to host the festival and receive a <strong class="text-emerald-700">2× Rent Boost</strong>.
+          </p>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-lightbulb text-amber-500 text-sm shrink-0"></i>
+          <span>Acquire properties across the board to host future World Festivals and double your rental income!</span>
+        </div>
+
+        <button id="btn-festival-no-props-ok" onclick="window.closeFestivalNoPropertiesModal()" class="game-btn game-btn-blue w-full py-3 text-xs sm:text-sm font-black shadow-md flex items-center justify-center gap-2 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <span>Continue Turn</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+    <div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div id="modal-buyout-city-card" class="game-modal-shell modal-shell-amber max-w-md w-full">
       <div id="buyout-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600">
         <!-- Floating Watermark Icons -->
@@ -1168,9 +1235,7 @@
       </div>
     </div>
   </div>
-
-  <!-- A1.6 SELL CITIES TO PAY RENT MODAL -->
-  <div id="modal-sell-cities" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-sell-cities" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div id="modal-sell-cities-card" class="game-modal-shell modal-shell-rose max-w-xl w-full flex flex-col max-h-[90vh]">
       <!-- Header -->
       <div class="game-modal-header bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 p-4 text-white relative shadow-md shrink-0">
@@ -1219,9 +1284,7 @@
       </div>
     </div>
   </div>
-
-  <!-- A2. UPGRADE CITY POPUP MODAL (Victory-Inspired) -->
-  <div id="modal-upgrade-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-upgrade-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div id="modal-upgrade-city-card" class="game-modal-shell modal-shell-emerald max-w-md w-full">
       <!-- Header with group color banner, country/status pill, 3D rotating model canvas, and city name -->
       <div id="upgrade-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md">
@@ -1291,9 +1354,7 @@
       </div>
     </div>
   </div>
-
-  <!-- B. LIVE AUCTION MODAL (Victory-Inspired) -->
-  <div id="modal-auction" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-auction" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div class="game-modal-shell modal-shell-amber max-w-md w-full">
       <div class="game-modal-header bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-4 text-white flex items-center justify-between relative shadow-md">
         <!-- Floating Watermark Icons -->
@@ -1333,10 +1394,8 @@
       </div>
     </div>
   </div>
-
-  <!-- C. INTERACTIVE RAINBOW CHANCE WHEEL MODAL (Victory-Inspired) -->
-  <div id="modal-chance-wheel" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
-    <div class="game-modal-shell modal-shell-purple max-w-md w-full relative overflow-hidden shadow-2xl">
+    <div id="modal-chance-wheel" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-chance-wheel-card" class="game-modal-shell modal-shell-purple max-w-md w-full relative overflow-hidden shadow-2xl">
       <!-- Glossy 3D Header -->
       <div class="game-modal-header p-4 flex flex-col items-center justify-center text-center text-white relative shadow-md" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);">
         <!-- Floating Watermark Icons -->
@@ -1416,9 +1475,7 @@
       </div>
     </div>
   </div>
-
-  <!-- D. TILE INSPECTOR / UPGRADE DRAWER (Bottom-Right Non-Disruptive Floating Card) -->
-  <div id="modal-tile-inspector" class="fixed bottom-4 right-4 z-40 pointer-events-none hidden flex-col items-end">
+    <div id="modal-tile-inspector" class="fixed bottom-4 right-4 z-40 pointer-events-none hidden flex-col items-end">
     <div id="modal-tile-inspector-card" class="pointer-events-auto game-modal-shell w-92 max-w-[calc(100vw-32px)] overflow-hidden shadow-2xl">
       <div id="insp-header" class="game-modal-header min-h-[144px] p-3 flex flex-col justify-between items-center text-center text-white relative overflow-hidden">
         <!-- Floating Watermark Icon -->
@@ -1437,9 +1494,7 @@
       </div>
     </div>
   </div>
-
-  <!-- E. MANAGE CITIES PORTFOLIO MODAL (Victory-Inspired) -->
-  <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closePortfolioModal()">
+    <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closePortfolioModal()">
     <div class="game-modal-shell modal-shell-emerald max-w-3xl w-full max-h-[86vh] flex flex-col overflow-hidden shadow-2xl">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
@@ -1472,9 +1527,7 @@
       <div id="portfolio-grid" class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-gradient-to-b from-white to-slate-50/70"></div>
     </div>
   </div>
-
-  <!-- F. DIPLOMATIC TRADE MODAL (Victory-Inspired) -->
-  <div id="modal-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeTradeModal()">
+    <div id="modal-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeTradeModal()">
     <div class="game-modal-shell modal-shell-emerald max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
@@ -1635,9 +1688,7 @@
       </div>
     </div>
   </div>
-
-  <!-- G. SETUP / LOBBY MODAL (Victory-Inspired) -->
-  <div id="modal-setup" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-setup" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div class="game-modal-shell modal-shell-indigo max-w-md w-full overflow-hidden shadow-2xl flex flex-col">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
@@ -1677,9 +1728,7 @@
       </div>
     </div>
   </div>
-
-  <!-- H. RULES MODAL (Victory-Inspired) -->
-  <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeRulesModal()">
+    <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeRulesModal()">
     <div class="game-modal-shell modal-shell-sky max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
@@ -1749,9 +1798,7 @@
       </div>
     </div>
   </div>
-
-  <!-- I. VICTORY MODAL -->
-  <div id="modal-victory" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto overscroll-contain">
+    <div id="modal-victory" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] hidden items-center justify-center p-3 sm:p-5 overflow-y-auto overscroll-contain">
     <!-- Rotating Radiant Sunburst Background -->
     <div class="fixed inset-0 flex items-center justify-center pointer-events-none opacity-20">
       <div class="w-[640px] h-[640px] sm:w-[860px] sm:h-[860px] rounded-full victory-sunburst animate-spin-slow"></div>
@@ -1860,9 +1907,7 @@
       </div>
     </div>
   </div>
-
-  <!-- J. CINEMATIC MONOPOLY CELEBRATION SHOWCASE (better-ui) -->
-  <div id="modal-monopoly-celebration" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 select-none cursor-pointer overscroll-contain overflow-y-auto" onclick="window.closeMonopolyModal()">
+    <div id="modal-monopoly-celebration" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4 select-none cursor-pointer overscroll-contain overflow-y-auto" onclick="window.closeMonopolyModal()">
     <!-- 1. Deep Dimmed Backdrop with Radial Vignette & Sunburst God Rays -->
     <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300"></div>
     <div class="monopoly-sunburst-rays pointer-events-none"></div>
@@ -1917,9 +1962,7 @@
 
     </div>
   </div>
-
-  <!-- 10. RESUME UNFINISHED MATCH MODAL (Victory-Inspired) -->
-  <div id="modal-resume-match" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain">
+    <div id="modal-resume-match" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain">
     <div class="game-modal-shell modal-shell-emerald relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
@@ -1992,8 +2035,8 @@
   </div>
 
   <!-- 12. CONFIRM EXIT TO LOBBY MODAL (Victory-Inspired) -->
-  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeConfirmExitLobbyModal()">
-    <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400">
+  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain overflow-y-auto" onclick="if(event.target===this) window.closeConfirmExitLobbyModal()">
+    <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400 pointer-events-auto my-auto">
       <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
         <!-- Floating Watermark Icon -->
         <svg class="ui-watermark -right-2 -top-2 w-24 h-24 text-white/10" aria-hidden="true"><use href="#icon-door"></use></svg>
@@ -2012,19 +2055,17 @@
         </p>
 
         <div class="flex gap-2.5 pt-1">
-          <button onclick="window.closeConfirmExitLobbyModal()" class="game-btn game-btn-slate flex-1 py-3 text-xs font-black">
+          <button type="button" onclick="window.closeConfirmExitLobbyModal()" class="game-btn game-btn-slate flex-1 py-3 text-xs font-black cursor-pointer">
             Cancel
           </button>
-          <button onclick="window.confirmExitToLobbyAction()" class="game-btn game-btn-red flex-1 py-3 text-xs font-black shadow-xs">
+          <button type="button" onclick="window.confirmExitToLobbyAction()" class="game-btn game-btn-red flex-1 py-3 text-xs font-black shadow-xs cursor-pointer">
             <svg class="ui-icon w-3.5 h-3.5 mr-1 text-white" aria-hidden="true"><use href="#icon-door"></use></svg> End Game
           </button>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- 13. LIVE TYCOON LEADERBOARD & NET WORTH STANDINGS MODAL (Victory-Inspired) -->
-  <div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeLeaderboardModal()">
+    <div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeLeaderboardModal()">
     <div class="game-modal-shell modal-shell-amber relative w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       
       <!-- Leaderboard Header with Grand Gradient & Trophy Icon -->
@@ -2091,9 +2132,7 @@
 
     </div>
   </div>
-
-  <!-- K. WARDROBE & COSMETICS MODAL (Victory-Inspired) -->
-  <div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 pointer-events-none hidden wardrobe-panel-hidden items-stretch justify-end">
+    <div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 pointer-events-none hidden wardrobe-panel-hidden items-stretch justify-end">
     <!-- Clickable backdrop on left side (clean transparent, zero blur on 3D character) -->
     <div id="wardrobe-backdrop" onclick="window.closeWardrobeModal()" class="absolute inset-0 bg-transparent pointer-events-none transition-opacity duration-300 opacity-0" title="Click to return to lobby"></div>
 
@@ -2170,6 +2209,61 @@
         <button onclick="window.closeWardrobeModal()" class="game-btn game-btn-blue px-6 py-2 text-xs font-black shadow-xs active:scale-[0.96] transition duration-150 ease-out">
           Done
         </button>
+      </div>
+    </div>
+  </div>
+    <div id="modal-update-alert" role="alertdialog" aria-modal="true" aria-labelledby="update-modal-title" aria-describedby="update-modal-desc" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeUpdateAlertModal()">
+    <div id="modal-update-card" class="game-modal-shell modal-shell-emerald relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border-4 !border-emerald-400 focus:outline-hidden" tabindex="-1">
+      <!-- Modal Header -->
+      <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-lightning"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-star"></use></svg>
+
+        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10 shrink-0">
+          <svg class="ui-icon w-6 h-6 text-emerald-100" aria-hidden="true"><use href="#icon-lightning"></use></svg>
+        </div>
+        <div class="relative z-10 flex-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
+            <svg class="ui-icon w-3 h-3 text-emerald-200" aria-hidden="true"><use href="#icon-sparkle"></use></svg> NEW UPDATE READY
+          </div>
+          <h2 id="update-modal-title" class="font-rounded font-black text-xl text-white tracking-wide drop-shadow">UPDATE AVAILABLE</h2>
+          <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">A newer version is ready on GitHub</p>
+        </div>
+        <button onclick="window.closeUpdateAlertModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center cursor-pointer transition-colors relative z-10 shrink-0" title="Close alert [Esc]" aria-label="Close update alert">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50/70">
+        <div class="bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 shadow-xs flex items-center justify-between gap-2">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Your Version</span>
+            <span id="update-client-version" class="font-mono font-black text-sm text-slate-700">v1.0.0</span>
+          </div>
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 shadow-xs">
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Latest Release</span>
+            <span id="update-remote-version" class="font-mono font-black text-sm text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-300">v1.0.1</span>
+          </div>
+        </div>
+
+        <p id="update-modal-desc" class="text-xs font-semibold text-slate-600 leading-relaxed">
+          A newer version of <strong class="text-slate-800">World Tycoon: Global Edition</strong> is available on GitHub. Update to enjoy the latest features, multiplayer enhancements, and performance fixes.
+        </p>
+
+        <div class="space-y-2 pt-1">
+          <a id="btn-update-download" href="https://github.com/Naman5981/Monopoly/releases/latest" target="_blank" rel="noopener noreferrer" class="game-btn game-btn-green w-full py-3 text-xs sm:text-sm font-black shadow-md flex items-center justify-center gap-2 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]">
+            <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
+            <span>Download Update on GitHub</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-xs opacity-75"></i>
+          </a>
+          <button id="btn-update-dismiss" onclick="window.closeUpdateAlertModal()" class="w-full py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100/80 cursor-pointer transition-colors active:scale-95" aria-label="Dismiss update alert">
+            Remind Me Later
+          </button>
+        </div>
       </div>
     </div>
   </div>

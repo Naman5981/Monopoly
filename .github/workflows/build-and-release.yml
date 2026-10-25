@@ -70,6 +70,15 @@ jobs:
             WorldTycoon-Mac.zip
           retention-days: 90
 
+      - name: Refresh Rolling Release Timestamp
+        shell: pwsh
+        if: github.ref == 'refs/heads/main'
+        run: |
+          gh release delete latest --yes --cleanup-tag 2>$null
+          exit 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish to GitHub Releases (Rolling Release)
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
@@ -77,16 +86,92 @@ jobs:
           tag_name: latest
           name: "World Tycoon: Global Edition (Latest Build)"
           body: |
-            ## 🎲 World Tycoon: Global Edition — Latest Build
-            
-            Automated production build generated from commit `${{ github.sha }}`.
-            
-            ### ⬇️ Direct Downloads:
-            | Platform | File | Description |
-            | :--- | :--- | :--- |
-            | 🪟 **Windows (Standalone)** | [**`WorldTycoon.exe`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon.exe) | Single-click native launcher (no installation needed) |
-            | 🪟 **Windows (Package Zip)** | [**`WorldTycoon_Online_Game.zip`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon_Online_Game.zip) | Portable game folder with launcher & quick guide |
-            | 🍎 **macOS (App Bundle)** | [**`WorldTycoon-Mac.zip`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon-Mac.zip) | Native macOS `WorldTycoon.app` bundle |
+            # 🎲 World Tycoon: Global Edition — Latest Production Build
+
+            [![Platform: Windows & macOS](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS-blue?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/${{ github.repository }}/releases/tag/latest)
+            [![Three.js](https://img.shields.io/badge/Three.js-r128-black?style=for-the-badge&logo=three.js)](https://threejs.org/)
+            [![WebRTC](https://img.shields.io/badge/Multiplayer-WebRTC%20P2P-339933?style=for-the-badge&logo=webrtc&logoColor=white)](https://peerjs.com/)
+            [![Build & Release](https://img.shields.io/github/actions/workflow/status/${{ github.repository }}/build-and-release.yml?branch=main&style=for-the-badge&label=Build%20%26%20Release)](https://github.com/${{ github.repository }}/actions/workflows/build-and-release.yml)
+
+            > **World Tycoon: Global Edition** is an isometric 3D global property trading board game built with **Three.js**, **WebRTC PeerJS DataChannels**, **Web Audio API**, and **Tailwind CSS**. It features serverless real-time multiplayer, procedural architecture, customizable 3D avatars, and live property auctions.
+
+            ---
+
+            ## 📦 Direct Downloads & Packages
+
+            | Platform | Download | Package Type | Requirements |
+            | :--- | :--- | :--- | :--- |
+            | 🪟 **Windows** | [**`WorldTycoon.exe`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon.exe) | **Standalone Executable** (~23 MB) | Windows 10 / 11 (No installation needed) |
+            | 🪟 **Windows** | [**`WorldTycoon_Online_Game.zip`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon_Online_Game.zip) | **Portable Archive** (~22 MB) | Portable game directory with batch launcher |
+            | 🍎 **macOS** | [**`WorldTycoon-Mac.zip`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon-Mac.zip) | **macOS App Bundle** (~450 KB) | macOS 11+ (Intel & Apple Silicon) |
+
+            ---
+
+            ## 🌟 Key Features & Gameplay
+
+            ### 🌐 1. Serverless WebRTC P2P Multiplayer
+            - **Direct Peer-to-Peer Networking**: Play online with friends anywhere in the world using WebRTC DataChannels with zero server latency.
+            - **Instant Room Codes**: Generate 4-character room codes (e.g. `8492`) or one-click shareable links (`?room=8492`).
+            - **Full Turn & Action Synchronization**: Instant sync of dice rolls, doubles re-rolls, property purchases, skyscraper upgrades, auctions, player-to-player trades, and chat reactions.
+            - **Room Session Continuity**: Returning to the lobby preserves the connected multiplayer room without disconnecting players.
+
+            ### 🏙️ 2. Dynamic 3D Real Estate Empire
+            - **32 Global Metropolitan Tiles**: Acquire iconic cities across color sets (London, Tokyo, New York, Paris, Rome, Sydney, Cairo, etc.) plus exotic luxury Resorts.
+            - **Tiered Architecture**: Upgrade properties from base plots to Houses, Villas, Manors, and towering **Skyscrapers** with custom 3D building models.
+            - **Strategic Monopolies & Hostile Buyouts**: Complete color groups to double rent, trigger hostile buyouts on opponent properties, or liquidate assets during debt emergencies.
+            - **Live City Auctions**: When a player passes on buying an estate, it goes to public auction with competitive real-time bidding countdowns.
+
+            ### 🎭 3. Avatars & Customization
+            - **4 Distinct Character Archetypes**:
+              - ✈️ **The Aviator**: Vintage flight helmet & brass goggles
+              - 🎩 **The Banker**: Top hat & golden monocle
+              - 🧭 **The Explorer**: Safari pith helmet & crest
+              - 👑 **Cyber Nova**: Futuristic neon crown & visor
+            - **Candy Color Palettes**: Ruby Red, Sky Blue, Lawn Green, Lime, Purple, Peach, Pink, and Turquoise.
+            - **Expressive Character Portraits**: Dynamic reactions with crying, shocked, smug, cheering, and thinking animations.
+
+            ### 🎡 4. Special Tiles & Landmark Mechanics
+            - 🚩 **START**: Collect +300K salary on passing the origin tile.
+            - 🏝️ **Tropical Island**: Detention zone requiring doubles roll or 150K bail to escape.
+            - 🎪 **World Festival**: Accumulates jackpot tax pools and applies a 2× festival rent boost to any selected estate.
+            - ✈️ **World Tour Airport**: Hop aboard the jetliner and fly directly to any target tile on the board.
+            - 🎡 **Chance Fortune Wheel**: 8 dynamic randomized outcomes including cash bonuses, rent multipliers, free deeds, and travel perks.
+
+            ### 🔊 5. Procedural 3D Audio & Visual Effects
+            - **100% Web Audio Synthesized SFX**: Procedural audio synthesis for dice tumbling, token hopping, cash transfers, construction, and victory fanfares.
+            - **Dynamic Lighting Modes**: Toggle between **Daylight ☀️**, **Golden Sunset 🌅**, and **Cyber Night 🌙**.
+            - **Physics Reactions**: Floating emojis (Tomato Splat 🍅, Cash Shower 💸, Fire Celebration 🔥, Sunglasses 😎, Tears 😭, Rocket 🚀).
+
+            ---
+
+            ## 🚀 Quick Start Guide
+
+            ### 🪟 Windows (Standalone)
+            1. Download [**`WorldTycoon.exe`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon.exe).
+            2. Double-click to launch — the game starts instantly in your default web browser at `http://localhost:3000`.
+
+            ### 🍎 macOS
+            1. Download [**`WorldTycoon-Mac.zip`**](https://github.com/${{ github.repository }}/releases/download/latest/WorldTycoon-Mac.zip) and extract it.
+            2. Open `WorldTycoon.app`. *(If prompted by Gatekeeper, right-click and select **Open**)*.
+
+            ---
+
+            ## 🎮 Controls & Shortcuts
+
+            | Action | Control |
+            | :--- | :--- |
+            | **Roll Dice / Advance Turn** | `Spacebar` or Click on-screen Roll button |
+            | **Orbit Camera** | `Right Click + Drag` or `Middle Click + Drag` |
+            | **Pan Camera** | `Left Click + Drag` (Board view) |
+            | **Zoom In / Out** | `Mouse Wheel Scroll` |
+            | **Quick Reactions** | Click reaction emojis on the bottom HUD dock |
+
+            ---
+
+            ## 🛠️ Build Verification
+            - **Commit**: `${{ github.sha }}`
+            - **Automated CI Runner**: Windows Server 2025 (`windows-latest`)
+            - **Packaging Pipeline**: Standalone C# .NET HTTP micro-server + compiled Vite bundle
           draft: false
           prerelease: false
           files: |

@@ -12,6 +12,7 @@ import { fmtMoney } from '../../game/utils.js';
 import { calculateTileRent } from '../../game/rules.js';
 import { triggerTileButtonPress } from '../board/tilePress.js';
 import { BASE_TILE_Y } from '../board/coords.js';
+import { networkState } from '../../network/p2pState.js';
 
 const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -BASE_TILE_Y);
 const panRaycaster = new THREE.Raycaster();
@@ -128,7 +129,9 @@ export function handleCanvasHover(event) {
         if (context.activeTileDepressions[t.id]) {
           const isTarget = (t.id === tileId);
           if (isTarget) {
-            context.activeTileDepressions[t.id].targetOffset = (gameState.phase === 'WORLD_TOUR') ? 0.24 : 0.08;
+            const isElevated = (gameState.phase === 'WORLD_TOUR') ||
+              (gameState.phase === 'FESTIVAL_SELECT' && gameState.properties[t.id]?.owner === (typeof networkState !== 'undefined' && networkState.isMultiplayer ? networkState.localPlayerIdx : gameState.currentPlayerIdx));
+            context.activeTileDepressions[t.id].targetOffset = isElevated ? 0.24 : 0.08;
           } else if (context.activeTileDepressions[t.id].targetOffset > 0) {
             context.activeTileDepressions[t.id].targetOffset = 0;
           }
@@ -149,6 +152,29 @@ export function handleCanvasHover(event) {
         tooltip.classList.remove('hidden');
         if (context.renderer?.domElement) context.renderer.domElement.style.cursor = 'pointer';
         return;
+      }
+
+      if (gameState.phase === 'FESTIVAL_SELECT') {
+        const pIdx = networkState?.isMultiplayer ? networkState.localPlayerIdx : gameState.currentPlayerIdx;
+        const isOwnedByMe = gameState.properties[tileId]?.owner === pIdx;
+        if (isOwnedByMe) {
+          const curRent = fmtMoney(calculateTileRent(tileId));
+          const boostRent = fmtMoney(calculateTileRent(tileId) * (gameState.properties[tileId]?.festivalBoost ? 1 : 2));
+          tooltip.innerHTML = `
+            <div class="flex items-center gap-2 border-b border-emerald-400 pb-1.5">
+              <span class="text-base">🎪</span>
+              <span class="font-extrabold text-xs tracking-wide text-white">WORLD FESTIVAL HOST</span>
+            </div>
+            <div class="text-sm font-extrabold text-emerald-300 mt-1.5">${tile.name}</div>
+            <div class="text-xs text-emerald-100 font-bold mt-0.5">Rent: ${curRent} ➔ <strong class="text-white">${boostRent} (2×)</strong></div>
+            <div class="text-[11px] text-amber-300 font-black mt-1">Click to Host Festival Here!</div>
+          `;
+          tooltip.style.left = `${event.clientX}px`;
+          tooltip.style.top = `${event.clientY}px`;
+          tooltip.classList.remove('hidden');
+          if (context.renderer?.domElement) context.renderer.domElement.style.cursor = 'pointer';
+          return;
+        }
       }
 
       const st = gameState.properties[tileId];
@@ -294,6 +320,12 @@ export function initInputHandlers(domElement, onTileClickCb) {
       const tooltip = document.getElementById('tile-hover-tooltip');
       if (tooltip) tooltip.classList.add('hidden');
     } else {
+      const target = e.target;
+      if (target && target.closest && (target.closest('#main-game-hud-bar') || target.closest('[id^="modal-"]') || target.closest('#event-log-drawer') || target.closest('#debug-suite-panel'))) {
+        const tooltip = document.getElementById('tile-hover-tooltip');
+        if (tooltip) tooltip.classList.add('hidden');
+        return;
+      }
       const now = performance.now();
       if (now - lastHoverCheckTime > 30) {
         lastHoverCheckTime = now;

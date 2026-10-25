@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+  <title>World Tycoon: Global Edition</title>
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
+  <!-- Pre-compiled Production Tailwind CSS & Custom Styles (5x faster load, zero runtime DOM observation) -->
+  <link rel="stylesheet" href="./src/compiled.css">
+
+  <!-- PeerJS WebRTC P2P Library -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <!-- Anime.js Animation Engine (animejs-animation) -->
+  <script src="/vendor/anime.min.js"></script>
+
+  <!-- Import map for Three.js ES module resolution -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"
+    }
+  }
+  </script>
+
+  <!-- Vite / ES Module entry -->
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body class="h-screen w-screen relative select-none overflow-hidden">
+
+  <!-- ═══ CONSOLIDATED SVG VECTOR SPRITE LIBRARY ═══ -->
+  <!-- #include "src/templates/svg-symbols.html" -->
+
+  <!-- 0. FULL-SCREEN CASUAL 3D GAME LOBBY: WORLD TYCOON ORIGINAL INTERFACE -->
+  <!-- #include "src/templates/landing-screen.html" -->
+
+  <!-- 1-10. THREE.JS CANVAS & HUD ACTION STATIONS -->
+  <!-- #include "src/templates/game-hud.html" -->
+
+  <!-- ================================================================= -->
+  <!-- MODALS & POPUPS                                                   -->
+  <!-- ================================================================= -->
+  <!-- #include "src/templates/modals/buy-city.html" -->
+  <!-- #include "src/templates/modals/festival.html" -->
+  <!-- #include "src/templates/modals/buyout-city.html" -->
+  <!-- #include "src/templates/modals/sell-cities.html" -->
+  <!-- #include "src/templates/modals/upgrade-city.html" -->
+  <!-- #include "src/templates/modals/auction.html" -->
+  <!-- #include "src/templates/modals/chance-wheel.html" -->
+  <!-- #include "src/templates/modals/tile-inspector.html" -->
+  <!-- #include "src/templates/modals/portfolio.html" -->
+  <!-- #include "src/templates/modals/trade.html" -->
+  <!-- #include "src/templates/modals/setup-dialog.html" -->
+  <!-- #include "src/templates/modals/rules.html" -->
+  <!-- #include "src/templates/modals/victory.html" -->
+  <!-- #include "src/templates/modals/monopoly-celebration.html" -->
+  <!-- #include "src/templates/modals/network-alerts.html" -->
+  <!-- #include "src/templates/modals/leaderboard.html" -->
+  <!-- #include "src/templates/modals/wardrobe.html" -->
+  <!-- #include "src/templates/modals/update-alert.html" -->
+
+</body>
+</html>

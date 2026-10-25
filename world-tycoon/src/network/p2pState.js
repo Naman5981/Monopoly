@@ -27,6 +27,7 @@ export let networkCallbacks = {
   onTradeAction: () => {},
   onReaction: () => {},
   onWorldTour: () => {},
+  onChanceSpin: () => {},
   onChancePrize: () => {},
   onMonopoly: () => {},
   onEndTurn: () => {},

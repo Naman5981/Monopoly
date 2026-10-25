@@ -30,6 +30,20 @@ const WHEEL_VECTOR_ICONS = {
    CHANCE WHEEL MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 let wheelAngle = 0;
+let chanceCountdownTimer = null;
+let chanceCountdownInterval = null;
+let isWheelSpinning = false;
+
+export function clearChanceTimers() {
+  if (chanceCountdownTimer) {
+    clearTimeout(chanceCountdownTimer);
+    chanceCountdownTimer = null;
+  }
+  if (chanceCountdownInterval) {
+    clearInterval(chanceCountdownInterval);
+    chanceCountdownInterval = null;
+  }
+}
 
 export function drawChanceWheelCanvas() {
   const c = document.getElementById('chance-wheel-canvas');
@@ -182,7 +196,9 @@ export function drawChanceWheelCanvas() {
     ctx.scale(0.85, 0.85);
     ctx.translate(-12, -12);
     ctx.fillStyle = themeColor;
-    ctx.fill(iconPath);
+    if (iconPath) {
+      ctx.fill(iconPath);
+    }
     ctx.restore();
 
     // Middle Row: Big Bold Colored Main Amount/Action
@@ -232,12 +248,21 @@ export function drawChanceWheelCanvas() {
   ctx.scale(1.2, 1.2);
   ctx.translate(-12, -12);
   ctx.fillStyle = '#ffffff';
-  ctx.fill(WHEEL_VECTOR_ICONS.star);
+  if (WHEEL_VECTOR_ICONS.star) {
+    ctx.fill(WHEEL_VECTOR_ICONS.star);
+  }
   ctx.restore();
 }
 
-export function openChanceWheelModal(isDoubles) {
+export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
   if (isLobbyScreenActive()) return;
+  clearChanceTimers();
+  isWheelSpinning = false;
+
+  const pIdx = (targetPlayerIdx !== null && targetPlayerIdx !== undefined)
+    ? targetPlayerIdx
+    : (gameState.currentPlayerIdx ?? 0);
+
   gameState.phase = 'MODAL';
   gameState.pendingDoubles = isDoubles;
   if (engineCallbacks.updateUI) engineCallbacks.updateUI();
@@ -255,23 +280,87 @@ export function openChanceWheelModal(isDoubles) {
   if (resModal) {
     resModal.classList.add('hidden');
     resModal.classList.remove('flex');
+    resModal.style.setProperty('display', 'none', 'important');
   }
 
-  drawChanceWheelCanvas();
+  try {
+    drawChanceWheelCanvas();
+  } catch (err) {
+    console.error('[ChanceWheel] Error drawing canvas:', err);
+  }
+
+  const player = (gameState.players && gameState.players[pIdx]) || null;
+  const playerName = player ? player.name : `Player ${pIdx + 1}`;
+  const isAI = Boolean(player && player.isAI);
+  const isLocalUser = !networkState.isMultiplayer || (pIdx === networkState.localPlayerIdx);
+
   const resText = document.getElementById('chance-result-text');
-  if (resText) resText.textContent = 'Click Spin to test your luck!';
+  if (resText) {
+    resText.textContent = isLocalUser
+      ? 'Click Spin to test your luck!'
+      : `${playerName} is testing their luck on the Wheel!`;
+  }
+
   const btn = document.getElementById('btn-spin-wheel');
   if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = `<i class="fa-solid fa-arrows-spin mr-2"></i> SPIN WHEEL`;
-  }
-  setStatusPill(`🎡 Spin the wheel to test your luck on Chance!`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
+    if (isAI) {
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-robot mr-2"></i> ${playerName.toUpperCase()} IS SPINNING...`;
+      setStatusPill(`🎡 <strong>${playerName}</strong> is spinning the Chance Wheel...`, { isThinking: true, playerIdx: pIdx });
+      // If offline or Host, auto-trigger spin after 800ms pause so players see the wheel
+      if (!networkState.isMultiplayer || networkState.isHost) {
+        chanceCountdownTimer = setTimeout(() => {
+          if (!isWheelSpinning) {
+            spinChanceWheel(null, null, pIdx, isDoubles);
+          }
+        }, 800);
+      }
+    } else if (isLocalUser) {
+      btn.disabled = false;
+      let secondsLeft = 10;
+      btn.innerHTML = `<i class="fa-solid fa-arrows-spin mr-2"></i> SPIN WHEEL (${secondsLeft}s)`;
+      setStatusPill(`🎡 Spin the wheel to test your luck on Chance!`, { isThinking: false, playerIdx: pIdx });
 
-  const m = document.getElementById('modal-chance-wheel');
-  animateModalSpringOpen(m);
+      chanceCountdownInterval = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft > 0) {
+          if (btn && !isWheelSpinning) {
+            btn.innerHTML = `<i class="fa-solid fa-arrows-spin mr-2"></i> SPIN WHEEL (${secondsLeft}s)`;
+          }
+        } else {
+          clearChanceTimers();
+          if (!isWheelSpinning) {
+            spinChanceWheel(null, null, pIdx, isDoubles);
+          }
+        }
+      }, 1000);
+    } else {
+      // Remote player in multiplayer
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-hourglass-half mr-2"></i> WAITING FOR ${playerName.toUpperCase()}...`;
+      setStatusPill(`⏳ Waiting for <strong>${playerName}</strong> to spin the Chance Wheel...`, { isThinking: true, playerIdx: pIdx });
+
+      // Safety timeout: If remote peer does not spin within 14 seconds, Host resolves
+      if (networkState.isHost) {
+        chanceCountdownTimer = setTimeout(() => {
+          if (!isWheelSpinning) {
+            spinChanceWheel(null, null, pIdx, isDoubles);
+          }
+        }, 14000);
+      }
+    }
+  }
+
+  animateModalSpringOpen('#modal-chance-wheel', '#modal-chance-wheel-card');
 }
 
 export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
+  clearChanceTimers();
+  const wheelModal = document.getElementById('modal-chance-wheel');
+  if (wheelModal && !wheelModal.classList.contains('hidden')) {
+    animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card');
+  }
+
   const m = document.getElementById('modal-chance-result');
   if (!m) {
     if (onDone) onDone();
@@ -431,14 +520,23 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
   }, popupDuration);
 }
 
-export function spinChanceWheel() {
+export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx = null, isDoubles = null) {
+  if (isWheelSpinning) return;
+  isWheelSpinning = true;
+  clearChanceTimers();
+
+  const activePIdx = (pIdx !== null && pIdx !== undefined)
+    ? pIdx
+    : ((gameState.currentPlayerIdx !== undefined && gameState.currentPlayerIdx !== null) ? gameState.currentPlayerIdx : 0);
+  const isDoub = isDoubles !== null ? isDoubles : Boolean(gameState.pendingDoubles);
+
   const btn = document.getElementById('btn-spin-wheel');
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> SPINNING...`;
   }
 
-  const prizeIdx = Math.floor(Math.random() * CHANCE_WHEEL_PRIZES.length);
+  const prizeIdx = forcedPrizeIdx !== null ? forcedPrizeIdx : Math.floor(Math.random() * CHANCE_WHEEL_PRIZES.length);
   const prize = CHANCE_WHEEL_PRIZES[prizeIdx];
 
   // N slices. Slice 0 is centered at 12 o'clock.
@@ -449,11 +547,21 @@ export function spinChanceWheel() {
   const targetOffset = (360 - (prizeIdx * sliceDeg)) % 360;
 
   // Add 5-6 full spins
-  const fullSpins = 5 + Math.floor(Math.random() * 2);
+  const fullSpins = forcedSpins !== null ? forcedSpins : (5 + Math.floor(Math.random() * 2));
   const currentMod = wheelAngle % 360;
   let forwardDelta = targetOffset - currentMod;
   if (forwardDelta <= 0) forwardDelta += 360;
   wheelAngle += (fullSpins * 360) + forwardDelta;
+
+  // Broadcast spin initiation in multiplayer so all peers see the exact same rotation!
+  if (networkState.isMultiplayer && forcedPrizeIdx === null) {
+    broadcastAction('ACTION_CHANCE_SPIN', {
+      playerIdx: activePIdx,
+      prizeIdx,
+      fullSpins,
+      isDoubles: isDoub
+    });
+  }
 
   const canvas = document.getElementById('chance-wheel-canvas');
   if (canvas) {
@@ -491,6 +599,7 @@ export function spinChanceWheel() {
   scheduleNextTick();
 
   setTimeout(async () => {
+    isWheelSpinning = false;
     if (isLobbyScreenActive()) return;
     playSFX('win');
 
@@ -503,10 +612,6 @@ export function spinChanceWheel() {
     }
 
     // Trigger emotional reaction on active player's portrait
-    const activePIdx = (gameState.currentPlayerIdx !== undefined && gameState.currentPlayerIdx !== null)
-      ? gameState.currentPlayerIdx
-      : 0;
-
     if (prize.type === 'tax') {
       setPlayerPortraitMood(activePIdx, 'crying', 3500);
     } else if (prize.type === 'island') {
@@ -528,14 +633,14 @@ export function spinChanceWheel() {
     if (isLobbyScreenActive()) return;
 
     // 3. Close the wheel modal
-    animateModalSpringClose('#modal-chance-wheel');
+    animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card');
 
     // Broadcast immediately so ALL peers in multiplayer open the card popup together!
-    if (networkState.isMultiplayer) {
+    if (networkState.isMultiplayer && forcedPrizeIdx === null) {
       broadcastAction('ACTION_CHANCE_PRIZE', {
         playerIdx: activePIdx,
         prize,
-        isDoubles: Boolean(gameState.pendingDoubles)
+        isDoubles: isDoub
       });
     }
 
@@ -543,8 +648,25 @@ export function spinChanceWheel() {
     showChanceAwardPopup(prize, async () => {
       // 5. Run the in-game 3D flight/tax/cash animation!
       if (engineCallbacks.applyChancePrize) {
-        await engineCallbacks.applyChancePrize(activePIdx, prize, gameState.pendingDoubles, false, false);
+        await engineCallbacks.applyChancePrize(activePIdx, prize, isDoub, false, false);
       }
     }, activePIdx);
   }, 2650);
+}
+
+export function executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles) {
+  const modal = document.getElementById('modal-chance-wheel');
+  if (!modal || modal.classList.contains('hidden') || modal.style.display === 'none') {
+    openChanceWheelModal(isDoubles, playerIdx);
+  }
+  spinChanceWheel(prizeIdx, fullSpins, playerIdx, isDoubles);
+}
+
+if (typeof window !== 'undefined') {
+  window.openChanceWheelModal = openChanceWheelModal;
+  window.spinChanceWheel = spinChanceWheel;
+  window.showChanceAwardPopup = showChanceAwardPopup;
+  window.drawChanceWheelCanvas = drawChanceWheelCanvas;
+  window.executeRemoteChanceSpin = executeRemoteChanceSpin;
+  window.clearChanceTimers = clearChanceTimers;
 }

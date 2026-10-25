@@ -209,7 +209,7 @@ export function removePlayerAt(idx) {
 
   const defaultThemes = [
     { name: getSavedPlayerName(), isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0 },
-    { name: 'BARON', isAI: true, charColor: 0xf97316, colorHex: '#fb923c', hatColor: 0xfde047, hatStyle: 1 },
+    { name: 'BARON', isAI: true, charColor: 0xf97316, colorHex: '#f97316', hatColor: 0xfde047, hatStyle: 1 },
     { name: 'ATLAS', isAI: true, charColor: 0x22c55e, colorHex: '#22c55e', hatColor: 0x1e293b, hatStyle: 2 },
     { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3 },
     { name: 'PHOENIX', isAI: true, charColor: 0xef4444, colorHex: '#ef4444', hatColor: 0xf97316, hatStyle: 0 },

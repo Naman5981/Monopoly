@@ -126,8 +126,8 @@ export function initThreeScene(onTileClickCb) {
   context.renderer.shadowMap.type = THREE.PCFShadowMap;
   context.renderer.shadowMap.autoUpdate = false;
   context.renderer.shadowMap.needsUpdate = true;
-  context.renderer.toneMapping = THREE.LinearToneMapping;
-  context.renderer.toneMappingExposure = 1.0;
+  context.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  context.renderer.toneMappingExposure = 1.08;
   context.renderer.outputColorSpace = THREE.SRGBColorSpace;
   context.maxAnisotropy = context.renderer.capabilities.getMaxAnisotropy() || 4;
 
@@ -247,6 +247,7 @@ export {
   setTileHighlightRing,
   buildActivePlayerHighlightSystem,
   setFlightModeHighlights,
+  setFestivalSelectionHighlights,
   setMonopolyTileHighlights
 } from './board/highlights.js';
 

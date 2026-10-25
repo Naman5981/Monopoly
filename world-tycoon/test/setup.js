@@ -23,15 +23,45 @@ export function setupBrowserMocks() {
       }
     });
 
+    const elementsById = new Map();
+
     function createMockElement(tag = 'DIV', id = '') {
-      return {
-        id,
+      const classes = new Set();
+      const attributes = new Map();
+      const elementListeners = new Map();
+      const children = [];
+      const childMapByClass = new Map();
+      let _id = id;
+
+      const element = {
+        get id() {
+          return _id;
+        },
+        set id(val) {
+          _id = val;
+          if (val) elementsById.set(val, element);
+        },
         tagName: tag.toUpperCase(),
+        parentElement: null,
+        get className() {
+          return Array.from(classes).join(' ');
+        },
+        set className(val) {
+          classes.clear();
+          if (typeof val === 'string') {
+            val.split(/\s+/).forEach(c => c && classes.add(c));
+          }
+        },
         classList: {
-          add: () => {},
-          remove: () => {},
-          contains: () => false,
-          toggle: () => {}
+          add: (...cls) => cls.forEach(c => c && classes.add(c)),
+          remove: (...cls) => cls.forEach(c => classes.delete(c)),
+          contains: (c) => classes.has(c),
+          toggle: (c, force) => {
+            if (force === true) { classes.add(c); return true; }
+            if (force === false) { classes.delete(c); return false; }
+            if (classes.has(c)) { classes.delete(c); return false; }
+            classes.add(c); return true;
+          }
         },
         style: {
           setProperty: () => {},
@@ -39,19 +69,93 @@ export function setupBrowserMocks() {
           getPropertyValue: () => ''
         },
         getBoundingClientRect: () => ({ top: 0, left: 0, width: 100, height: 100, bottom: 100, right: 100 }),
-        setAttribute: () => {},
-        getAttribute: () => null,
-        removeAttribute: () => {},
-        addEventListener: () => {},
-        removeEventListener: () => {},
-        appendChild: () => {},
-        removeChild: () => {},
-        remove: () => {},
+        setAttribute: (k, v) => attributes.set(k, String(v)),
+        getAttribute: (k) => attributes.has(k) ? attributes.get(k) : null,
+        removeAttribute: (k) => attributes.delete(k),
+        addEventListener: (type, fn) => {
+          if (!elementListeners.has(type)) elementListeners.set(type, new Set());
+          elementListeners.get(type).add(fn);
+        },
+        removeEventListener: (type, fn) => {
+          elementListeners.get(type)?.delete(fn);
+        },
+        dispatchEvent: (event) => {
+          elementListeners.get(event?.type)?.forEach(fn => fn(event));
+          return true;
+        },
+        appendChild: (child) => {
+          children.push(child);
+          if (child && typeof child === 'object') child.parentElement = element;
+          return child;
+        },
+        removeChild: (child) => {
+          const idx = children.indexOf(child);
+          if (idx !== -1) children.splice(idx, 1);
+          if (child && typeof child === 'object') child.parentElement = null;
+          return child;
+        },
+        remove: function() {
+          if (this.parentElement && typeof this.parentElement.removeChild === 'function') {
+            this.parentElement.removeChild(this);
+          }
+        },
         prepend: () => {},
         getContext: () => mockContext,
-        querySelector: () => createMockElement(),
+        get children() {
+          return children;
+        },
+        querySelector: (sel) => {
+          if (typeof sel === 'string' && sel.startsWith('#')) {
+            return document.getElementById(sel.slice(1));
+          }
+          if (typeof sel === 'string' && sel.startsWith('.')) {
+            const cls = sel.slice(1);
+            for (const c of children) {
+              if (c.classList?.contains(cls)) return c;
+            }
+            if (cls === 'island-iron-bars' || cls === 'hud-detention-badge') {
+              if (element.innerHTML && element.innerHTML.includes(cls)) {
+                const badgeEl = createMockElement('SPAN');
+                badgeEl.classList.add(cls);
+                const m = element.innerHTML.match(/JAIL \d\/3/);
+                badgeEl.textContent = m ? m[0] : 'JAIL';
+                return badgeEl;
+              }
+              return null;
+            }
+            if (!childMapByClass.has(cls)) {
+              const mock = createMockElement('DIV');
+              mock.classList.add(cls);
+              if (element.innerHTML && element.innerHTML.includes(cls)) {
+                const regex = new RegExp(`class="[^"]*\\b${cls}\\b[^"]*"[^>]*>([^<]*)`, 'i');
+                const m = element.innerHTML.match(regex);
+                if (m) mock.textContent = m[1].trim();
+              }
+              childMapByClass.set(cls, mock);
+            }
+            return childMapByClass.get(cls);
+          }
+          return createMockElement();
+        },
         querySelectorAll: () => [],
-        innerHTML: '',
+        _innerHTML: '',
+        get innerHTML() {
+          return this._innerHTML;
+        },
+        set innerHTML(val) {
+          this._innerHTML = typeof val === 'string' ? val : '';
+          if (typeof val === 'string') {
+            const idTextMatches = [...val.matchAll(/id="([^"]+)"[^>]*>([^<]*)/g)];
+            for (const match of idTextMatches) {
+              const childId = match[1];
+              const text = match[2].trim();
+              if (text && globalThis.document?.getElementById) {
+                const childEl = globalThis.document.getElementById(childId);
+                if (childEl) childEl.textContent = text;
+              }
+            }
+          }
+        },
         textContent: '',
         value: '',
         width: 100,
@@ -60,11 +164,16 @@ export function setupBrowserMocks() {
         focus: () => {},
         blur: () => {}
       };
+
+      if (id) {
+        elementsById.set(id, element);
+      }
+
+      return element;
     }
 
     const dummyElement = createMockElement();
 
-    const elementsById = new Map();
     globalThis.document = {
       getElementById: (id) => {
         if (!elementsById.has(id)) {
@@ -72,7 +181,12 @@ export function setupBrowserMocks() {
         }
         return elementsById.get(id);
       },
-      querySelector: () => createMockElement(),
+      querySelector: (sel) => {
+        if (typeof sel === 'string' && sel.startsWith('#')) {
+          return document.getElementById(sel.slice(1));
+        }
+        return createMockElement();
+      },
       querySelectorAll: () => [],
       createElement: (tag) => createMockElement(tag),
       addEventListener: () => {},
@@ -88,11 +202,44 @@ export function setupBrowserMocks() {
       clear: () => mockStorage.clear()
     };
 
+    const mockSession = new Map();
+    globalThis.sessionStorage = {
+      getItem: (k) => (mockSession.has(k) ? mockSession.get(k) : null),
+      setItem: (k, v) => mockSession.set(k, String(v)),
+      removeItem: (k) => mockSession.delete(k),
+      clear: () => mockSession.clear()
+    };
+
+    const windowListeners = new Map();
+    globalThis.KeyboardEvent = class KeyboardEvent {
+      constructor(type, init = {}) {
+        this.type = type;
+        this.key = init.key || '';
+        this.code = init.code || '';
+        this.bubbles = !!init.bubbles;
+        this.shiftKey = !!init.shiftKey;
+        this.ctrlKey = !!init.ctrlKey;
+        this.altKey = !!init.altKey;
+      }
+      preventDefault() { this.defaultPrevented = true; }
+    };
+
     globalThis.window = {
       document: globalThis.document,
       localStorage: globalThis.localStorage,
-      addEventListener: () => {},
-      removeEventListener: () => {},
+      sessionStorage: globalThis.sessionStorage,
+      KeyboardEvent: globalThis.KeyboardEvent,
+      addEventListener: (type, fn) => {
+        if (!windowListeners.has(type)) windowListeners.set(type, new Set());
+        windowListeners.get(type).add(fn);
+      },
+      removeEventListener: (type, fn) => {
+        windowListeners.get(type)?.delete(fn);
+      },
+      dispatchEvent: (event) => {
+        windowListeners.get(event?.type)?.forEach(fn => fn(event));
+        return true;
+      },
       setTimeout: globalThis.setTimeout,
       clearTimeout: globalThis.clearTimeout,
       setInterval: globalThis.setInterval,

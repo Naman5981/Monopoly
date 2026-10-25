@@ -84,7 +84,14 @@ function resizeConfetti() {
   confettiCanvas.height = window.innerHeight;
 }
 
+function isReducedMotion() {
+  return typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 export function fireConfettiBurst(x = window.innerWidth / 2, y = window.innerHeight / 2, count = 75) {
+  if (isReducedMotion()) return;
   initConfetti();
   const colors = ['#6366f1', '#f59e0b', '#10b981', '#ec4899', '#38bdf8', '#f43f5e', '#fde047', '#ffffff'];
 
@@ -113,6 +120,7 @@ export function fireConfettiBurst(x = window.innerWidth / 2, y = window.innerHei
 }
 
 export function fireDualSideConfettiCannons() {
+  if (isReducedMotion()) return;
   initConfetti();
   const w = confettiCanvas.width;
   const h = confettiCanvas.height;
@@ -407,6 +415,7 @@ function animateConfetti() {
    2. FLOATING ANIMATED EMOJI REACTIONS
 ───────────────────────────────────────────────────────────────────────────── */
 export function spawnAnimatedReaction(type = 'money', startX, startY) {
+  if (isReducedMotion()) return;
   const x = startX !== undefined ? startX : window.innerWidth / 2;
   const y = startY !== undefined ? startY : window.innerHeight / 2;
 
@@ -458,26 +467,26 @@ export const THEME_COMBINATIONS = {
   // ── 🪵 WOOD BOARD STYLE ───────────────────────────────────────────────────
   'wood:day': {
     bg: 'radial-gradient(circle at 50% 28%, #f0f9ff 0%, #e0f2fe 32%, #bae6fd 65%, #7dd3fc 100%)',
-    ambientColor: 0xffffff,
-    ambientIntensity: 0.40,
-    sunColor: 0xffffff,
-    sunIntensity: 0.98,
-    sunPos: { x: 22, y: 32, z: 18 }
+    ambientColor: 0xfffbf5,
+    ambientIntensity: 0.50,
+    sunColor: 0xfffaee,
+    sunIntensity: 1.28,
+    sunPos: { x: 22, y: 34, z: 18 }
   },
   'wood:sunset': {
     bg: 'radial-gradient(ellipse 125% 95% at 50% 20%, #fffbeb 0%, #fde68a 12%, #fbbf24 24%, #f97316 44%, #ea580c 60%, #c2410c 76%, #7c2d12 90%, #291008 100%)',
     ambientColor: 0xffedd5,
     ambientIntensity: 0.52,
     sunColor: 0xffaa5e,
-    sunIntensity: 0.88,
+    sunIntensity: 0.95,
     sunPos: { x: 28, y: 14, z: 18 }
   },
   'wood:night': {
     bg: 'radial-gradient(circle at 50% 40%, #0f172a 0%, #080d1a 55%, #020617 100%)',
     ambientColor: 0x475569,
-    ambientIntensity: 0.24,
+    ambientIntensity: 0.26,
     sunColor: 0xa5b4fc,
-    sunIntensity: 0.28,
+    sunIntensity: 0.35,
     sunPos: { x: 14, y: 32, z: 18 }
   },
 
@@ -486,9 +495,9 @@ export const THEME_COMBINATIONS = {
     // High-tech neo-city daylight: sleek overcast slate with subtle cool ambient
     bg: 'radial-gradient(ellipse 130% 90% at 50% 25%, #182232 0%, #0d1522 42%, #080d16 75%, #030710 100%)',
     ambientColor: 0x64748b,
-    ambientIntensity: 0.32,
-    sunColor: 0xe2e8f0,
-    sunIntensity: 0.95,
+    ambientIntensity: 0.42,
+    sunColor: 0xf1f5f9,
+    sunIntensity: 1.15,
     sunPos: { x: 22, y: 32, z: 18 }
   },
 
@@ -496,11 +505,11 @@ export const THEME_COMBINATIONS = {
   'elegant:day': {
     // Pristine French palace morning: luminous warm pearl champagne
     bg: 'radial-gradient(circle at 50% 30%, #ffffff 0%, #fbfaf8 35%, #f4ede4 70%, #e8decb 100%)',
-    ambientColor: 0xfffaed,
-    ambientIntensity: 0.45,
+    ambientColor: 0xfffdfa,
+    ambientIntensity: 0.52,
     sunColor: 0xffffff,
-    sunIntensity: 0.96,
-    sunPos: { x: 22, y: 32, z: 18 }
+    sunIntensity: 1.28,
+    sunPos: { x: 22, y: 34, z: 18 }
   },
   'elegant:sunset': {
     // Golden hour in Paris: warm 24K gold, honey and champagne dusk
@@ -624,7 +633,7 @@ export function applyLightingMode(key, threeSceneObjects) {
   }
 
   if (threeSceneObjects) {
-    const { ambientLight, dirLight, setBulbLightingTheme } = threeSceneObjects;
+    const { ambientLight, dirLight, hemiLight, setBulbLightingTheme } = threeSceneObjects;
     if (ambientLight) {
       ambientLight.color.setHex(cfg.ambientColor);
       ambientLight.intensity = cfg.ambientIntensity;
@@ -633,6 +642,9 @@ export function applyLightingMode(key, threeSceneObjects) {
       dirLight.color.setHex(cfg.sunColor);
       dirLight.intensity = cfg.sunIntensity;
       dirLight.position.set(cfg.sunPos.x, cfg.sunPos.y, cfg.sunPos.z);
+    }
+    if (hemiLight) {
+      hemiLight.intensity = (key === 'night' ? 0.22 : (key === 'sunset' ? 0.38 : 0.42));
     }
     if (typeof setBulbLightingTheme === 'function') {
       setBulbLightingTheme(key, boardStyle);

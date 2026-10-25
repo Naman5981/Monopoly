@@ -371,8 +371,8 @@ export function resumeActiveTurn() {
 
 export function handlePayIslandBail() {
   const pIdx = gameState.currentPlayerIdx;
-  const p = gameState.players[pIdx];
-  if (!p.inIsland || p.cash < 150000) return;
+  const p = gameState.players ? gameState.players[pIdx] : null;
+  if (!p || !p.inIsland || p.cash < 150000) return;
   p.cash -= 150000;
   gameState.festivalPot += 150000;
   p.inIsland = false;
@@ -382,7 +382,9 @@ export function handlePayIslandBail() {
   animateIslandJailbreak(pIdx);
   triggerTokenHurtAnimation(pIdx);
   showSpeechBubble('Paid 150K Island Bail!', 1800);
+  logEvent(`🏝️ <strong>${p.name}</strong> paid 150K Island Bail and is free to move.`);
   renderCornerHUDs();
+  refreshActivePlayerTurnStatus();
   updateRollButtonsUI(isHumanTurnActionable());
   saveCurrentMatchToStorage();
 
@@ -392,6 +394,7 @@ export function handlePayIslandBail() {
 }
 
 if (typeof window !== 'undefined') {
+  window.handlePayIslandBail = handlePayIslandBail;
   window.concludeActionPhase = concludeActionPhase;
   window.evaluateTileLanding = evaluateTileLanding;
 }

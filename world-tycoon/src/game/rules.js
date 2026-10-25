@@ -17,8 +17,8 @@ export function ownsFullColorGroup(playerIdx, groupKey) {
   });
 }
 
-/** Calculate current rent owed for a tile landing. */
-export function calculateTileRent(tileId) {
+/** Calculate standard base rent without festival multiplier. */
+export function calculateBaseTileRent(tileId) {
   const tile = BOARD_TILES[tileId];
   const st = gameState.properties[tileId];
   if (!tile || !st || st.owner === null) return 0;
@@ -27,15 +27,19 @@ export function calculateTileRent(tileId) {
     const ownedResorts = BOARD_TILES.filter(
       t => t.type === 'resort' && gameState.properties[t.id]?.owner === st.owner
     ).length;
-    let base = tile.rent[Math.min(ownedResorts - 1, tile.rent.length - 1)] || tile.rent[0];
-    if (st.festivalBoost) base *= 2;
-    return base;
+    return tile.rent[Math.min(ownedResorts - 1, tile.rent.length - 1)] || tile.rent[0];
   }
 
   let base = tile.rent[st.level || 0] || tile.rent[0];
   if ((st.level || 0) === 0 && ownsFullColorGroup(st.owner, tile.group)) base *= 2;
-  if (st.festivalBoost) base *= 2;
   return base;
+}
+
+/** Calculate current rent owed for a tile landing. */
+export function calculateTileRent(tileId) {
+  const base = calculateBaseTileRent(tileId);
+  const st = gameState.properties[tileId];
+  return (st && st.festivalBoost) ? base * 2 : base;
 }
 
 /**

@@ -26,6 +26,16 @@ function ensureCityPreviewInitialized() {
   cityPreviewRenderer.setSize(220, 110);
   cityPreviewRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+  const canvas = cityPreviewRenderer.domElement;
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+  }, false);
+  canvas.addEventListener('webglcontextrestored', () => {
+    if (cityPreviewRenderer) {
+      cityPreviewRenderer.setSize(220, 110);
+    }
+  }, false);
+
   cityPreviewScene = new THREE.Scene();
   cityPreviewCamera = new THREE.PerspectiveCamera(34, 220 / 110, 0.1, 30);
   cityPreviewCamera.position.set(2.9, 2.2, 2.9);
@@ -135,6 +145,11 @@ export function renderCityPreviewStage(now) {
   if (!activeCityPreviewCanvasId || !cityPreviewRenderer || !cityPreviewGroup) return;
   const targetCanvas = document.getElementById(activeCityPreviewCanvasId);
   if (!targetCanvas) return;
+
+  // Web Games: Do not execute GPU passes when target modal or canvas is hidden
+  if (!targetCanvas.offsetParent || targetCanvas.offsetWidth === 0 || targetCanvas.offsetHeight === 0) {
+    return;
+  }
 
   const elapsed = now - (cityPreviewGroup.userData.openStartTime || 0);
   const p = Math.min(1, elapsed / 460);

@@ -136,10 +136,10 @@ function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber)
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(16, 74, 480, 4);
 
-  // Typography metrics — bold 800 weight with wide open counters
+  // Typography metrics — bold 900 weight with wide open counters for small-screen readability
   const nameLen = tile.name.length;
-  const nameFontSize = nameLen <= 6 ? 66 : (nameLen <= 9 ? 56 : (nameLen <= 11 ? 46 : 38));
-  const nameFont = `800 ${nameFontSize}px Rubik, system-ui, sans-serif`;
+  const nameFontSize = nameLen <= 6 ? 76 : (nameLen <= 9 ? 64 : (nameLen <= 11 ? 52 : 42));
+  const nameFont = `900 ${nameFontSize}px Rubik, system-ui, sans-serif`;
 
   let valStr;
   if (isOwned) {
@@ -150,8 +150,8 @@ function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber)
   }
 
   const valLen = valStr.length;
-  const valFontSize = valLen <= 4 ? 104 : (valLen <= 5 ? 92 : (valLen <= 6 ? 82 : 72));
-  const valFont = `800 ${valFontSize}px Rubik, system-ui, sans-serif`;
+  const valFontSize = valLen <= 4 ? 116 : (valLen <= 5 ? 104 : (valLen <= 6 ? 92 : 82));
+  const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
   // Optically shifted downward: name sits below the 3D building footprint (Y: 265), rent sits at bottom (Y: 415)
   const nameY = 265;
@@ -163,23 +163,43 @@ function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber)
       drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
       drawWhiteNeonText(ctx, valStr, 256, valY, valFont);
     } else {
-      // DAY / MORNING: Crisp daylight typography
+      // DAY / MORNING: Crisp daylight typography with high-contrast border
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+      ctx.lineWidth = isCyber ? 8 : 10;
       ctx.font = nameFont;
+      ctx.strokeText(tile.name, 256, nameY);
+      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
       ctx.fillText(tile.name, 256, nameY);
+
+      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+      ctx.lineWidth = isCyber ? 10 : 12;
       ctx.font = valFont;
+      ctx.strokeText(valStr, 256, valY);
+      ctx.fillStyle = isCyber ? '#f43f5e' : '#b91c1c';
       ctx.fillText(valStr, 256, valY);
     }
   } else {
     // UNOWNED: Crisp, clear, high-contrast dark typography at identical optical coordinates
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+    ctx.lineWidth = isCyber ? 8 : 10;
     ctx.font = nameFont;
+    ctx.strokeText(tile.name, 256, nameY);
+    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
     ctx.fillText(tile.name, 256, nameY);
+
+    ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+    ctx.lineWidth = isCyber ? 10 : 12;
     ctx.font = valFont;
+    ctx.strokeText(valStr, 256, valY);
+    ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
     ctx.fillText(valStr, 256, valY);
   }
 }
@@ -206,8 +226,8 @@ function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset, isCybe
   ctx.fillText('RESORT', 256, 45);
 
   const nameLen = tile.name.length;
-  const nameFontSize = nameLen <= 6 ? 66 : (nameLen <= 9 ? 56 : (nameLen <= 11 ? 46 : 38));
-  const nameFont = `800 ${nameFontSize}px Rubik, system-ui, sans-serif`;
+  const nameFontSize = nameLen <= 6 ? 76 : (nameLen <= 9 ? 64 : (nameLen <= 11 ? 52 : 42));
+  const nameFont = `900 ${nameFontSize}px Rubik, system-ui, sans-serif`;
 
   let valStr;
   if (isOwned) {
@@ -218,8 +238,8 @@ function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset, isCybe
   }
 
   const valLen = valStr.length;
-  const valFontSize = valLen <= 4 ? 104 : (valLen <= 5 ? 92 : (valLen <= 6 ? 82 : 72));
-  const valFont = `800 ${valFontSize}px Rubik, system-ui, sans-serif`;
+  const valFontSize = valLen <= 4 ? 116 : (valLen <= 5 ? 104 : (valLen <= 6 ? 92 : 82));
+  const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
   const nameY = 265;
   const valY = 415;
@@ -231,19 +251,39 @@ function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset, isCybe
     } else {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+      ctx.lineWidth = isCyber ? 8 : 10;
       ctx.font = nameFont;
+      ctx.strokeText(tile.name, 256, nameY);
+      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
       ctx.fillText(tile.name, 256, nameY);
+
+      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+      ctx.lineWidth = isCyber ? 10 : 12;
       ctx.font = valFont;
+      ctx.strokeText(valStr, 256, valY);
+      ctx.fillStyle = isCyber ? '#f43f5e' : '#b91c1c';
       ctx.fillText(valStr, 256, valY);
     }
   } else {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+    ctx.lineWidth = isCyber ? 8 : 10;
     ctx.font = nameFont;
+    ctx.strokeText(tile.name, 256, nameY);
+    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
     ctx.fillText(tile.name, 256, nameY);
+
+    ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+    ctx.lineWidth = isCyber ? 10 : 12;
     ctx.font = valFont;
+    ctx.strokeText(valStr, 256, valY);
+    ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
     ctx.fillText(valStr, 256, valY);
   }
 }

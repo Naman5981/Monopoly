@@ -91,10 +91,16 @@ export function toggleDebugPanel(forceOpen = null) {
   if (panelVisible) {
     panel.classList.remove('hidden');
     panel.classList.add('flex');
+    panel.style.removeProperty('display');
+    panel.style.setProperty('display', 'flex', 'important');
+    panel.style.setProperty('z-index', '1000', 'important');
+    panel.style.setProperty('opacity', '1', 'important');
+    panel.style.pointerEvents = 'auto';
     syncDebugUIState();
   } else {
     panel.classList.add('hidden');
     panel.classList.remove('flex');
+    panel.style.setProperty('display', 'none', 'important');
   }
 }
 
@@ -115,7 +121,7 @@ export function injectDebugUI() {
   // 1. Main Debug Suite Panel Drawer
   const panel = document.createElement('div');
   panel.id = 'debug-suite-panel';
-  panel.className = 'fixed top-12 right-3 z-50 w-[440px] max-w-[96vw] max-h-[88vh] bg-slate-950/95 backdrop-blur-xl border-2 border-slate-700/80 rounded-3xl shadow-2xl text-slate-100 hidden flex-col overflow-hidden select-none font-sans text-xs';
+  panel.className = 'fixed top-12 right-3 z-[1000] w-[440px] max-w-[96vw] max-h-[88vh] bg-slate-950/95 backdrop-blur-xl border-2 border-slate-700/80 rounded-3xl shadow-2xl text-slate-100 hidden flex-col overflow-hidden select-none font-sans text-xs';
 
   panel.innerHTML = `
     <!-- HEADER -->

@@ -106,6 +106,8 @@ export function initDebugSuite() {
     leaderboard: () => window.toggleLeaderboardModal?.(),
     scenario: (key) => debugRunScenario(key),
     toggleUI: () => toggleDebugPanel(),
+    updateAlert: (fakeVersion = '1.2.0') => window.showUpdateAlertModal?.({ clientVersion: '1.0.0', remoteVersion: fakeVersion, releaseUrl: 'https://github.com/Naman5981/Monopoly/releases/latest' }),
+    checkUpdate: () => window.checkGameUpdateManually?.(),
     state: () => ({ gameState, debugState, matchSettings })
   };
 

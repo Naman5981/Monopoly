@@ -24,6 +24,14 @@ export function ensure3DPortraitSystemInitialized() {
   portraitRenderer.setSize(136, 136);
   portraitRenderer.setPixelRatio(1);
 
+  const canvas = portraitRenderer.domElement;
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+  }, false);
+  canvas.addEventListener('webglcontextrestored', () => {
+    if (portraitRenderer) portraitRenderer.setSize(136, 136);
+  }, false);
+
   portraitCamera = new THREE.PerspectiveCamera(34, 1, 0.1, 20);
   portraitCamera.position.set(0, 0.88, 2.55);
   portraitCamera.lookAt(0, 0.82, 0);
@@ -47,6 +55,9 @@ export function ensure3DPortraitSystemInitialized() {
     pScene.add(avatar3D);
 
     portraitScenes.push({ scene: pScene, avatar: avatar3D });
+  }
+  if (typeof window !== 'undefined') {
+    window.__has3DPortraitsActive = true;
   }
 }
 

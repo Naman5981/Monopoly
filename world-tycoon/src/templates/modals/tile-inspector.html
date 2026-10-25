@@ -1,0 +1,19 @@
+  <div id="modal-tile-inspector" class="fixed bottom-4 right-4 z-40 pointer-events-none hidden flex-col items-end">
+    <div id="modal-tile-inspector-card" class="pointer-events-auto game-modal-shell w-92 max-w-[calc(100vw-32px)] overflow-hidden shadow-2xl">
+      <div id="insp-header" class="game-modal-header min-h-[144px] p-3 flex flex-col justify-between items-center text-center text-white relative overflow-hidden">
+        <!-- Floating Watermark Icon -->
+        <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
+        <button onclick="window.closeInspectorModal()" class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close tile card">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+        <div id="insp-group" class="modal-badge-pill">TITLE DEED</div>
+        <canvas id="insp-city-3d-canvas" width="220" height="110" class="w-[150px] h-[75px] -my-1 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
+        <h3 id="insp-title" class="modal-city-title text-xl leading-tight pb-0.5">TOKYO</h3>
+      </div>
+      <div class="p-3.5 space-y-2.5 bg-gradient-to-b from-white to-slate-50/70">
+        <div id="insp-owner-pill" class="text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs">Unowned</div>
+        <div id="insp-rent-list" class="game-tiers-tray space-y-1"></div>
+        <div id="insp-actions" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>

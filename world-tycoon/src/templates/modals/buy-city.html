@@ -1,0 +1,80 @@
+  <!-- A. BUY CITY / AUCTION MODAL (Victory-Inspired) -->
+  <div id="modal-buy-city" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-sm w-full flex flex-col overflow-hidden shadow-2xl">
+      <!-- 1. Header with Country, 3D landmark canvas, and City Title -->
+      <div id="buy-modal-header" class="game-modal-header h-32 p-3 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0">
+        <!-- Floating Watermark Icons -->
+        <svg class="ui-watermark absolute -right-2 -top-2 w-16 h-16 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
+        <svg class="ui-watermark absolute -left-2 -bottom-2 w-16 h-16 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+
+        <span id="buy-modal-country" class="modal-badge-pill">GLOBAL METROPOLIS</span>
+        <canvas id="buy-city-3d-canvas" width="220" height="110" class="w-[170px] h-[85px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
+        <h3 id="buy-modal-name" class="modal-city-title text-xl sm:text-2xl">ISTANBUL</h3>
+      </div>
+
+      <!-- 2. Minimalist Body: Buyer info + 2 Stat Badges + Affordability Balance + Single-Line Growth Teaser -->
+      <div class="p-4 sm:p-5 space-y-3 bg-gradient-to-b from-white to-slate-50/70">
+        <!-- Active Buyer Strip -->
+        <div id="buy-modal-buyer-row" class="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-100/90 border border-slate-200/90 shadow-2xs">
+          <div class="flex items-center gap-2.5">
+            <div id="buy-modal-buyer-avatar-wrap" class="w-8 h-8 rounded-full border-2 border-white shadow-xs overflow-hidden flex-shrink-0 bg-slate-200 flex items-center justify-center">
+              <canvas id="buy-modal-buyer-avatar-canvas" width="64" height="64" class="w-full h-full block rounded-full"></canvas>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">BUYING TYCOON</span>
+              <span id="buy-modal-buyer-name" class="text-xs font-black text-slate-800 leading-tight">Player 1</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span id="buy-modal-buyer-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
+              ACTIVE TURN
+            </span>
+          </div>
+        </div>
+
+        <!-- Dual Compact Badges: Price & Base Rent -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="game-stat-card stat-card-sky p-2.5">
+            <span class="stat-card-badge text-[10px]">
+              <i class="fa-solid fa-tag text-sky-500"></i> CITY PRICE
+            </span>
+            <div id="buy-modal-price" class="stat-card-value text-sky-950 text-xl font-black">600K</div>
+          </div>
+          <div class="game-stat-card stat-card-emerald p-2.5">
+            <span class="stat-card-badge text-[10px]">
+              <i class="fa-solid fa-coins text-emerald-500"></i> BASE RENT
+            </span>
+            <div id="buy-modal-rent" class="stat-card-value text-emerald-950 text-xl font-black">90K</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Context Strip: Affordability & Max Potential -->
+        <div class="p-3 rounded-2xl bg-slate-100/90 border border-slate-200/90 space-y-1.5 shadow-2xs">
+          <!-- Balance after purchase -->
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+            <span class="text-slate-500 flex items-center gap-1.5">
+              <i class="fa-solid fa-wallet text-amber-500 text-xs"></i> Balance After:
+            </span>
+            <span id="buy-modal-balance-preview" class="font-mono tabular-nums font-black text-slate-900">$2.0M → $1.4M</span>
+          </div>
+
+          <!-- Max potential / Resort perk -->
+          <div id="buy-modal-potential-row" class="flex items-center justify-between text-[11px] font-bold text-slate-600 pt-1.5 border-t border-slate-200/80">
+            <span class="text-slate-400 flex items-center gap-1">
+              <i class="fa-solid fa-bolt text-amber-500 text-xs"></i> Max Potential:
+            </span>
+            <span id="buy-modal-max-rent" class="font-mono tabular-nums font-extrabold text-amber-600">$1.2M (Skyscraper)</span>
+          </div>
+        </div>
+
+        <!-- Primary Action CTAs -->
+        <div class="flex gap-2.5 pt-1">
+          <button id="btn-confirm-buy" onclick="window.confirmBuyCity()" class="game-btn game-btn-green flex-1 py-3 text-sm font-black shadow-md cursor-pointer transition">
+            <i class="fa-solid fa-cart-shopping mr-1.5"></i> BUY CITY
+          </button>
+          <button id="btn-pass-buy" onclick="window.passBuyCity()" class="game-btn game-btn-slate w-28 py-3 text-sm font-black cursor-pointer transition">
+            <i class="fa-solid fa-forward mr-1"></i> PASS
+          </button>
+        </div>
+      </div>
+    </div>

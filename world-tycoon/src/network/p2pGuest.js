@@ -348,6 +348,7 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_FESTIVAL_BOOST':
     case 'ACTION_WORLD_TOUR':
     case 'ACTION_CHANCE_PRIZE':
+    case 'ACTION_CHANCE_SPIN':
     case 'ACTION_MONOPOLY':
     case 'ACTION_END_TURN':
     case 'ACTION_REACTION':

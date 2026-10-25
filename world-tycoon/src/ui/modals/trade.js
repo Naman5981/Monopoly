@@ -25,33 +25,37 @@ let activeIncomingTradeProposal = null;
 
 export function openTradeModal() {
   if (isLobbyScreenActive()) return;
-  if (!isHumanTurnActionable()) {
-    showTurnLockToast("Wait for your turn to propose a trade!");
-    return;
-  }
-  const myIdx = localPlayerIdx || 0;
+  const myIdx = (networkState && networkState.isMultiplayer) ? networkState.localPlayerIdx : (localPlayerIdx || 0);
   const sel = document.getElementById('trade-partner-select');
-  sel.innerHTML = '';
-  gameState.players.forEach((p, idx) => {
-    if (idx !== myIdx && !p.bankrupt) {
-      const o = document.createElement('option');
-      o.value = idx;
-      o.textContent = p.name;
-      sel.appendChild(o);
-    }
-  });
+  if (sel) {
+    sel.innerHTML = '';
+    gameState.players.forEach((p, idx) => {
+      if (idx !== myIdx && !p.bankrupt) {
+        const o = document.createElement('option');
+        o.value = idx;
+        o.textContent = p.name;
+        sel.appendChild(o);
+      }
+    });
+  }
 
   const myProps = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === myIdx);
-  document.getElementById('trade-offer-props').innerHTML = myProps.map(t => `
-    <label class="flex items-center justify-between text-xs font-black bg-white px-3 py-2 rounded-xl border-2 border-slate-200 text-slate-800 cursor-pointer hover:border-slate-300">
-      <span class="flex items-center gap-1.5"><input type="checkbox" value="${t.id}" class="trade-my-prop mr-1 w-3.5 h-3.5">${t.name}</span>
-      <span class="font-black text-emerald-700">${fmtMoney(t.price)}</span>
-    </label>
-  `).join('') || '<div class="text-xs font-bold text-slate-500 py-2 text-center">No cities owned</div>';
+  const offerPropsEl = document.getElementById('trade-offer-props');
+  if (offerPropsEl) {
+    offerPropsEl.innerHTML = myProps.map(t => `
+      <label class="flex items-center justify-between text-xs font-black bg-white px-3 py-2 rounded-xl border-2 border-slate-200 text-slate-800 cursor-pointer hover:border-slate-300">
+        <span class="flex items-center gap-1.5"><input type="checkbox" value="${t.id}" class="trade-my-prop mr-1 w-3.5 h-3.5">${t.name}</span>
+        <span class="font-black text-emerald-700">${fmtMoney(t.price)}</span>
+      </label>
+    `).join('') || '<div class="text-xs font-bold text-slate-500 py-2 text-center">No cities owned</div>';
+  }
 
   populateTradePartnerProps();
-  document.getElementById('trade-status-msg').classList.add('hidden');
-  animateModalSpringOpen('#modal-trade');
+  const statusMsg = document.getElementById('trade-status-msg');
+  if (statusMsg) statusMsg.classList.add('hidden');
+
+  animateModalSpringOpen('#modal-trade', '#modal-trade .game-modal-shell');
+  playSFX('hop');
 }
 
 export function populateTradePartnerProps() {

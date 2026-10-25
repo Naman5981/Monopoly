@@ -2,14 +2,44 @@
 node_modules/
 dist/
 dist_package/
+world-tycoon/dist/
+world-tycoon/dist_package/
 
-# Temporary and log files
+# Build artifacts & standalone executables (built via CI / build_all.ps1)
+*.exe
+*.zip
+*.tar.gz
+*.dmg
+*.app/
+bin/
+obj/
+
+# Temporary, backup and log files
 *.tmp
 *.log
+*.bak
+*.swp
+*.orig
+*~
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AI Agent & Scratch working files
 .gemini/
+scratch/
+brain/
 
 # Operating System & Editor Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+[Dd]esktop.ini
 .vscode/
 .idea/
+*.suo
+*.user

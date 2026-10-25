@@ -55,7 +55,8 @@ import {
   showIncomingTradeOfferModal,
   completeTradeTransfer,
   closeIncomingTradeModal,
-  showChanceAwardPopup
+  showChanceAwardPopup,
+  executeRemoteChanceSpin
 } from '../ui/modals.js';
 
 import { executeWorldTourFlight } from './engine/flight.js';
@@ -207,6 +208,9 @@ export function initEngine() {
     onWorldTour: (playerIdx, destTileId) => {
       executeWorldTourFlight(destTileId, true, playerIdx, evaluateTileLanding);
     },
+    onChanceSpin: (playerIdx, prizeIdx, fullSpins, isDoubles) => {
+      executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles);
+    },
     onChancePrize: (playerIdx, prize, isDoubles) => {
       showChanceAwardPopup(prize, async () => {
         await applyChancePrize(playerIdx, prize, isDoubles, true, false);
@@ -290,6 +294,13 @@ export function startNewMatch() {
   document.getElementById('modal-setup')?.classList.add('hidden');
   document.getElementById('modal-setup')?.classList.remove('flex');
 
+  const landing = document.getElementById('landing-setup-screen');
+  if (landing) {
+    landing.classList.add('hidden');
+    landing.classList.remove('flex');
+    landing.style.setProperty('display', 'none', 'important');
+  }
+
   cancelAllGameTimers();
   clearSavedMatch();
   resetGameStateForNewMatch(lobbyPlayerCount);
@@ -302,6 +313,23 @@ export function startNewMatch() {
   BOARD_TILES.forEach(t => {
     refreshTileTextureAndBuildings(t.id);
   });
+
+  // Reveal in-game HUD layers
+  const hudBar = document.getElementById('main-game-hud-bar');
+  if (hudBar) {
+    hudBar.classList.remove('hidden');
+    hudBar.style.removeProperty('display');
+  }
+  const hudLeft = document.getElementById('hud-left-players');
+  if (hudLeft) {
+    hudLeft.classList.remove('hidden');
+    hudLeft.style.removeProperty('display');
+  }
+  const hudRight = document.getElementById('hud-right-players');
+  if (hudRight) {
+    hudRight.classList.remove('hidden');
+    hudRight.style.removeProperty('display');
+  }
 
   spawnAllPlayerTokens3D();
   renderCornerHUDs();
@@ -346,6 +374,21 @@ export function terminateMatchAndReturnToLobby(isRemote = false) {
   } catch (_) {}
 
   // Hide all in-game overlays and badges
+  const hudBar = document.getElementById('main-game-hud-bar');
+  if (hudBar) {
+    hudBar.classList.add('hidden');
+    hudBar.style.setProperty('display', 'none', 'important');
+  }
+  const hudLeft = document.getElementById('hud-left-players');
+  if (hudLeft) {
+    hudLeft.classList.add('hidden');
+    hudLeft.style.setProperty('display', 'none', 'important');
+  }
+  const hudRight = document.getElementById('hud-right-players');
+  if (hudRight) {
+    hudRight.classList.add('hidden');
+    hudRight.style.setProperty('display', 'none', 'important');
+  }
   const turnToast = document.getElementById('turn-lock-toast');
   if (turnToast) turnToast.classList.add('hidden');
   const flightBanner = document.getElementById('world-tour-banner');
@@ -358,9 +401,15 @@ export function terminateMatchAndReturnToLobby(isRemote = false) {
   const speechBubble = document.getElementById('token-speech-bubble');
   if (speechBubble) speechBubble.classList.add('hidden');
   const diceSumBadge = document.getElementById('dice-sum-badge');
-  if (diceSumBadge) diceSumBadge.classList.add('hidden');
+  if (diceSumBadge) {
+    diceSumBadge.classList.add('hidden');
+    diceSumBadge.style.setProperty('display', 'none', 'important');
+  }
   const statusWrap = document.getElementById('hud-bottom-status-wrap');
-  if (statusWrap) statusWrap.classList.add('hidden');
+  if (statusWrap) {
+    statusWrap.classList.add('hidden');
+    statusWrap.style.setProperty('display', 'none', 'important');
+  }
 
   if (networkState.isMultiplayer) {
     if (networkState.isHost) {

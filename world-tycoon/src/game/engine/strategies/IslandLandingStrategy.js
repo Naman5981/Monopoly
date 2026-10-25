@@ -7,6 +7,7 @@ import { ITileLandingStrategy } from './ITileLandingStrategy.js';
 import { showSpeechBubble } from '../../../three/scene.js';
 import { renderCornerHUDs, logEvent, setPlayerPortraitMood } from '../../../ui/hud.js';
 import { animateIslandDetentionBars } from '../../../ui/anim.js';
+import { playSFX } from '../../audio.js';
 
 export class IslandLandingStrategy extends ITileLandingStrategy {
   async execute(context) {
@@ -15,6 +16,7 @@ export class IslandLandingStrategy extends ITileLandingStrategy {
     player.inIsland = true;
     player.islandTurns = 0;
 
+    playSFX('jail');
     setPlayerPortraitMood(playerIdx, 'shocked', 3500);
     showSpeechBubble('Detained on Tropical Island! 🏝️', 2200);
     logEvent(`🏝️ <strong>${player.name}</strong> landed on the <strong>ISLAND</strong>!`);

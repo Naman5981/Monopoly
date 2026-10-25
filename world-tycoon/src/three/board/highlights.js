@@ -14,6 +14,7 @@ import { getLightPlayerAccent } from '../core/lighting.js';
 let activePlayerBeaconGroup = null;
 let flightHighlightsGroup = null;
 let monopolyRingsGroup = null;
+let festivalHighlightsGroup = null;
 const activeTurnSpriteMap = {};
 
 export function buildTileHighlightRing3D(boardGroup = context.boardGroup) {
@@ -220,6 +221,54 @@ export function setMonopolyTileHighlights(tileIds, colorHex = '#facc15', boardGr
 }
 
 /**
+ * Renders glowing breathing rings over properties eligible for World Festival 2x rent boost.
+ * @param {boolean} active
+ * @param {Array<number>} [tileIds=[]]
+ * @param {string} [colorHex='#10b981']
+ * @param {THREE.Group} [boardGroup=context.boardGroup]
+ */
+export function setFestivalSelectionHighlights(active, tileIds = [], colorHex = '#10b981', boardGroup = context.boardGroup) {
+  if (!festivalHighlightsGroup && boardGroup) {
+    festivalHighlightsGroup = new THREE.Group();
+    boardGroup.add(festivalHighlightsGroup);
+  }
+  if (festivalHighlightsGroup) {
+    while (festivalHighlightsGroup.children.length > 0) {
+      const child = festivalHighlightsGroup.children[0];
+      festivalHighlightsGroup.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    }
+  }
+
+  if (!active || !tileIds || tileIds.length === 0 || !festivalHighlightsGroup) {
+    if (festivalHighlightsGroup) festivalHighlightsGroup.visible = false;
+    context.festivalHighlightsGroup = null;
+    return;
+  }
+
+  const ringGeo = new THREE.RingGeometry(1.08, 1.48, 32);
+  const color = new THREE.Color(colorHex);
+  tileIds.forEach(id => {
+    const ringMat = new THREE.MeshBasicMaterial({
+      color,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.95
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    const pos = getTileWorldPosition(id);
+    ring.position.set(pos.x, 0.466, pos.z);
+    ring.userData = { tileId: id };
+    festivalHighlightsGroup.add(ring);
+  });
+
+  festivalHighlightsGroup.visible = true;
+  context.festivalHighlightsGroup = festivalHighlightsGroup;
+}
+
+/**
  * Updates active player spotlight beacon and monopoly ring pulsing each render frame.
  * @param {number} t - Time in seconds
  */
@@ -240,6 +289,23 @@ export function updateActivePlayerBeacon(t) {
       }
       ring.scale.set(pulseScale, pulseScale, 1);
       ring.material.opacity = pulseOpacity;
+    });
+  }
+
+  if (festivalHighlightsGroup?.visible) {
+    // Breathing style highlight: smooth continuous inhalation/exhalation wave
+    const pulseScale = 1 + Math.sin(t * 3.6) * 0.12;
+    const pulseOpacity = 0.50 + Math.sin(t * 3.6) * 0.45; // Dynamic breath: 0.05 to 0.95
+    festivalHighlightsGroup.children.forEach(ring => {
+      const tileId = ring.userData?.tileId;
+      const tileMesh = tileId !== undefined ? context.tilesMeshMap[tileId] : null;
+      if (tileMesh) {
+        ring.position.y = tileMesh.position.y + 0.130;
+      }
+      ring.scale.set(pulseScale, pulseScale, 1);
+      if (ring.material) {
+        ring.material.opacity = pulseOpacity;
+      }
     });
   }
 

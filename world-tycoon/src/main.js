@@ -6,7 +6,7 @@
 import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
 import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed, getSavedPlayerName } from './game/state.js';
 import { updateMasterVolume, playSFX, initAudioUnlock, startAdaptiveMusic, stopAdaptiveMusic } from './game/audio.js';
-import { updateGameSpeedUI, showTurnLockToast } from './ui/hud.js';
+import { updateGameSpeedUI, showTurnLockToast, initFastHUDButtonInteractions } from './ui/hud.js';
 import { initThreeScene, initTheatreSuite, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
 import { context } from './three/core/context.js';
 import { checkVictoryConditions } from './game/rules.js';
@@ -113,6 +113,7 @@ import {
   toggleCityMortgage,
   openPortfolioModal,
   closePortfolioModal,
+  handleModalBackdropClick,
   openTradeModal,
   closeTradeModal,
   populateTradePartnerProps,
@@ -160,6 +161,7 @@ import {
   stopVictoryCelebration
 } from './three/effects.js';
 import { initDebugSuite, toggleDebugPanel } from './game/debug.js';
+import { initVersionChecker } from './game/versionCheck.js';
 import {
   initWardrobeSystem,
   openWardrobeModal,
@@ -286,6 +288,7 @@ window.handleRollButtonClick = handleRollButtonClick;
 window.handlePayIslandBail = handlePayIslandBail;
 window.openPortfolioModal = openPortfolioModal;
 window.closePortfolioModal = closePortfolioModal;
+window.handleModalBackdropClick = handleModalBackdropClick;
 window.openTradeModal = openTradeModal;
 window.closeTradeModal = closeTradeModal;
 window.populateTradePartnerProps = populateTradePartnerProps;
@@ -460,6 +463,24 @@ function onTileClick(tileId) {
     return;
   }
 
+  if (gameState.phase === 'FESTIVAL_SELECT') {
+    if (isHumanTurn) {
+      const activeIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : gameState.currentPlayerIdx;
+      const prop = gameState.properties[tileId];
+      if (prop && prop.owner === activeIdx) {
+        if (typeof window.chooseFestivalBoostCity === 'function') {
+          window.chooseFestivalBoostCity(tileId);
+        }
+        return;
+      } else {
+        showSpeechBubble('Click one of your highlighted properties! 🎪', 2500);
+        playSFX('deny');
+        return;
+      }
+    }
+    return;
+  }
+
   const m = document.getElementById('modal-tile-inspector');
   if (m && !m.classList.contains('hidden') && gameState.activeInspectorTile === tileId) {
     closeInspectorModal();
@@ -477,6 +498,7 @@ function initApp() {
   initWardrobeSystem();
   initDebugSuite();
   initTheatreSuite();
+  initVersionChecker();
 
   // Apply initial lighting mode
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
@@ -517,6 +539,7 @@ function initApp() {
   updateSoundUI();
   updateMasterVolume(soundEnabled ? soundVolume : 0);
   updateGameSpeedUI();
+  initFastHUDButtonInteractions();
 
   // Check if an unfinished match exists to offer resume
   checkAndPromptResumeMatch();
@@ -584,7 +607,9 @@ function initApp() {
         toggleLeaderboardModal();
       }
     } else if (e.key === 'Escape') {
-      if (!document.getElementById('modal-leaderboard')?.classList.contains('hidden')) {
+      if (!document.getElementById('modal-confirm-exit-lobby')?.classList.contains('hidden')) {
+        closeConfirmExitLobbyModal();
+      } else if (!document.getElementById('modal-leaderboard')?.classList.contains('hidden')) {
         closeLeaderboardModal();
       } else if (!document.getElementById('modal-wardrobe')?.classList.contains('hidden')) {
         closeWardrobeModal();

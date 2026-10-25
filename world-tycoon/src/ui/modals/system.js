@@ -64,13 +64,24 @@ export function renderLobbyControls() {
    RULES MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function openRulesModal() {
-  document.getElementById('modal-rules').classList.remove('hidden');
-  document.getElementById('modal-rules').classList.add('flex');
+  const m = document.getElementById('modal-rules');
+  if (m) {
+    m.style.removeProperty('display');
+    m.style.removeProperty('pointer-events');
+    animateModalSpringOpen(m, '#modal-rules .game-modal-shell');
+    playSFX('hop');
+  }
 }
 
 export function closeRulesModal() {
-  document.getElementById('modal-rules').classList.add('hidden');
-  document.getElementById('modal-rules').classList.remove('flex');
+  const m = document.getElementById('modal-rules');
+  if (m) {
+    animateModalSpringClose(m, '#modal-rules .game-modal-shell', () => {
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+      m.style.setProperty('display', 'none', 'important');
+    });
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -117,8 +128,21 @@ export function sendQuickEmote(text) {
 
 export function toggleEventLogDrawer() {
   const d = document.getElementById('event-log-drawer');
-  d.classList.toggle('hidden');
-  d.classList.toggle('flex');
+  if (!d) return;
+  const isHidden = d.classList.contains('hidden') || d.style.display === 'none';
+  if (isHidden) {
+    d.classList.remove('hidden');
+    d.classList.add('flex');
+    d.style.removeProperty('display');
+    d.style.setProperty('display', 'flex', 'important');
+    d.style.setProperty('z-index', '1000', 'important');
+    d.style.pointerEvents = 'auto';
+    playSFX('hop');
+  } else {
+    d.classList.add('hidden');
+    d.classList.remove('flex');
+    d.style.setProperty('display', 'none', 'important');
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,78 @@
+  <div id="modal-festival-boost" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-festival-boost-card" class="game-modal-shell modal-shell-emerald max-w-lg w-full flex flex-col overflow-hidden shadow-2xl max-h-[90vh]">
+      <!-- Header -->
+      <div class="game-modal-header h-28 p-3 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
+        <!-- Floating Watermark Icons -->
+        <svg class="ui-watermark absolute -right-2 -top-2 w-16 h-16 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+        <svg class="ui-watermark absolute -left-2 -bottom-2 w-16 h-16 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
+
+        <span class="modal-badge-pill bg-black/25 border border-white/30 text-emerald-100 flex items-center gap-1.5">
+          <i class="fa-solid fa-champagne-glasses text-amber-300"></i> WORLD FESTIVAL CELEBRATION
+        </span>
+        <h3 class="modal-city-title text-xl sm:text-2xl tracking-wide font-black drop-shadow-sm">HOST THE FESTIVAL</h3>
+        <span class="text-[11px] font-black uppercase text-emerald-100 tracking-wider">Select a city to receive the exclusive 2× World Festival Rent Boost!</span>
+        <button onclick="window.closeFestivalBoostModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center cursor-pointer transition-colors z-10" title="Close and select on 3D board [Esc]" aria-label="Close modal to pick on board"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+
+      <!-- Player Context Strip -->
+      <div class="px-5 py-2.5 bg-emerald-50/80 border-b border-emerald-100 flex items-center justify-between text-xs shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-extrabold text-slate-700">Host:</span>
+          <span id="festival-boost-player-name" class="font-black text-emerald-950">Player</span>
+        </div>
+        <span id="festival-boost-count" class="px-2.5 py-0.5 rounded-full bg-white text-emerald-800 font-black text-[10px] border border-emerald-200 shadow-2xs">
+          0 Properties Owned
+        </span>
+      </div>
+
+      <!-- Property Grid (Scrollable) -->
+      <div id="festival-boost-grid" class="p-4 sm:p-5 overflow-y-auto space-y-3 bg-gradient-to-b from-white to-slate-50/70 max-h-[50vh]">
+        <!-- Rendered dynamically by renderFestivalBoostModal -->
+      </div>
+      <!-- Modal Footer -->
+      <div class="p-3 bg-white border-t border-slate-100 flex items-center justify-between gap-2 shrink-0">
+        <button onclick="window.closeFestivalBoostModal()" class="w-full py-2.5 rounded-xl text-xs font-black text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"><i class="fa-solid fa-cube text-xs"></i><span>Or Click Directly on the 3D Board</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- A1.4B WORLD FESTIVAL NO PROPERTIES ALERT MODAL (better-interface compliant) -->
+  <div id="modal-festival-no-properties" role="alertdialog" aria-modal="true" aria-labelledby="festival-no-props-title" aria-describedby="festival-no-props-desc" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-festival-no-properties-card" class="game-modal-shell modal-shell-amber relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border-4 !border-amber-400 focus:outline-hidden" tabindex="-1">
+      <!-- Header -->
+      <div class="game-modal-header bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10 shrink-0">
+          <i class="fa-solid fa-champagne-glasses text-amber-100"></i>
+        </div>
+        <div class="relative z-10 flex-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs mb-1 border border-white/20">
+            <i class="fa-solid fa-circle-exclamation text-amber-200"></i> WORLD FESTIVAL
+          </div>
+          <h2 id="festival-no-props-title" class="font-rounded font-black text-xl text-white tracking-wide drop-shadow">NO PROPERTIES OWNED</h2>
+          <p class="text-xs font-bold text-amber-100 drop-shadow mt-0.5">Cannot increase rent yet</p>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50/70">
+        <div class="bg-amber-50/90 border-2 border-amber-200/90 rounded-2xl p-3.5 flex items-start gap-3 shadow-xs">
+          <i class="fa-solid fa-building-circle-xmark text-amber-600 text-xl mt-0.5 shrink-0"></i>
+          <p id="festival-no-props-desc" class="text-xs font-bold text-amber-950 leading-relaxed">
+            You visited the <strong class="text-amber-900">World Festival</strong>! However, you currently do not own any cities or resorts to host the festival and receive a <strong class="text-emerald-700">2× Rent Boost</strong>.
+          </p>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-lightbulb text-amber-500 text-sm shrink-0"></i>
+          <span>Acquire properties across the board to host future World Festivals and double your rental income!</span>
+        </div>
+
+        <button id="btn-festival-no-props-ok" onclick="window.closeFestivalNoPropertiesModal()" class="game-btn game-btn-blue w-full py-3 text-xs sm:text-sm font-black shadow-md flex items-center justify-center gap-2 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <span>Continue Turn</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>

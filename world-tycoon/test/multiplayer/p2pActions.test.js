@@ -339,8 +339,9 @@ describe('P2P Action Dispatcher & Executor', () => {
       assert.equal(gameState.properties[1].owner, null);
     });
 
-    it('handles ACTION_FESTIVAL_BOOST', () => {
+    it('handles ACTION_FESTIVAL_BOOST and restores any other previously boosted city', () => {
       gameState.properties[1].festivalBoost = false;
+      gameState.properties[2].festivalBoost = true; // previously boosted city
 
       executeIncomingNetworkAction({
         type: 'ACTION_FESTIVAL_BOOST',
@@ -350,6 +351,7 @@ describe('P2P Action Dispatcher & Executor', () => {
       });
 
       assert.equal(gameState.properties[1].festivalBoost, true);
+      assert.equal(gameState.properties[2].festivalBoost, false);
     });
 
     it('routes auctions, trades, and world tours properly', () => {

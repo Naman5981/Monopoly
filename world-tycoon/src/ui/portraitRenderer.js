@@ -60,10 +60,15 @@ export function initPortraitRenderLoop() {
 
     if (!gameState || !gameState.players || gameState.players.length === 0) return;
 
-    for (let idx = 0; idx < gameState.players.length; idx++) {
-      const canvas = document.getElementById(`hud-avatar-canvas-${idx}`);
-      if (!canvas) continue;
-      drawPortraitFrame(canvas, idx, timestamp);
+    // Game Art & Performance: If 3D interactive portraits are actively rendering in Three.js,
+    // do not fight or overwrite the HUD canvases, only render the 2D buyer modal canvas
+    const has3DPortraits = (typeof window !== 'undefined' && window.__has3DPortraitsActive);
+    if (!has3DPortraits) {
+      for (let idx = 0; idx < gameState.players.length; idx++) {
+        const canvas = document.getElementById(`hud-avatar-canvas-${idx}`);
+        if (!canvas) continue;
+        drawPortraitFrame(canvas, idx, timestamp);
+      }
     }
 
     // Continuously animate buyer portrait in buy city modal if visible

@@ -10,4 +10,10 @@
 
 export const BUILD_CONFIG = {
   DEBUG_ENABLED: true,
+  VERSION: '1.0.0',
+  REPO_OWNER: 'Naman5981',
+  REPO_NAME: 'Monopoly',
+  RELEASE_URL: 'https://github.com/Naman5981/Monopoly/releases/latest',
+  RAW_PACKAGE_URL: 'https://raw.githubusercontent.com/Naman5981/Monopoly/main/world-tycoon/package.json',
+  API_RELEASE_URL: 'https://api.github.com/repos/Naman5981/Monopoly/releases/latest',
 };

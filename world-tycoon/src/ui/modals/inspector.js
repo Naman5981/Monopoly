@@ -18,7 +18,7 @@ import {
 import { renderCornerHUDs, showTurnLockToast, logEvent } from '../hud.js';
 import { saveCurrentMatchToStorage } from '../../game/persistence.js';
 import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML } from './common.js';
-import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose } from '../anim.js';
+import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 
 export function openInspectorModal(tileId) {
   if (isLobbyScreenActive()) return;
@@ -289,23 +289,24 @@ export function toggleCityMortgage(tileId, isAutoLiquidation = false) {
 
 export function openPortfolioModal() {
   if (isLobbyScreenActive()) return;
-  if (!isHumanTurnActionable()) {
-    showTurnLockToast("Wait for your turn to manage cities!");
-    return;
-  }
   renderPortfolioGrid();
   const m = document.getElementById('modal-portfolio');
   if (m) {
-    m.classList.remove('hidden');
-    m.classList.add('flex');
+    m.style.removeProperty('display');
+    m.style.removeProperty('pointer-events');
+    animateModalSpringOpen(m, '#modal-portfolio .game-modal-shell');
   }
+  playSFX('hop');
 }
 
 export function closePortfolioModal() {
   const m = document.getElementById('modal-portfolio');
   if (m) {
-    m.classList.add('hidden');
-    m.classList.remove('flex');
+    animateModalSpringClose(m, '#modal-portfolio .game-modal-shell', () => {
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+      m.style.setProperty('display', 'none', 'important');
+    });
   }
 }
 

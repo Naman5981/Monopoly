@@ -29,6 +29,15 @@ export function initLobbyHeroStage() {
   lobbyHeroCamera.position.set(0, 1.45, 5.0);
   lobbyHeroCamera.lookAt(0, 0.42, 0);
 
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+  }, false);
+  canvas.addEventListener('webglcontextrestored', () => {
+    if (lobbyHeroRenderer) {
+      lobbyHeroRenderer.setSize(w, h, false);
+    }
+  }, false);
+
   lobbyHeroRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   lobbyHeroRenderer.setSize(w, h, false);
   lobbyHeroRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

@@ -1,0 +1,161 @@
+  <div id="modal-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeTradeModal()">
+    <div class="game-modal-shell modal-shell-emerald max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+      <!-- Grand Banner Header (Victory Style) -->
+      <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
+        <!-- Floating Watermark Icons -->
+        <svg class="ui-watermark absolute -right-3 -top-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-handshake"></use></svg>
+        <svg class="ui-watermark absolute -left-3 -bottom-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-scales"></use></svg>
+
+        <div class="relative z-10 flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
+            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-handshake"></use></svg>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-emerald-100 shadow-xs mb-1 border border-white/20">
+              <svg class="ui-icon w-3 h-3 text-emerald-200" aria-hidden="true"><use href="#icon-globe"></use></svg> GLOBAL DIPLOMACY
+            </div>
+            <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">
+              PROPOSE CITY TRADE
+            </h3>
+            <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">
+              Strategic mutual exchange of cash and metropolitan deeds
+            </p>
+          </div>
+        </div>
+
+        <button onclick="window.closeTradeModal()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close trade">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- Trade Arena Body -->
+      <div class="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto bg-gradient-to-b from-white to-slate-50/70 flex-1">
+        <!-- Left: Your Offer Column -->
+        <div class="bg-gradient-to-b from-sky-50/60 to-white p-4 rounded-2xl border-2 border-sky-300 shadow-xs flex flex-col">
+          <div class="flex items-center justify-between mb-2.5 pb-1.5 border-b border-sky-200">
+            <span class="font-rounded font-black text-sm text-sky-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-up-from-bracket text-sky-600"></i> YOUR OFFER
+            </span>
+            <span class="text-[10px] font-black uppercase text-sky-700 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-200">YOU</span>
+          </div>
+          <label class="text-xs font-black text-slate-700">Cash Offered (K):</label>
+          <input id="trade-offer-cash" type="number" min="0" step="50" value="0" class="w-full mt-1 mb-3 px-3 py-2 rounded-xl border-2 border-sky-200 text-sm font-black text-slate-900 bg-white focus:outline-none focus:border-sky-400">
+          <div class="text-xs font-black text-slate-700 mb-1.5">Your Cities to Transfer:</div>
+          <div id="trade-offer-props" class="space-y-1.5 max-h-44 overflow-y-auto flex-1 pr-1 overscroll-contain"></div>
+        </div>
+
+        <!-- Right: Partner Request Column -->
+        <div class="bg-gradient-to-b from-amber-50/60 to-white p-4 rounded-2xl border-2 border-amber-300 shadow-xs flex flex-col">
+          <div class="flex items-center justify-between mb-2.5 pb-1.5 border-b border-amber-200">
+            <span class="font-rounded font-black text-sm text-amber-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-down-to-bracket text-amber-600"></i> YOU REQUEST
+            </span>
+            <select id="trade-partner-select" onchange="window.populateTradePartnerProps()" class="text-xs font-black bg-white border-2 border-amber-300 rounded-lg px-2.5 py-1 text-slate-800 cursor-pointer shadow-2xs"></select>
+          </div>
+          <label class="text-xs font-black text-slate-700">Cash Requested (K):</label>
+          <input id="trade-req-cash" type="number" min="0" step="50" value="0" class="w-full mt-1 mb-3 px-3 py-2 rounded-xl border-2 border-amber-200 text-sm font-black text-slate-900 bg-white focus:outline-none focus:border-amber-400">
+          <div class="text-xs font-black text-slate-700 mb-1.5">Partner Cities to Receive:</div>
+          <div id="trade-req-props" class="space-y-1.5 max-h-44 overflow-y-auto flex-1 pr-1 overscroll-contain"></div>
+        </div>
+      </div>
+
+      <!-- Counter banner if active -->
+      <div id="trade-counter-banner" class="hidden mx-4 mb-2 p-3.5 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-2xl shadow-xs text-center space-y-2">
+        <div class="flex items-center justify-center gap-1.5 font-black text-xs text-amber-950 uppercase tracking-wide">
+          <i class="fa-solid fa-comments-dollar text-amber-600"></i>
+          <span id="counter-offer-title">Counter-Offer Proposed</span>
+        </div>
+        <div id="counter-offer-desc" class="text-xs text-slate-700 font-semibold leading-relaxed"></div>
+        <div class="flex gap-2 pt-1 max-w-xs mx-auto">
+          <button onclick="window.acceptTradeCounterOffer()" class="game-btn game-btn-green flex-1 py-2 text-xs font-black">
+            Accept Counter
+          </button>
+          <button onclick="window.rejectTradeCounterOffer()" class="game-btn game-btn-slate flex-1 py-2 text-xs font-black">
+            Decline
+          </button>
+        </div>
+      </div>
+
+      <div id="trade-status-msg" class="text-center text-xs font-black py-1 hidden"></div>
+
+      <!-- Action Footer -->
+      <div class="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/80">
+        <button onclick="window.closeTradeModal()" class="game-btn game-btn-slate px-5 py-2.5 text-xs font-black">Cancel</button>
+        <button onclick="window.executeTradeOffer()" class="game-btn game-btn-green px-6 py-2.5 text-xs font-black">
+          <i class="fa-solid fa-paper-plane mr-1.5"></i> Send Trade Offer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- F2. INCOMING PROACTIVE BOT TRADE PROPOSAL MODAL -->
+  <div id="modal-incoming-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div class="game-modal-shell modal-shell-indigo max-w-lg w-full flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <!-- Grand Banner Header (Victory Style) -->
+      <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
+        <!-- Floating Watermark Icons -->
+        <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-handshake"></use></svg>
+        <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-scroll"></use></svg>
+
+        <div class="relative z-10 flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
+            <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-handshake"></use></svg>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-indigo-100 shadow-xs mb-1 border border-white/20">
+              <svg class="ui-icon w-3 h-3 text-sky-200" aria-hidden="true"><use href="#icon-envelope"></use></svg> DIPLOMATIC PROPOSAL
+            </div>
+            <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md flex items-center gap-2">
+              <span id="incoming-trade-bot-name">BIDIK</span>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs">OFFER</span>
+            </h3>
+            <p class="text-xs font-bold text-sky-100 drop-shadow mt-0.5">
+              Strategic real estate exchange proposal
+            </p>
+          </div>
+        </div>
+
+        <button onclick="window.declineIncomingTrade()" class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Decline trade">
+          <svg class="ui-icon w-4 h-4 text-white" aria-hidden="true"><use href="#icon-xmark"></use></svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50/70 flex-1 overflow-y-auto">
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <!-- They Offer -->
+          <div class="victory-accolade-box victory-accolade-box-emerald flex-col !items-start text-left p-3.5">
+            <span class="text-[10px] font-black tracking-wider uppercase text-emerald-950 flex items-center gap-1.5">
+              <svg class="ui-icon w-3.5 h-3.5 text-emerald-600" aria-hidden="true"><use href="#icon-money"></use></svg> THEY OFFER
+            </span>
+            <div id="incoming-they-offer-cash" class="text-emerald-800 font-display font-black text-base my-0.5"></div>
+            <div id="incoming-they-offer-props" class="w-full space-y-1 pt-1 font-bold text-slate-800"></div>
+          </div>
+
+          <!-- They Request -->
+          <div class="victory-accolade-box victory-accolade-box-sky flex-col !items-start text-left p-3.5">
+            <span class="text-[10px] font-black tracking-wider uppercase text-sky-950 flex items-center gap-1.5">
+              <svg class="ui-icon w-3.5 h-3.5 text-sky-600" aria-hidden="true"><use href="#icon-building"></use></svg> THEY REQUEST
+            </span>
+            <div id="incoming-they-req-cash" class="text-slate-600 font-display font-bold text-xs my-0.5"></div>
+            <div id="incoming-they-req-props" class="w-full space-y-1 pt-1 font-bold text-slate-800"></div>
+          </div>
+        </div>
+
+        <div id="incoming-trade-rationale" class="text-xs text-slate-700 font-semibold bg-white p-3.5 rounded-2xl border-2 border-slate-200/80 shadow-xs text-center">
+          Fair economic property exchange proposed based on current board positions.
+        </div>
+
+        <div class="flex gap-2.5 pt-1">
+          <button onclick="window.acceptIncomingTrade()" class="game-btn game-btn-green flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
+            <svg class="ui-icon w-3.5 h-3.5 mr-1 text-white" aria-hidden="true"><use href="#icon-check"></use></svg> Accept Deal
+          </button>
+          <button onclick="window.counterIncomingTrade()" class="game-btn game-btn-orange flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
+            <svg class="ui-icon w-3.5 h-3.5 mr-1 text-white" aria-hidden="true"><use href="#icon-handshake"></use></svg> Counter-Offer
+          </button>
+          <button onclick="window.declineIncomingTrade()" class="game-btn game-btn-slate px-4 py-3 text-xs sm:text-sm font-black">
+            Decline
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

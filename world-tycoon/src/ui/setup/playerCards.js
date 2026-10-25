@@ -259,7 +259,7 @@ export function renderPlayerCards() {
         const span = document.createElement('span');
         span.className = 'player-name-display font-black text-sm sm:text-base text-slate-800 uppercase px-1.5 py-0.5 select-none truncate';
         span.textContent = cp.name;
-        span.title = cp.isAI ? 'AI Tycoon Bot' : 'Player';
+        span.title = cp.isAI ? 'AI Bot' : 'Player';
         inputEl.replaceWith(span);
       } else {
         const textSpan = row.querySelector('.player-name-display');
@@ -332,7 +332,7 @@ export function renderPlayerCards() {
     const podiumTag = isSelected ? '<span class="text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-2.5 py-0.5 rounded-full shadow-xs border border-amber-300 flex items-center gap-1"><span>👑</span> PODIUM</span>' : '';
 
     // Names in lobby are strictly read-only for fair play
-    const nameInputHtml = `<span class="player-name-display font-black text-sm sm:text-base text-slate-800 uppercase px-1.5 py-0.5 select-none truncate" title="${cp.isAI ? 'AI Tycoon Bot' : 'Player'}">${cp.name}</span>`;
+    const nameInputHtml = `<span class="player-name-display font-black text-sm sm:text-base text-slate-800 uppercase px-1.5 py-0.5 select-none truncate" title="${cp.isAI ? 'AI Bot' : 'Player'}">${cp.name}</span>`;
     const actionControlsHtml = buildPlayerCardActionControls(i, isGuest, isOnline, isConnectedPeer, isHuman, isSelf);
 
     row.innerHTML = `

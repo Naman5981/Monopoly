@@ -273,6 +273,23 @@ export function startGameFromLandingPage() {
   // Trigger Theatre.js cinematic camera fly-in swoop
   playIntroCinematicFlyIn();
 
+  // Reveal in-game HUD layers
+  const hudBar = document.getElementById('main-game-hud-bar');
+  if (hudBar) {
+    hudBar.classList.remove('hidden');
+    hudBar.style.removeProperty('display');
+  }
+  const hudLeft = document.getElementById('hud-left-players');
+  if (hudLeft) {
+    hudLeft.classList.remove('hidden');
+    hudLeft.style.removeProperty('display');
+  }
+  const hudRight = document.getElementById('hud-right-players');
+  if (hudRight) {
+    hudRight.classList.remove('hidden');
+    hudRight.style.removeProperty('display');
+  }
+
   // Initialize and start match with configured players & starting cash
   startNewMatch();
 }
@@ -285,15 +302,16 @@ export function openLandingSetupScreen() {
   if (typeof window.cancelAllGameTimers === 'function') {
     window.cancelAllGameTimers();
   }
-  closeAllGameModals();
   gameState.gameStarted = false;
   gameState.phase = 'SETUP';
+  closeAllGameModals();
 
   const landingScreen = document.getElementById('landing-setup-screen');
   if (landingScreen) {
     landingScreen.classList.remove('hidden');
+    landingScreen.classList.add('flex');
     landingScreen.style.removeProperty('display');
-    landingScreen.style.display = 'flex';
+    landingScreen.style.setProperty('display', 'flex', 'important');
     landingScreen.style.opacity = '1';
     landingScreen.style.transform = 'none';
     landingScreen.style.pointerEvents = 'auto';
@@ -315,6 +333,21 @@ export function openLandingSetupScreen() {
   }
 
   // Hide in-game HUD layers / badges
+  const hudBar = document.getElementById('main-game-hud-bar');
+  if (hudBar) {
+    hudBar.classList.add('hidden');
+    hudBar.style.setProperty('display', 'none', 'important');
+  }
+  const hudLeft = document.getElementById('hud-left-players');
+  if (hudLeft) {
+    hudLeft.classList.add('hidden');
+    hudLeft.style.setProperty('display', 'none', 'important');
+  }
+  const hudRight = document.getElementById('hud-right-players');
+  if (hudRight) {
+    hudRight.classList.add('hidden');
+    hudRight.style.setProperty('display', 'none', 'important');
+  }
   const turnToast = document.getElementById('turn-lock-toast');
   if (turnToast) turnToast.classList.add('hidden');
   const flightBanner = document.getElementById('world-tour-banner');
@@ -327,9 +360,15 @@ export function openLandingSetupScreen() {
   const speechBubble = document.getElementById('token-speech-bubble');
   if (speechBubble) speechBubble.classList.add('hidden');
   const diceSumBadge = document.getElementById('dice-sum-badge');
-  if (diceSumBadge) diceSumBadge.classList.add('hidden');
+  if (diceSumBadge) {
+    diceSumBadge.classList.add('hidden');
+    diceSumBadge.style.setProperty('display', 'none', 'important');
+  }
   const statusWrap = document.getElementById('hud-bottom-status-wrap');
-  if (statusWrap) statusWrap.classList.add('hidden');
+  if (statusWrap) {
+    statusWrap.classList.add('hidden');
+    statusWrap.style.setProperty('display', 'none', 'important');
+  }
 
   if (networkState.isMultiplayer) {
     showMultiplayerSetup();
@@ -348,4 +387,8 @@ export function openLandingSetupScreen() {
   }
 
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
+
+  if (typeof window.resetCameraView === 'function') {
+    window.resetCameraView();
+  }
 }

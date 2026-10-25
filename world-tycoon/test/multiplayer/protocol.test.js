@@ -42,6 +42,7 @@ describe('P2P Protocol Validation & Sanitization', () => {
         'ACTION_TRADE_RESPONSE',
         'ACTION_WORLD_TOUR',
         'ACTION_CHANCE_PRIZE',
+        'ACTION_CHANCE_SPIN',
         'ACTION_MONOPOLY',
         'ACTION_SYNC_BOARD_EDITION',
         'ACTION_END_TURN',

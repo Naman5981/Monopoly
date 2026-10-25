@@ -4,7 +4,7 @@
  */
 
 import { gameState, setupPlayers, lobbyPlayerCount } from '../game/state.js';
-import { logEvent, renderCornerHUDs } from '../ui/hud.js';
+import { logEvent, renderCornerHUDs, refreshActivePlayerTurnStatus } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { fmtMoney } from '../game/utils.js';
 import { spawnAnimatedReaction } from '../three/effects.js';
@@ -80,6 +80,7 @@ export function executeIncomingNetworkAction(msg) {
         p.cash -= 150000;
         gameState.festivalPot += 150000;
         renderCornerHUDs();
+        refreshActivePlayerTurnStatus();
       }
       logEvent(`🏝️ <strong>${p ? p.name : 'Player'}</strong> paid 150K Island Bail.`);
       if (networkState.isHost) {
@@ -100,6 +101,7 @@ export function executeIncomingNetworkAction(msg) {
       if (p) {
         p.cash += (msg.saleVal ?? msg.saleRefund ?? 0);
         renderCornerHUDs();
+        refreshActivePlayerTurnStatus();
       }
       logEvent(`🏷️ <strong>${p ? p.name : 'Player'}</strong> sold <strong>${t ? t.name : 'Property'}</strong> to pay rent.`);
       if (networkState.isHost) {
@@ -117,6 +119,7 @@ export function executeIncomingNetworkAction(msg) {
         playSFX('cash');
         logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(msg.rentOwed)}</strong> rent to <strong>${creditor.name}</strong>.`);
         renderCornerHUDs();
+        refreshActivePlayerTurnStatus();
       }
       if (networkState.isHost) {
         broadcastFullGameState();
@@ -143,6 +146,7 @@ export function executeIncomingNetworkAction(msg) {
         });
         logEvent(`💥 <strong>${bankruptP.name}</strong> declared bankruptcy!`);
         renderCornerHUDs();
+        refreshActivePlayerTurnStatus();
 
         const vic = checkVictoryConditions();
         if (vic) {
@@ -175,6 +179,12 @@ export function executeIncomingNetworkAction(msg) {
       }
       break;
 
+    case 'ACTION_CHANCE_SPIN':
+      if (networkCallbacks.onChanceSpin) {
+        networkCallbacks.onChanceSpin(msg.playerIdx, msg.prizeIdx, msg.fullSpins, msg.isDoubles);
+      }
+      break;
+
     case 'ACTION_CHANCE_PRIZE':
       if (networkCallbacks.onChancePrize) {
         networkCallbacks.onChancePrize(msg.playerIdx, msg.prize, msg.isDoubles);
@@ -190,13 +200,28 @@ export function executeIncomingNetworkAction(msg) {
     case 'ACTION_FESTIVAL_BOOST': {
       const p = gameState.players ? gameState.players[msg.playerIdx] : null;
       const t = BOARD_TILES[msg.tileId];
+      let prevHostTile = null;
+
+      // Restore any previous city's festival boost across the board (no player constraint)
+      for (const bt of BOARD_TILES) {
+        if (bt.id !== msg.tileId && gameState.properties[bt.id]?.festivalBoost) {
+          prevHostTile = bt;
+          gameState.properties[bt.id].festivalBoost = false;
+          refreshTileTextureAndBuildings(bt.id);
+        }
+      }
+
       const st = gameState.properties[msg.tileId];
       if (st) {
         st.festivalBoost = true;
         refreshTileTextureAndBuildings(msg.tileId);
       }
       if (p && t) {
-        logEvent(`🎉 <strong>${p.name}</strong> selected <strong>${t.name}</strong> to host the World Festival (2× Rent Boost)!`);
+        if (prevHostTile) {
+          logEvent(`🎉 <strong>${p.name}</strong> moved the World Festival to <strong>${t.name}</strong> (2× Rent Boost)! <strong>${prevHostTile.name}</strong> rent restored to normal.`);
+        } else {
+          logEvent(`🎉 <strong>${p.name}</strong> selected <strong>${t.name}</strong> to host the World Festival (2× Rent Boost)!`);
+        }
       }
       renderCornerHUDs();
       if (networkState.isHost) {

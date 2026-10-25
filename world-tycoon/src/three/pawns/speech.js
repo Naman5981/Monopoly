@@ -24,8 +24,10 @@ export function updateSpeechBubbleScreenPosition() {
   projectedWorldPos.y += 1.85;
   projectedWorldPos.project(context.camera);
 
-  bubble.style.left = `${(projectedWorldPos.x * 0.5 + 0.5) * window.innerWidth}px`;
-  bubble.style.top = `${(-projectedWorldPos.y * 0.5 + 0.5) * window.innerHeight}px`;
+  const screenX = Math.round((projectedWorldPos.x * 0.5 + 0.5) * window.innerWidth);
+  const screenY = Math.round((-projectedWorldPos.y * 0.5 + 0.5) * window.innerHeight);
+
+  bubble.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) translate(-50%, -100%)`;
 }
 
 /**
