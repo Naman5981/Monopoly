@@ -123,10 +123,6 @@ Monopoly/
 │           ├── setup.js             # Interactive landing lobby table manager
 │           ├── hud.js               # 4-Corner player HUD cards & live ticker
 │           └── modals.js            # Buy city, auction, chance wheel & trade dialogs
-├── release-notes/                   # Version history & architectural enhancement sheets
-│   ├── README.md                    # Master release registry
-│   ├── v2.0.0-architecture-modularization.md # 3D diorama modularization & facade
-│   └── v2.1.0-performance-optimization.md    # CPU 70-90% reduction & 60 FPS pacing
 ├── Launcher.cs                      # C# Standalone WebRTC server launcher source
 ├── build_exe.ps1                    # Compiles Launcher.cs into WorldTycoon.exe
 ├── build_zip.ps1                    # Packages world-tycoon/ into world-tycoon.zip
@@ -135,16 +131,6 @@ Monopoly/
 ├── run.bat                          # One-click Windows launch script
 └── README.md                        # Documentation & feature overview
 ```
-
----
-
-## 📜 Release Notes & Architecture History
-
-For detailed architectural specifications, performance benchmarks, and version histories, see the [release-notes/](release-notes/) directory:
-
-- [Release Notes Master Registry](file:///release-notes/README.md)
-- [v2.1.0 — CPU & Rendering Pipeline Performance Optimization](file:///release-notes/v2.1.0-performance-optimization.md) (Fixes 70–90% CPU usage, adds 60 FPS limiter, lobby background bypass, on-demand shadows, and eliminates GPU readback stalls)
-- [v2.0.0 — Three.js Architecture Modularization](file:///release-notes/v2.0.0-architecture-modularization.md) (Modularizes 4,504-line monolith into 19 submodules under the Facade pattern)
 
 ---
 
