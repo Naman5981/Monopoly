@@ -61,7 +61,13 @@ export function executeIncomingNetworkAction(msg) {
     case 'ACTION_BUYOUT_CITY':
       if (networkCallbacks.onBuyoutCity) {
         const prevOwnerIdx = msg.prevOwnerIdx !== undefined ? msg.prevOwnerIdx : msg.previousOwnerIdx;
-        networkCallbacks.onBuyoutCity(msg.playerIdx, msg.tileId, prevOwnerIdx, msg.buyoutCost);
+        networkCallbacks.onBuyoutCity(msg.playerIdx, msg.tileId, prevOwnerIdx, msg.buyoutCost, Boolean(msg.isDoubles));
+      }
+      break;
+
+    case 'ACTION_PASS_BUYOUT':
+      if (networkCallbacks.onPassBuyout) {
+        networkCallbacks.onPassBuyout(msg.playerIdx, msg.tileId, Boolean(msg.isDoubles));
       }
       break;
 

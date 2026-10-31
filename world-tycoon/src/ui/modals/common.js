@@ -9,6 +9,16 @@ import { clearCityPreview } from '../../three/stages/cityPreview.js';
 export const engineCallbacks = {};
 
 let activeFocusTrap = null;
+let backdropMouseDownTarget = null;
+
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('mousedown', (e) => {
+    backdropMouseDownTarget = e.target;
+  }, true);
+  window.addEventListener('touchstart', (e) => {
+    backdropMouseDownTarget = e.target;
+  }, { capture: true, passive: true });
+}
 
 /**
  * Traps Tab keyboard focus within the active modal for WCAG accessibility.
@@ -47,8 +57,18 @@ export function trapFocus(modalEl) {
 
   modalEl.addEventListener('keydown', handleKeyDown);
 
-  const primaryAction = modalEl.querySelector('.game-btn-green, .game-btn-blue, button[autofocus]') || modalEl.querySelector(focusableSelectors);
-  if (primaryAction && typeof primaryAction.focus === 'function') {
+  const isCloseButton = (btn) => {
+    if (!btn) return true;
+    const title = (typeof btn.getAttribute === 'function' ? btn.getAttribute('title') : '') || '';
+    const aria = (typeof btn.getAttribute === 'function' ? btn.getAttribute('aria-label') : '') || '';
+    const onclick = (typeof btn.getAttribute === 'function' ? btn.getAttribute('onclick') : '') || '';
+    const isHeaderX = Boolean(typeof btn.closest === 'function' && btn.closest('.game-modal-header') && typeof btn.querySelector === 'function' && btn.querySelector('.fa-xmark'));
+    return isHeaderX || title.toLowerCase().includes('close') || aria.toLowerCase().includes('close') || onclick.toLowerCase().includes('close');
+  };
+
+  const actionableElements = Array.from(modalEl.querySelectorAll(focusableSelectors)).filter(el => el.offsetParent !== null && !isCloseButton(el));
+  const primaryAction = modalEl.querySelector('.game-btn-green, .game-btn-blue, button[autofocus]') || actionableElements[0];
+  if (primaryAction && typeof primaryAction.focus === 'function' && !isCloseButton(primaryAction)) {
     setTimeout(() => {
       try { primaryAction.focus(); } catch (_) {}
     }, 50);
@@ -77,13 +97,18 @@ export function releaseFocus(modalEl) {
 
 /**
  * Safe modal backdrop click handler that prevents accidental ghost dismissals
- * when the modal is opened on pointerdown and the user releases mouseup over the backdrop.
+ * when the modal is opened on click/pointerdown and the user releases mouseup over the backdrop.
+ * Requires that mousedown originated on the backdrop itself and that at least 300ms have elapsed.
  * @param {MouseEvent} event
  * @param {Function} closeFn
  */
 export function handleModalBackdropClick(event, closeFn) {
   if (!event || event.target !== event.currentTarget) return;
-  const openedAt = event.currentTarget._openedAt || 0;
+  // If mousedown was captured, only allow dismiss if mouse press started ON this backdrop
+  if (backdropMouseDownTarget !== null && backdropMouseDownTarget !== event.currentTarget) {
+    return;
+  }
+  const openedAt = (event.currentTarget && event.currentTarget._openedAt) || 0;
   // Ignore clicks that occur within 300ms of opening (avoids ghost dismissal from the initial click release)
   if (performance.now() - openedAt < 300) {
     return;
@@ -133,6 +158,87 @@ export function getTierBadgeHTML(level) {
     return `<div class="tier-level-badge tier-skyscraper-badge"><svg class="ui-icon w-3 h-3 text-amber-700 mr-1" aria-hidden="true"><use href="#icon-city"></use></svg><span class="text-[10px] font-black text-amber-900 tracking-tight">MAX</span></div>`;
   }
   return `<div class="tier-level-badge tier-house"><svg class="ui-icon w-3 h-3 text-emerald-700 mr-1" aria-hidden="true"><use href="#icon-building"></use></svg><span class="text-[11px] font-black text-emerald-800">${level}</span></div>`;
+}
+
+/**
+ * Modal IDs associated with turn-specific gameplay actions.
+ * Only these modals are auto-dismissed when a turn advances.
+ */
+export const TURN_ACTION_MODAL_IDS = [
+  'modal-buy-city',
+  'modal-buyout-city',
+  'modal-sell-cities',
+  'modal-upgrade-city',
+  'modal-auction',
+  'modal-festival-boost',
+  'modal-festival-no-properties',
+  'modal-chance-wheel',
+  'modal-chance-result',
+  'screen-dice-overlay'
+];
+
+/**
+ * Informational user modals triggered from the top HUD bar.
+ * Always elevated and togglable independently of turns.
+ */
+export const USER_INFORMATIONAL_MODAL_IDS = [
+  'modal-portfolio',
+  'modal-trade',
+  'modal-rules',
+  'modal-confirm-exit-lobby',
+  'modal-leaderboard'
+];
+
+/**
+ * Closes other open user informational modals when a new one is opened.
+ * Ensures only one user panel is open at a time without stacking backdrops.
+ * @param {string} [exceptModalId]
+ */
+export function closeOtherInformationalModals(exceptModalId = null) {
+  USER_INFORMATIONAL_MODAL_IDS.forEach(id => {
+    if (id === exceptModalId) return;
+    const el = document.getElementById(id);
+    if (el && (!el.classList.contains('hidden') || el.style.display !== 'none')) {
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+      el.style.setProperty('display', 'none', 'important');
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('z-index');
+    }
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.closeOtherInformationalModals = closeOtherInformationalModals;
+}
+
+/**
+ * Closes only turn-specific gameplay action dialogs (Buy, Upgrade, Chance, Auction).
+ * Preserves informational user modals (Manage Cities, Trade, Rules, Leaderboard, Exit Lobby)
+ * so human players inspecting their empire or reading rules are never interrupted by bot turns.
+ */
+export function closeTurnActionModals() {
+  clearCityPreview();
+  TURN_ACTION_MODAL_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (typeof anime !== 'undefined') anime.remove(el);
+      if (el._autoCloseTimer) {
+        clearTimeout(el._autoCloseTimer);
+        el._autoCloseTimer = null;
+      }
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+      el.style.setProperty('display', 'none', 'important');
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('pointer-events');
+      el.style.removeProperty('z-index');
+    }
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.closeTurnActionModals = closeTurnActionModals;
 }
 
 /**

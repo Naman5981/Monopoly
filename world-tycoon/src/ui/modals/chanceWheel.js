@@ -367,15 +367,7 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
     return;
   }
 
-  // Dismiss any overlapping informational drawers
-  const portfolioModal = document.getElementById('modal-portfolio');
-  if (portfolioModal && !portfolioModal.classList.contains('hidden')) {
-    if (window.closePortfolioModal) window.closePortfolioModal();
-  }
-  const rulesModal = document.getElementById('modal-rules');
-  if (rulesModal && !rulesModal.classList.contains('hidden')) {
-    if (window.closeRulesModal) window.closeRulesModal();
-  }
+  // Dismiss any overlapping tile inspector drawer
   const inspModal = document.getElementById('modal-tile-inspector');
   if (inspModal && !inspModal.classList.contains('hidden')) {
     if (window.closeInspectorModal) window.closeInspectorModal();

@@ -39,6 +39,57 @@ import {
 import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
 import { animateBankruptcyQuake } from '../../../ui/anim.js';
 
+let autoEndTurnTimer = null;
+
+export const lastBotBuyoutTurn = {};
+
+export function resetBuyoutMemory() {
+  for (const k in lastBotBuyoutTurn) delete lastBotBuyoutTurn[k];
+}
+
+/**
+ * Evaluates whether an AI tycoon should strategically buy out an opponent's tile.
+ * Restricts buyouts to monopoly completion or high-stakes defensive blocks, requiring a strong cash cushion.
+ */
+export function shouldAIBuyoutTile(playerIdx, tile, st, buyoutCost) {
+  const player = gameState.players[playerIdx];
+  if (!player || !player.isAI || player.bankrupt) return false;
+  if (!tile || !st || st.owner === playerIdx || st.owner === null) return false;
+
+  // Protect maxed skyscrapers
+  if ((st.level || 0) >= 4) return false;
+
+  // Enforce a strict cash cushion: Bot must keep at least $600,000 cash reserve after paying buyout
+  if (player.cash < buyoutCost + 600000) return false;
+
+  // Enforce 6-turn cooldown per bot
+  const currentTurn = gameState.netWorthHistory?.length || 0;
+  if (lastBotBuyoutTurn[playerIdx] && (currentTurn - lastBotBuyoutTurn[playerIdx] < 6)) {
+    return false;
+  }
+
+  // Strategic Monopoly Check:
+  if (tile.group) {
+    const grpTiles = BOARD_TILES.filter(t => t.type === 'city' && t.group === tile.group);
+    const otherTiles = grpTiles.filter(t => t.id !== tile.id);
+
+    // 1. Completing Own Monopoly: Does buying this tile complete a color group for this bot?
+    const otherOwnedByBot = otherTiles.filter(t => gameState.properties[t.id]?.owner === playerIdx).length;
+    if (otherOwnedByBot === otherTiles.length && otherTiles.length > 0) {
+      return true;
+    }
+
+    // 2. Defensive Block: Does opponent own ALL the other tiles in this group? (Requires $800k cushion)
+    const prevOwner = st.owner;
+    const otherOwnedByPrevOwner = otherTiles.filter(t => gameState.properties[t.id]?.owner === prevOwner).length;
+    if (otherOwnedByPrevOwner === otherTiles.length && otherTiles.length > 0 && player.cash >= buyoutCost + 800000) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function getGameDelay(ms) {
   const speed = matchSettings.gameSpeed || 1;
   return Math.max(30, Math.round(ms / speed));
@@ -120,17 +171,28 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
 
     // Hostile Buyout check
     const buyoutCost = calculateBuyoutCost(tile, st);
-    if (buyoutCost > 0 && player.cash >= buyoutCost) {
+    if (buyoutCost > 0) {
       if (player.isAI) {
-        if (networkState.isMultiplayer && !networkState.isHost) {
-          showSpeechBubble(`${player.name} is considering a buyout of ${tile.name}...`, 2500);
+        if (shouldAIBuyoutTile(playerIdx, tile, st, buyoutCost)) {
+          if (networkState.isMultiplayer && !networkState.isHost) {
+            showSpeechBubble(`${player.name} is considering a buyout of ${tile.name}...`, 2500);
+            return;
+          }
+          await this.handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles);
           return;
         }
-        await this.handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles);
-        return;
-      } else {
+      } else if (player.cash >= buyoutCost + 100000) {
         if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
           showSpeechBubble(`${player.name} is considering a buyout of ${tile.name}...`, 3000);
+          setStatusPill(`⚔️ Waiting for <strong>${player.name}</strong> to decide on hostile buyout of <strong>${tile.name}</strong>...`, { isThinking: true, playerIdx });
+          // Host safety fallback if remote peer disconnects or fails to respond
+          if (networkState.isHost) {
+            setTimeout(() => {
+              if (gameState.phase === 'MODAL' && gameState.currentPlayerIdx === playerIdx) {
+                if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
+              }
+            }, 14000);
+          }
           return;
         }
         openBuyoutCityModal(tile, isDoubles);
@@ -285,7 +347,9 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     const previousOwnerIdx = st.owner;
     const prevOwner = gameState.players[previousOwnerIdx];
 
-    if (player.cash >= buyoutCost + 300000) {
+    if (player.cash >= buyoutCost + 600000) {
+      const currentTurn = gameState.netWorthHistory?.length || 0;
+      lastBotBuyoutTurn[playerIdx] = currentTurn;
       player.cash -= buyoutCost;
       prevOwner.cash += buyoutCost;
       st.owner = playerIdx;

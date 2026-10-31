@@ -29,7 +29,7 @@ import {
   setPlayerPortraitMood,
   hideDiceSumBadge
 } from '../../ui/hud.js';
-import { showVictoryModal, closeAllGameModals } from '../../ui/modals.js';
+import { showVictoryModal, closeAllGameModals, closeTurnActionModals } from '../../ui/modals.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from '../persistence.js';
@@ -285,7 +285,7 @@ export function concludeActionPhase(isDoubles) {
 
 export function advanceTurn(isRemote = false, forcedNextIdx = null) {
   hideDiceSumBadge();
-  closeAllGameModals();
+  closeTurnActionModals();
   if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') {
     cancelAllGameTimers();
     return;

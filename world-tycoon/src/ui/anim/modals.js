@@ -43,13 +43,22 @@ export function animateModalSpringOpen(modalTarget, cardTarget = null, originCoo
   // Stamp opening timestamp to guard backdrop click handler against ghost dismissal on mouseup
   modalEl._openedAt = performance.now();
 
+  const isUserInformationalModal = Boolean(modalEl.id && [
+    'modal-portfolio',
+    'modal-trade',
+    'modal-rules',
+    'modal-leaderboard',
+    'modal-confirm-exit-lobby'
+  ].includes(modalEl.id));
+  const targetZIndex = isUserInformationalModal ? '1200' : '1000';
+
   // 1. Reveal modal container cleanly and IMMEDIATELY (0ms!)
   modalEl.classList.remove('hidden');
   modalEl.classList.add('flex');
   modalEl.style.removeProperty('pointer-events');
   modalEl.style.removeProperty('display');
   modalEl.style.setProperty('display', 'flex', 'important');
-  modalEl.style.setProperty('z-index', '1000', 'important');
+  modalEl.style.setProperty('z-index', targetZIndex, 'important');
   modalEl.style.setProperty('opacity', '1', 'important');
   modalEl.style.pointerEvents = 'auto';
   trapFocus(modalEl);

@@ -93,7 +93,7 @@ export function toggleDebugPanel(forceOpen = null) {
     panel.classList.add('flex');
     panel.style.removeProperty('display');
     panel.style.setProperty('display', 'flex', 'important');
-    panel.style.setProperty('z-index', '1000', 'important');
+    panel.style.setProperty('z-index', '1400', 'important');
     panel.style.setProperty('opacity', '1', 'important');
     panel.style.pointerEvents = 'auto';
     syncDebugUIState();

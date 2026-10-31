@@ -22,8 +22,23 @@ import { checkAndTriggerMonopoly } from './victory.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateBuyoutHostileStamp, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 
+let buyoutCountdownInterval = null;
+let buyoutCountdownTimer = null;
+
+export function clearBuyoutTimers() {
+  if (buyoutCountdownInterval) {
+    clearInterval(buyoutCountdownInterval);
+    buyoutCountdownInterval = null;
+  }
+  if (buyoutCountdownTimer) {
+    clearTimeout(buyoutCountdownTimer);
+    buyoutCountdownTimer = null;
+  }
+}
+
 export function calculateBuyoutCost(tile, propState) {
   if (!tile || !propState) return 0;
+  if ((propState.level || 0) >= 4) return 0; // Maxed skyscrapers are immune to hostile takeover
   const baseCost = (tile.price || 0) * 2;
   const housesBuilt = propState.level || 0;
   const houseCost = tile.houseCost || 0;
@@ -32,6 +47,15 @@ export function calculateBuyoutCost(tile, propState) {
 
 export function openBuyoutCityModal(tile, isDoubles) {
   if (isLobbyScreenActive()) return;
+  const st = gameState.properties[tile.id];
+  if (calculateBuyoutCost(tile, st) <= 0) {
+    if (typeof window !== 'undefined' && window.concludeActionPhase) {
+      window.concludeActionPhase(isDoubles);
+    }
+    return;
+  }
+  clearBuyoutTimers();
+
   gameState.phase = 'MODAL';
   gameState.pendingBuyoutTile = tile;
   gameState.pendingDoubles = isDoubles;
@@ -40,7 +64,6 @@ export function openBuyoutCityModal(tile, isDoubles) {
   setTileHighlightRing(tile.id, true);
   setStatusPill(`⚔️ Hostile buyout option for <strong>${tile.name}</strong>...`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
 
-  const st = gameState.properties[tile.id];
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   const prevOwner = gameState.players[st?.owner];
@@ -84,7 +107,26 @@ export function openBuyoutCityModal(tile, isDoubles) {
     confirmBtn.innerHTML = `<i class="fa-solid fa-handshake mr-1"></i> BUYOUT CITY (${fmtMoney(totalBuyoutCost)})`;
   }
 
-  populateCityPreview3DScene(tile, 'buyout-city-3d-canvas');
+  const passBtn = document.getElementById('btn-pass-buyout');
+  if (passBtn) {
+    let secondsLeft = 12;
+    passBtn.innerHTML = `<i class="fa-solid fa-forward mr-1"></i> PASS (${secondsLeft}s)`;
+    buyoutCountdownInterval = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft > 0) {
+        if (passBtn) passBtn.innerHTML = `<i class="fa-solid fa-forward mr-1"></i> PASS (${secondsLeft}s)`;
+      } else {
+        clearBuyoutTimers();
+        passBuyoutCity();
+      }
+    }, 1000);
+  }
+
+  try {
+    populateCityPreview3DScene(tile, 'buyout-city-3d-canvas');
+  } catch (err) {
+    console.warn('[BuyoutCity] Failed to populate 3D preview:', err);
+  }
 
   const origin = getTileScreenPosition(tile.id);
   animateModalSpringOpen('#modal-buyout-city', '#modal-buyout-city-card', origin);
@@ -92,6 +134,7 @@ export function openBuyoutCityModal(tile, isDoubles) {
 }
 
 export function confirmBuyoutCity() {
+  clearBuyoutTimers();
   const tile = gameState.pendingBuyoutTile;
   const isDoubles = gameState.pendingDoubles;
   const pIdx = gameState.currentPlayerIdx;
@@ -119,7 +162,7 @@ export function confirmBuyoutCity() {
   logEvent(`⚔️ <strong>${p.name}</strong> bought out <strong>${tile.name}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong> for <strong>${fmtMoney(buyoutCost)}</strong>!`);
 
   if (networkState.isMultiplayer) {
-    broadcastAction('ACTION_BUYOUT_CITY', { playerIdx: pIdx, tileId: tile.id, prevOwnerIdx, buyoutCost });
+    broadcastAction('ACTION_BUYOUT_CITY', { playerIdx: pIdx, tileId: tile.id, prevOwnerIdx, buyoutCost, isDoubles: Boolean(isDoubles) });
     if (networkState.isHost) {
       broadcastFullGameState();
     }
@@ -137,10 +180,13 @@ export function confirmBuyoutCity() {
   }
   if (engineCallbacks.concludeActionPhase) {
     engineCallbacks.concludeActionPhase(isDoubles);
+  } else if (typeof window !== 'undefined' && window.concludeActionPhase) {
+    window.concludeActionPhase(isDoubles);
   }
 }
 
 export function passBuyoutCity() {
+  clearBuyoutTimers();
   const tile = gameState.pendingBuyoutTile;
   const isDoubles = gameState.pendingDoubles;
   if (tile) {
@@ -148,11 +194,22 @@ export function passBuyoutCity() {
     const p = gameState.players[gameState.currentPlayerIdx];
     if (p) logEvent(`🏷️ <strong>${p.name}</strong> passed on buying out <strong>${tile.name}</strong>.`);
   }
+
+  if (networkState.isMultiplayer) {
+    broadcastAction('ACTION_PASS_BUYOUT', {
+      playerIdx: gameState.currentPlayerIdx,
+      tileId: tile ? tile.id : null,
+      isDoubles: Boolean(isDoubles)
+    });
+  }
+
   clearCityPreview();
   animateModalSpringClose('#modal-buyout-city', '#modal-buyout-city-card');
   gameState.pendingBuyoutTile = null;
 
   if (engineCallbacks.concludeActionPhase) {
     engineCallbacks.concludeActionPhase(isDoubles);
+  } else if (typeof window !== 'undefined' && window.concludeActionPhase) {
+    window.concludeActionPhase(isDoubles);
   }
 }

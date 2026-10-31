@@ -71,7 +71,7 @@
   </div>
 
   <!-- 12. CONFIRM EXIT TO LOBBY MODAL (Victory-Inspired) -->
-  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain overflow-y-auto" onclick="if(event.target===this) window.closeConfirmExitLobbyModal()">
+  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain overflow-y-auto" onclick="window.handleModalBackdropClick(event, window.closeConfirmExitLobbyModal)">
     <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400 pointer-events-auto my-auto">
       <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
         <!-- Floating Watermark Icon -->

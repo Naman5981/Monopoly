@@ -9,7 +9,7 @@ import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { calculatePlayerNetWorth, countCompletedColorGroups, checkLineMonopoly } from '../../game/rules.js';
 import { networkState } from '../../network/p2p.js';
-import { isLobbyScreenActive } from './common.js';
+import { isLobbyScreenActive, closeOtherInformationalModals } from './common.js';
 import { animateLeaderboardGauges, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -185,6 +185,7 @@ export function renderLeaderboardModal() {
 
 export function openLeaderboardModal() {
   if (isLobbyScreenActive()) return;
+  closeOtherInformationalModals('modal-leaderboard');
   renderLeaderboardModal();
   animateModalSpringOpen('#modal-leaderboard');
   playSFX('hop');

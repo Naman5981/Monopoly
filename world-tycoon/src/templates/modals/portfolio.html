@@ -1,4 +1,4 @@
-  <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closePortfolioModal()">
+  <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="window.handleModalBackdropClick(event, window.closePortfolioModal)">
     <div class="game-modal-shell modal-shell-emerald max-w-3xl w-full max-h-[86vh] flex flex-col overflow-hidden shadow-2xl">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">

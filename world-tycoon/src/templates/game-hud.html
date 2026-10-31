@@ -27,10 +27,10 @@
   </div>
 
   <!-- 4. STREAMLINED SPATIAL TOP HUD HEADER (Antigravity Design Expert) -->
-  <header id="main-game-hud-bar" class="fixed top-2.5 sm:top-3 inset-x-3 sm:inset-x-5 z-[100] hidden flex items-center justify-between pointer-events-none select-none gap-2 flex-nowrap">
+  <header id="main-game-hud-bar" class="fixed top-2.5 sm:top-3 inset-x-3 sm:inset-x-5 z-[1300] hidden flex items-center justify-between pointer-events-none select-none gap-2 flex-nowrap">
     <!-- Left Pod: Navigation & Primary Actions -->
     <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-shrink-0">
-      <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby" aria-label="Return to Lobby" style="pointer-events: auto !important; position: relative; z-index: 101;">
+      <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby" aria-label="Return to Lobby">
         <i class="fa-solid fa-house text-indigo-600"></i>
         <span class="hidden sm:inline">Lobby</span>
       </button>
@@ -49,7 +49,7 @@
     </div>
 
     <!-- Center Pod: Match Status Capsule (Spatial Glass Island) -->
-    <div id="hud-match-status-capsule" class="hud-glass-capsule pointer-events-auto hidden md:flex items-center gap-2.5 px-3.5 shadow-sm flex-shrink-0">
+    <div id="hud-match-status-capsule" class="hud-glass-capsule pointer-events-auto md:flex items-center gap-2.5 px-3.5 shadow-sm flex-shrink-0">
       <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700" title="Elapsed Match Time">
         <i class="fa-regular fa-clock text-slate-500"></i>
         <span id="hud-game-clock" class="tabular-nums font-black text-slate-800">00:00</span>

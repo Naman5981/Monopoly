@@ -102,12 +102,22 @@ export function animateLobbyViewTransition(viewName = 'title') {
 
   if (viewName === 'title') {
     anime.remove('#title-menu-actions > button');
+    anime.remove('#title-menu-actions > div');
     anime.remove('#lobby-hero-column');
+    anime.remove('#setup-character-archetype-name');
     anime({
-      targets: '#title-menu-actions > button',
-      scale: [0.88, 1],
+      targets: '#setup-character-archetype-name',
+      scale: [0.9, 1],
       opacity: [0, 1],
-      delay: anime.stagger(60),
+      duration: 400,
+      easing: 'spring(1, 80, 10, 0)'
+    });
+    anime({
+      targets: ['#title-menu-actions > div', '#title-menu-actions > button'],
+      scale: [0.92, 1],
+      translateY: [8, 0],
+      opacity: [0, 1],
+      delay: anime.stagger(50),
       duration: 480,
       easing: 'spring(1, 85, 10, 0)'
     });

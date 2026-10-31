@@ -185,7 +185,7 @@ export function initEngine() {
         closeIncomingTradeModal();
       }
     },
-    onBuyoutCity: (playerIdx, tileId, prevOwnerIdx, buyoutCost) => {
+    onBuyoutCity: (playerIdx, tileId, prevOwnerIdx, buyoutCost, isDoubles) => {
       const st = gameState.properties[tileId];
       const buyer = gameState.players[playerIdx];
       const prevOwner = gameState.players[prevOwnerIdx];
@@ -203,6 +203,17 @@ export function initEngine() {
         if (networkState.isMultiplayer && networkState.isHost) {
           broadcastFullGameState();
         }
+        if (concludeActionPhase) {
+          concludeActionPhase(Boolean(isDoubles));
+        }
+      }
+    },
+    onPassBuyout: (playerIdx, tileId, isDoubles) => {
+      const buyer = gameState.players[playerIdx];
+      const tileName = BOARD_TILES[tileId]?.name || 'City';
+      logEvent(`🏷️ <strong>${buyer ? buyer.name : 'Player'}</strong> passed on hostile buyout of <strong>${tileName}</strong>.`);
+      if (concludeActionPhase) {
+        concludeActionPhase(Boolean(isDoubles));
       }
     },
     onWorldTour: (playerIdx, destTileId) => {
@@ -319,6 +330,11 @@ export function startNewMatch() {
   if (hudBar) {
     hudBar.classList.remove('hidden');
     hudBar.style.removeProperty('display');
+  }
+  const capsule = document.getElementById('hud-match-status-capsule');
+  if (capsule) {
+    capsule.classList.remove('hidden');
+    capsule.style.removeProperty('display');
   }
   const hudLeft = document.getElementById('hud-left-players');
   if (hudLeft) {

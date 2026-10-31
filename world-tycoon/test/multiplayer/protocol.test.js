@@ -30,6 +30,7 @@ describe('P2P Protocol Validation & Sanitization', () => {
         'ACTION_DOUBLES_ROLL',
         'ACTION_BUY_CITY',
         'ACTION_BUYOUT_CITY',
+        'ACTION_PASS_BUYOUT',
         'ACTION_UPGRADE_CITY',
         'ACTION_PAY_BAIL',
         'ACTION_SELL_CITY_FOR_RENT',

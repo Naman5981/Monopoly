@@ -1,9 +1,13 @@
-  <div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+  <div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this && (performance.now() - (this._openedAt || 0) > 350)) window.passBuyoutCity()">
     <div id="modal-buyout-city-card" class="game-modal-shell modal-shell-amber max-w-md w-full">
       <div id="buyout-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600">
         <!-- Floating Watermark Icons -->
         <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
         <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+
+        <button onclick="window.passBuyoutCity()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition z-20" title="Pass Buyout [Esc]" aria-label="Pass Buyout">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
 
         <span id="buyout-modal-country" class="modal-badge-pill bg-black/30 border border-white/30 text-amber-200">⚔️ HOSTILE BUYOUT</span>
         <canvas id="buyout-city-3d-canvas" width="220" height="110" class="w-[180px] h-[90px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>

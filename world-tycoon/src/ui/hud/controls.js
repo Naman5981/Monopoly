@@ -188,9 +188,9 @@ if (typeof window !== 'undefined') {
 
 
 /**
- * Attaches zero-latency pointerdown handlers to all HUD interactive elements.
- * Eliminates human-release wait (150ms-250ms) and mobile double-tap recognizer delay (300ms).
- * Safe against ghost backdrop dismissals due to modal._openedAt backdrop guard.
+ * Ensures zero-latency, natural desktop click interactions on all HUD buttons.
+ * Eliminates unnatural pointerdown hijacking so buttons respond to clean clicks
+ * with instant visual tactile feedback and no ghost modal closures.
  */
 export function initFastHUDButtonInteractions() {
   if (typeof document === 'undefined') return;
@@ -199,58 +199,6 @@ export function initFastHUDButtonInteractions() {
 
   const buttons = hud.querySelectorAll('button, [onclick]');
   buttons.forEach(btn => {
-    let lastTrigger = 0;
-
-    const executeFastAction = (e) => {
-      const now = performance.now();
-      if (now - lastTrigger < 180) return;
-      lastTrigger = now;
-
-      if (e) {
-        e.stopPropagation();
-      }
-
-      if (btn.id === 'btn-top-lobby') {
-        if (window.handleLobbyButtonClick) window.handleLobbyButtonClick();
-      } else if (btn.id === 'btn-manage-cities') {
-        if (window.openPortfolioModal) window.openPortfolioModal();
-      } else if (btn.id === 'btn-trade') {
-        if (window.openTradeModal) window.openTradeModal();
-      } else if (btn.id === 'btn-lighting-mode') {
-        if (window.cycleLightingMode) window.cycleLightingMode();
-      } else if (btn.id === 'btn-sound') {
-        if (window.toggleSound) window.toggleSound();
-      } else if (btn.id === 'btn-game-speed') {
-        if (window.cycleGameSpeed) window.cycleGameSpeed();
-      } else if (btn.id === 'btn-top-leaderboard') {
-        if (window.toggleLeaderboardModal) window.toggleLeaderboardModal();
-      } else if (btn.getAttribute('onclick')?.includes('openRulesModal')) {
-        if (window.openRulesModal) window.openRulesModal();
-      } else if (btn.getAttribute('onclick')?.includes('toggleEventLogDrawer')) {
-        if (window.toggleEventLogDrawer) window.toggleEventLogDrawer();
-      } else if (btn.getAttribute('onclick')?.includes('toggleDebugPanel')) {
-        if (window.toggleDebugPanel) window.toggleDebugPanel();
-      } else if (typeof btn.onclick === 'function') {
-        btn.onclick(e);
-      }
-    };
-
-    // Instant execution on finger contact or mouse button down (0ms latency!)
-    btn.addEventListener('pointerdown', (e) => {
-      if (e.button === 0 || e.pointerType === 'touch') {
-        executeFastAction(e);
-      }
-    }, { passive: false });
-
-    // Block duplicate click when pointerdown already ran, but execute if clicked via keyboard
-    btn.addEventListener('click', (e) => {
-      const now = performance.now();
-      if (now - lastTrigger < 250) {
-        e.preventDefault();
-        e.stopPropagation();
-      } else {
-        executeFastAction(e);
-      }
-    });
+    btn.style.pointerEvents = 'auto';
   });
 }

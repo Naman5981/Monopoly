@@ -9,7 +9,7 @@ import { playSFX } from '../../game/audio.js';
 import { showSpeechBubble } from '../../three/scene.js';
 import { stopVictoryCelebration } from '../../three/effects.js';
 import { networkState } from '../../network/p2pState.js';
-import { closeAllGameModals } from './common.js';
+import { closeAllGameModals, closeOtherInformationalModals } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -65,6 +65,11 @@ export function renderLobbyControls() {
 ───────────────────────────────────────────────────────────────────────────── */
 export function openRulesModal() {
   const m = document.getElementById('modal-rules');
+  if (m && m.classList.contains('flex') && !m.classList.contains('hidden')) {
+    closeRulesModal();
+    return;
+  }
+  closeOtherInformationalModals('modal-rules');
   if (m) {
     m.style.removeProperty('display');
     m.style.removeProperty('pointer-events');
@@ -135,7 +140,7 @@ export function toggleEventLogDrawer() {
     d.classList.add('flex');
     d.style.removeProperty('display');
     d.style.setProperty('display', 'flex', 'important');
-    d.style.setProperty('z-index', '1000', 'important');
+    d.style.setProperty('z-index', '1350', 'important');
     d.style.pointerEvents = 'auto';
     playSFX('hop');
   } else {
@@ -187,6 +192,12 @@ export function closeConfirmExitLobbyModal() {
 
 export function handleLobbyButtonClick() {
   if (gameState && gameState.gameStarted) {
+    const m = document.getElementById('modal-confirm-exit-lobby');
+    if (m && m.classList.contains('flex') && !m.classList.contains('hidden')) {
+      closeConfirmExitLobbyModal();
+      return;
+    }
+    closeOtherInformationalModals('modal-confirm-exit-lobby');
     openConfirmExitLobbyModal();
   } else {
     if (window.openLandingSetupScreen) {

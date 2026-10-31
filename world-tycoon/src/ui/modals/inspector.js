@@ -17,7 +17,7 @@ import {
 } from '../../three/scene.js';
 import { renderCornerHUDs, showTurnLockToast, logEvent } from '../hud.js';
 import { saveCurrentMatchToStorage } from '../../game/persistence.js';
-import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML } from './common.js';
+import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML, closeOtherInformationalModals } from './common.js';
 import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 
 export function openInspectorModal(tileId) {
@@ -289,8 +289,13 @@ export function toggleCityMortgage(tileId, isAutoLiquidation = false) {
 
 export function openPortfolioModal() {
   if (isLobbyScreenActive()) return;
-  renderPortfolioGrid();
   const m = document.getElementById('modal-portfolio');
+  if (m && m.classList.contains('flex') && !m.classList.contains('hidden')) {
+    closePortfolioModal();
+    return;
+  }
+  closeOtherInformationalModals('modal-portfolio');
+  renderPortfolioGrid();
   if (m) {
     m.style.removeProperty('display');
     m.style.removeProperty('pointer-events');
@@ -347,9 +352,10 @@ export function renderPortfolioGrid() {
   grid.innerHTML = owned.map(t => {
     const st = gameState.properties[t.id];
     const color = t.group ? GROUP_META[t.group].hex : '#0284c7';
-    const isPlayerOnTile = (gameState.players[0].position === t.id);
+    const myPlayer = (gameState.players && gameState.players[myIdx]) || (gameState.players && gameState.players[0]);
+    const isPlayerOnTile = myPlayer ? (myPlayer.position === t.id) : false;
     const upgradesLeft = Math.max(0, 2 - (gameState.upgradesThisVisit || 0));
-    const canBeUpgraded = (t.type === 'city' && st.level < 4 && upgradesLeft > 0);
+    const canBeUpgraded = (t.type === 'city' && st && st.level < 4 && upgradesLeft > 0);
     const isIlluminated = isPlayerOnTile && canBeUpgraded;
 
     const cardClass = isIlluminated

@@ -17,12 +17,30 @@ let lobbyHeroPodiumGroup = null;
 let lobbyHeroMiniDice = [];
 const lobbyHeroCanvasId = 'lobby-avatar-3d-canvas';
 
+export function resizeLobbyHeroStage() {
+  const canvas = document.getElementById(lobbyHeroCanvasId);
+  if (!canvas || !lobbyHeroRenderer || !lobbyHeroCamera) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min((typeof window !== 'undefined' && window.devicePixelRatio) || 1, 2);
+  const displayW = Math.max(rect.width || 380, 180);
+  const displayH = Math.max(rect.height || 400, 180);
+  const targetW = Math.round(displayW * dpr);
+  const targetH = Math.round(displayH * dpr);
+
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    lobbyHeroRenderer.setSize(targetW, targetH, false);
+    lobbyHeroCamera.aspect = targetW / targetH;
+    lobbyHeroCamera.updateProjectionMatrix();
+  }
+}
+
 export function initLobbyHeroStage() {
   const canvas = document.getElementById(lobbyHeroCanvasId);
   if (!canvas) return;
 
-  const w = 380;
-  const h = 400;
+  const w = 512;
+  const h = 512;
 
   lobbyHeroScene = new THREE.Scene();
   lobbyHeroCamera = new THREE.PerspectiveCamera(38, w / h, 0.1, 100);
@@ -34,13 +52,25 @@ export function initLobbyHeroStage() {
   }, false);
   canvas.addEventListener('webglcontextrestored', () => {
     if (lobbyHeroRenderer) {
-      lobbyHeroRenderer.setSize(w, h, false);
+      resizeLobbyHeroStage();
     }
   }, false);
 
-  lobbyHeroRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  lobbyHeroRenderer.setSize(w, h, false);
-  lobbyHeroRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', resizeLobbyHeroStage, { passive: true });
+  }
+
+  try {
+    lobbyHeroRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    lobbyHeroRenderer.setSize(w, h, false);
+    lobbyHeroRenderer.setPixelRatio(Math.min((typeof window !== 'undefined' && window.devicePixelRatio) || 1, 2));
+  } catch (err) {
+    // Gracefully survive non-WebGL or headless environments
+    return;
+  }
+
+  // Trigger initial adaptive size if DOM layout is active
+  requestAnimationFrame(resizeLobbyHeroStage);
 
   // Studio lighting
   const amb = new THREE.AmbientLight(0xffffff, 0.95);

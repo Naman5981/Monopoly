@@ -9,11 +9,11 @@ import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from '../../game/persistence.js';
 import { checkVictoryConditions } from '../../game/rules.js';
-import { evaluateTradeDeal } from '../../game/trading.js';
+import { evaluateTradeDeal, recordDeclinedTrade } from '../../game/trading.js';
 import { refreshTileTextureAndBuildings } from '../../three/scene.js';
 import { logEvent, renderCornerHUDs, showTurnLockToast } from '../hud.js';
 import { checkAndTriggerMonopoly, showVictoryModal } from './victory.js';
-import { isLobbyScreenActive } from './common.js';
+import { isLobbyScreenActive, closeOtherInformationalModals } from './common.js';
 import { animateBotTradeHandshake, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 
@@ -25,6 +25,12 @@ let activeIncomingTradeProposal = null;
 
 export function openTradeModal() {
   if (isLobbyScreenActive()) return;
+  const m = document.getElementById('modal-trade');
+  if (m && m.classList.contains('flex') && !m.classList.contains('hidden')) {
+    closeTradeModal();
+    return;
+  }
+  closeOtherInformationalModals('modal-trade');
   const myIdx = (networkState && networkState.isMultiplayer) ? networkState.localPlayerIdx : (localPlayerIdx || 0);
   const sel = document.getElementById('trade-partner-select');
   if (sel) {
@@ -59,10 +65,16 @@ export function openTradeModal() {
 }
 
 export function populateTradePartnerProps() {
-  const pIdx = parseInt(document.getElementById('trade-partner-select').value, 10);
-  if (isNaN(pIdx)) return;
+  const selectEl = document.getElementById('trade-partner-select');
+  const reqPropsEl = document.getElementById('trade-req-props');
+  if (!selectEl || !reqPropsEl) return;
+  const pIdx = parseInt(selectEl.value, 10);
+  if (isNaN(pIdx)) {
+    reqPropsEl.innerHTML = '<div class="text-xs font-bold text-slate-500 py-2 text-center">No partner selected</div>';
+    return;
+  }
   const props = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === pIdx);
-  document.getElementById('trade-req-props').innerHTML = props.map(t => `
+  reqPropsEl.innerHTML = props.map(t => `
     <label class="flex items-center justify-between text-xs font-black bg-white px-3 py-2 rounded-xl border-2 border-slate-200 text-slate-800 cursor-pointer hover:border-slate-300">
       <span class="flex items-center gap-1.5"><input type="checkbox" value="${t.id}" class="trade-their-prop mr-1 w-3.5 h-3.5">${t.name}</span>
       <span class="font-black text-emerald-700">${fmtMoney(t.price)}</span>
@@ -230,15 +242,34 @@ export function rejectTradeCounterOffer() {
   }
 }
 
+let incomingTradeAutoTimer = null;
+
+function clearIncomingTradeTimer() {
+  if (incomingTradeAutoTimer) {
+    clearTimeout(incomingTradeAutoTimer);
+    incomingTradeAutoTimer = null;
+  }
+}
+
+function safelyResumeBotTurn() {
+  if (typeof window !== 'undefined' && typeof window.resumeBotTurnAfterTrade === 'function') {
+    const resume = window.resumeBotTurnAfterTrade;
+    window.resumeBotTurnAfterTrade = null;
+    resume();
+  }
+}
+
 export function closeTradeModal() {
   animateModalSpringClose('#modal-trade');
   const banner = document.getElementById('trade-counter-banner');
   if (banner) banner.classList.add('hidden');
   pendingTradeCounter = null;
+  safelyResumeBotTurn();
 }
 
 export function showIncomingTradeOfferModal(proposal) {
   if (isLobbyScreenActive()) return;
+  clearIncomingTradeTimer();
   activeIncomingTradeProposal = proposal;
   const bot = gameState.players[proposal.proposerIdx];
   const target = gameState.players[proposal.targetIdx];
@@ -289,8 +320,13 @@ export function showIncomingTradeOfferModal(proposal) {
 
   const rationaleEl = document.getElementById('incoming-trade-rationale');
   if (rationaleEl) {
-    const reqNames = (proposal.reqTileIds || []).map(id => BOARD_TILES[id].name).join(', ');
-    rationaleEl.innerHTML = `<strong>${bot.name}</strong> is looking to acquire <strong>${reqNames}</strong> and offers an equitable compensation package.`;
+    const reqNames = (proposal.reqTileIds || []).map(id => BOARD_TILES[id]?.name || 'City').join(', ');
+    const offerNames = (proposal.offerTileIds || []).map(id => BOARD_TILES[id]?.name || 'City').join(', ');
+    if (offerNames && reqNames) {
+      rationaleEl.innerHTML = `<strong>${bot.name}</strong> proposes exchanging <strong>${offerNames}</strong> for <strong>${reqNames}</strong> in an equitable mutual agreement.`;
+    } else {
+      rationaleEl.innerHTML = `<strong>${bot.name}</strong> offers a premium compensation package to acquire <strong>${reqNames}</strong>.`;
+    }
   }
 
   const modal = document.getElementById('modal-incoming-trade');
@@ -299,14 +335,25 @@ export function showIncomingTradeOfferModal(proposal) {
     playSFX('hop');
     animateBotTradeHandshake('#modal-incoming-trade .game-modal-shell');
   }
+
+  // Auto-decline fallback after 16 seconds if user is away from keyboard
+  incomingTradeAutoTimer = setTimeout(() => {
+    declineIncomingTrade();
+  }, 16000);
 }
 
 export function closeIncomingTradeModal() {
+  clearIncomingTradeTimer();
+  if (activeIncomingTradeProposal && activeIncomingTradeProposal.reqTileIds) {
+    recordDeclinedTrade(activeIncomingTradeProposal.reqTileIds);
+  }
   animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
   activeIncomingTradeProposal = null;
+  safelyResumeBotTurn();
 }
 
 export function acceptIncomingTrade() {
+  clearIncomingTradeTimer();
   if (!activeIncomingTradeProposal) return;
   const p = activeIncomingTradeProposal;
   completeTradeTransfer(p.proposerIdx, p.targetIdx, p.offerCash, p.reqCash, p.offerTileIds, p.reqTileIds);
@@ -322,13 +369,17 @@ export function acceptIncomingTrade() {
       broadcastFullGameState();
     }
   }
-  closeIncomingTradeModal();
+  activeIncomingTradeProposal = null;
+  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
+  safelyResumeBotTurn();
 }
 
 export function counterIncomingTrade() {
+  clearIncomingTradeTimer();
   if (!activeIncomingTradeProposal) return;
   const p = activeIncomingTradeProposal;
-  closeIncomingTradeModal();
+  activeIncomingTradeProposal = null;
+  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
   openTradeModal();
   const sel = document.getElementById('trade-partner-select');
   if (sel) {
@@ -338,8 +389,12 @@ export function counterIncomingTrade() {
 }
 
 export function declineIncomingTrade() {
+  clearIncomingTradeTimer();
   if (!activeIncomingTradeProposal) return;
   const p = activeIncomingTradeProposal;
+  if (p.reqTileIds) {
+    recordDeclinedTrade(p.reqTileIds);
+  }
   const proposer = gameState.players[p.proposerIdx];
   logEvent(`❌ Trade offer from <strong>${proposer?.name || 'Player'}</strong> declined.`);
   if (networkState.isMultiplayer) {
@@ -348,5 +403,7 @@ export function declineIncomingTrade() {
       proposal: p
     });
   }
-  closeIncomingTradeModal();
+  activeIncomingTradeProposal = null;
+  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
+  safelyResumeBotTurn();
 }

@@ -38,6 +38,10 @@ const sharedFlagMat = {
   })
 };
 
+// Protect static shared building assets from disposal
+Object.values(sharedFlagGeom).forEach(g => { g.userData = { isShared: true }; });
+Object.values(sharedFlagMat).forEach(m => { m.userData = { isShared: true }; });
+
 /**
  * Creates an architectural claim/ownership flag with a waving cloth pennant.
  * @param {number|string} ownerColor - Player's theme color

@@ -26,13 +26,16 @@ export function disposeMaterial(mat) {
 export function disposeHierarchy(root) {
   if (!root) return;
   root.traverse(obj => {
-    if (obj.geometry) {
+    if (obj.userData?.isShared) return;
+    if (obj.geometry && !obj.geometry.userData?.isShared) {
       try { obj.geometry.dispose(); } catch (_) {}
     }
     if (obj.material) {
       if (Array.isArray(obj.material)) {
-        obj.material.forEach(m => disposeMaterial(m));
-      } else {
+        obj.material.forEach(m => {
+          if (m && !m.userData?.isShared) disposeMaterial(m);
+        });
+      } else if (!obj.material.userData?.isShared) {
         disposeMaterial(obj.material);
       }
     }

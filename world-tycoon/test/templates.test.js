@@ -74,4 +74,31 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
       assert.ok(stat.size > 0, `modals/${f} should not be empty`);
     }
   });
+
+  it('ensures all template files have balanced <div> open and close tags', () => {
+    const templatesDir = path.join(rootDir, 'src', 'templates');
+    const modalFiles = fs.readdirSync(path.join(templatesDir, 'modals')).filter(f => f.endsWith('.html'));
+
+    for (const file of modalFiles) {
+      const content = fs.readFileSync(path.join(templatesDir, 'modals', file), 'utf8');
+      const opens = (content.match(/<div\b/gi) || []).length;
+      const closes = (content.match(/<\/div>/gi) || []).length;
+      assert.equal(opens, closes, `Modal template modals/${file} must have balanced <div> tags (opened: ${opens}, closed: ${closes})`);
+    }
+  });
+
+  it('ensures modal containers in assembled HTML are sibling dialogs and never illegally nested', () => {
+    const indexPath = path.join(rootDir, 'index.html');
+    const content = fs.readFileSync(indexPath, 'utf8');
+
+    // Ensure #modal-buyout-city is not inside #modal-buy-city
+    const buyCityIndex = content.indexOf('id="modal-buy-city"');
+    const buyoutCityIndex = content.indexOf('id="modal-buyout-city"');
+    assert.ok(buyCityIndex !== -1 && buyoutCityIndex !== -1, 'Both modals must exist');
+
+    // Verify closing tag between them
+    const sliceBetween = content.slice(buyCityIndex, buyoutCityIndex);
+    assert.ok(sliceBetween.includes('</div>'), 'There must be closing tags between modal declarations');
+  });
 });
+

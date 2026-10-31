@@ -191,41 +191,41 @@
 
   <!-- 0. FULL-SCREEN CASUAL 3D GAME LOBBY: WORLD TYCOON ORIGINAL INTERFACE -->
     <!-- 0. FULL-SCREEN CASUAL 3D GAME LOBBY: WORLD TYCOON ORIGINAL INTERFACE -->
-  <div id="landing-setup-screen" class="lobby-view-title fixed inset-0 z-50 flex flex-col justify-between p-2 sm:p-3 md:p-4 overflow-y-auto overflow-x-hidden">
+  <div id="landing-setup-screen" class="lobby-view-title fixed inset-0 z-50 flex flex-col justify-between p-2 sm:p-3 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden">
 
     <!-- Floating Atmosphere Clouds -->
-    <div id="setup-atmosphere-sky-elements" class="absolute bottom-0 left-0 right-0 pointer-events-none opacity-45 flex justify-between select-none transition-opacity duration-700 px-6">
-      <svg class="w-36 h-24 text-white/50 cloud-float-1 transform -translate-y-6 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
-      <svg class="w-28 h-20 text-white/40 cloud-float-2 transform -translate-y-3 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
-      <svg class="w-36 h-24 text-white/50 cloud-float-1 transform -translate-y-8 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
+    <div id="setup-atmosphere-sky-elements" class="absolute bottom-0 left-0 right-0 pointer-events-none opacity-45 flex justify-between select-none transition-opacity duration-700 px-4 sm:px-6 2xl:px-12">
+      <svg class="w-32 h-20 sm:w-36 sm:h-24 2xl:w-48 2xl:h-32 text-white/50 cloud-float-1 transform -translate-y-6 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
+      <svg class="w-24 h-16 sm:w-28 sm:h-20 2xl:w-40 2xl:h-28 text-white/40 cloud-float-2 transform -translate-y-3 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
+      <svg class="w-32 h-20 sm:w-36 sm:h-24 2xl:w-48 2xl:h-32 text-white/50 cloud-float-1 transform -translate-y-8 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
     </div>
 
     <!-- TOP HEADER BAR: WORLD TYCOON BRANDING & PROFILE -->
-    <div class="relative z-20 max-w-7xl w-full mx-auto flex items-center justify-between gap-3 flex-shrink-0 pt-0.5 pb-1.5 sm:pb-2 mb-1">
+    <div class="relative z-20 max-w-7xl 2xl:max-w-[1540px] w-full mx-auto flex items-center justify-between gap-1.5 sm:gap-3 flex-shrink-0 pt-0.5 pb-1.5 sm:pb-2 mb-1">
       <!-- Left: Navigation & Player Profile Capsule (Unified 38px Height) -->
-      <div class="flex items-center gap-2">
-        <button id="btn-lobby-back-to-title" onclick="window.showTitleScreen()" class="hidden h-[38px] px-3 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-black text-xs shadow-md border-2 border-slate-200 cursor-pointer inline-flex items-center justify-center gap-1.5 flex-shrink-0 whitespace-nowrap transition-transform hover:scale-[1.02] active:scale-[0.98]" title="Return to Title Menu">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="btn-lobby-back-to-title" onclick="window.showTitleScreen()" class="hidden h-[38px] px-2.5 sm:px-3 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-black text-xs shadow-md border-2 border-slate-200 cursor-pointer inline-flex items-center justify-center gap-1.5 flex-shrink-0 whitespace-nowrap transition-transform hover:scale-[1.02] active:scale-[0.98]" title="Return to Title Menu" aria-label="Return to Title Menu">
           <i class="fa-solid fa-arrow-left text-sky-600 text-xs"></i>
-          <span class="font-black text-xs uppercase tracking-wider">Back</span>
+          <span class="hidden sm:inline font-black text-xs uppercase tracking-wider">Back</span>
         </button>
 
-        <div class="h-[38px] flex items-center gap-2 bg-white/95 rounded-full px-1.5 py-0.5 pr-3 shadow-md border-2 border-white backdrop-blur-sm flex-shrink-0">
+        <div class="h-[38px] flex items-center gap-1.5 sm:gap-2 bg-white/95 rounded-full px-1.5 py-0.5 pr-2.5 sm:pr-3 shadow-md border-2 border-white backdrop-blur-sm flex-shrink-0">
           <div id="setup-profile-avatar" class="w-7 h-7 rounded-full border-2 border-emerald-400 overflow-hidden flex items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-200 font-black text-emerald-800 text-xs shadow-inner flex-shrink-0">
             Y
           </div>
-          <div class="flex items-center gap-2">
-            <div id="setup-profile-name-btn" class="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition" onclick="window.promptEditPlayerName()" title="Click to edit your tycoon name">
-              <span id="setup-profile-name" class="text-xs sm:text-sm font-black uppercase text-slate-800 tracking-wider">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <div id="setup-profile-name-btn" class="flex items-center gap-1 sm:gap-1.5 cursor-pointer hover:opacity-80 transition max-w-[70px] sm:max-w-[120px] md:max-w-none" onclick="window.promptEditPlayerName()" title="Click to edit your tycoon name">
+              <span id="setup-profile-name" class="text-xs sm:text-sm font-black uppercase text-slate-800 tracking-wider truncate">
                 TYCOON
               </span>
-              <svg class="ui-icon w-3 h-3 text-amber-500" aria-hidden="true"><use href="#icon-crown"></use></svg>
-              <i id="setup-profile-edit-icon" class="fa-solid fa-pen text-[8px] text-amber-500 ml-0.5"></i>
+              <svg class="ui-icon w-3 h-3 text-amber-500 flex-shrink-0" aria-hidden="true"><use href="#icon-crown"></use></svg>
+              <i id="setup-profile-edit-icon" class="fa-solid fa-pen text-[8px] text-amber-500 ml-0.5 flex-shrink-0"></i>
             </div>
             <span class="w-px h-3.5 bg-slate-200"></span>
-            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[11px] shadow-xs border border-amber-300" title="Your Tycoon Stars">
-              <svg class="ui-icon w-3 h-3 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
+            <div class="inline-flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[11px] shadow-xs border border-amber-300" title="Your Tycoon Stars">
+              <svg class="ui-icon w-3 h-3 text-slate-950 flex-shrink-0" aria-hidden="true"><use href="#icon-star"></use></svg>
               <span id="setup-profile-stars" class="font-mono tabular-nums text-[11px] font-black">558</span>
-              <span class="text-[9px] uppercase tracking-wider font-extrabold text-amber-950">STARS</span>
+              <span class="hidden sm:inline text-[9px] uppercase tracking-wider font-extrabold text-amber-950">STARS</span>
             </div>
           </div>
         </div>
@@ -233,16 +233,16 @@
 
       <!-- Center: Original World Tycoon 3D Game Logo -->
       <div class="flex flex-col items-center flex-shrink-0">
-        <div class="game-logo-3d cursor-default flex items-center gap-2">
-          <svg class="ui-icon w-7 h-7 text-sky-400 logo-globe-icon drop-shadow" aria-hidden="true"><use href="#icon-globe"></use></svg>
-          <span class="logo-brand-world">WORLD</span>
-          <span class="logo-brand-tycoon">TYCOON</span>
+        <div class="game-logo-3d cursor-default flex items-center gap-1.5 sm:gap-2">
+          <svg class="ui-icon w-5 h-5 sm:w-7 sm:h-7 text-sky-400 logo-globe-icon drop-shadow" aria-hidden="true"><use href="#icon-globe"></use></svg>
+          <span class="logo-brand-world text-sm sm:text-xl lg:text-2xl font-black">WORLD</span>
+          <span class="logo-brand-tycoon text-sm sm:text-xl lg:text-2xl font-black">TYCOON</span>
         </div>
-        <div class="flex items-center gap-1.5 mt-0.5">
-          <div class="logo-edition-pill">
+        <div class="flex items-center gap-1 sm:gap-1.5 mt-0.5">
+          <div class="logo-edition-pill text-[9px] sm:text-[10px]">
             GLOBAL EDITION
           </div>
-          <button id="btn-version-pill" onclick="window.checkGameUpdateManually()" class="logo-edition-pill !bg-slate-800/80 hover:!bg-slate-700/90 text-sky-300 border border-sky-400/30 px-2 py-0.5 text-[10px] font-mono cursor-pointer transition-all flex items-center gap-1 active:scale-95" title="Game Version — Click to check for updates" aria-label="Game Version and Update Status">
+          <button id="btn-version-pill" onclick="window.checkGameUpdateManually()" class="logo-edition-pill !bg-slate-800/80 hover:!bg-slate-700/90 text-sky-300 border border-sky-400/30 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-mono cursor-pointer transition-all flex items-center gap-1 active:scale-95" title="Game Version — Click to check for updates" aria-label="Game Version and Update Status">
             <span id="version-pill-dot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
             <span id="version-pill-text">v1.0.0</span>
           </button>
@@ -250,37 +250,37 @@
       </div>
 
       <!-- Right: Rules, Audio & Quick Action Buttons (Unified 38px Height) -->
-      <div class="flex items-center gap-1.5 sm:gap-2">
-        <button data-debug-ui="true" onclick="window.toggleDebugPanel()" class="h-[38px] top-pill px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1 flex-shrink-0" title="Open Debug & QA Suite [Key: ~ or F2]">
+      <div class="flex items-center gap-1 sm:gap-2">
+        <button data-debug-ui="true" onclick="window.toggleDebugPanel()" class="h-[38px] top-pill px-2.5 sm:px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1 flex-shrink-0 transition-transform hover:scale-105 active:scale-95" title="Open Debug & QA Suite [Key: ~ or F2]" aria-label="Open Debug & QA Suite">
           <i class="fa-solid fa-bug text-slate-900 text-xs"></i>
-          <span>DEBUG</span>
+          <span class="hidden sm:inline">DEBUG</span>
         </button>
-        <button onclick="window.openRulesModal()" class="h-[38px] top-pill px-3.5 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5 flex-shrink-0" title="How to Play & Rules">
+        <button onclick="window.openRulesModal()" class="h-[38px] top-pill px-2.5 sm:px-3.5 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5 flex-shrink-0 transition-transform hover:scale-105 active:scale-95" title="How to Play & Rules" aria-label="How to Play & Rules">
           <i class="fa-solid fa-book-open text-sky-600 text-xs"></i>
-          <span>RULES</span>
+          <span class="hidden sm:inline">RULES</span>
         </button>
-        <div class="h-[38px] flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
-          <button onclick="window.toggleSound()" id="setup-btn-sound" class="text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center p-1" title="Mute / Unmute Sound">
+        <div class="h-[38px] flex items-center gap-1 sm:gap-1.5 bg-white/95 backdrop-blur-md px-1.5 sm:px-2.5 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
+          <button onclick="window.toggleSound()" id="setup-btn-sound" class="text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center p-1" title="Mute / Unmute Sound" aria-label="Mute or Unmute Sound">
             <i id="setup-btn-sound-icon" class="fa-solid fa-volume-high text-xs text-sky-600"></i>
           </button>
-          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="w-14 sm:w-18 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume">
-          <span id="setup-sound-volume-val" class="text-[11px] font-black tabular-nums text-slate-700 w-5">75%</span>
+          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="hidden sm:inline-block w-14 sm:w-18 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume" aria-label="Volume Slider">
+          <span id="setup-sound-volume-val" class="hidden sm:inline-block text-[11px] font-black tabular-nums text-slate-700 w-5">75%</span>
         </div>
-        <button onclick="if(confirm('Reset match settings to defaults?')) window.location.reload()" class="w-[38px] h-[38px] rounded-full border-2 border-white bg-rose-500 hover:bg-rose-600 text-white shadow-md flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer" title="Reset Lobby">
+        <button onclick="if(confirm('Reset match settings to defaults?')) window.location.reload()" class="w-[38px] h-[38px] rounded-full border-2 border-white bg-rose-500 hover:bg-rose-600 text-white shadow-md flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer" title="Reset Lobby" aria-label="Reset Match Settings to Defaults">
           <i class="fa-solid fa-rotate-left text-xs font-black"></i>
         </button>
       </div>
     </div>
 
     <!-- MAIN 3-COLUMN LOBBY CONTENT ARENA -->
-    <div id="lobby-main-arena" class="relative z-10 flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4.5 items-stretch my-auto py-1 sm:py-2">
+    <div id="lobby-main-arena" class="relative z-10 flex-1 max-w-7xl 2xl:max-w-[1540px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4.5 2xl:gap-6 items-stretch my-auto py-1 sm:py-2">
 
       <!-- LEFT COLUMN: PLAYERS AT THE TABLE -->
-      <div id="lobby-roster-column" class="col-span-12 lg:col-span-4 game-panel-card p-3.5 sm:p-5 flex flex-col justify-between shadow-xl min-h-[460px] lg:min-h-[500px]">
+      <div id="lobby-roster-column" class="col-span-12 lg:col-span-4 game-panel-card p-3.5 sm:p-5 2xl:p-6 flex flex-col justify-between shadow-xl min-h-[460px] lg:min-h-[500px] 2xl:min-h-[560px]">
         <div class="flex-1 flex flex-col">
           <!-- Header -->
           <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3 mb-3 flex-shrink-0">
-            <div class="flex items-center gap-2.5 font-black text-sm sm:text-base text-[#0284c7] uppercase tracking-wide">
+            <div class="flex items-center gap-2.5 font-black text-sm sm:text-base 2xl:text-lg text-[#0284c7] uppercase tracking-wide">
               <i class="fa-solid fa-users text-sky-500 text-lg"></i> TABLE PLAYERS
             </div>
             <div id="table-player-count-badge" class="px-3 py-1 rounded-full bg-sky-100 text-sky-700 font-black text-xs sm:text-sm border border-sky-200">
@@ -300,7 +300,7 @@
             <button onclick="window.addBotOrSlot()" class="flex-1 py-3.5 rounded-full font-rounded font-black text-sm text-white game-btn game-btn-blue shadow-md">
               <i class="fa-solid fa-plus text-xs"></i> Add Player / Bot
             </button>
-            <button onclick="window.removeBotOrSlot()" class="px-4 py-3.5 rounded-full font-rounded font-black text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer shadow-xs" title="Remove last player">
+            <button onclick="window.removeBotOrSlot()" class="px-4 py-3.5 rounded-full font-rounded font-black text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer shadow-xs" title="Remove last player" aria-label="Remove last player">
               <i class="fa-solid fa-minus"></i>
             </button>
           </div>
@@ -311,116 +311,118 @@
       </div>
 
       <!-- CENTER COLUMN: HERO 3D PODIUM & BIG PLAY BUTTON -->
-      <div id="lobby-hero-column" class="col-span-12 lg:col-span-4 flex flex-col items-center justify-between min-h-[460px] lg:min-h-[500px] py-1 relative">
+      <div id="lobby-hero-column" class="col-span-12 lg:col-span-4 flex flex-col items-center justify-between min-h-[460px] lg:min-h-[500px] 2xl:min-h-[560px] py-1 relative">
         <!-- Sunburst Radial Halo with Depth Glow -->
         <div class="lobby-podium-halo"></div>
 
         <!-- Archetype Carousel Top Selector -->
-        <div class="relative z-20 flex items-center justify-center gap-2.5 w-full">
-          <button id="setup-archetype-carousel-prev" onclick="window.cycleAvatarPrev()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-sm shadow-md cursor-pointer" title="Previous Archetype" aria-label="Previous Archetype">
-            <i class="fa-solid fa-chevron-left text-xs"></i>
+        <div class="relative z-20 flex items-center justify-center gap-2.5 sm:gap-3 w-full">
+          <button id="setup-archetype-carousel-prev" onclick="window.cycleAvatarPrev()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-sm shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Previous Archetype" aria-label="Previous Archetype">
+            <i class="fa-solid fa-chevron-left text-xs sm:text-sm"></i>
           </button>
-          <div id="setup-character-archetype-name" class="px-4 py-1 rounded-full bg-white/95 text-slate-800 font-black text-xs sm:text-sm shadow-md border-2 border-white flex items-center gap-1.5 cursor-pointer hover:bg-white" onclick="window.cycleAvatarNext()">
+          <div id="setup-character-archetype-name" class="px-4 sm:px-6 py-1 sm:py-1.5 rounded-full bg-white/95 text-slate-800 font-black text-xs sm:text-sm lg:text-base shadow-md border-2 border-white flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:bg-white select-none transition-transform hover:scale-[1.02] active:scale-[0.98]" onclick="window.cycleAvatarNext()" title="Click to cycle next archetype">
             <span>🎩</span><span>BANKER</span>
           </div>
-          <button id="setup-archetype-carousel-next" onclick="window.cycleAvatarNext()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-sm shadow-md cursor-pointer" title="Next Archetype" aria-label="Next Archetype">
-            <i class="fa-solid fa-chevron-right text-xs"></i>
+          <button id="setup-archetype-carousel-next" onclick="window.cycleAvatarNext()" class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-sm shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Next Archetype" aria-label="Next Archetype">
+            <i class="fa-solid fa-chevron-right text-xs sm:text-sm"></i>
           </button>
         </div>
 
         <!-- 3D Canvas Stage -->
         <div id="lobby-avatar-3d-canvas-wrapper" class="relative flex items-center justify-center">
-          <canvas id="lobby-avatar-3d-canvas" width="380" height="400" class="w-[190px] h-[190px] sm:w-[210px] sm:h-[210px] pointer-events-auto filter drop-shadow-2xl relative z-10"></canvas>
+          <canvas id="lobby-avatar-3d-canvas" width="512" height="512" class="w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] lg:w-[270px] lg:h-[270px] 2xl:w-[330px] 2xl:h-[330px] pointer-events-auto filter drop-shadow-2xl relative z-10"></canvas>
         </div>
 
         <!-- Bottom Controls: Default Setup Mode -->
-        <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-2 w-full">
+        <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-2 sm:gap-2.5 2xl:gap-3 w-full">
           <!-- Customization Row: Wardrobe & Colors (Always accessible) -->
-          <div class="flex items-center gap-1.5 flex-wrap justify-center">
+          <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
             <!-- Wardrobe & Outfits Button -->
-            <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-3 py-1.5 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-1.5 cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Customize Outfits, Hats, Dice & Pedestals">
-              <svg class="ui-icon w-3.5 h-3.5 text-amber-600" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
-              <span class="tracking-wide text-[11px]">WARDROBE</span>
-              <span class="ml-0.5 px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] shadow-2xs border border-amber-500/20 tabular-nums inline-flex items-center gap-1">
-                <svg class="ui-icon w-2.5 h-2.5 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
-                <span id="wardrobe-button-stars-badge" class="font-mono tabular-nums text-[10px] font-black">500</span>
+            <button id="btn-open-wardrobe" onclick="window.openWardrobeModal()" class="px-3 sm:px-3.5 lg:px-4 py-1.5 sm:py-2 rounded-full bg-white/95 hover:bg-amber-50 text-slate-800 hover:text-amber-950 font-black text-xs sm:text-sm shadow-md border-2 border-amber-300 hover:border-amber-400 flex items-center gap-1.5 cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Customize Outfits, Hats, Dice & Pedestals" aria-label="Open Wardrobe Customization">
+              <svg class="ui-icon w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 flex-shrink-0" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
+              <span class="tracking-wide text-[11px] sm:text-xs">WARDROBE</span>
+              <span class="ml-0.5 px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] sm:text-[11px] shadow-2xs border border-amber-500/20 tabular-nums inline-flex items-center gap-1">
+                <svg class="ui-icon w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-950" aria-hidden="true"><use href="#icon-star"></use></svg>
+                <span id="wardrobe-button-stars-badge" class="font-mono tabular-nums text-[10px] sm:text-[11px] font-black">500</span>
               </span>
             </button>
 
             <!-- Color Swatches Bar -->
-            <div id="setup-color-swatches-container" class="bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 border-2 border-white shadow-md flex items-center gap-1">
-              <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider mr-0.5">COLOR</span>
-              <div id="setup-color-swatches" class="flex items-center gap-1">
+            <div id="setup-color-swatches-container" class="bg-white/90 backdrop-blur-sm rounded-full px-2.5 sm:px-3.5 py-1 sm:py-1.5 border-2 border-white shadow-md flex items-center gap-1 sm:gap-1.5">
+              <span class="text-[10px] sm:text-[11px] font-black uppercase text-slate-600 tracking-wider mr-0.5">COLOR</span>
+              <div id="setup-color-swatches" class="flex items-center gap-1 sm:gap-1.5">
                 <!-- Dynamically populated candy circles -->
               </div>
             </div>
           </div>
 
           <!-- A. Title Screen Primary Menu (LOCAL vs MULTIPLAYER) -->
-          <div id="title-menu-actions" class="w-full max-w-sm flex flex-col items-center gap-2 mt-0.5 relative z-30 pointer-events-auto">
+          <div id="title-menu-actions" class="w-full max-w-sm lg:max-w-md 2xl:max-w-lg flex flex-col items-center gap-2 sm:gap-2.5 2xl:gap-3.5 mt-0.5 relative z-30 pointer-events-auto">
             <!-- First-Time Name Heads Up Notification Banner -->
-            <div id="home-name-heads-up" class="w-full rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 p-3 shadow-xl border-2 border-white flex flex-col gap-1.5 relative hidden">
+            <div id="home-name-heads-up" class="w-full rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 p-3 sm:p-3.5 shadow-xl border-2 border-white flex flex-col gap-1.5 relative hidden">
               <div class="flex items-start justify-between gap-2">
                 <div class="flex items-center gap-1.5">
                   <span class="w-5 h-5 rounded-full bg-slate-950 text-amber-300 flex items-center justify-center text-[10px] shadow-inner flex-shrink-0">
                     <i class="fa-solid fa-lightbulb"></i>
                   </span>
-                  <span class="font-black text-[11px] uppercase tracking-wider text-slate-950">Heads Up! Tycoon Name</span>
+                  <span class="font-black text-[11px] sm:text-xs uppercase tracking-wider text-slate-950">Heads Up! Tycoon Name</span>
                 </div>
                 <button onclick="window.dismissNameHeadsUp(true)" class="w-5 h-5 rounded-full bg-slate-950/10 hover:bg-slate-950/20 text-slate-800 flex items-center justify-center text-xs cursor-pointer transition" title="Dismiss" aria-label="Dismiss name change hint">
                   <i class="fa-solid fa-xmark text-[10px]"></i>
                 </button>
               </div>
-              <p class="text-[11px] font-bold text-slate-900 leading-snug">
+              <p class="text-[11px] sm:text-xs font-bold text-slate-900 leading-snug">
                 You can customize your player name right here on the Home Screen! Once you enter Local or Multiplayer lobbies, names are locked.
               </p>
               <div class="flex items-center gap-2 mt-0.5">
-                <button onclick="window.promptEditPlayerName(); window.dismissNameHeadsUp(true);" class="flex-1 py-1 px-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs flex items-center justify-center gap-1 shadow-md cursor-pointer transition">
+                <button onclick="window.promptEditPlayerName(); window.dismissNameHeadsUp(true);" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs flex items-center justify-center gap-1 shadow-md cursor-pointer transition">
                   <i class="fa-solid fa-pen text-[9px]"></i> Change Name
                 </button>
-                <button onclick="window.dismissNameHeadsUp(true)" class="py-1 px-2.5 rounded-xl bg-white/90 hover:bg-white text-slate-900 font-black text-xs shadow-2xs border border-white cursor-pointer transition">
+                <button onclick="window.dismissNameHeadsUp(true)" class="py-1.5 px-3 rounded-xl bg-white/90 hover:bg-white text-slate-900 font-black text-xs shadow-2xs border border-white cursor-pointer transition">
                   Got It!
                 </button>
               </div>
             </div>
 
             <!-- Tycoon Profile Quick Card on Home Screen -->
-            <div class="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl bg-white/95 border-2 border-amber-300/80 shadow-xs">
+            <div class="w-full flex items-center justify-between px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-white/95 border-2 border-amber-300/80 shadow-xs">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
-                <span class="text-[10px] font-black uppercase text-amber-800 tracking-wider flex-shrink-0">YOUR NAME:</span>
-                <strong id="home-tycoon-name-display" class="text-xs sm:text-sm font-black text-slate-800 uppercase truncate">TYCOON</strong>
+                <span class="text-[10px] sm:text-[11px] font-black uppercase text-amber-800 tracking-wider flex-shrink-0">YOUR NAME:</span>
+                <strong id="home-tycoon-name-display" class="text-xs sm:text-sm lg:text-base font-black text-slate-800 uppercase truncate">TYCOON</strong>
               </div>
-              <button onclick="window.promptEditPlayerName()" class="px-2.5 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-[11px] cursor-pointer transition shadow-2xs flex items-center gap-1 flex-shrink-0" title="Edit your Tycoon name">
-                <i class="fa-solid fa-pen text-[9px]"></i>
+              <button onclick="window.promptEditPlayerName()" class="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-[11px] sm:text-xs cursor-pointer transition shadow-2xs flex items-center gap-1 flex-shrink-0" title="Edit your Tycoon name" aria-label="Edit Tycoon Name">
+                <i class="fa-solid fa-pen text-[9px] sm:text-[10px]"></i>
                 <span>EDIT</span>
               </button>
             </div>
 
-            <button onclick="window.showLocalSetup()" class="w-full py-2.5 px-4 sm:px-5 rounded-2xl font-rounded font-black text-white game-btn game-btn-green shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Play solo against bots or pass-and-play">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg sm:text-xl shadow-inner border border-white/30">
+            <!-- LOCAL PLAY BUTTON -->
+            <button onclick="window.showLocalSetup()" class="w-full py-2.5 sm:py-3 lg:py-3.5 2xl:py-4 px-4 sm:px-5 lg:px-6 2xl:px-7 rounded-2xl font-rounded font-black text-white game-btn game-btn-green shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Play solo against bots or pass-and-play" aria-label="Play Local Mode with Bots">
+              <div class="flex items-center gap-3 sm:gap-3.5 lg:gap-4">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-inner border border-white/30 flex-shrink-0">
                   <i class="fa-solid fa-gamepad text-white"></i>
                 </div>
                 <div class="text-left">
-                  <div class="text-base sm:text-lg font-black leading-tight tracking-wider">LOCAL PLAY</div>
-                  <div class="text-[9px] font-extrabold text-emerald-100 uppercase tracking-widest">Pass & Play + AI Bots</div>
+                  <div class="text-base sm:text-lg lg:text-xl font-black leading-tight tracking-wider">LOCAL PLAY</div>
+                  <div class="text-[9px] sm:text-[10px] lg:text-xs font-extrabold text-emerald-100 uppercase tracking-widest">Pass &amp; Play + AI Bots</div>
                 </div>
               </div>
-              <i class="fa-solid fa-chevron-right text-emerald-200 text-xs group-hover:translate-x-1 transition-transform"></i>
+              <i class="fa-solid fa-chevron-right text-emerald-200 text-xs sm:text-sm group-hover:translate-x-1 transition-transform"></i>
             </button>
 
-            <button onclick="window.showMultiplayerSetup()" class="w-full py-2.5 px-4 sm:px-5 rounded-2xl font-rounded font-black text-white game-btn game-btn-blue shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Host private room or join via room code">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg sm:text-xl shadow-inner border border-white/30">
+            <!-- MULTIPLAYER BUTTON -->
+            <button onclick="window.showMultiplayerSetup()" class="w-full py-2.5 sm:py-3 lg:py-3.5 2xl:py-4 px-4 sm:px-5 lg:px-6 2xl:px-7 rounded-2xl font-rounded font-black text-white game-btn game-btn-blue shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Host private room or join via room code" aria-label="Play Multiplayer Online via Room Code">
+              <div class="flex items-center gap-3 sm:gap-3.5 lg:gap-4">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-inner border border-white/30 flex-shrink-0">
                   <i class="fa-solid fa-globe text-white"></i>
                 </div>
                 <div class="text-left">
-                  <div class="text-base sm:text-lg font-black leading-tight tracking-wider">MULTIPLAYER</div>
-                  <div class="text-[9px] font-extrabold text-sky-100 uppercase tracking-widest">Host or Join via Room Code</div>
+                  <div class="text-base sm:text-lg lg:text-xl font-black leading-tight tracking-wider">MULTIPLAYER</div>
+                  <div class="text-[9px] sm:text-[10px] lg:text-xs font-extrabold text-sky-100 uppercase tracking-widest">Host or Join via Room Code</div>
                 </div>
               </div>
-              <i class="fa-solid fa-chevron-right text-sky-200 text-xs group-hover:translate-x-1 transition-transform"></i>
+              <i class="fa-solid fa-chevron-right text-sky-200 text-xs sm:text-sm group-hover:translate-x-1 transition-transform"></i>
             </button>
           </div>
 
@@ -763,10 +765,10 @@
   </div>
 
   <!-- 4. STREAMLINED SPATIAL TOP HUD HEADER (Antigravity Design Expert) -->
-  <header id="main-game-hud-bar" class="fixed top-2.5 sm:top-3 inset-x-3 sm:inset-x-5 z-[100] hidden flex items-center justify-between pointer-events-none select-none gap-2 flex-nowrap">
+  <header id="main-game-hud-bar" class="fixed top-2.5 sm:top-3 inset-x-3 sm:inset-x-5 z-[1300] hidden flex items-center justify-between pointer-events-none select-none gap-2 flex-nowrap">
     <!-- Left Pod: Navigation & Primary Actions -->
     <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-shrink-0">
-      <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby" aria-label="Return to Lobby" style="pointer-events: auto !important; position: relative; z-index: 101;">
+      <button id="btn-top-lobby" onclick="window.handleLobbyButtonClick()" class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby" aria-label="Return to Lobby">
         <i class="fa-solid fa-house text-indigo-600"></i>
         <span class="hidden sm:inline">Lobby</span>
       </button>
@@ -785,7 +787,7 @@
     </div>
 
     <!-- Center Pod: Match Status Capsule (Spatial Glass Island) -->
-    <div id="hud-match-status-capsule" class="hud-glass-capsule pointer-events-auto hidden md:flex items-center gap-2.5 px-3.5 shadow-sm flex-shrink-0">
+    <div id="hud-match-status-capsule" class="hud-glass-capsule pointer-events-auto md:flex items-center gap-2.5 px-3.5 shadow-sm flex-shrink-0">
       <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700" title="Elapsed Match Time">
         <i class="fa-regular fa-clock text-slate-500"></i>
         <span id="hud-game-clock" class="tabular-nums font-black text-slate-800">00:00</span>
@@ -1101,6 +1103,7 @@
         </div>
       </div>
     </div>
+  </div>
     <div id="modal-festival-boost" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div id="modal-festival-boost-card" class="game-modal-shell modal-shell-emerald max-w-lg w-full flex flex-col overflow-hidden shadow-2xl max-h-[90vh]">
       <!-- Header -->
@@ -1179,12 +1182,16 @@
       </div>
     </div>
   </div>
-    <div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
+    <div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this && (performance.now() - (this._openedAt || 0) > 350)) window.passBuyoutCity()">
     <div id="modal-buyout-city-card" class="game-modal-shell modal-shell-amber max-w-md w-full">
       <div id="buyout-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600">
         <!-- Floating Watermark Icons -->
         <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
         <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+
+        <button onclick="window.passBuyoutCity()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition z-20" title="Pass Buyout [Esc]" aria-label="Pass Buyout">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
 
         <span id="buyout-modal-country" class="modal-badge-pill bg-black/30 border border-white/30 text-amber-200">⚔️ HOSTILE BUYOUT</span>
         <canvas id="buyout-city-3d-canvas" width="220" height="110" class="w-[180px] h-[90px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
@@ -1494,7 +1501,7 @@
       </div>
     </div>
   </div>
-    <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closePortfolioModal()">
+    <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="window.handleModalBackdropClick(event, window.closePortfolioModal)">
     <div class="game-modal-shell modal-shell-emerald max-w-3xl w-full max-h-[86vh] flex flex-col overflow-hidden shadow-2xl">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
@@ -1527,7 +1534,7 @@
       <div id="portfolio-grid" class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-gradient-to-b from-white to-slate-50/70"></div>
     </div>
   </div>
-    <div id="modal-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeTradeModal()">
+    <div id="modal-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="window.handleModalBackdropClick(event, window.closeTradeModal)">
     <div class="game-modal-shell modal-shell-emerald max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
@@ -1728,7 +1735,7 @@
       </div>
     </div>
   </div>
-    <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="if(event.target===this) window.closeRulesModal()">
+    <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain" onclick="window.handleModalBackdropClick(event, window.closeRulesModal)">
     <div class="game-modal-shell modal-shell-sky max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
       <!-- Grand Banner Header (Victory Style) -->
       <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
@@ -2035,7 +2042,7 @@
   </div>
 
   <!-- 12. CONFIRM EXIT TO LOBBY MODAL (Victory-Inspired) -->
-  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain overflow-y-auto" onclick="if(event.target===this) window.closeConfirmExitLobbyModal()">
+  <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain overflow-y-auto" onclick="window.handleModalBackdropClick(event, window.closeConfirmExitLobbyModal)">
     <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400 pointer-events-auto my-auto">
       <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
         <!-- Floating Watermark Icon -->
@@ -2065,7 +2072,7 @@
       </div>
     </div>
   </div>
-    <div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeLeaderboardModal()">
+    <div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="window.handleModalBackdropClick(event, window.closeLeaderboardModal)">
     <div class="game-modal-shell modal-shell-amber relative w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       
       <!-- Leaderboard Header with Grand Gradient & Trophy Icon -->
@@ -2212,7 +2219,7 @@
       </div>
     </div>
   </div>
-    <div id="modal-update-alert" role="alertdialog" aria-modal="true" aria-labelledby="update-modal-title" aria-describedby="update-modal-desc" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeUpdateAlertModal()">
+    <div id="modal-update-alert" role="alertdialog" aria-modal="true" aria-labelledby="update-modal-title" aria-describedby="update-modal-desc" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="window.handleModalBackdropClick(event, window.closeUpdateAlertModal)">
     <div id="modal-update-card" class="game-modal-shell modal-shell-emerald relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border-4 !border-emerald-400 focus:outline-hidden" tabindex="-1">
       <!-- Modal Header -->
       <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">

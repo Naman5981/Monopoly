@@ -232,6 +232,29 @@ describe('P2P Action Dispatcher & Executor', () => {
       });
     });
 
+    it('handles ACTION_PASS_BUYOUT by delegating to networkCallbacks.onPassBuyout', () => {
+      let passData = null;
+      registerNetworkCallbacks({
+        onPassBuyout: (playerIdx, tileId, isDoubles) => {
+          passData = { playerIdx, tileId, isDoubles };
+        }
+      });
+
+      executeIncomingNetworkAction({
+        type: 'ACTION_PASS_BUYOUT',
+        senderIdx: 0,
+        playerIdx: 0,
+        tileId: 5,
+        isDoubles: false
+      });
+
+      assert.deepEqual(passData, {
+        playerIdx: 0,
+        tileId: 5,
+        isDoubles: false
+      });
+    });
+
     it('handles ACTION_UPGRADE_CITY with count and levelsToAdd', () => {
       let upgradeData = null;
       registerNetworkCallbacks({

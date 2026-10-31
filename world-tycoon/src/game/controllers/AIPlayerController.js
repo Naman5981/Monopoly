@@ -34,7 +34,8 @@ export class AIPlayerController extends IPlayerController {
 
   async onTurnStart({ executeRollFn }) {
     updateRollButtonsUI(false);
-    const p = this.playerState;
+    const p = this.playerState || (gameState.players && gameState.players[this.playerIndex]);
+    if (!p) return;
 
     if (p.inIsland) {
       setStatusPill(`🤔 <strong>${p.name}</strong> is rolling for doubles to leave the Island...`, {
@@ -64,7 +65,16 @@ export class AIPlayerController extends IPlayerController {
     const humanIdx = localPlayerIdx || 0;
     const botTrade = generateProactiveBotTrade(this.playerIndex);
     if (botTrade && botTrade.targetIdx === humanIdx && !gameState.players[humanIdx]?.bankrupt) {
+      AIPlayerController.cancelTimer();
+      window.resumeBotTurnAfterTrade = () => {
+        window.resumeBotTurnAfterTrade = null;
+        if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
+        if (typeof executeRollFn === 'function') {
+          executeRollFn();
+        }
+      };
       showIncomingTradeOfferModal(botTrade);
+      return;
     }
 
     AIPlayerController.cancelTimer();

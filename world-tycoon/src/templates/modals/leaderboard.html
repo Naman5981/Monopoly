@@ -1,4 +1,4 @@
-  <div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="if(event.target===this) window.closeLeaderboardModal()">
+  <div id="modal-leaderboard" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="window.handleModalBackdropClick(event, window.closeLeaderboardModal)">
     <div class="game-modal-shell modal-shell-amber relative w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       
       <!-- Leaderboard Header with Grand Gradient & Trophy Icon -->

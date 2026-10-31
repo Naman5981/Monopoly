@@ -619,6 +619,8 @@ function initApp() {
         closePortfolioModal();
       } else if (!document.getElementById('modal-trade')?.classList.contains('hidden')) {
         closeTradeModal();
+      } else if (!document.getElementById('modal-buyout-city')?.classList.contains('hidden')) {
+        passBuyoutCity();
       } else if (!document.getElementById('modal-tile-inspector')?.classList.contains('hidden')) {
         closeInspectorModal();
       }
