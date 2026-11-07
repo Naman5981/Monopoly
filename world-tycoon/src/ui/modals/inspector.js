@@ -15,7 +15,7 @@ import {
   setTileHighlightRing,
   refreshTileTextureAndBuildings
 } from '../../three/scene.js';
-import { renderCornerHUDs, showTurnLockToast, logEvent } from '../hud.js';
+import { renderCornerHUDs, showTurnLockToast, logEvent, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
 import { saveCurrentMatchToStorage } from '../../game/persistence.js';
 import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML, closeOtherInformationalModals } from './common.js';
 import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
@@ -312,6 +312,11 @@ export function closePortfolioModal() {
       m.classList.remove('flex');
       m.style.setProperty('display', 'none', 'important');
     });
+  }
+  if (gameState.gameStarted && gameState.phase !== 'SETUP') {
+    renderCornerHUDs();
+    refreshActivePlayerTurnStatus();
+    updateRollButtonsUI(isHumanTurnActionable());
   }
 }
 

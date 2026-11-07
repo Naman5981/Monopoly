@@ -8,6 +8,7 @@ import { showSpeechBubble } from '../../../three/scene.js';
 import { renderCornerHUDs, logEvent, setPlayerPortraitMood } from '../../../ui/hud.js';
 import { animateIslandDetentionBars } from '../../../ui/anim.js';
 import { playSFX } from '../../audio.js';
+import { concludeActionPhase } from '../turnCycle.js';
 
 export class IslandLandingStrategy extends ITileLandingStrategy {
   async execute(context) {
@@ -25,7 +26,9 @@ export class IslandLandingStrategy extends ITileLandingStrategy {
     animateIslandDetentionBars(playerIdx);
 
     // Island ends the turn immediately regardless of previous doubles
-    if (window.concludeActionPhase) {
+    if (concludeActionPhase) {
+      concludeActionPhase(false);
+    } else if (window.concludeActionPhase) {
       window.concludeActionPhase(false);
     }
   }

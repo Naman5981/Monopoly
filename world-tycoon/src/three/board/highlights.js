@@ -236,6 +236,14 @@ export function setFestivalSelectionHighlights(active, tileIds = [], colorHex = 
     while (festivalHighlightsGroup.children.length > 0) {
       const child = festivalHighlightsGroup.children[0];
       festivalHighlightsGroup.remove(child);
+      if (child.children && child.children.length > 0) {
+        while (child.children.length > 0) {
+          const sub = child.children[0];
+          child.remove(sub);
+          if (sub.geometry) sub.geometry.dispose();
+          if (sub.material) sub.material.dispose();
+        }
+      }
       if (child.geometry) child.geometry.dispose();
       if (child.material) child.material.dispose();
     }
@@ -248,20 +256,56 @@ export function setFestivalSelectionHighlights(active, tileIds = [], colorHex = 
   }
 
   const ringGeo = new THREE.RingGeometry(1.08, 1.48, 32);
-  const color = new THREE.Color(colorHex);
+  const discGeo = new THREE.CircleGeometry(1.06, 32);
+  const beamGeo = new THREE.CylinderGeometry(0.82, 1.12, 2.4, 24, 1, true);
+
+  const primaryColor = new THREE.Color(colorHex);
+  const glowColor = new THREE.Color('#34d399');
+
   tileIds.forEach(id => {
+    const itemGroup = new THREE.Group();
+    const pos = getTileWorldPosition(id);
+    itemGroup.position.set(pos.x, 0.466, pos.z);
+
+    // 1. Outer breathing ring
     const ringMat = new THREE.MeshBasicMaterial({
-      color,
+      color: primaryColor,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.95
     });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
-    const pos = getTileWorldPosition(id);
-    ring.position.set(pos.x, 0.466, pos.z);
-    ring.userData = { tileId: id };
-    festivalHighlightsGroup.add(ring);
+    itemGroup.add(ring);
+
+    // 2. Inner radiant ground disc
+    const discMat = new THREE.MeshBasicMaterial({
+      color: glowColor,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.35,
+      blending: THREE.AdditiveBlending
+    });
+    const disc = new THREE.Mesh(discGeo, discMat);
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.y = 0.002;
+    itemGroup.add(disc);
+
+    // 3. Vertical luminous festival spotlight beam
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: glowColor,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.40,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    beam.position.y = 1.20;
+    itemGroup.add(beam);
+
+    itemGroup.userData = { tileId: id, ring, disc, beam };
+    festivalHighlightsGroup.add(itemGroup);
   });
 
   festivalHighlightsGroup.visible = true;
@@ -293,18 +337,25 @@ export function updateActivePlayerBeacon(t) {
   }
 
   if (festivalHighlightsGroup?.visible) {
-    // Breathing style highlight: smooth continuous inhalation/exhalation wave
-    const pulseScale = 1 + Math.sin(t * 3.6) * 0.12;
-    const pulseOpacity = 0.50 + Math.sin(t * 3.6) * 0.45; // Dynamic breath: 0.05 to 0.95
-    festivalHighlightsGroup.children.forEach(ring => {
-      const tileId = ring.userData?.tileId;
+    // Breathing style highlight: radiant continuous wave with flashing beacons
+    const pulseScale = 1 + Math.sin(t * 4.6) * 0.16;
+    const pulseOpacity = 0.55 + Math.sin(t * 4.6) * 0.40; // 0.15 to 0.95 breath
+    const beamPulseHeight = 1 + Math.sin(t * 4.6) * 0.22;
+
+    festivalHighlightsGroup.children.forEach(item => {
+      const tileId = item.userData?.tileId;
       const tileMesh = tileId !== undefined ? context.tilesMeshMap[tileId] : null;
       if (tileMesh) {
-        ring.position.y = tileMesh.position.y + 0.130;
+        item.position.y = tileMesh.position.y + 0.130;
       }
-      ring.scale.set(pulseScale, pulseScale, 1);
-      if (ring.material) {
-        ring.material.opacity = pulseOpacity;
+      item.scale.set(pulseScale, 1, pulseScale);
+
+      const { ring, disc, beam } = item.userData || {};
+      if (ring?.material) ring.material.opacity = pulseOpacity;
+      if (disc?.material) disc.material.opacity = pulseOpacity * 0.45;
+      if (beam) {
+        beam.scale.set(pulseScale, beamPulseHeight, pulseScale);
+        if (beam.material) beam.material.opacity = pulseOpacity * 0.55;
       }
     });
   }

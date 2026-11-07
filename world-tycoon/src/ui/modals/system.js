@@ -4,13 +4,14 @@
  */
 
 import { PLAYER_THEMES } from '../../game/data.js';
-import { gameState, lobbyPlayerCount, setLobbyPlayerCount } from '../../game/state.js';
+import { gameState, lobbyPlayerCount, setLobbyPlayerCount, isHumanTurnActionable } from '../../game/state.js';
 import { playSFX } from '../../game/audio.js';
 import { showSpeechBubble } from '../../three/scene.js';
 import { stopVictoryCelebration } from '../../three/effects.js';
 import { networkState } from '../../network/p2pState.js';
 import { closeAllGameModals, closeOtherInformationalModals } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { renderCornerHUDs, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SETUP / LOBBY MODAL
@@ -86,6 +87,11 @@ export function closeRulesModal() {
       m.classList.remove('flex');
       m.style.setProperty('display', 'none', 'important');
     });
+  }
+  if (gameState.gameStarted && gameState.phase !== 'SETUP') {
+    renderCornerHUDs();
+    refreshActivePlayerTurnStatus();
+    updateRollButtonsUI(isHumanTurnActionable());
   }
 }
 

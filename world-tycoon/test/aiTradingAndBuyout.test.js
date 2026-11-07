@@ -63,9 +63,10 @@ describe('AI Trading & Hostile Buyout Rebalancing (/bug-hunter)', () => {
 
   describe('Rejection Memory & Cooldowns', () => {
     it('records declined properties and blocks repeat offers for 20 turns', () => {
-      // Simulate Bot 1 owning Cairo and needing Mumbai (owned by Human)
+      // Simulate Bot 1 owning Cairo and needing Mumbai (owned by Human), offering Monaco in exchange
       gameState.properties[cairoTile.id].owner = 1;
       gameState.properties[mumbaiTile.id].owner = 0;
+      gameState.properties[monacoTile.id].owner = 1;
 
       // Simulate turn 5
       gameState.netWorthHistory = new Array(5).fill({});
@@ -89,8 +90,10 @@ describe('AI Trading & Hostile Buyout Rebalancing (/bug-hunter)', () => {
     it('enforces a global 10-turn cooldown between any bot trade offers to the human', () => {
       gameState.properties[cairoTile.id].owner = 1;
       gameState.properties[mumbaiTile.id].owner = 0;
+      gameState.properties[5].owner = 1; // Bot 1 spare property (Bangkok, group lightblue)
       gameState.properties[monacoTile.id].owner = 2;
       gameState.properties[istanbulTile.id].owner = 0;
+      gameState.properties[6].owner = 2; // Bot 2 spare property (Athens, group pink)
 
       // Turn 15: Bot 1 proposes a trade
       gameState.netWorthHistory = new Array(15).fill({});
@@ -196,6 +199,7 @@ describe('AI Trading & Hostile Buyout Rebalancing (/bug-hunter)', () => {
     it('pauses bot turn roll when proposing proactive trade and resumes upon decline', async () => {
       gameState.properties[cairoTile.id].owner = 1;
       gameState.properties[mumbaiTile.id].owner = 0;
+      gameState.properties[monacoTile.id].owner = 1; // Bot 1 owns Monaco to offer in exchange
       gameState.players[1].cash = 3000000;
 
       gameState.netWorthHistory = new Array(15).fill({});

@@ -189,6 +189,54 @@ describe('P2P Action Dispatcher & Executor', () => {
       });
     });
 
+    it('handles ACTION_PASS_BUY_CITY by delegating to networkCallbacks.onPassBuyCity', () => {
+      networkState.localPlayerIdx = 0;
+      let passBuyData = null;
+      registerNetworkCallbacks({
+        onPassBuyCity: (playerIdx, tileId, isDoubles) => {
+          passBuyData = { playerIdx, tileId, isDoubles };
+        }
+      });
+
+      executeIncomingNetworkAction({
+        type: 'ACTION_PASS_BUY_CITY',
+        senderIdx: 1,
+        playerIdx: 1,
+        tileId: 4,
+        isDoubles: false
+      });
+
+      assert.deepEqual(passBuyData, {
+        playerIdx: 1,
+        tileId: 4,
+        isDoubles: false
+      });
+    });
+
+    it('handles ACTION_END_UPGRADE by delegating to networkCallbacks.onEndUpgrade', () => {
+      networkState.localPlayerIdx = 0;
+      let endUpgradeData = null;
+      registerNetworkCallbacks({
+        onEndUpgrade: (playerIdx, tileId, isDoubles) => {
+          endUpgradeData = { playerIdx, tileId, isDoubles };
+        }
+      });
+
+      executeIncomingNetworkAction({
+        type: 'ACTION_END_UPGRADE',
+        senderIdx: 1,
+        playerIdx: 1,
+        tileId: 9,
+        isDoubles: true
+      });
+
+      assert.deepEqual(endUpgradeData, {
+        playerIdx: 1,
+        tileId: 9,
+        isDoubles: true
+      });
+    });
+
     it('handles ACTION_BUYOUT_CITY with both prevOwnerIdx and previousOwnerIdx', () => {
       let buyoutData = null;
       registerNetworkCallbacks({
@@ -340,14 +388,13 @@ describe('P2P Action Dispatcher & Executor', () => {
       assert.equal(owner.cash, 1200000);
     });
 
-    it('handles ACTION_BANKRUPTCY', () => {
+    it('handles ACTION_BANKRUPTCY with creditor inheriting properties', () => {
       const bankruptP = gameState.players[1];
       const creditorP = gameState.players[0];
       bankruptP.cash = 50000;
       creditorP.cash = 1000000;
       gameState.properties[1].owner = 1;
 
-      // Ensure sender is different from localPlayerIdx (which is 1 in beforeEach)
       executeIncomingNetworkAction({
         type: 'ACTION_BANKRUPTCY',
         senderIdx: 0,
@@ -359,7 +406,25 @@ describe('P2P Action Dispatcher & Executor', () => {
       assert.equal(bankruptP.bankrupt, true);
       assert.equal(bankruptP.cash, 0);
       assert.equal(creditorP.cash, 1050000);
-      assert.equal(gameState.properties[1].owner, null);
+      assert.equal(gameState.properties[1].owner, 0, 'Creditor must inherit property deeds');
+    });
+
+    it('handles ACTION_BANKRUPTCY without creditor resetting properties to unowned', () => {
+      const bankruptP = gameState.players[1];
+      bankruptP.cash = 50000;
+      gameState.properties[1].owner = 1;
+
+      executeIncomingNetworkAction({
+        type: 'ACTION_BANKRUPTCY',
+        senderIdx: 0,
+        bankruptIdx: 1,
+        creditorIdx: null,
+        paidCash: 0
+      });
+
+      assert.equal(bankruptP.bankrupt, true);
+      assert.equal(bankruptP.cash, 0);
+      assert.equal(gameState.properties[1].owner, null, 'Properties must revert to unowned without creditor');
     });
 
     it('handles ACTION_FESTIVAL_BOOST and restores any other previously boosted city', () => {

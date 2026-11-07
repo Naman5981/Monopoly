@@ -103,6 +103,7 @@ export function animateLobbyViewTransition(viewName = 'title') {
   if (viewName === 'title') {
     anime.remove('#title-menu-actions > button');
     anime.remove('#title-menu-actions > div');
+    anime.remove('#title-game-modes-grid > button');
     anime.remove('#lobby-hero-column');
     anime.remove('#setup-character-archetype-name');
     anime({
@@ -113,13 +114,13 @@ export function animateLobbyViewTransition(viewName = 'title') {
       easing: 'spring(1, 80, 10, 0)'
     });
     anime({
-      targets: ['#title-menu-actions > div', '#title-menu-actions > button'],
-      scale: [0.92, 1],
+      targets: ['#title-menu-actions > div:not(#title-game-modes-grid)', '#title-game-modes-grid > button', '#title-menu-actions > button'],
+      scale: [0.94, 1],
       translateY: [8, 0],
       opacity: [0, 1],
-      delay: anime.stagger(50),
+      delay: anime.stagger(40),
       duration: 480,
-      easing: 'spring(1, 85, 10, 0)'
+      easing: 'spring(1, 85, 12, 0)'
     });
     anime({
       targets: '#lobby-hero-column',

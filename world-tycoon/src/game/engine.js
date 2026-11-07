@@ -55,6 +55,8 @@ import {
   showIncomingTradeOfferModal,
   completeTradeTransfer,
   closeIncomingTradeModal,
+  closeTradeModal,
+  handleTradeDeclined,
   showChanceAwardPopup,
   executeRemoteChanceSpin
 } from '../ui/modals.js';
@@ -76,7 +78,11 @@ import {
   handlePayIslandBail
 } from './engine/turnCycle.js';
 
-// Re-export sub-modules
+let lastProcessedStateSeq = 0;
+
+export function resetStateSequenceTracker() {
+  lastProcessedStateSeq = 0;
+}
 export * from './engine/flight.js';
 export * from './engine/chance.js';
 export * from './engine/landings.js';
@@ -138,6 +144,20 @@ export function initEngine() {
         if (networkState.isMultiplayer && networkState.isHost) {
           broadcastFullGameState();
         }
+        if (concludeActionPhase) {
+          concludeActionPhase(Boolean(gameState.pendingDoubles));
+        }
+      }
+    },
+    onPassBuyCity: (playerIdx, tileId, isDoubles) => {
+      const p = gameState.players[playerIdx];
+      const tileName = BOARD_TILES[tileId]?.name || 'City';
+      logEvent(`🏷️ <strong>${p ? p.name : 'Player'}</strong> passed on buying <strong>${tileName}</strong>.`);
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
+      }
+      if (concludeActionPhase) {
+        concludeActionPhase(Boolean(isDoubles));
       }
     },
     onMonopoly: (playerIdx, groupKey) => {
@@ -162,6 +182,17 @@ export function initEngine() {
         }
       }
     },
+    onEndUpgrade: (playerIdx, tileId, isDoubles) => {
+      const p = gameState.players[playerIdx];
+      const tileName = BOARD_TILES[tileId]?.name || 'City';
+      logEvent(`🏗️ <strong>${p ? p.name : 'Player'}</strong> concluded visit to <strong>${tileName}</strong>.`);
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
+      }
+      if (concludeActionPhase) {
+        concludeActionPhase(Boolean(isDoubles));
+      }
+    },
     onTradeAction: (msg) => {
       if (msg.type === 'ACTION_TRADE_OFFER') {
         if (msg.targetIdx === networkState.localPlayerIdx && msg.proposal) {
@@ -173,16 +204,27 @@ export function initEngine() {
           const proposerIdx = p.proposerIdx !== undefined ? p.proposerIdx : p.giverIdx;
           const targetIdx = p.targetIdx !== undefined ? p.targetIdx : p.receiverIdx;
           if (msg.accepted) {
-            completeTradeTransfer(proposerIdx, targetIdx, p.offerCash, p.reqCash, p.offerTileIds, p.reqTileIds);
-            const proposer = gameState.players[proposerIdx];
-            const target = gameState.players[targetIdx];
-            logEvent(`🤝 <strong>Trade Deal Struck!</strong> ${target ? target.name : 'Player'} accepted ${proposer ? proposer.name : 'Player'}'s proposal.`);
+            try {
+              completeTradeTransfer(proposerIdx, targetIdx, p.offerCash || 0, p.reqCash || 0, p.offerTileIds, p.reqTileIds);
+              const proposer = gameState.players[proposerIdx];
+              const target = gameState.players[targetIdx];
+              logEvent(`🤝 <strong>Trade Deal Struck!</strong> ${target ? target.name : 'Player'} accepted ${proposer ? proposer.name : 'Player'}'s proposal.`);
+            } catch (err) {
+              console.error('[P2P Trade Action Error]', err);
+            } finally {
+              closeTradeModal();
+              closeIncomingTradeModal(false);
+            }
           } else {
             const target = gameState.players[targetIdx];
             logEvent(`❌ <strong>${target ? target.name : 'Player'}</strong> declined the trade offer.`);
+            handleTradeDeclined(target ? target.name : 'Partner');
+            closeIncomingTradeModal(true);
           }
+        } else {
+          closeTradeModal();
+          closeIncomingTradeModal(false);
         }
-        closeIncomingTradeModal();
       }
     },
     onBuyoutCity: (playerIdx, tileId, prevOwnerIdx, buyoutCost, isDoubles) => {
@@ -245,8 +287,12 @@ export function initEngine() {
         }
       }
     },
-    onSyncState: (incomingState) => {
+    onSyncState: (incomingState, stateSeq = null) => {
       if (!incomingState) return;
+      if (typeof stateSeq === 'number') {
+        if (stateSeq < lastProcessedStateSeq) return;
+        lastProcessedStateSeq = stateSeq;
+      }
       if (incomingState.properties) {
         Object.keys(incomingState.properties).forEach(id => {
           const src = incomingState.properties[id];
@@ -280,20 +326,31 @@ export function initEngine() {
       if (typeof incomingState.festivalPot === 'number') {
         gameState.festivalPot = incomingState.festivalPot;
       }
-      if (typeof incomingState.currentPlayerIdx === 'number' && gameState.phase !== 'SETUP') {
-        gameState.currentPlayerIdx = incomingState.currentPlayerIdx;
-        refreshActivePlayerTurnStatus();
+
+      const curIdx = gameState.currentPlayerIdx;
+      const incomingIdx = incomingState.currentPlayerIdx;
+      const turnIdxChanged = typeof incomingIdx === 'number' && incomingIdx !== curIdx;
+      const stuckInEndPhase = gameState.phase === 'END' && incomingState.phase === 'ROLL';
+
+      if ((turnIdxChanged || stuckInEndPhase) && gameState.gameStarted && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
+        advanceTurn(true, typeof incomingIdx === 'number' ? incomingIdx : curIdx);
+      } else {
+        if (typeof incomingIdx === 'number' && gameState.phase !== 'SETUP') {
+          gameState.currentPlayerIdx = incomingIdx;
+        }
+        if (incomingState.phase && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
+          gameState.phase = incomingState.phase;
+        }
       }
+
       if (typeof incomingState.doublesCount === 'number') {
         gameState.doublesCount = incomingState.doublesCount;
       }
       if (typeof incomingState.turnTimeLeft === 'number') {
         gameState.turnTimeLeft = incomingState.turnTimeLeft;
       }
-      if (incomingState.phase && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
-        gameState.phase = incomingState.phase;
-      }
       renderCornerHUDs();
+      refreshActivePlayerTurnStatus();
       updateRollButtonsUI(isHumanTurnActionable());
     }
   });
@@ -314,6 +371,7 @@ export function startNewMatch() {
 
   cancelAllGameTimers();
   clearSavedMatch();
+  resetStateSequenceTracker();
   resetGameStateForNewMatch(lobbyPlayerCount);
   resetLocalCarAnimationClock();
   startAdaptiveMusic();

@@ -112,16 +112,26 @@ function calculatePropsStrategicValue(tileIds, targetPlayerIdx, isReceiving) {
 }
 
 /**
- * Evaluates a proposed trade from giver to receiver.
- * Dynamically handles mutual monopoly swaps, context-aware tolerance, and counter-offers.
+ * Evaluates a proposed property trade from giver to receiver.
+ * Evaluates win-win monopoly sets, strategic asset values, cash considerations, and trailing tycoon tolerance.
  */
-export function evaluateTradeDeal(receiverIdx, giverIdx, offerCash, reqCash, offerTileIds, reqTileIds) {
+export function evaluateTradeDeal(receiverIdx, giverIdx, offerCash = 0, reqCash = 0, offerTileIds = [], reqTileIds = []) {
   const receiver = gameState.players[receiverIdx];
   const giver = gameState.players[giverIdx];
   if (!receiver || !giver) return { status: 'decline', reason: 'Invalid players' };
 
-  if (offerCash > giver.cash || reqCash > receiver.cash) {
-    return { status: 'decline', reason: 'Insufficient cash funds for this transaction.' };
+  if ((!offerTileIds || offerTileIds.length === 0) && offerCash <= 0) {
+    return { status: 'decline', reason: 'You must offer at least one city or cash in exchange.' };
+  }
+  if ((!reqTileIds || reqTileIds.length === 0) && reqCash <= 0) {
+    return { status: 'decline', reason: 'You must request at least one city or cash amount.' };
+  }
+
+  if (reqCash > receiver.cash) {
+    return {
+      status: 'decline',
+      reason: `${receiver.name} only has ${fmtMoney(receiver.cash)} cash and cannot afford your cash request.`
+    };
   }
 
   // 1. Victory Block Check
@@ -147,52 +157,25 @@ export function evaluateTradeDeal(receiverIdx, giverIdx, offerCash, reqCash, off
     }
   }
 
-  // 3. Strategic Asset & Liquidity Valuation
-  const offeredPropsVal = calculatePropsStrategicValue(offerTileIds, receiverIdx, true);
-  const requestedPropsVal = calculatePropsStrategicValue(reqTileIds, receiverIdx, false);
-
-  let cashWeight = receiver.cash < 300000 ? 1.25 : 1.0;
-  const totalOfferedValue = (offerCash * cashWeight) + offeredPropsVal;
-  const totalRequestedValue = reqCash + requestedPropsVal;
+  // 3. Strategic Asset & Cash Valuation
+  const offeredVal = calculatePropsStrategicValue(offerTileIds, receiverIdx, true) + (offerCash || 0);
+  const requestedVal = calculatePropsStrategicValue(reqTileIds, receiverIdx, false) + (reqCash || 0);
 
   // Trailing Tycoon goodwill tolerance (12% margin)
   const receiverNetWorth = calculatePlayerNetWorth(receiverIdx);
   const giverNetWorth = calculatePlayerNetWorth(giverIdx);
   const toleranceMargin = receiverNetWorth < giverNetWorth ? 0.12 : 0.04;
 
-  if (totalOfferedValue >= totalRequestedValue * (1.0 - toleranceMargin)) {
+  if (offeredVal >= requestedVal * (1.0 - toleranceMargin)) {
     return {
       status: 'accept',
       reason: 'Trade accepted! The strategic value satisfies both tycoons.'
     };
   }
 
-  // 4. Counter-Offer Evaluation (within 35% margin)
-  const deficit = totalRequestedValue - totalOfferedValue;
-  if (deficit <= totalRequestedValue * 0.38) {
-    const additionalCashNeeded = Math.ceil(deficit / 50000) * 50000;
-    const proposedOfferCash = offerCash + additionalCashNeeded;
-
-    if (giver.cash >= proposedOfferCash) {
-      return {
-        status: 'counter',
-        reason: `Offer is close, but under-valued by ${fmtMoney(deficit)}.`,
-        counterOffer: {
-          giverIdx,
-          receiverIdx,
-          offerCash: proposedOfferCash,
-          reqCash,
-          offerTileIds,
-          reqTileIds,
-          deficit: additionalCashNeeded
-        }
-      };
-    }
-  }
-
   return {
     status: 'decline',
-    reason: `${receiver.name} declined the trade. The strategic value of requested assets exceeds the offer by ${fmtMoney(deficit)}.`
+    reason: `${receiver.name} declined the trade. The offered package does not match the strategic value of the requested assets.`
   };
 }
 
@@ -224,7 +207,7 @@ function findMutualMonopolyTrade(botIdx, humanIdx) {
           return {
             proposerIdx: botIdx,
             targetIdx: humanIdx,
-            offerCash: Math.max(0, targetForBot.price - offerTile.price),
+            offerCash: 0,
             reqCash: 0,
             offerTileIds: [offerTile.id],
             reqTileIds: [targetForBot.id]
@@ -237,10 +220,9 @@ function findMutualMonopolyTrade(botIdx, humanIdx) {
 }
 
 /**
- * Scans for a high-premium, cash-supported buyout offer if the bot is affluent.
+ * Scans for an equitable property swap if the bot holds a spare, non-monopoly property.
  */
-function findCashBuyoutTrade(botIdx, humanIdx, currentTurn) {
-  const bot = gameState.players[botIdx];
+function findPropertySwapTrade(botIdx, humanIdx, currentTurn) {
   const groups = new Set();
   BOARD_TILES.forEach(t => { if (t.type === 'city' && t.group) groups.add(t.group); });
 
@@ -266,18 +248,13 @@ function findCashBuyoutTrade(botIdx, humanIdx, currentTurn) {
         return inGrp.length === 1;
       });
 
-      const cashOffer = botSpare
-        ? Math.max(150000, targetTile.price - botSpare.price + 200000)
-        : Math.round((targetTile.price * 2.4) / 50000) * 50000;
-
-      // Bot must retain a generous $800,000 cash cushion after proposing
-      if (bot.cash >= cashOffer + 800000) {
+      if (botSpare) {
         return {
           proposerIdx: botIdx,
           targetIdx: humanIdx,
-          offerCash: cashOffer,
+          offerCash: 0,
           reqCash: 0,
-          offerTileIds: botSpare ? [botSpare.id] : [],
+          offerTileIds: [botSpare.id],
           reqTileIds: [targetTile.id]
         };
       }
@@ -310,19 +287,17 @@ export function generateProactiveBotTrade(botIdx) {
   // 1. Prioritize Mutual Monopoly Trades (a set for a set)
   const mutualTrade = findMutualMonopolyTrade(botIdx, humanIdx);
   if (mutualTrade) {
-    if (bot.cash >= mutualTrade.offerCash + 400000) {
-      lastBotTradeTurn[botIdx] = currentTurn;
-      lastGlobalBotTradeTurn = currentTurn;
-      return mutualTrade;
-    }
-  }
-
-  // 2. High-Equity Cash Buyout (only if affluent and generous)
-  const buyoutTrade = findCashBuyoutTrade(botIdx, humanIdx, currentTurn);
-  if (buyoutTrade) {
     lastBotTradeTurn[botIdx] = currentTurn;
     lastGlobalBotTradeTurn = currentTurn;
-    return buyoutTrade;
+    return mutualTrade;
+  }
+
+  // 2. Property Swap Trade (spare property for needed property)
+  const swapTrade = findPropertySwapTrade(botIdx, humanIdx, currentTurn);
+  if (swapTrade) {
+    lastBotTradeTurn[botIdx] = currentTurn;
+    lastGlobalBotTradeTurn = currentTurn;
+    return swapTrade;
   }
 
   return null;

@@ -2546,22 +2546,22 @@ body.production-build #debug-modal {
 
 @media (min-width: 640px) {
   .lobby-view-title #lobby-hero-column {
-    max-width: 400px;
-    gap: 10px !important;
+    max-width: 540px;
+    gap: 8px !important;
   }
 }
 
 @media (min-width: 1024px) {
   .lobby-view-title #lobby-hero-column {
-    max-width: 480px;
-    gap: 12px !important;
+    max-width: 620px;
+    gap: 10px !important;
   }
 }
 
 @media (min-width: 1536px) {
   .lobby-view-title #lobby-hero-column {
-    max-width: 560px;
-    gap: 16px !important;
+    max-width: 680px;
+    gap: 12px !important;
   }
 }
 
@@ -2571,67 +2571,67 @@ body.production-build #debug-modal {
 }
 
 .lobby-view-title #lobby-avatar-3d-canvas {
-  width: 180px !important;
-  height: 180px !important;
-  max-height: 24vh !important;
+  width: clamp(140px, 20vh, 180px) !important;
+  height: clamp(140px, 20vh, 180px) !important;
+  max-height: 22vh !important;
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lobby-view-title .lobby-podium-halo {
-  width: 220px !important;
-  height: 220px !important;
+  width: clamp(180px, 25vh, 220px) !important;
+  height: clamp(180px, 25vh, 220px) !important;
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 640px) {
   .lobby-view-title #lobby-avatar-3d-canvas {
-    width: 210px !important;
-    height: 210px !important;
-    max-height: 26vh !important;
+    width: clamp(160px, 22vh, 200px) !important;
+    height: clamp(160px, 22vh, 200px) !important;
+    max-height: 24vh !important;
   }
   .lobby-view-title .lobby-podium-halo {
-    width: 260px !important;
-    height: 260px !important;
+    width: clamp(200px, 28vh, 250px) !important;
+    height: clamp(200px, 28vh, 250px) !important;
   }
 }
 
 @media (min-width: 1024px) {
   .lobby-view-title #lobby-avatar-3d-canvas {
-    width: 270px !important;
-    height: 270px !important;
-    max-height: 32vh !important;
+    width: clamp(170px, 24vh, 225px) !important;
+    height: clamp(170px, 24vh, 225px) !important;
+    max-height: 25vh !important;
   }
   .lobby-view-title .lobby-podium-halo {
-    width: 340px !important;
-    height: 340px !important;
+    width: clamp(220px, 30vh, 285px) !important;
+    height: clamp(220px, 30vh, 285px) !important;
   }
 }
 
 @media (min-width: 1536px) {
   .lobby-view-title #lobby-avatar-3d-canvas {
-    width: 330px !important;
-    height: 330px !important;
-    max-height: 38vh !important;
+    width: clamp(190px, 26vh, 260px) !important;
+    height: clamp(190px, 26vh, 260px) !important;
+    max-height: 28vh !important;
   }
   .lobby-view-title .lobby-podium-halo {
-    width: 420px !important;
-    height: 420px !important;
+    width: clamp(250px, 34vh, 340px) !important;
+    height: clamp(250px, 34vh, 340px) !important;
   }
 }
 
-/* Short height screens (e.g. mobile landscape, short laptops) */
-@media (max-height: 680px) {
+/* Short height screens (e.g. 1080p laptops with Windows 125%/150% scaling, mobile landscape) */
+@media (max-height: 780px) {
   .lobby-view-title #lobby-avatar-3d-canvas {
-    width: 150px !important;
-    height: 150px !important;
+    width: clamp(130px, 19vh, 170px) !important;
+    height: clamp(130px, 19vh, 170px) !important;
     max-height: 20vh !important;
   }
   .lobby-view-title .lobby-podium-halo {
-    width: 180px !important;
-    height: 180px !important;
+    width: clamp(160px, 23vh, 210px) !important;
+    height: clamp(160px, 23vh, 210px) !important;
   }
   .lobby-view-title #lobby-hero-column {
-    gap: 4px !important;
+    gap: 6px !important;
   }
 }
 
@@ -2659,32 +2659,33 @@ body.production-build #debug-modal {
 
 @media (min-width: 640px) {
   .lobby-view-title #title-menu-actions {
-    max-width: 390px !important;
-    gap: 10px !important;
+    max-width: 540px !important;
+    gap: 8px !important;
   }
 }
 
 @media (min-width: 1024px) {
   .lobby-view-title #title-menu-actions {
-    max-width: 460px !important;
-    gap: 12px !important;
+    max-width: 620px !important;
+    gap: 10px !important;
   }
 }
 
 @media (min-width: 1536px) {
   .lobby-view-title #title-menu-actions {
-    max-width: 520px !important;
-    gap: 14px !important;
+    max-width: 680px !important;
+    gap: 12px !important;
   }
 }
 
-@media (max-height: 680px) {
+@media (max-height: 780px) {
   .lobby-view-title #title-menu-actions {
-    gap: 5px !important;
+    gap: 6px !important;
   }
-  .lobby-view-title #title-menu-actions button {
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.5rem !important;
+  .lobby-view-title #title-game-modes-grid button,
+  .lobby-view-title #title-menu-actions > button {
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
   }
 }
 
@@ -2698,6 +2699,239 @@ body.production-build #debug-modal {
 .lobby-view-multiplayer-room #lobby-avatar-3d-canvas-wrapper {
   margin-top: auto;
   margin-bottom: auto;
+}
+
+/* Responsive 3D Canvas & Halo in 3-column setup modes (Local & Multiplayer Room) */
+.lobby-view-local #lobby-avatar-3d-canvas,
+.lobby-view-multiplayer-room #lobby-avatar-3d-canvas {
+  width: clamp(140px, 20vh, 220px) !important;
+  height: clamp(140px, 20vh, 220px) !important;
+  max-height: 24vh !important;
+  transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lobby-view-local .lobby-podium-halo,
+.lobby-view-multiplayer-room .lobby-podium-halo {
+  width: clamp(180px, 26vh, 280px) !important;
+  height: clamp(180px, 26vh, 280px) !important;
+  transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* =============================================================================
+   Compact / Laptop Viewports: Full HD Displays with Windows Scaling (<= 850px)
+   Applies across 3-column setup modes (Local Play & Multiplayer Room)
+   ============================================================================= */
+@media (max-height: 850px) {
+  #landing-setup-screen {
+    padding: 0.5rem 1rem !important;
+  }
+
+  #landing-setup-screen > div:first-child {
+    margin-bottom: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-top: 0 !important;
+  }
+
+  #lobby-main-arena {
+    gap: 0.75rem !important;
+    margin-top: auto !important;
+    margin-bottom: auto !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  #lobby-roster-column,
+  #lobby-hero-column,
+  #lobby-settings-column {
+    min-height: 0 !important;
+    padding: 0.625rem 0.875rem !important;
+  }
+
+  /* Center Column (Hero 3D Stage & Play Button) */
+  .lobby-view-local #lobby-hero-column,
+  .lobby-view-multiplayer-room #lobby-hero-column {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    gap: 0.375rem !important;
+  }
+
+  .lobby-view-local #setup-character-archetype-name,
+  .lobby-view-multiplayer-room #setup-character-archetype-name {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .lobby-view-local #setup-color-swatches-container,
+  .lobby-view-multiplayer-room #setup-color-swatches-container {
+    padding: 0.25rem 0.625rem !important;
+  }
+
+  .lobby-view-local #setup-color-swatches button,
+  .lobby-view-multiplayer-room #setup-color-swatches button {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+  }
+
+  #landing-play-btn {
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+    font-size: 1.25rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  #lobby-setup-actions {
+    margin-top: 0.25rem !important;
+    gap: 0.375rem !important;
+  }
+
+  /* Left Column (Player Roster) */
+  #lobby-roster-column .border-b-2 {
+    padding-bottom: 0.375rem !important;
+    margin-bottom: 0.375rem !important;
+  }
+
+  #setup-players-roster {
+    gap: 0.375rem !important;
+  }
+
+  #setup-players-roster > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.375rem !important;
+  }
+
+  .player-setup-card {
+    padding: 0.375rem 0.625rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  .player-setup-card .avatar-medallion {
+    width: 2rem !important;
+    height: 2rem !important;
+    font-size: 0.8125rem !important;
+  }
+
+  .player-name-display {
+    font-size: 0.8125rem !important;
+  }
+
+  #lobby-roster-column .border-t-2 {
+    padding-top: 0.375rem !important;
+    margin-top: 0.375rem !important;
+  }
+
+  #lobby-roster-column button[onclick*="addBotOrSlot"],
+  #lobby-roster-column button[onclick*="removeBotOrSlot"] {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  #lobby-roster-column button[onclick*="randomizeAllNames"] {
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+    font-size: 0.6875rem !important;
+  }
+
+  /* Right Column (Match Settings) */
+  #lobby-settings-column {
+    gap: 0.375rem !important;
+  }
+
+  #lobby-settings-column .border-b-2 {
+    padding-bottom: 0.375rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  #lobby-settings-column .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.375rem !important;
+  }
+
+  #lobby-local-mode-header {
+    padding: 0.375rem 0.625rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  #lobby-local-mode-header .w-9.h-9 {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+    font-size: 0.75rem !important;
+    border-radius: 0.5rem !important;
+  }
+
+  #lobby-settings-column .bg-slate-50\/80 {
+    padding: 0.375rem 0.625rem !important;
+    border-radius: 0.75rem !important;
+    gap: 0.25rem !important;
+  }
+
+  #lobby-settings-column .bg-slate-50\/80 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.25rem !important;
+  }
+
+  #lobby-settings-column .bg-white.rounded-xl.p-2 {
+    padding: 0.25rem 0.375rem !important;
+    border-radius: 0.5rem !important;
+  }
+
+  #lobby-settings-column button[id^="setup-cash-"] {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    font-size: 0.6875rem !important;
+  }
+
+  #lobby-settings-column button[onclick*="stepDecisionTime"],
+  #lobby-settings-column button[onclick*="stepMatchDuration"],
+  #lobby-settings-column button[onclick*="stepAtmosphere"] {
+    width: 1.375rem !important;
+    height: 1.375rem !important;
+    font-size: 0.6875rem !important;
+  }
+
+  #setup-decision-time-text,
+  #setup-match-duration-text,
+  #setup-atmosphere-text {
+    font-size: 0.6875rem !important;
+  }
+
+  #lobby-settings-column button[id^="setup-edition-"] {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.6875rem !important;
+  }
+
+  #lobby-settings-column button[id^="setup-board-"] {
+    padding: 0.25rem !important;
+    font-size: 0.6875rem !important;
+  }
+
+  #lobby-settings-column .border-t.border-sky-100 {
+    padding-top: 0.25rem !important;
+    font-size: 0.6875rem !important;
+  }
+}
+
+/* Ultra-compact viewport height (<= 700px, e.g. 1080p with 150% scaling) */
+@media (max-height: 700px) {
+  #landing-setup-screen {
+    padding: 0.375rem 0.75rem !important;
+  }
+
+  .lobby-view-local #lobby-avatar-3d-canvas,
+  .lobby-view-multiplayer-room #lobby-avatar-3d-canvas {
+    width: clamp(100px, 15vh, 135px) !important;
+    height: clamp(100px, 15vh, 135px) !important;
+    max-height: 16vh !important;
+  }
+
+  .lobby-view-local .lobby-podium-halo,
+  .lobby-view-multiplayer-room .lobby-podium-halo {
+    width: clamp(130px, 18vh, 170px) !important;
+    height: clamp(130px, 18vh, 170px) !important;
+  }
+
+  #landing-play-btn {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    font-size: 1.125rem !important;
+  }
 }
 
 #debug-floating-toggle-pill {

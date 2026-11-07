@@ -20,7 +20,8 @@ import {
   cancelAllGameTimers,
   resumeActiveTurn,
   executePlayerRoll,
-  evaluateTileLanding
+  evaluateTileLanding,
+  advanceTurn
 } from './game/engine.js';
 import { BOARD_TILES } from './game/data.js';
 import { container } from './core/Container.js';
@@ -116,6 +117,7 @@ import {
   handleModalBackdropClick,
   openTradeModal,
   closeTradeModal,
+  handleTradeDeclined,
   populateTradePartnerProps,
   executeTradeOffer,
   acceptTradeCounterOffer,
@@ -291,6 +293,7 @@ window.closePortfolioModal = closePortfolioModal;
 window.handleModalBackdropClick = handleModalBackdropClick;
 window.openTradeModal = openTradeModal;
 window.closeTradeModal = closeTradeModal;
+window.handleTradeDeclined = handleTradeDeclined;
 window.populateTradePartnerProps = populateTradePartnerProps;
 window.executeTradeOffer = executeTradeOffer;
 window.acceptTradeCounterOffer = acceptTradeCounterOffer;
@@ -545,6 +548,8 @@ function initApp() {
   checkAndPromptResumeMatch();
 
   // Clock & Turn Timer Loop
+  let modalAfkSeconds = 0;
+  let phaseEndStallSeconds = 0;
   setInterval(() => {
     if (!gameState.gameStarted || gameState.phase === 'VICTORY' || gameState.phase === 'SETUP') return;
     incrementMatchSeconds();
@@ -568,6 +573,8 @@ function initApp() {
 
     const currentPlayer = gameState.players && gameState.players[gameState.currentPlayerIdx];
     if (gameState.phase === 'ROLL' && currentPlayer) {
+      modalAfkSeconds = 0;
+      phaseEndStallSeconds = 0;
       gameState.turnTimeLeft = Math.max(0, gameState.turnTimeLeft - 1);
       const timerText = document.getElementById('turn-timer-text');
       if (timerText) timerText.textContent = gameState.turnTimeLeft;
@@ -587,6 +594,36 @@ function initApp() {
           executePlayerRoll();
         }
       }
+    } else if (gameState.phase === 'MODAL' && networkState.isMultiplayer && networkState.isHost && !isHumanTurnActionable()) {
+      phaseEndStallSeconds = 0;
+      modalAfkSeconds++;
+      if (modalAfkSeconds >= 24) {
+        modalAfkSeconds = 0;
+        if (gameState.pendingBuyTile && typeof window.passBuyCity === 'function') {
+          window.passBuyCity();
+        } else if (gameState.pendingBuyoutTile && typeof window.passBuyoutCity === 'function') {
+          window.passBuyoutCity();
+        } else if (gameState.pendingUpgradeTile && typeof window.closeUpgradeCityModal === 'function') {
+          window.closeUpgradeCityModal();
+        } else if (typeof window.concludeActionPhase === 'function') {
+          window.concludeActionPhase(Boolean(gameState.pendingDoubles));
+        }
+      }
+    } else if (gameState.phase === 'END') {
+      modalAfkSeconds = 0;
+      phaseEndStallSeconds++;
+      if (phaseEndStallSeconds >= 4) {
+        phaseEndStallSeconds = 0;
+        if (typeof window.advanceTurn === 'function') {
+          console.warn('[TurnTimer] Detected stale END phase for >4s. Auto-advancing turn.');
+          window.advanceTurn();
+        } else {
+          advanceTurn();
+        }
+      }
+    } else {
+      modalAfkSeconds = 0;
+      phaseEndStallSeconds = 0;
     }
   }, 1000);
 

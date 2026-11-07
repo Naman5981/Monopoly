@@ -10,6 +10,7 @@ import { getTileWorldPosition } from '../../../three/board/coords.js';
 import { showSpeechBubble } from '../../../three/scene.js';
 import { spawnAnimatedReaction } from '../../../three/effects.js';
 import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setPlayerPortraitMood } from '../../../ui/hud.js';
+import { concludeActionPhase } from '../turnCycle.js';
 
 export class StartLandingStrategy extends ITileLandingStrategy {
   async execute(context) {
@@ -25,7 +26,9 @@ export class StartLandingStrategy extends ITileLandingStrategy {
 
     renderCornerHUDs();
 
-    if (window.concludeActionPhase) {
+    if (concludeActionPhase) {
+      concludeActionPhase(isDoubles);
+    } else if (window.concludeActionPhase) {
       window.concludeActionPhase(isDoubles);
     }
   }

@@ -88,7 +88,7 @@ describe('World Festival Boost & 3D Breathing Property Highlights (/better-inter
       gameState.properties[25].level = 0;
     });
 
-    it('sets phase to FESTIVAL_SELECT and reveals banner and selection modal', async () => {
+    it('sets phase to FESTIVAL_SELECT and reveals top banner without blocking modal so board remains visible', async () => {
       const strategy = new FestivalLandingStrategy();
 
       await strategy.execute({
@@ -102,16 +102,21 @@ describe('World Festival Boost & 3D Breathing Property Highlights (/better-inter
       const modal = document.getElementById('modal-festival-boost');
       const banner = document.getElementById('festival-select-banner');
 
-      assert.equal(modal.classList.contains('hidden'), false);
+      // The modal remains closed on landing so board stays completely unobstructed for 3D clicking
+      assert.equal(modal.classList.contains('hidden'), true);
       assert.equal(banner.classList.contains('hidden'), false);
     });
 
-    it('allows player to close the modal while keeping board selection phase active for 3D clicking', () => {
+    it('allows player to open modal card view on demand from banner and close it freely', () => {
       const owned = [BOARD_TILES[27], BOARD_TILES[25]];
       openFestivalBoostModal(owned, false, 0);
 
       assert.equal(gameState.phase, 'FESTIVAL_SELECT');
       const modal = document.getElementById('modal-festival-boost');
+      assert.equal(modal.classList.contains('hidden'), true);
+
+      // Player opens list modal from top helper banner
+      window.openFestivalBoostModalFromBanner();
       assert.equal(modal.classList.contains('hidden'), false);
 
       // Player closes modal to pick directly on 3D board

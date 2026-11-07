@@ -45,13 +45,25 @@ import {
 import { evaluateTileLanding } from './landings.js';
 
 let autoEndTurnTimer = null;
+let observerEndTurnWatchdog = null;
+
+export function clearObserverEndTurnWatchdog() {
+  if (observerEndTurnWatchdog) {
+    clearTimeout(observerEndTurnWatchdog);
+    observerEndTurnWatchdog = null;
+  }
+}
 
 export function cancelAllGameTimers() {
   if (autoEndTurnTimer) {
     clearTimeout(autoEndTurnTimer);
     autoEndTurnTimer = null;
   }
+  clearObserverEndTurnWatchdog();
   AIPlayerController.cancelTimer();
+  if (typeof window !== 'undefined') {
+    window.resumeBotTurnAfterTrade = null;
+  }
 }
 
 export function getGameDelay(ms) {
@@ -265,14 +277,27 @@ export function concludeActionPhase(isDoubles) {
       advanceTurn();
     }, getGameDelay(350));
   } else {
-    // In multiplayer, observers must NOT auto-advance someone else's turn!
+    // In multiplayer, observers must NOT auto-advance someone else's turn immediately!
     if (networkState.isMultiplayer && pIdx !== networkState.localPlayerIdx) {
       gameState.phase = 'END';
       updateRollButtonsUI(false);
+      refreshActivePlayerTurnStatus();
+
+      // Observer watchdog fallback: If active peer's ACTION_END_TURN does not arrive within 3.5s, auto-advance
+      clearObserverEndTurnWatchdog();
+      observerEndTurnWatchdog = setTimeout(() => {
+        observerEndTurnWatchdog = null;
+        if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
+        if (gameState.phase === 'END' && gameState.currentPlayerIdx === pIdx) {
+          advanceTurn(true);
+        }
+      }, 3500);
       return;
     }
+    clearObserverEndTurnWatchdog();
     gameState.phase = 'END';
     updateRollButtonsUI(isHumanTurnActionable());
+    refreshActivePlayerTurnStatus();
     autoEndTurnTimer = setTimeout(() => {
       autoEndTurnTimer = null;
       if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
@@ -397,4 +422,5 @@ if (typeof window !== 'undefined') {
   window.handlePayIslandBail = handlePayIslandBail;
   window.concludeActionPhase = concludeActionPhase;
   window.evaluateTileLanding = evaluateTileLanding;
+  window.advanceTurn = advanceTurn;
 }

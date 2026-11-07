@@ -129,7 +129,9 @@ export function refreshActivePlayerTurnStatus() {
       setStatusPill(`🤔 <strong>${p.name}</strong> is thinking...`, { isThinking: true, playerIdx: curIdx });
     }
   } else {
-    if ((gameState.doublesCount || 0) > 0 && gameState.phase === 'ROLL') {
+    if (gameState.phase === 'END') {
+      setStatusPill(`⏳ <strong>${p.name}</strong>'s turn is concluding...`, { isThinking: true, playerIdx: curIdx });
+    } else if ((gameState.doublesCount || 0) > 0 && gameState.phase === 'ROLL') {
       setStatusPill(`🎲 <strong>${p.name}</strong> rolled doubles! Waiting for their extra roll...`, { isThinking: true, playerIdx: curIdx });
     } else {
       setStatusPill(`⏳ Waiting for <strong>${p.name}</strong>'s move...`, { isThinking: true, playerIdx: curIdx });

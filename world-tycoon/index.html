@@ -385,45 +385,48 @@
             </div>
 
             <!-- Tycoon Profile Quick Card on Home Screen -->
-            <div class="w-full flex items-center justify-between px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-white/95 border-2 border-amber-300/80 shadow-xs">
+            <div class="w-full max-w-sm sm:max-w-md mx-auto flex items-center justify-between px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/95 border-2 border-amber-300/80 shadow-xs">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
                 <span class="text-[10px] sm:text-[11px] font-black uppercase text-amber-800 tracking-wider flex-shrink-0">YOUR NAME:</span>
-                <strong id="home-tycoon-name-display" class="text-xs sm:text-sm lg:text-base font-black text-slate-800 uppercase truncate">TYCOON</strong>
+                <strong id="home-tycoon-name-display" class="text-xs sm:text-sm font-black text-slate-800 uppercase truncate">TYCOON</strong>
               </div>
-              <button onclick="window.promptEditPlayerName()" class="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-[11px] sm:text-xs cursor-pointer transition shadow-2xs flex items-center gap-1 flex-shrink-0" title="Edit your Tycoon name" aria-label="Edit Tycoon Name">
+              <button onclick="window.promptEditPlayerName()" class="px-2.5 sm:px-3 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-[11px] sm:text-xs cursor-pointer transition shadow-2xs flex items-center gap-1 flex-shrink-0" title="Edit your Tycoon name" aria-label="Edit Tycoon Name">
                 <i class="fa-solid fa-pen text-[9px] sm:text-[10px]"></i>
                 <span>EDIT</span>
               </button>
             </div>
 
-            <!-- LOCAL PLAY BUTTON -->
-            <button onclick="window.showLocalSetup()" class="w-full py-2.5 sm:py-3 lg:py-3.5 2xl:py-4 px-4 sm:px-5 lg:px-6 2xl:px-7 rounded-2xl font-rounded font-black text-white game-btn game-btn-green shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Play solo against bots or pass-and-play" aria-label="Play Local Mode with Bots">
-              <div class="flex items-center gap-3 sm:gap-3.5 lg:gap-4">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-inner border border-white/30 flex-shrink-0">
-                  <i class="fa-solid fa-gamepad text-white"></i>
+            <!-- Game Mode Cards (Side-by-Side on Tablet/Laptop/Desktop, Stacked on Mobile) -->
+            <div id="title-game-modes-grid" class="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 lg:gap-3.5">
+              <!-- LOCAL PLAY BUTTON -->
+              <button onclick="window.showLocalSetup()" class="w-full py-2.5 sm:py-3 lg:py-3.5 2xl:py-4 px-4 sm:px-5 lg:px-6 2xl:px-7 rounded-2xl font-rounded font-black text-white game-btn game-btn-green shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Play solo against bots or pass-and-play" aria-label="Play Local Mode with Bots">
+                <div class="flex items-center gap-2.5 sm:gap-3 lg:gap-3.5 min-w-0">
+                  <div class="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-base sm:text-lg lg:text-xl shadow-inner border border-white/30 flex-shrink-0">
+                    <i class="fa-solid fa-gamepad text-white"></i>
+                  </div>
+                  <div class="text-left min-w-0">
+                    <div class="text-sm sm:text-base lg:text-lg font-black leading-tight tracking-wider truncate">LOCAL PLAY</div>
+                    <div class="text-[9px] sm:text-[10px] font-extrabold text-emerald-100 uppercase tracking-widest truncate">Pass &amp; Play + Bots</div>
+                  </div>
                 </div>
-                <div class="text-left">
-                  <div class="text-base sm:text-lg lg:text-xl font-black leading-tight tracking-wider">LOCAL PLAY</div>
-                  <div class="text-[9px] sm:text-[10px] lg:text-xs font-extrabold text-emerald-100 uppercase tracking-widest">Pass &amp; Play + AI Bots</div>
-                </div>
-              </div>
-              <i class="fa-solid fa-chevron-right text-emerald-200 text-xs sm:text-sm group-hover:translate-x-1 transition-transform"></i>
-            </button>
+                <i class="fa-solid fa-chevron-right text-emerald-200 text-xs group-hover:translate-x-1 transition-transform flex-shrink-0 ml-1"></i>
+              </button>
 
-            <!-- MULTIPLAYER BUTTON -->
-            <button onclick="window.showMultiplayerSetup()" class="w-full py-2.5 sm:py-3 lg:py-3.5 2xl:py-4 px-4 sm:px-5 lg:px-6 2xl:px-7 rounded-2xl font-rounded font-black text-white game-btn game-btn-blue shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Host private room or join via room code" aria-label="Play Multiplayer Online via Room Code">
-              <div class="flex items-center gap-3 sm:gap-3.5 lg:gap-4">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-inner border border-white/30 flex-shrink-0">
-                  <i class="fa-solid fa-globe text-white"></i>
+              <!-- MULTIPLAYER BUTTON -->
+              <button onclick="window.showMultiplayerSetup()" class="w-full py-2.5 sm:py-3 lg:py-3.5 2xl:py-4 px-4 sm:px-5 lg:px-6 2xl:px-7 rounded-2xl font-rounded font-black text-white game-btn game-btn-blue shadow-lg flex items-center justify-between group cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:scale-[1.02] enabled:active:scale-[0.96]" title="Host private room or join via room code" aria-label="Play Multiplayer Online via Room Code">
+                <div class="flex items-center gap-2.5 sm:gap-3 lg:gap-3.5 min-w-0">
+                  <div class="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-base sm:text-lg lg:text-xl shadow-inner border border-white/30 flex-shrink-0">
+                    <i class="fa-solid fa-globe text-white"></i>
+                  </div>
+                  <div class="text-left min-w-0">
+                    <div class="text-sm sm:text-base lg:text-lg font-black leading-tight tracking-wider truncate">MULTIPLAYER</div>
+                    <div class="text-[9px] sm:text-[10px] font-extrabold text-sky-100 uppercase tracking-widest truncate">Online via Room Code</div>
+                  </div>
                 </div>
-                <div class="text-left">
-                  <div class="text-base sm:text-lg lg:text-xl font-black leading-tight tracking-wider">MULTIPLAYER</div>
-                  <div class="text-[9px] sm:text-[10px] lg:text-xs font-extrabold text-sky-100 uppercase tracking-widest">Host or Join via Room Code</div>
-                </div>
-              </div>
-              <i class="fa-solid fa-chevron-right text-sky-200 text-xs sm:text-sm group-hover:translate-x-1 transition-transform"></i>
-            </button>
+                <i class="fa-solid fa-chevron-right text-sky-200 text-xs group-hover:translate-x-1 transition-transform flex-shrink-0 ml-1"></i>
+              </button>
+            </div>
           </div>
 
           <!-- B. Lobby Setup Actions (START MATCH & Multiplayer Room Hero Capsule) -->
@@ -758,10 +761,10 @@
   </div>
 
   <!-- 3B. WORLD FESTIVAL SELECTION BANNER -->
-  <div id="festival-select-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white px-5 py-2.5 rounded-full font-extrabold text-xs shadow-2xl border-2 border-white items-center gap-2.5 animate-pulse">
-    <i class="fa-solid fa-champagne-glasses text-amber-300 text-sm"></i>
-    <span>WORLD FESTIVAL! Click any highlighted property on the board (or open list) to activate 2× Rent!</span>
-    <button onclick="window.openFestivalBoostModalFromBanner()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-full text-[11px] font-black underline cursor-pointer ml-1" title="Open Property List">Open List</button>
+  <div id="festival-select-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-amber-600 text-white px-5 py-2.5 rounded-full font-black text-xs shadow-2xl border-2 border-white/90 items-center gap-2.5 animate-pulse select-none">
+    <i class="fa-solid fa-champagne-glasses text-amber-300 text-sm animate-bounce"></i>
+    <span>🎪 <strong>WORLD FESTIVAL!</strong> Click any flashing owned city on the board to double rent (2×)!</span>
+    <button onclick="window.openFestivalBoostModalFromBanner()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-[11px] font-black underline cursor-pointer ml-1 transition" title="Open Property List">📋 View List</button>
   </div>
 
   <!-- 4. STREAMLINED SPATIAL TOP HUD HEADER (Antigravity Design Expert) -->
@@ -1554,7 +1557,7 @@
               PROPOSE CITY TRADE
             </h3>
             <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">
-              Strategic mutual exchange of cash and metropolitan deeds
+              Strategic mutual exchange of metropolitan property deeds
             </p>
           </div>
         </div>
@@ -1572,12 +1575,15 @@
             <span class="font-rounded font-black text-sm text-sky-800 flex items-center gap-1.5">
               <i class="fa-solid fa-arrow-up-from-bracket text-sky-600"></i> YOUR OFFER
             </span>
-            <span class="text-[10px] font-black uppercase text-sky-700 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-200">YOU</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-black uppercase text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">YOU</span>
+              <span id="trade-my-wallet" class="text-[10px] font-black uppercase text-sky-900 bg-sky-200/80 px-2 py-0.5 rounded-full border border-sky-300">Wallet: $0</span>
+            </div>
           </div>
-          <label class="text-xs font-black text-slate-700">Cash Offered (K):</label>
-          <input id="trade-offer-cash" type="number" min="0" step="50" value="0" class="w-full mt-1 mb-3 px-3 py-2 rounded-xl border-2 border-sky-200 text-sm font-black text-slate-900 bg-white focus:outline-none focus:border-sky-400">
-          <div class="text-xs font-black text-slate-700 mb-1.5">Your Cities to Transfer:</div>
-          <div id="trade-offer-props" class="space-y-1.5 max-h-44 overflow-y-auto flex-1 pr-1 overscroll-contain"></div>
+          <div class="text-xs font-black text-slate-700 mb-1.5 flex items-center gap-1">
+            <i class="fa-solid fa-city text-sky-600 text-xs"></i> Your Cities to Transfer:
+          </div>
+          <div id="trade-offer-props" class="space-y-1.5 max-h-56 overflow-y-auto flex-1 pr-1 overscroll-contain"></div>
         </div>
 
         <!-- Right: Partner Request Column -->
@@ -1586,12 +1592,15 @@
             <span class="font-rounded font-black text-sm text-amber-800 flex items-center gap-1.5">
               <i class="fa-solid fa-arrow-down-to-bracket text-amber-600"></i> YOU REQUEST
             </span>
-            <select id="trade-partner-select" onchange="window.populateTradePartnerProps()" class="text-xs font-black bg-white border-2 border-amber-300 rounded-lg px-2.5 py-1 text-slate-800 cursor-pointer shadow-2xs"></select>
+            <div class="flex items-center gap-1.5">
+              <span id="trade-partner-wallet" class="text-[10px] font-black uppercase text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">Wallet: $0</span>
+              <select id="trade-partner-select" onchange="window.populateTradePartnerProps()" class="text-xs font-black bg-white border-2 border-amber-300 rounded-lg px-2 py-0.5 text-slate-800 cursor-pointer shadow-2xs"></select>
+            </div>
           </div>
-          <label class="text-xs font-black text-slate-700">Cash Requested (K):</label>
-          <input id="trade-req-cash" type="number" min="0" step="50" value="0" class="w-full mt-1 mb-3 px-3 py-2 rounded-xl border-2 border-amber-200 text-sm font-black text-slate-900 bg-white focus:outline-none focus:border-amber-400">
-          <div class="text-xs font-black text-slate-700 mb-1.5">Partner Cities to Receive:</div>
-          <div id="trade-req-props" class="space-y-1.5 max-h-44 overflow-y-auto flex-1 pr-1 overscroll-contain"></div>
+          <div class="text-xs font-black text-slate-700 mb-1.5 flex items-center gap-1">
+            <i class="fa-solid fa-city text-amber-600 text-xs"></i> Partner Cities to Receive:
+          </div>
+          <div id="trade-req-props" class="space-y-1.5 max-h-56 overflow-y-auto flex-1 pr-1 overscroll-contain"></div>
         </div>
       </div>
 
@@ -1617,7 +1626,7 @@
       <!-- Action Footer -->
       <div class="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/80">
         <button onclick="window.closeTradeModal()" class="game-btn game-btn-slate px-5 py-2.5 text-xs font-black">Cancel</button>
-        <button onclick="window.executeTradeOffer()" class="game-btn game-btn-green px-6 py-2.5 text-xs font-black">
+        <button id="btn-send-trade-offer" onclick="window.executeTradeOffer()" class="game-btn game-btn-green px-6 py-2.5 text-xs font-black">
           <i class="fa-solid fa-paper-plane mr-1.5"></i> Send Trade Offer
         </button>
       </div>
@@ -1661,9 +1670,8 @@
           <!-- They Offer -->
           <div class="victory-accolade-box victory-accolade-box-emerald flex-col !items-start text-left p-3.5">
             <span class="text-[10px] font-black tracking-wider uppercase text-emerald-950 flex items-center gap-1.5">
-              <svg class="ui-icon w-3.5 h-3.5 text-emerald-600" aria-hidden="true"><use href="#icon-money"></use></svg> THEY OFFER
+              <svg class="ui-icon w-3.5 h-3.5 text-emerald-600" aria-hidden="true"><use href="#icon-building"></use></svg> THEY OFFER
             </span>
-            <div id="incoming-they-offer-cash" class="text-emerald-800 font-display font-black text-base my-0.5"></div>
             <div id="incoming-they-offer-props" class="w-full space-y-1 pt-1 font-bold text-slate-800"></div>
           </div>
 
@@ -1672,7 +1680,6 @@
             <span class="text-[10px] font-black tracking-wider uppercase text-sky-950 flex items-center gap-1.5">
               <svg class="ui-icon w-3.5 h-3.5 text-sky-600" aria-hidden="true"><use href="#icon-building"></use></svg> THEY REQUEST
             </span>
-            <div id="incoming-they-req-cash" class="text-slate-600 font-display font-bold text-xs my-0.5"></div>
             <div id="incoming-they-req-props" class="w-full space-y-1 pt-1 font-bold text-slate-800"></div>
           </div>
         </div>

@@ -121,6 +121,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
 
     if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
       showSpeechBubble(`${player.name} is deciding on ${tile.name}...`, 3000);
+      gameState.phase = 'MODAL';
       return;
     }
 
@@ -185,6 +186,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
           showSpeechBubble(`${player.name} is considering a buyout of ${tile.name}...`, 3000);
           setStatusPill(`⚔️ Waiting for <strong>${player.name}</strong> to decide on hostile buyout of <strong>${tile.name}</strong>...`, { isThinking: true, playerIdx });
+          gameState.phase = 'MODAL';
           // Host safety fallback if remote peer disconnects or fails to respond
           if (networkState.isHost) {
             setTimeout(() => {
@@ -221,6 +223,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       } else {
         if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
           showSpeechBubble(`${player.name} is checking their estate in ${tile.name}...`, 3000);
+          gameState.phase = 'MODAL';
           return;
         }
         openUpgradeCityModal(tile, isDoubles);

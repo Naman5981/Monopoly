@@ -47,9 +47,9 @@ export function calculateTileRent(tileId) {
  * if still insolvent.
  * Returns false if the player went bankrupt.
  */
-export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks) {
+export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks, creditorIdx = null) {
   const p = gameState.players[playerIdx];
-  if (p.cash >= 0) return true;
+  if (!p || p.cash >= 0) return true;
 
   for (const t of BOARD_TILES) {
     const st = gameState.properties[t.id];
@@ -64,15 +64,30 @@ export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks) {
   if (p.cash < 0) {
     p.bankrupt = true;
     p.cash = 0;
+    const creditor = (creditorIdx !== null && creditorIdx !== undefined && creditorIdx !== playerIdx)
+      ? gameState.players[creditorIdx]
+      : null;
+
+    let inheritedCount = 0;
     BOARD_TILES.forEach(t => {
       const st = gameState.properties[t.id];
       if (st && st.owner === playerIdx) {
-        st.owner = null;
-        st.level = 0;
+        if (creditor && !creditor.bankrupt) {
+          st.owner = creditorIdx;
+          inheritedCount++;
+        } else {
+          st.owner = null;
+          st.level = 0;
+        }
         refreshCallbacks?.onRefreshTile?.(t.id);
       }
     });
-    refreshCallbacks?.onLog?.(`💥 <strong>${p.name}</strong> went BANKRUPT!`);
+
+    if (creditor && !creditor.bankrupt && inheritedCount > 0) {
+      refreshCallbacks?.onLog?.(`💥 <strong>${p.name}</strong> went BANKRUPT to <strong>${creditor.name}</strong>! <strong>${creditor.name}</strong> inherited ${inheritedCount} properties.`);
+    } else {
+      refreshCallbacks?.onLog?.(`💥 <strong>${p.name}</strong> went BANKRUPT!`);
+    }
     return false;
   }
   return true;

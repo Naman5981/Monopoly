@@ -166,11 +166,29 @@ export interface PacketActionBuyCity {
   timestamp: number;
 }
 
+export interface PacketActionPassBuyCity {
+  type: 'ACTION_PASS_BUY_CITY';
+  senderIdx: number;
+  playerIdx: number;
+  tileId: number | null;
+  isDoubles: boolean;
+  timestamp: number;
+}
+
 export interface PacketActionUpgradeCity {
   type: 'ACTION_UPGRADE_CITY';
   senderIdx: number;
   playerIdx: number;
   tileId: number;
+  timestamp: number;
+}
+
+export interface PacketActionEndUpgrade {
+  type: 'ACTION_END_UPGRADE';
+  senderIdx: number;
+  playerIdx: number;
+  tileId: number | null;
+  isDoubles: boolean;
   timestamp: number;
 }
 

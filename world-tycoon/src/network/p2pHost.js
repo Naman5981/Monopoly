@@ -335,9 +335,11 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_ROLL':
     case 'ACTION_DOUBLES_ROLL':
     case 'ACTION_BUY_CITY':
+    case 'ACTION_PASS_BUY_CITY':
     case 'ACTION_BUYOUT_CITY':
     case 'ACTION_PASS_BUYOUT':
     case 'ACTION_UPGRADE_CITY':
+    case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
     case 'ACTION_SELL_CITY_FOR_RENT':
     case 'ACTION_SETTLE_RENT':
@@ -405,10 +407,14 @@ export function broadcastReturnToLobby() {
   });
 }
 
+let fullStateSeq = 0;
+
 export function broadcastFullGameState() {
   if (!networkState.isHost) return;
   broadcastToAll({
     type: 'FULL_STATE_SYNC',
+    stateSeq: ++fullStateSeq,
+    timestamp: Date.now(),
     gameState: {
       currentPlayerIdx: gameState.currentPlayerIdx,
       phase: gameState.phase,

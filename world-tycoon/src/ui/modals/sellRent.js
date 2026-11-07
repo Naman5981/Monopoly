@@ -265,12 +265,16 @@ export function settleDebtDeficitWithoutProperties() {
   creditor.cash += paid;
   p.bankrupt = true;
 
-  // Reset any remaining property states if any
+  // Transfer remaining properties to creditor if solvent, otherwise revert
   BOARD_TILES.forEach(t => {
     const st = gameState.properties[t.id];
     if (st && st.owner === pIdx) {
-      st.owner = null;
-      st.level = 0;
+      if (creditor && !creditor.bankrupt) {
+        st.owner = debt.creditorIdx;
+      } else {
+        st.owner = null;
+        st.level = 0;
+      }
       refreshTileTextureAndBuildings(t.id);
     }
   });

@@ -106,11 +106,12 @@ export function openFestivalBoostModal(ownedProperties, isDoubles, playerIdx = n
 
   if (engineCallbacks.updateUI) engineCallbacks.updateUI();
 
-  // 3. Render and open selection modal
+  // 3. Render modal cards in background so they are ready if user clicks "View List",
+  // but DO NOT auto-open the center modal. Keep the 3D board completely clear and visible
+  // so the player can watch the owned properties flashing on the board and click them directly!
   renderFestivalBoostModal(cachedFestivalProperties, pIdx);
-  animateModalSpringOpen('#modal-festival-boost', '#modal-festival-boost-card');
   playSFX('hop');
-  setStatusPill(`🎪 Choose a city to host the World Festival (2× Rent Boost)!`, { isThinking: false, playerIdx: pIdx });
+  setStatusPill(`🎪 Click any flashing owned city on the board to double rent (2×)!`, { isThinking: false, playerIdx: pIdx });
 }
 
 /**

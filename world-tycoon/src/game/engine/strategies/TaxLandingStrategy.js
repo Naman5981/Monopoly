@@ -10,6 +10,7 @@ import { fmtMoney } from '../../utils.js';
 import { checkAndHandleNegativeCash } from '../../rules.js';
 import { refreshTileTextureAndBuildings, triggerTokenHurtAnimation } from '../../../three/scene.js';
 import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setPlayerPortraitMood } from '../../../ui/hud.js';
+import { concludeActionPhase } from '../turnCycle.js';
 
 export class TaxLandingStrategy extends ITileLandingStrategy {
   async execute(context) {
@@ -31,7 +32,9 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
 
     renderCornerHUDs();
 
-    if (window.concludeActionPhase) {
+    if (concludeActionPhase) {
+      concludeActionPhase(isDoubles);
+    } else if (window.concludeActionPhase) {
       window.concludeActionPhase(isDoubles);
     }
   }

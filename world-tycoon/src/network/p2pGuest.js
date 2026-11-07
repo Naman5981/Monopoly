@@ -335,9 +335,11 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_ROLL':
     case 'ACTION_DOUBLES_ROLL':
     case 'ACTION_BUY_CITY':
+    case 'ACTION_PASS_BUY_CITY':
     case 'ACTION_BUYOUT_CITY':
     case 'ACTION_PASS_BUYOUT':
     case 'ACTION_UPGRADE_CITY':
+    case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
     case 'ACTION_SELL_CITY_FOR_RENT':
     case 'ACTION_AUCTION_BID':
@@ -361,7 +363,7 @@ export function handleGuestReceivedMessage(msg) {
 
     case 'FULL_STATE_SYNC': {
       if (msg.gameState && networkCallbacks.onSyncState) {
-        networkCallbacks.onSyncState(msg.gameState);
+        networkCallbacks.onSyncState(msg.gameState, msg.stateSeq);
       }
       break;
     }

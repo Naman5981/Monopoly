@@ -58,6 +58,12 @@ export function executeIncomingNetworkAction(msg) {
       }
       break;
 
+    case 'ACTION_PASS_BUY_CITY':
+      if (networkCallbacks.onPassBuyCity) {
+        networkCallbacks.onPassBuyCity(msg.playerIdx, msg.tileId, Boolean(msg.isDoubles));
+      }
+      break;
+
     case 'ACTION_BUYOUT_CITY':
       if (networkCallbacks.onBuyoutCity) {
         const prevOwnerIdx = msg.prevOwnerIdx !== undefined ? msg.prevOwnerIdx : msg.previousOwnerIdx;
@@ -75,6 +81,12 @@ export function executeIncomingNetworkAction(msg) {
       if (networkCallbacks.onUpgradeCity) {
         const count = msg.count !== undefined ? msg.count : (msg.levelsToAdd || 1);
         networkCallbacks.onUpgradeCity(msg.playerIdx, msg.tileId, count);
+      }
+      break;
+
+    case 'ACTION_END_UPGRADE':
+      if (networkCallbacks.onEndUpgrade) {
+        networkCallbacks.onEndUpgrade(msg.playerIdx, msg.tileId, Boolean(msg.isDoubles));
       }
       break;
 
@@ -145,8 +157,12 @@ export function executeIncomingNetworkAction(msg) {
         BOARD_TILES.forEach(t => {
           const st = gameState.properties[t.id];
           if (st && st.owner === msg.bankruptIdx) {
-            st.owner = null;
-            st.level = 0;
+            if (creditorP && !creditorP.bankrupt) {
+              st.owner = msg.creditorIdx;
+            } else {
+              st.owner = null;
+              st.level = 0;
+            }
             refreshTileTextureAndBuildings(t.id);
           }
         });

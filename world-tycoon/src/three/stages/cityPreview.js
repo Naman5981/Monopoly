@@ -22,32 +22,39 @@ let activeCityPreviewCanvasId = null;
 
 function ensureCityPreviewInitialized() {
   if (cityPreviewRenderer) return;
-  cityPreviewRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  cityPreviewRenderer.setSize(220, 110);
-  cityPreviewRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  if (typeof document === 'undefined' || typeof document.createElementNS !== 'function') {
+    return;
+  }
+  try {
+    cityPreviewRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    cityPreviewRenderer.setSize(220, 110);
+    cityPreviewRenderer.setPixelRatio(Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2));
 
-  const canvas = cityPreviewRenderer.domElement;
-  canvas.addEventListener('webglcontextlost', (e) => {
-    e.preventDefault();
-  }, false);
-  canvas.addEventListener('webglcontextrestored', () => {
-    if (cityPreviewRenderer) {
-      cityPreviewRenderer.setSize(220, 110);
-    }
-  }, false);
+    const canvas = cityPreviewRenderer.domElement;
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+    }, false);
+    canvas.addEventListener('webglcontextrestored', () => {
+      if (cityPreviewRenderer) {
+        cityPreviewRenderer.setSize(220, 110);
+      }
+    }, false);
 
-  cityPreviewScene = new THREE.Scene();
-  cityPreviewCamera = new THREE.PerspectiveCamera(34, 220 / 110, 0.1, 30);
-  cityPreviewCamera.position.set(2.9, 2.2, 2.9);
-  cityPreviewCamera.lookAt(0, 0.35, 0);
+    cityPreviewScene = new THREE.Scene();
+    cityPreviewCamera = new THREE.PerspectiveCamera(34, 220 / 110, 0.1, 30);
+    cityPreviewCamera.position.set(2.9, 2.2, 2.9);
+    cityPreviewCamera.lookAt(0, 0.35, 0);
 
-  cityPreviewScene.add(new THREE.AmbientLight(0xffffff, 0.9));
-  const dir = new THREE.DirectionalLight(0xfffbeb, 0.95);
-  dir.position.set(4, 7, 5);
-  cityPreviewScene.add(dir);
+    cityPreviewScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+    const dir = new THREE.DirectionalLight(0xfffbeb, 0.95);
+    dir.position.set(4, 7, 5);
+    cityPreviewScene.add(dir);
 
-  cityPreviewGroup = new THREE.Group();
-  cityPreviewScene.add(cityPreviewGroup);
+    cityPreviewGroup = new THREE.Group();
+    cityPreviewScene.add(cityPreviewGroup);
+  } catch (_) {
+    cityPreviewRenderer = null;
+  }
 }
 
 /**
@@ -57,6 +64,7 @@ function ensureCityPreviewInitialized() {
  */
 export function populateCityPreview3DScene(tile, targetCanvasId) {
   ensureCityPreviewInitialized();
+  if (!cityPreviewRenderer || !cityPreviewGroup) return;
   activeCityPreviewCanvasId = targetCanvasId;
 
   while (cityPreviewGroup.children.length > 0) {

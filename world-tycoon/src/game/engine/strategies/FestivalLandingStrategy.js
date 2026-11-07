@@ -23,6 +23,7 @@ import {
   setPlayerPortraitMood,
   setStatusPill
 } from '../../../ui/hud.js';
+import { concludeActionPhase } from '../turnCycle.js';
 import { animateFestivalPotGoldenRain } from '../../../ui/anim.js';
 import { openFestivalBoostModal, showFestivalNoPropertiesModal } from '../../../ui/modals/festivalBoost.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
@@ -60,7 +61,9 @@ export class FestivalLandingStrategy extends ITileLandingStrategy {
         showFestivalNoPropertiesModal(player, isDoubles);
       } else {
         showSpeechBubble('No properties to host the Festival! 🎪', 2500);
-        if (window.concludeActionPhase) {
+        if (concludeActionPhase) {
+          concludeActionPhase(isDoubles);
+        } else if (window.concludeActionPhase) {
           window.concludeActionPhase(isDoubles);
         }
       }
@@ -119,7 +122,9 @@ export class FestivalLandingStrategy extends ITileLandingStrategy {
         broadcastFullGameState();
       }
 
-      if (window.concludeActionPhase) {
+      if (concludeActionPhase) {
+        concludeActionPhase(isDoubles);
+      } else if (window.concludeActionPhase) {
         window.concludeActionPhase(isDoubles);
       }
       return;
