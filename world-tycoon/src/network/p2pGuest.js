@@ -239,6 +239,14 @@ export function handleGuestReceivedMessage(msg) {
       if (msg.playerIdx !== undefined && gameState.players && gameState.players[msg.playerIdx]) {
         gameState.players[msg.playerIdx].isAI = true;
       }
+      if (typeof window !== 'undefined' && typeof window.getActiveIncomingTradeProposal === 'function') {
+        const prop = window.getActiveIncomingTradeProposal();
+        if (prop && (prop.proposerIdx === msg.playerIdx || prop.targetIdx === msg.playerIdx)) {
+          if (typeof window.closeIncomingTradeModal === 'function') {
+            window.closeIncomingTradeModal(true);
+          }
+        }
+      }
       const leavingName = setupPlayers[msg.playerIdx]?.name || `Player ${msg.playerIdx !== undefined ? msg.playerIdx + 1 : ''}`;
       logEvent(`⚠️ <strong>${leavingName}</strong> disconnected (converted to AI).`);
       updateMultiplayerUI();

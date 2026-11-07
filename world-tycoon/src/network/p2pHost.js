@@ -3,7 +3,7 @@
  * Room hosting, connection acceptance, host message routing, and state broadcasting.
  */
 
-import { gameState, setupPlayers, matchSettings, lobbyPlayerCount, setLobbyPlayerCount, setLocalPlayerIdx, getSavedPlayerName } from '../game/state.js';
+import { gameState, setupPlayers, matchSettings, lobbyPlayerCount, setLobbyPlayerCount, setLocalPlayerIdx, getSavedPlayerName, matchSeconds } from '../game/state.js';
 import { logEvent, renderCornerHUDs } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { PLAYER_THEMES } from '../game/data.js';
@@ -119,6 +119,14 @@ function initHostPeerConnection(conn) {
           setupPlayers[targetIdx].isAI = true;
           setupPlayers[targetIdx].isOnlinePeer = false;
           setupPlayers[targetIdx].peerId = null;
+        }
+        if (typeof window !== 'undefined' && typeof window.getActiveIncomingTradeProposal === 'function') {
+          const prop = window.getActiveIncomingTradeProposal();
+          if (prop && (prop.proposerIdx === targetIdx || prop.targetIdx === targetIdx)) {
+            if (typeof window.closeIncomingTradeModal === 'function') {
+              window.closeIncomingTradeModal(true);
+            }
+          }
         }
         if (networkCallbacks.onPlayerConvertedToAI) {
           networkCallbacks.onPlayerConvertedToAI(targetIdx);
@@ -339,6 +347,7 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_BUYOUT_CITY':
     case 'ACTION_PASS_BUYOUT':
     case 'ACTION_UPGRADE_CITY':
+    case 'ACTION_DOWNGRADE_CITY':
     case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
     case 'ACTION_SELL_CITY_FOR_RENT':
@@ -420,7 +429,7 @@ export function broadcastFullGameState() {
       phase: gameState.phase,
       doublesCount: gameState.doublesCount || 0,
       turnTimeLeft: gameState.turnTimeLeft || 15,
-      matchSeconds: gameState.matchSeconds,
+      matchSeconds: typeof matchSeconds === 'number' ? matchSeconds : (gameState.matchSeconds || 0),
       festivalPot: gameState.festivalPot,
       players: gameState.players.map(p => ({
         id: p.id,

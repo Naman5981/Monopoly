@@ -61,20 +61,23 @@ export class AIPlayerController extends IPlayerController {
       return;
     }
 
-    // Check proactive bot trade offer to local player
-    const humanIdx = localPlayerIdx || 0;
-    const botTrade = generateProactiveBotTrade(this.playerIndex);
-    if (botTrade && botTrade.targetIdx === humanIdx && !gameState.players[humanIdx]?.bankrupt) {
-      AIPlayerController.cancelTimer();
-      window.resumeBotTurnAfterTrade = () => {
-        window.resumeBotTurnAfterTrade = null;
-        if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
-        if (typeof executeRollFn === 'function') {
-          executeRollFn();
-        }
-      };
-      showIncomingTradeOfferModal(botTrade);
-      return;
+    // Check proactive bot trade offer to local player in single-player mode.
+    // In multiplayer, suppress proactive bot trade pauses to prevent stalling remote peers.
+    if (!networkState.isMultiplayer) {
+      const humanIdx = localPlayerIdx || 0;
+      const botTrade = generateProactiveBotTrade(this.playerIndex);
+      if (botTrade && botTrade.targetIdx === humanIdx && !gameState.players[humanIdx]?.bankrupt) {
+        AIPlayerController.cancelTimer();
+        window.resumeBotTurnAfterTrade = () => {
+          window.resumeBotTurnAfterTrade = null;
+          if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
+          if (typeof executeRollFn === 'function') {
+            executeRollFn();
+          }
+        };
+        showIncomingTradeOfferModal(botTrade);
+        return;
+      }
     }
 
     AIPlayerController.cancelTimer();

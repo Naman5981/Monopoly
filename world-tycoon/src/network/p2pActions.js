@@ -4,7 +4,7 @@
  */
 
 import { gameState, setupPlayers, lobbyPlayerCount } from '../game/state.js';
-import { logEvent, renderCornerHUDs, refreshActivePlayerTurnStatus } from '../ui/hud.js';
+import { logEvent, renderCornerHUDs, refreshActivePlayerTurnStatus, spawnFloatingCashOnHUD } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { fmtMoney } from '../game/utils.js';
 import { spawnAnimatedReaction } from '../three/effects.js';
@@ -81,6 +81,33 @@ export function executeIncomingNetworkAction(msg) {
       if (networkCallbacks.onUpgradeCity) {
         const count = msg.count !== undefined ? msg.count : (msg.levelsToAdd || 1);
         networkCallbacks.onUpgradeCity(msg.playerIdx, msg.tileId, count);
+      }
+      break;
+
+    case 'ACTION_DOWNGRADE_CITY':
+      if (networkCallbacks.onDowngradeCity) {
+        networkCallbacks.onDowngradeCity(msg.playerIdx, msg.tileId, msg.refund);
+      } else {
+        const p = gameState.players ? gameState.players[msg.playerIdx] : null;
+        const t = BOARD_TILES[msg.tileId];
+        const st = gameState.properties[msg.tileId];
+        if (st && st.level > 0) {
+          st.level--;
+          refreshTileTextureAndBuildings(msg.tileId);
+        }
+        if (p && typeof msg.refund === 'number') {
+          p.cash += msg.refund;
+          playSFX('cash');
+          spawnFloatingCashOnHUD(msg.playerIdx, `+${fmtMoney(msg.refund)}`, true);
+        }
+        if (p && t) {
+          logEvent(`🏷️ <strong>${p.name}</strong> sold a building in <strong>${t.name}</strong> (now Level ${st ? st.level : 0}).`);
+        }
+        renderCornerHUDs();
+        refreshActivePlayerTurnStatus();
+        if (networkState.isHost) {
+          broadcastFullGameState();
+        }
       }
       break;
 
@@ -246,8 +273,13 @@ export function executeIncomingNetworkAction(msg) {
         }
       }
       renderCornerHUDs();
-      if (networkState.isHost) {
+      if (networkCallbacks.onFestivalBoost) {
+        networkCallbacks.onFestivalBoost(msg.playerIdx, msg.tileId, Boolean(msg.isDoubles));
+      } else if (networkState.isHost) {
         broadcastFullGameState();
+        if (typeof window !== 'undefined' && typeof window.concludeActionPhase === 'function') {
+          window.concludeActionPhase(Boolean(msg.isDoubles));
+        }
       }
       break;
     }

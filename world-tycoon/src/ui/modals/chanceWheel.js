@@ -627,6 +627,13 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
     // 3. Close the wheel modal
     animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card');
 
+    // In multiplayer spectator mode (forcedPrizeIdx !== null), the incoming ACTION_CHANCE_PRIZE
+    // packet is the authoritative trigger for showChanceAwardPopup. Returning early here prevents
+    // executing the prize animation and cash/tax modifications twice on remote peers.
+    if (networkState.isMultiplayer && forcedPrizeIdx !== null) {
+      return;
+    }
+
     // Broadcast immediately so ALL peers in multiplayer open the card popup together!
     if (networkState.isMultiplayer && forcedPrizeIdx === null) {
       broadcastAction('ACTION_CHANCE_PRIZE', {

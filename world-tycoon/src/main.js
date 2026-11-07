@@ -550,6 +550,7 @@ function initApp() {
   // Clock & Turn Timer Loop
   let modalAfkSeconds = 0;
   let phaseEndStallSeconds = 0;
+  let hostRemoteRollGraceSeconds = 0;
   setInterval(() => {
     if (!gameState.gameStarted || gameState.phase === 'VICTORY' || gameState.phase === 'SETUP') return;
     incrementMatchSeconds();
@@ -584,22 +585,46 @@ function initApp() {
       if (ring) ring.style.strokeDashoffset = offset;
 
       if (gameState.turnTimeLeft === 0) {
-        gameState.turnTimeLeft = turnMax;
         if (isHumanTurnActionable()) {
+          hostRemoteRollGraceSeconds = 0;
+          gameState.turnTimeLeft = turnMax;
           handleRollButtonClick();
         } else if (currentPlayer.isAI && (!networkState.isMultiplayer || networkState.isHost)) {
+          hostRemoteRollGraceSeconds = 0;
+          gameState.turnTimeLeft = turnMax;
           executePlayerRoll();
         } else if (networkState.isMultiplayer && networkState.isHost && !isHumanTurnActionable()) {
-          // Remote peer AFK fallback on Host: Auto-roll on timeout to prevent match stall
-          executePlayerRoll();
+          // Remote peer grace period: Give guest's incoming ACTION_ROLL 3s to arrive before Host forces fallback roll
+          hostRemoteRollGraceSeconds++;
+          if (hostRemoteRollGraceSeconds >= 3) {
+            hostRemoteRollGraceSeconds = 0;
+            gameState.turnTimeLeft = turnMax;
+            executePlayerRoll();
+          }
         }
+      } else {
+        hostRemoteRollGraceSeconds = 0;
       }
-    } else if (gameState.phase === 'MODAL' && networkState.isMultiplayer && networkState.isHost && !isHumanTurnActionable()) {
+    } else if ((gameState.phase === 'MODAL' || gameState.phase === 'FESTIVAL_SELECT' || gameState.phase === 'WORLD_TOUR') && networkState.isMultiplayer && networkState.isHost && !isHumanTurnActionable()) {
       phaseEndStallSeconds = 0;
+      hostRemoteRollGraceSeconds = 0;
       modalAfkSeconds++;
       if (modalAfkSeconds >= 24) {
         modalAfkSeconds = 0;
-        if (gameState.pendingBuyTile && typeof window.passBuyCity === 'function') {
+        if (gameState.phase === 'FESTIVAL_SELECT') {
+          if (typeof window.closeFestivalBoostModal === 'function') {
+            window.closeFestivalBoostModal(true);
+          }
+          if (typeof window.concludeActionPhase === 'function') {
+            window.concludeActionPhase(Boolean(gameState.pendingDoubles));
+          }
+        } else if (gameState.phase === 'WORLD_TOUR') {
+          document.getElementById('world-tour-banner')?.classList.add('hidden');
+          document.getElementById('world-tour-banner')?.classList.remove('flex');
+          if (typeof window.concludeActionPhase === 'function') {
+            window.concludeActionPhase(false);
+          }
+        } else if (gameState.pendingBuyTile && typeof window.passBuyCity === 'function') {
           window.passBuyCity();
         } else if (gameState.pendingBuyoutTile && typeof window.passBuyoutCity === 'function') {
           window.passBuyoutCity();
@@ -611,6 +636,7 @@ function initApp() {
       }
     } else if (gameState.phase === 'END') {
       modalAfkSeconds = 0;
+      hostRemoteRollGraceSeconds = 0;
       phaseEndStallSeconds++;
       if (phaseEndStallSeconds >= 4) {
         phaseEndStallSeconds = 0;

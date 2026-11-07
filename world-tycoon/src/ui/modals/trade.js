@@ -465,6 +465,10 @@ export function counterIncomingTrade() {
   }
 }
 
+export function getActiveIncomingTradeProposal() {
+  return activeIncomingTradeProposal;
+}
+
 export function declineIncomingTrade() {
   clearIncomingTradeTimer();
   if (!activeIncomingTradeProposal) return;
@@ -483,4 +487,15 @@ export function declineIncomingTrade() {
   activeIncomingTradeProposal = null;
   animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
   safelyResumeBotTurn();
+}
+
+if (typeof window !== 'undefined') {
+  window.openTradeModal = openTradeModal;
+  window.closeTradeModal = closeTradeModal;
+  window.executeTradeOffer = executeTradeOffer;
+  window.acceptIncomingTrade = acceptIncomingTrade;
+  window.declineIncomingTrade = declineIncomingTrade;
+  window.counterIncomingTrade = counterIncomingTrade;
+  window.closeIncomingTradeModal = closeIncomingTradeModal;
+  window.getActiveIncomingTradeProposal = getActiveIncomingTradeProposal;
 }

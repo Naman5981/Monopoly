@@ -298,8 +298,10 @@ export function chooseFestivalBoostCity(tileId) {
   }
   renderCornerHUDs();
 
+  const isDoubles = Boolean(pendingFestivalDoubles);
+
   if (networkState.isMultiplayer) {
-    broadcastAction('ACTION_FESTIVAL_BOOST', { playerIdx: pIdx, tileId });
+    broadcastAction('ACTION_FESTIVAL_BOOST', { playerIdx: pIdx, tileId, isDoubles });
     if (networkState.isHost) {
       broadcastFullGameState();
     }
@@ -309,7 +311,6 @@ export function chooseFestivalBoostCity(tileId) {
   closeFestivalBoostModal(true);
 
   // Conclude turn cleanly
-  const isDoubles = pendingFestivalDoubles;
   if (window.concludeActionPhase) {
     window.concludeActionPhase(isDoubles);
   }

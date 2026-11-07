@@ -16,7 +16,8 @@ import {
   debugState,
   lobbyPlayerCount,
   resetGameStateForNewMatch,
-  isHumanTurnActionable
+  isHumanTurnActionable,
+  setMatchSeconds
 } from './state.js';
 import { fmtMoney } from './utils.js';
 import { playSFX, startAdaptiveMusic, stopAdaptiveMusic } from './audio.js';
@@ -193,6 +194,28 @@ export function initEngine() {
         concludeActionPhase(Boolean(isDoubles));
       }
     },
+    onDowngradeCity: (playerIdx, tileId, refund) => {
+      const st = gameState.properties[tileId];
+      const p = gameState.players[playerIdx];
+      const tile = BOARD_TILES[tileId];
+      if (st && st.level > 0) {
+        st.level--;
+        refreshTileTextureAndBuildings(tileId);
+      }
+      if (p && typeof refund === 'number') {
+        p.cash += refund;
+        playSFX('cash');
+        spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(refund)}`, true);
+      }
+      if (p && tile) {
+        logEvent(`🏷️ <strong>${p.name}</strong> sold a building in <strong>${tile.name}</strong> (now Level ${st ? st.level : 0}).`);
+      }
+      renderCornerHUDs();
+      refreshActivePlayerTurnStatus();
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
+      }
+    },
     onTradeAction: (msg) => {
       if (msg.type === 'ACTION_TRADE_OFFER') {
         if (msg.targetIdx === networkState.localPlayerIdx && msg.proposal) {
@@ -269,6 +292,14 @@ export function initEngine() {
         await applyChancePrize(playerIdx, prize, isDoubles, true, false);
       }, playerIdx);
     },
+    onFestivalBoost: (playerIdx, tileId, isDoubles) => {
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
+        if (concludeActionPhase) {
+          concludeActionPhase(Boolean(isDoubles));
+        }
+      }
+    },
     onEndTurn: (nextPlayerIdx) => {
       advanceTurn(true, nextPlayerIdx);
     },
@@ -280,7 +311,7 @@ export function initEngine() {
             executePlayerRoll();
           } else if (gameState.phase === 'END') {
             advanceTurn();
-          } else if (gameState.phase === 'MODAL' || gameState.phase === 'WORLD_TOUR') {
+          } else if (gameState.phase === 'MODAL' || gameState.phase === 'WORLD_TOUR' || gameState.phase === 'FESTIVAL_SELECT') {
             if (window.closeAllGameModals) window.closeAllGameModals();
             if (window.concludeActionPhase) window.concludeActionPhase(false);
           }
@@ -348,6 +379,9 @@ export function initEngine() {
       }
       if (typeof incomingState.turnTimeLeft === 'number') {
         gameState.turnTimeLeft = incomingState.turnTimeLeft;
+      }
+      if (typeof incomingState.matchSeconds === 'number') {
+        setMatchSeconds(incomingState.matchSeconds);
       }
       renderCornerHUDs();
       refreshActivePlayerTurnStatus();
@@ -509,5 +543,7 @@ if (typeof window !== 'undefined') {
   window.startNewMatch = startNewMatch;
   window.terminateMatchAndReturnToLobby = terminateMatchAndReturnToLobby;
   window.resumeActiveTurn = resumeActiveTurn;
+  window.concludeActionPhase = concludeActionPhase;
+  window.advanceTurn = advanceTurn;
   window.executeWorldTourFlight = (destTileId) => executeWorldTourFlight(destTileId, false, null, evaluateTileLanding);
 }

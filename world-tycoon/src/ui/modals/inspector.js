@@ -8,7 +8,7 @@ import { gameState, isHumanTurnActionable, localPlayerIdx } from '../../game/sta
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { calculateTileRent } from '../../game/rules.js';
-import { networkState, broadcastAction } from '../../network/p2p.js';
+import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import {
   populateCityPreview3DScene,
   clearCityPreview,
@@ -263,7 +263,8 @@ export function downgradeCityLevel(tileId, isAutoLiquidation = false) {
   const st = gameState.properties[tileId];
   const tile = BOARD_TILES[tileId];
   if (!st || st.owner === null || st.level <= 0) return;
-  if (st.owner === localPlayerIdx && !isAutoLiquidation && !isHumanTurnActionable()) {
+  const mySlot = networkState.isMultiplayer ? networkState.localPlayerIdx : localPlayerIdx;
+  if (st.owner === mySlot && !isAutoLiquidation && !isHumanTurnActionable()) {
     showTurnLockToast("Wait for your turn to sell buildings!");
     return;
   }
@@ -274,6 +275,14 @@ export function downgradeCityLevel(tileId, isAutoLiquidation = false) {
   st.level--;
   playSFX('cash');
   if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(st.owner, `+${fmtMoney(refund)}`, true);
+  logEvent(`🏷️ <strong>${p.name}</strong> sold a building in <strong>${tile.name}</strong> for <strong>${fmtMoney(refund)}</strong>.`);
+
+  if (networkState.isMultiplayer && !isAutoLiquidation) {
+    broadcastAction('ACTION_DOWNGRADE_CITY', { playerIdx: st.owner, tileId, refund });
+    if (networkState.isHost) {
+      broadcastFullGameState();
+    }
+  }
 
   refreshTileTextureAndBuildings(tileId);
   renderCornerHUDs();
