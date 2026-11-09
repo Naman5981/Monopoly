@@ -619,11 +619,11 @@ body {
 .hud-player-name {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 13px;
+  font-size: 14.5px;
   letter-spacing: 0.02em;
   color: #1e293b;
   text-transform: uppercase;
-  max-width: 84px;
+  max-width: 96px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -638,8 +638,8 @@ body {
 .hud-cash-amount {
   font-family: var(--font-ui);
   font-weight: 900;
-  font-size: 16px;
-  letter-spacing: -0.02em;
+  font-size: 17.5px;
+  letter-spacing: -0.01em;
   color: #059669;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
@@ -664,19 +664,19 @@ body {
 .center-roll-btn {
   background: linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
   color: #ffffff;
-  border: 3.5px solid #ffffff;
+  border: 4px solid #ffffff;
   border-radius: 9999px;
-  padding: 10px 32px;
+  padding: 12px 38px;
   font-family: var(--game-font);
   font-weight: 900;
-  font-size: 17px;
-  letter-spacing: 0.05em;
+  font-size: 20px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  box-shadow: 0 6px 0 #15803d, 0 12px 24px rgba(21, 128, 61, 0.4);
+  box-shadow: 0 7px 0 #15803d, 0 14px 28px rgba(21, 128, 61, 0.45);
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.25);
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition-property: transform, box-shadow;
@@ -3183,8 +3183,8 @@ body.production-build #debug-modal {
   }
 
   .center-roll-btn {
-    padding: 8px 24px;
-    font-size: 15px;
+    padding: 10px 28px;
+    font-size: 17px;
   }
 
   .center-bail-btn {

@@ -48,32 +48,76 @@ export function setTileHighlightRing(tileId, visible, colorHex = null) {
 
 function createTurnBillboardTexture(name, colorHex) {
   const c = document.createElement('canvas');
-  c.width = 384;
-  c.height = 96;
+  c.width = 1024;
+  c.height = 256;
   const ctx = c.getContext('2d');
 
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+  const themeColor = colorHex || '#6c5ce7';
+  const cleanName = (name || 'PLAYER').toUpperCase();
+
+  // 1. Outer Neon Aura & Drop Glow
+  ctx.save();
+  ctx.shadowColor = themeColor;
+  ctx.shadowBlur = 24;
+
+  // 2. High-contrast deep obsidian glass container
+  const bgGrad = ctx.createLinearGradient(0, 16, 0, 240);
+  bgGrad.addColorStop(0, 'rgba(15, 23, 42, 0.96)');
+  bgGrad.addColorStop(1, 'rgba(8, 12, 28, 0.98)');
+  ctx.fillStyle = bgGrad;
+
   ctx.beginPath();
   if (ctx.roundRect) {
-    ctx.roundRect(10, 10, 364, 76, 38);
+    ctx.roundRect(24, 20, 976, 216, 64);
   } else {
-    ctx.rect(10, 10, 364, 76);
+    ctx.rect(24, 20, 976, 216);
   }
   ctx.fill();
 
-  ctx.strokeStyle = colorHex || '#6c5ce7';
-  ctx.lineWidth = 6;
+  // 3. Crisp Glowing Border in player's theme color
+  ctx.strokeStyle = themeColor;
+  ctx.lineWidth = 10;
   ctx.stroke();
 
-  ctx.font = '900 30px Inter, sans-serif';
-  ctx.fillStyle = '#ffffff';
+  // 4. Inner subtle highlight ring
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(32, 28, 960, 200, 56);
+  } else {
+    ctx.rect(32, 28, 960, 200);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // 5. Overline Tag (better-typography: role-based hierarchy, uppercase, letter-spaced)
+  ctx.save();
+  ctx.font = '900 24px Rubik, system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const cleanName = (name || 'PLAYER').toUpperCase();
-  ctx.fillText(`★ ${cleanName}'S TURN ★`, 192, 48);
+  ctx.fillStyle = '#facc15'; // Vibrant gold star accent
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillText('✦   A C T I V E   T U R N   ✦', 512, 70);
+
+  // 6. Primary Headline: Player's Turn in bold, punchy, crisp typography
+  const textLen = cleanName.length;
+  const fontSize = textLen <= 7 ? 84 : (textLen <= 11 ? 72 : 60);
+  ctx.font = `900 ${fontSize}px Rubik, system-ui, sans-serif`;
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 4;
+  ctx.fillText(`${cleanName}'S TURN`, 512, 154);
+  ctx.restore();
 
   const tex = new THREE.CanvasTexture(c);
-  tex.anisotropy = 4;
+  tex.anisotropy = 16;
+  tex.generateMipmaps = true;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
   return tex;
 }
 
@@ -83,7 +127,7 @@ export function buildActivePlayerHighlightSystem(boardGroup = context.boardGroup
   activePlayerBeaconGroup = new THREE.Group();
   boardGroup.add(activePlayerBeaconGroup);
 
-  const innerRingGeo = new THREE.RingGeometry(0.68, 0.98, 32);
+  const innerRingGeo = new THREE.RingGeometry(0.72, 1.05, 32);
   const innerRingMat = new THREE.MeshBasicMaterial({
     color: 0x6c5ce7,
     side: THREE.DoubleSide,
@@ -95,7 +139,7 @@ export function buildActivePlayerHighlightSystem(boardGroup = context.boardGroup
   groundRingInner.position.y = 0.06;
   activePlayerBeaconGroup.add(groundRingInner);
 
-  const outerRingGeo = new THREE.RingGeometry(1.02, 1.28, 32);
+  const outerRingGeo = new THREE.RingGeometry(1.10, 1.38, 32);
   const outerRingMat = new THREE.MeshBasicMaterial({
     color: 0xa89cf5,
     side: THREE.DoubleSide,
@@ -108,34 +152,34 @@ export function buildActivePlayerHighlightSystem(boardGroup = context.boardGroup
   activePlayerBeaconGroup.add(groundRingOuter);
 
   const pointerGroup = new THREE.Group();
-  pointerGroup.position.y = 2.4;
+  pointerGroup.position.y = 3.90; // Elevated well above pawns, streetlights, and 3.2-unit Start Archway
 
-  const diamondGeo = new THREE.OctahedronGeometry(0.30, 0);
+  const diamondGeo = new THREE.OctahedronGeometry(0.42, 0);
   const diamondMat = new THREE.MeshStandardMaterial({
     color: 0x6c5ce7,
     emissive: 0x6c5ce7,
-    emissiveIntensity: 0.55,
+    emissiveIntensity: 0.65,
     roughness: 0.25,
     metalness: 0.4
   });
   const floatingDiamond = new THREE.Mesh(diamondGeo, diamondMat);
   pointerGroup.add(floatingDiamond);
 
-  const coneGeo = new THREE.ConeGeometry(0.12, 0.28, 6);
+  const coneGeo = new THREE.ConeGeometry(0.16, 0.38, 8);
   const coneMat = new THREE.MeshStandardMaterial({
     color: 0x6c5ce7,
     emissive: 0x6c5ce7,
-    emissiveIntensity: 0.45
+    emissiveIntensity: 0.55
   });
   const pointerCone = new THREE.Mesh(coneGeo, coneMat);
   pointerCone.rotation.x = Math.PI;
-  pointerCone.position.y = -0.30;
+  pointerCone.position.y = -0.42;
   pointerGroup.add(pointerCone);
 
-  const spriteMat = new THREE.SpriteMaterial({ transparent: true });
+  const spriteMat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
   const turnSprite = new THREE.Sprite(spriteMat);
-  turnSprite.scale.set(2.4, 0.62, 1);
-  turnSprite.position.y = 0.65;
+  turnSprite.scale.set(6.4, 1.6, 1); // 2.67x larger for crystal-clear readability from isometric perspective
+  turnSprite.position.y = 1.05;
   pointerGroup.add(turnSprite);
 
   activePlayerBeaconGroup.add(pointerGroup);
@@ -381,7 +425,9 @@ export function updateActivePlayerBeacon(t) {
 
       ud.floatingDiamond.rotation.y = t * 3.0;
       ud.floatingDiamond.rotation.x = Math.sin(t * 2.0) * 0.2;
-      ud.pointerGroup.position.y = 2.45 + Math.sin(t * 4.2) * 0.16;
+      ud.pointerGroup.position.y = 3.90 + Math.sin(t * 3.5) * 0.18;
+      const billboardPulse = 1 + Math.sin(t * 3.5) * 0.03;
+      ud.turnSprite.scale.set(6.4 * billboardPulse, 1.6 * billboardPulse, 1);
 
       if (ud.lastPlayerIdx !== gameState.currentPlayerIdx) {
         ud.lastPlayerIdx = gameState.currentPlayerIdx;

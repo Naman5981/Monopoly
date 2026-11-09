@@ -151,7 +151,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
             return;
           }
           logEvent(`💸 <strong>${player.name}</strong> owes <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong> and must liquidate properties.`);
-          openSellCitiesModal(tile, rent, st.owner, isDoubles);
+          openSellCitiesModal(tile, rent, st.owner, isDoubles, playerIdx);
           return;
         }
       } else {

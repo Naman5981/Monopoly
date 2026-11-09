@@ -22,9 +22,9 @@ export function calculatePropertySaleValue(tile, propState) {
   return basePrice + (level * (houseCost / 2));
 }
 
-export function openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles) {
+export function openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles, debtorIdx) {
   if (isLobbyScreenActive()) return;
-  const pIdx = gameState.currentPlayerIdx;
+  const pIdx = debtorIdx !== undefined ? debtorIdx : gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   const creditor = gameState.players[creditorIdx];
   if (!p || !creditor) return;
@@ -34,6 +34,7 @@ export function openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles) {
     tile,
     rentOwed,
     creditorIdx,
+    debtorIdx: pIdx,
     isDoubles
   };
 
@@ -45,15 +46,7 @@ export function openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles) {
   playSFX('hop');
 }
 
-export function renderSellCitiesModal() {
-  const debt = gameState.pendingRentDebt;
-  if (!debt) return;
-
-  const pIdx = gameState.currentPlayerIdx;
-  const p = gameState.players[pIdx];
-  const creditor = gameState.players[debt.creditorIdx];
-  if (!p || !creditor) return;
-
+function updateDebtFinancialsHUD(p, creditor, debt) {
   const subtitleEl = document.getElementById('sell-cities-creditor-subtitle');
   if (subtitleEl) {
     subtitleEl.textContent = `Owe rent on ${debt.tile.name} to ${creditor.name}`;
@@ -68,121 +61,162 @@ export function renderSellCitiesModal() {
   const deficit = Math.max(0, debt.rentOwed - p.cash);
   const deficitEl = document.getElementById('sell-cities-deficit');
   if (deficitEl) deficitEl.textContent = fmtMoney(deficit);
+}
 
-  // Owned properties
-  const ownedTiles = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === pIdx);
+function getBuildingLevelDescription(level) {
+  if (level === 4) return 'Skyscraper (MAX)';
+  if (level > 0) return `${level} House${level > 1 ? 's' : ''}`;
+  return 'Base Property';
+}
+
+function formatPropertySaleCard(tile, propState) {
+  const saleVal = calculatePropertySaleValue(tile, propState);
+  const color = tile.group && GROUP_META[tile.group] ? GROUP_META[tile.group].hex : '#0284c7';
+  const lvl = propState?.level || 0;
+  const lvlDesc = getBuildingLevelDescription(lvl);
+
+  return `
+    <div onclick="window.sellPropertyForRent(${tile.id})"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.sellPropertyForRent(${tile.id});}"
+         tabindex="0"
+         role="button"
+         data-tile-id="${tile.id}"
+         aria-label="Sell ${tile.name} for ${fmtMoney(saleVal)}"
+         class="group bg-white border-2 border-slate-200/90 hover:border-rose-500 hover:bg-rose-50/20 active:scale-[0.99] rounded-2xl p-3 flex items-center justify-between gap-3 shadow-2xs hover:shadow-sm transition cursor-pointer select-none">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0" style="background:${color}"></span>
+        <div class="truncate">
+          <div class="font-black text-xs sm:text-sm text-slate-900 group-hover:text-rose-950 transition-colors truncate">${tile.name}</div>
+          <div class="text-[10px] font-bold text-slate-500">${lvlDesc}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="text-right">
+          <div class="text-[9px] font-extrabold uppercase text-slate-400">SALE VALUE</div>
+          <div class="text-xs sm:text-sm font-black text-emerald-600">+${fmtMoney(saleVal)}</div>
+        </div>
+        <button type="button"
+                onclick="event.stopPropagation(); window.sellPropertyForRent(${tile.id})"
+                class="game-btn game-btn-rose !py-2 !px-3 text-xs font-black shadow-xs pointer-events-auto">
+          <i class="fa-solid fa-tag mr-1"></i> SELL
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderEmptyPropertiesMessage() {
+  return `
+    <div class="text-center py-8 text-slate-500 font-bold text-xs">
+      <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg mb-1 block"></i>
+      No properties left to sell.
+    </div>
+  `;
+}
+
+export function renderSellCitiesModal() {
+  const debt = gameState.pendingRentDebt;
+  if (!debt) return;
+
+  const pIdx = debt.debtorIdx !== undefined ? debt.debtorIdx : gameState.currentPlayerIdx;
+  const p = gameState.players[pIdx];
+  const creditor = gameState.players[debt.creditorIdx];
+  if (!p || !creditor) return;
+
+  updateDebtFinancialsHUD(p, creditor, debt);
+
   const grid = document.getElementById('sell-cities-card-grid');
   if (!grid) return;
 
+  const ownedTiles = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === pIdx);
   if (ownedTiles.length === 0) {
-    grid.innerHTML = `
-      <div class="text-center py-8 text-slate-500 font-bold text-xs">
-        <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg mb-1 block"></i>
-        No properties left to sell.
-      </div>
-    `;
+    grid.innerHTML = renderEmptyPropertiesMessage();
     return;
   }
 
-  grid.innerHTML = ownedTiles.map(t => {
-    const st = gameState.properties[t.id];
-    const saleVal = calculatePropertySaleValue(t, st);
-    const color = t.group && GROUP_META[t.group] ? GROUP_META[t.group].hex : '#0284c7';
-    const lvl = st?.level || 0;
-    const lvlDesc = lvl === 4 ? 'Skyscraper (MAX)' : (lvl > 0 ? `${lvl} House${lvl > 1 ? 's' : ''}` : 'Base Property');
+  grid.innerHTML = ownedTiles.map(t => formatPropertySaleCard(t, gameState.properties[t.id])).join('');
+}
 
-    return `
-      <div class="bg-white border-2 border-slate-200/90 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-2xs hover:border-rose-400 transition">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <span class="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0" style="background:${color}"></span>
-          <div class="truncate">
-            <div class="font-black text-xs sm:text-sm text-slate-900 truncate">${t.name}</div>
-            <div class="text-[10px] font-bold text-slate-500">${lvlDesc}</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <div class="text-right">
-            <div class="text-[9px] font-extrabold uppercase text-slate-400">SALE VALUE</div>
-            <div class="text-xs sm:text-sm font-black text-emerald-600">+${fmtMoney(saleVal)}</div>
-          </div>
-          <button onclick="window.sellPropertyForRent(${t.id})" class="game-btn game-btn-rose !py-2 !px-3 text-xs font-black shadow-xs">
-            <i class="fa-solid fa-tag mr-1"></i> SELL
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
+function applyPropertyLiquidation(player, tile, propState) {
+  const saleVal = calculatePropertySaleValue(tile, propState);
+  propState.owner = null;
+  propState.level = 0;
+  propState.mortgaged = false;
+  player.cash += saleVal;
+  return saleVal;
+}
+
+function notifyPropertyLiquidation(pIdx, player, tile, saleVal) {
+  playSFX('cash');
+  spawnAnimatedReaction('cash');
+  if (engineCallbacks.spawnFloatingCash) {
+    engineCallbacks.spawnFloatingCash(pIdx, `+${fmtMoney(saleVal)}`, true);
+  }
+  logEvent(`🏷️ <strong>${player.name}</strong> sold <strong>${tile.name}</strong> for <strong>${fmtMoney(saleVal)}</strong> to pay rent.`);
+
+  if (networkState.isMultiplayer) {
+    broadcastAction('ACTION_SELL_CITY_FOR_RENT', { playerIdx: pIdx, tileId: tile.id, saleVal });
+  }
+
+  refreshTileTextureAndBuildings(tile.id);
+  renderCornerHUDs();
+}
+
+function resolveDebtOrRerender(debtorIdx, player, debt) {
+  if (player.cash >= debt.rentOwed) {
+    settlePendingRentAndCloseModal();
+    return;
+  }
+
+  const remainingOwned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === debtorIdx);
+  if (remainingOwned.length === 0) {
+    settleDebtDeficitWithoutProperties();
+  } else {
+    renderSellCitiesModal();
+  }
 }
 
 export function sellPropertyForRent(tileId) {
   const debt = gameState.pendingRentDebt;
   if (!debt) return;
-  const pIdx = gameState.currentPlayerIdx;
+
+  const pIdx = debt.debtorIdx !== undefined ? debt.debtorIdx : gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
-  const tile = BOARD_TILES[tileId];
-  const st = gameState.properties[tileId];
+  const id = Number(tileId);
+  const tile = BOARD_TILES.find(t => t.id === id) || BOARD_TILES[id];
+  const st = gameState.properties[id];
   if (!p || !tile || !st || st.owner !== pIdx) return;
 
-  const saleVal = calculatePropertySaleValue(tile, st);
+  const saleVal = applyPropertyLiquidation(p, tile, st);
+  notifyPropertyLiquidation(pIdx, p, tile, saleVal);
+  resolveDebtOrRerender(pIdx, p, debt);
+}
 
-  // Transfer ownership back to bank and reset buildings
-  st.owner = null;
-  st.level = 0;
-  st.mortgaged = false;
-  p.cash += saleVal;
-
-  playSFX('cash');
-  spawnAnimatedReaction('cash');
-  if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(pIdx, `+${fmtMoney(saleVal)}`, true);
-  logEvent(`🏷️ <strong>${p.name}</strong> sold <strong>${tile.name}</strong> for <strong>${fmtMoney(saleVal)}</strong> to pay rent.`);
-
-  if (networkState.isMultiplayer) {
-    broadcastAction('ACTION_SELL_CITY_FOR_RENT', { playerIdx: pIdx, tileId, saleVal });
-  }
-
-  refreshTileTextureAndBuildings(tile.id);
-  renderCornerHUDs();
-
-  // Check if cash now suffices to settle the rent
-  if (p.cash >= debt.rentOwed) {
-    settlePendingRentAndCloseModal();
-  } else {
-    // Re-check if player has any remaining properties
-    const remainingOwned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === pIdx);
-    if (remainingOwned.length === 0) {
-      // Out of properties but still short: handle mercy strike / bankruptcy
-      settleDebtDeficitWithoutProperties();
-    } else {
-      renderSellCitiesModal();
-    }
-  }
+function getOwnedPropertiesSortedByValue(playerIdx) {
+  const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
+  owned.sort((a, b) => {
+    const vA = calculatePropertySaleValue(a, gameState.properties[a.id]);
+    const vB = calculatePropertySaleValue(b, gameState.properties[b.id]);
+    return vA - vB;
+  });
+  return owned;
 }
 
 export function autoSellCheapestForRent() {
   const debt = gameState.pendingRentDebt;
   if (!debt) return;
-  const pIdx = gameState.currentPlayerIdx;
+
+  const pIdx = debt.debtorIdx !== undefined ? debt.debtorIdx : gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   if (!p) return;
 
   while (p.cash < debt.rentOwed) {
-    const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === pIdx);
+    const owned = getOwnedPropertiesSortedByValue(pIdx);
     if (owned.length === 0) break;
-
-    // Sort by saleValue ascending
-    owned.sort((a, b) => {
-      const vA = calculatePropertySaleValue(a, gameState.properties[a.id]);
-      const vB = calculatePropertySaleValue(b, gameState.properties[b.id]);
-      return vA - vB;
-    });
 
     const cheapest = owned[0];
     const st = gameState.properties[cheapest.id];
-    const saleVal = calculatePropertySaleValue(cheapest, st);
-
-    st.owner = null;
-    st.level = 0;
-    p.cash += saleVal;
+    const saleVal = applyPropertyLiquidation(p, cheapest, st);
 
     refreshTileTextureAndBuildings(cheapest.id);
     logEvent(`⚡ <strong>${p.name}</strong> auto-sold <strong>${cheapest.name}</strong> for <strong>${fmtMoney(saleVal)}</strong>.`);
@@ -194,12 +228,7 @@ export function autoSellCheapestForRent() {
 
   playSFX('cash');
   renderCornerHUDs();
-
-  if (p.cash >= debt.rentOwed) {
-    settlePendingRentAndCloseModal();
-  } else {
-    settleDebtDeficitWithoutProperties();
-  }
+  resolveDebtOrRerender(pIdx, p, debt);
 }
 
 function closeSellCitiesModal() {
@@ -209,7 +238,8 @@ function closeSellCitiesModal() {
 export async function settlePendingRentAndCloseModal() {
   const debt = gameState.pendingRentDebt;
   if (!debt) return;
-  const pIdx = gameState.currentPlayerIdx;
+
+  const pIdx = debt.debtorIdx !== undefined ? debt.debtorIdx : gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   const creditor = gameState.players[debt.creditorIdx];
   const isDoubles = debt.isDoubles;
@@ -249,7 +279,8 @@ export async function settlePendingRentAndCloseModal() {
 export function settleDebtDeficitWithoutProperties() {
   const debt = gameState.pendingRentDebt;
   if (!debt) return;
-  const pIdx = gameState.currentPlayerIdx;
+
+  const pIdx = debt.debtorIdx !== undefined ? debt.debtorIdx : gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   const creditor = gameState.players[debt.creditorIdx];
   const isDoubles = debt.isDoubles;
@@ -298,4 +329,11 @@ export function settleDebtDeficitWithoutProperties() {
   if (engineCallbacks.concludeActionPhase) {
     engineCallbacks.concludeActionPhase(isDoubles);
   }
+}
+
+// Window self-registration for inline event handlers and global accessibility
+if (typeof window !== 'undefined') {
+  window.sellPropertyForRent = sellPropertyForRent;
+  window.autoSellCheapestForRent = autoSellCheapestForRent;
+  window.openSellCitiesModal = openSellCitiesModal;
 }

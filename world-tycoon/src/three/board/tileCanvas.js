@@ -102,7 +102,7 @@ function drawWhiteNeonText(ctx, text, x, y, font) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // 1. Crisp dark channel casing (12px wide to provide an unshakeable, razor-sharp contrast border)
+  // 1. Crisp dark channel casing (14px wide to provide an unshakeable, razor-sharp contrast border)
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   ctx.shadowColor = 'transparent';
@@ -113,6 +113,29 @@ function drawWhiteNeonText(ctx, text, x, y, font) {
 
   // 2. Pure white tube core
   ctx.fillStyle = '#ffffff';
+  ctx.fillText(text, x, y);
+
+  ctx.restore();
+}
+
+/**
+ * Renders illuminated neon price/rent values with high-contrast contour casing.
+ */
+function drawCrispNeonPrice(ctx, text, x, y, font, colorHex = '#34d399') {
+  ctx.save();
+  ctx.font = font;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#020617';
+  ctx.lineWidth = 14;
+  ctx.strokeText(text, x, y);
+
+  ctx.fillStyle = colorHex;
   ctx.fillText(text, x, y);
 
   ctx.restore();
@@ -138,7 +161,7 @@ function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber)
 
   // Typography metrics — bold 900 weight with wide open counters for small-screen readability
   const nameLen = tile.name.length;
-  const nameFontSize = nameLen <= 6 ? 76 : (nameLen <= 9 ? 64 : (nameLen <= 11 ? 52 : 42));
+  const nameFontSize = nameLen <= 6 ? 84 : (nameLen <= 9 ? 70 : (nameLen <= 11 ? 58 : 48));
   const nameFont = `900 ${nameFontSize}px Rubik, system-ui, sans-serif`;
 
   let valStr;
@@ -150,7 +173,7 @@ function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber)
   }
 
   const valLen = valStr.length;
-  const valFontSize = valLen <= 4 ? 116 : (valLen <= 5 ? 104 : (valLen <= 6 ? 92 : 82));
+  const valFontSize = valLen <= 4 ? 126 : (valLen <= 5 ? 114 : (valLen <= 6 ? 102 : 90));
   const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
   // Optically shifted downward: name sits below the 3D building footprint (Y: 265), rent sits at bottom (Y: 415)
@@ -161,7 +184,7 @@ function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber)
     if (isNight || isSunset) {
       // NIGHT & SUNSET: High-contrast white neon channel letters
       drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
-      drawWhiteNeonText(ctx, valStr, 256, valY, valFont);
+      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, '#f43f5e');
     } else {
       // DAY / MORNING: Crisp daylight typography with high-contrast border
       ctx.textAlign = 'center';
@@ -169,14 +192,14 @@ function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber)
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 8 : 10;
+      ctx.lineWidth = isCyber ? 10 : 12;
       ctx.font = nameFont;
       ctx.strokeText(tile.name, 256, nameY);
       ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
       ctx.fillText(tile.name, 256, nameY);
 
       ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 10 : 12;
+      ctx.lineWidth = isCyber ? 12 : 14;
       ctx.font = valFont;
       ctx.strokeText(valStr, 256, valY);
       ctx.fillStyle = isCyber ? '#f43f5e' : '#b91c1c';
@@ -184,23 +207,28 @@ function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber)
     }
   } else {
     // UNOWNED: Crisp, clear, high-contrast dark typography at identical optical coordinates
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-    ctx.lineWidth = isCyber ? 8 : 10;
-    ctx.font = nameFont;
-    ctx.strokeText(tile.name, 256, nameY);
-    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    ctx.fillText(tile.name, 256, nameY);
+    if (isNight || isSunset) {
+      drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
+      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, isCyber ? '#38bdf8' : '#34d399');
+    } else {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+      ctx.lineWidth = isCyber ? 10 : 12;
+      ctx.font = nameFont;
+      ctx.strokeText(tile.name, 256, nameY);
+      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
+      ctx.fillText(tile.name, 256, nameY);
 
-    ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-    ctx.lineWidth = isCyber ? 10 : 12;
-    ctx.font = valFont;
-    ctx.strokeText(valStr, 256, valY);
-    ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
-    ctx.fillText(valStr, 256, valY);
+      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+      ctx.lineWidth = isCyber ? 12 : 14;
+      ctx.font = valFont;
+      ctx.strokeText(valStr, 256, valY);
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
+      ctx.fillText(valStr, 256, valY);
+    }
   }
 }
 
@@ -226,7 +254,7 @@ function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset, isCybe
   ctx.fillText('RESORT', 256, 45);
 
   const nameLen = tile.name.length;
-  const nameFontSize = nameLen <= 6 ? 76 : (nameLen <= 9 ? 64 : (nameLen <= 11 ? 52 : 42));
+  const nameFontSize = nameLen <= 6 ? 84 : (nameLen <= 9 ? 70 : (nameLen <= 11 ? 58 : 48));
   const nameFont = `900 ${nameFontSize}px Rubik, system-ui, sans-serif`;
 
   let valStr;
@@ -238,7 +266,7 @@ function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset, isCybe
   }
 
   const valLen = valStr.length;
-  const valFontSize = valLen <= 4 ? 116 : (valLen <= 5 ? 104 : (valLen <= 6 ? 92 : 82));
+  const valFontSize = valLen <= 4 ? 126 : (valLen <= 5 ? 114 : (valLen <= 6 ? 102 : 90));
   const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
   const nameY = 265;
@@ -247,44 +275,49 @@ function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset, isCybe
   if (isOwned) {
     if (isNight || isSunset) {
       drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
-      drawWhiteNeonText(ctx, valStr, 256, valY, valFont);
+      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, '#f43f5e');
     } else {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 8 : 10;
+      ctx.lineWidth = isCyber ? 10 : 12;
       ctx.font = nameFont;
       ctx.strokeText(tile.name, 256, nameY);
       ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
       ctx.fillText(tile.name, 256, nameY);
 
       ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 10 : 12;
+      ctx.lineWidth = isCyber ? 12 : 14;
       ctx.font = valFont;
       ctx.strokeText(valStr, 256, valY);
       ctx.fillStyle = isCyber ? '#f43f5e' : '#b91c1c';
       ctx.fillText(valStr, 256, valY);
     }
   } else {
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-    ctx.lineWidth = isCyber ? 8 : 10;
-    ctx.font = nameFont;
-    ctx.strokeText(tile.name, 256, nameY);
-    ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-    ctx.fillText(tile.name, 256, nameY);
+    if (isNight || isSunset) {
+      drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
+      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, isCyber ? '#38bdf8' : '#34d399');
+    } else {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+      ctx.lineWidth = isCyber ? 10 : 12;
+      ctx.font = nameFont;
+      ctx.strokeText(tile.name, 256, nameY);
+      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
+      ctx.fillText(tile.name, 256, nameY);
 
-    ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-    ctx.lineWidth = isCyber ? 10 : 12;
-    ctx.font = valFont;
-    ctx.strokeText(valStr, 256, valY);
-    ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
-    ctx.fillText(valStr, 256, valY);
+      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+      ctx.lineWidth = isCyber ? 12 : 14;
+      ctx.font = valFont;
+      ctx.strokeText(valStr, 256, valY);
+      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
+      ctx.fillText(valStr, 256, valY);
+    }
   }
 }
 
