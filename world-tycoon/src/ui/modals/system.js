@@ -8,7 +8,7 @@ import { gameState, lobbyPlayerCount, setLobbyPlayerCount, isHumanTurnActionable
 import { playSFX } from '../../game/audio.js';
 import { showSpeechBubble } from '../../three/scene.js';
 import { stopVictoryCelebration } from '../../three/effects.js';
-import { networkState } from '../../network/p2pState.js';
+import { networkState, broadcastAction } from '../../network/p2p.js';
 import { closeAllGameModals, closeOtherInformationalModals } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { renderCornerHUDs, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
@@ -135,6 +135,12 @@ export function sendQuickEmote(text) {
   toggleEmotePopover();
   if (text.includes('🍅')) throwTomatoAtOpponent();
   showSpeechBubble(text, 2500);
+  if (networkState && networkState.isMultiplayer) {
+    broadcastAction('ACTION_CHAT_EMOTE', {
+      text,
+      senderIdx: networkState.localPlayerIdx
+    });
+  }
 }
 
 export function toggleEventLogDrawer() {

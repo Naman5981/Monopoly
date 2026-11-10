@@ -126,7 +126,11 @@ export function confirmBuyCity() {
   logEvent(`🏙️ <strong>${p.name}</strong> bought <strong>${tile.name}</strong> for <strong>${fmtMoney(tile.price)}</strong>!`);
 
   if (networkState.isMultiplayer) {
-    broadcastAction('ACTION_BUY_CITY', { playerIdx: pIdx, tileId: tile.id });
+    broadcastAction('ACTION_BUY_CITY', {
+      playerIdx: pIdx,
+      tileId: tile.id,
+      isDoubles: Boolean(gameState.pendingDoubles)
+    });
     if (networkState.isHost) {
       broadcastFullGameState();
     }

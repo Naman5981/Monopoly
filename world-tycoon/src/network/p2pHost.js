@@ -364,6 +364,7 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_MONOPOLY':
     case 'ACTION_END_TURN':
     case 'ACTION_REACTION':
+    case 'ACTION_CHAT_EMOTE':
     case 'ACTION_REQUEST_PLAY_AGAIN':
     case 'ACTION_GUEST_LOBBY': {
       // Re-broadcast to all other connected peers

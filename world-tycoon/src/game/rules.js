@@ -6,6 +6,7 @@
 import { BOARD_TILES, PLAYER_THEMES } from './data.js';
 import { gameState, displayedCash, matchSettings, matchSeconds } from './state.js';
 import { fmtMoney } from './utils.js';
+import { networkState, broadcastAction, broadcastFullGameState } from '../network/p2p.js';
 
 /** Check whether a player owns every city in a colour group. */
 export function ownsFullColorGroup(playerIdx, groupKey) {
@@ -88,6 +89,18 @@ export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks, creditor
     } else {
       refreshCallbacks?.onLog?.(`💥 <strong>${p.name}</strong> went BANKRUPT!`);
     }
+
+    if (networkState && networkState.isMultiplayer) {
+      broadcastAction('ACTION_BANKRUPTCY', {
+        bankruptIdx: playerIdx,
+        creditorIdx: creditor ? creditorIdx : undefined,
+        paidCash: 0
+      });
+      if (networkState.isHost) {
+        broadcastFullGameState();
+      }
+    }
+
     return false;
   }
   return true;

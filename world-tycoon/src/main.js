@@ -75,6 +75,7 @@ import {
 import {
   networkState,
   broadcastAction,
+  broadcastFullGameState,
   copyRoomInviteLink,
   copyRoomCodeOnly,
   returnToLobbyFromDisconnect,
@@ -624,14 +625,31 @@ function initApp() {
           if (typeof window.concludeActionPhase === 'function') {
             window.concludeActionPhase(false);
           }
-        } else if (gameState.pendingBuyTile && typeof window.passBuyCity === 'function') {
-          window.passBuyCity();
-        } else if (gameState.pendingBuyoutTile && typeof window.passBuyoutCity === 'function') {
-          window.passBuyoutCity();
-        } else if (gameState.pendingUpgradeTile && typeof window.closeUpgradeCityModal === 'function') {
-          window.closeUpgradeCityModal();
-        } else if (typeof window.concludeActionPhase === 'function') {
-          window.concludeActionPhase(Boolean(gameState.pendingDoubles));
+        } else {
+          const curTile = currentPlayer ? BOARD_TILES[currentPlayer.position] : null;
+          if (gameState.pendingBuyTile && typeof window.passBuyCity === 'function') {
+            window.passBuyCity();
+          } else if (gameState.pendingBuyoutTile && typeof window.passBuyoutCity === 'function') {
+            window.passBuyoutCity();
+          } else if (gameState.pendingUpgradeTile && typeof window.closeUpgradeCityModal === 'function') {
+            window.closeUpgradeCityModal();
+          } else if (curTile) {
+            const st = gameState.properties[curTile.id];
+            if ((curTile.type === 'city' || curTile.type === 'resort') && !st?.owner) {
+              broadcastAction('ACTION_PASS_BUY_CITY', { playerIdx: gameState.currentPlayerIdx, tileId: curTile.id, isDoubles: false });
+            } else if (st && st.owner !== gameState.currentPlayerIdx) {
+              broadcastAction('ACTION_PASS_BUYOUT', { playerIdx: gameState.currentPlayerIdx, tileId: curTile.id, isDoubles: false });
+            } else if (st && st.owner === gameState.currentPlayerIdx) {
+              broadcastAction('ACTION_END_UPGRADE', { playerIdx: gameState.currentPlayerIdx, tileId: curTile.id, isDoubles: false });
+            }
+          }
+          if (typeof window.closeAllGameModals === 'function') {
+            window.closeAllGameModals();
+          }
+          if (typeof window.concludeActionPhase === 'function') {
+            window.concludeActionPhase(false);
+          }
+          broadcastFullGameState();
         }
       }
     } else if (gameState.phase === 'END') {

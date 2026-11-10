@@ -9,7 +9,7 @@ import { playSFX } from '../game/audio.js';
 import { fmtMoney } from '../game/utils.js';
 import { spawnAnimatedReaction } from '../three/effects.js';
 import { BOARD_TILES } from '../game/data.js';
-import { refreshTileTextureAndBuildings } from '../three/scene.js';
+import { refreshTileTextureAndBuildings, showSpeechBubble } from '../three/scene.js';
 import { checkVictoryConditions } from '../game/rules.js';
 import { showVictoryModal } from '../ui/modals.js';
 import { networkState, networkCallbacks } from './p2pState.js';
@@ -54,7 +54,7 @@ export function executeIncomingNetworkAction(msg) {
 
     case 'ACTION_BUY_CITY':
       if (networkCallbacks.onBuyCity) {
-        networkCallbacks.onBuyCity(msg.playerIdx, msg.tileId);
+        networkCallbacks.onBuyCity(msg.playerIdx, msg.tileId, Boolean(msg.isDoubles));
       }
       break;
 
@@ -290,6 +290,21 @@ export function executeIncomingNetworkAction(msg) {
         playSFX('pop');
       }
       break;
+
+    case 'ACTION_CHAT_EMOTE': {
+      const p = gameState.players ? gameState.players[msg.senderIdx] : null;
+      const text = msg.text || '';
+      if (text) {
+        showSpeechBubble(text, 2800);
+        logEvent(`💬 <strong>${p ? p.name : 'Player'}</strong>: ${text}`);
+        if (text.includes('🍅')) {
+          playSFX('splat');
+        } else {
+          playSFX('pop');
+        }
+      }
+      break;
+    }
 
     case 'ACTION_END_TURN':
       if (networkCallbacks.onEndTurn) {

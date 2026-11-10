@@ -347,6 +347,7 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_BUYOUT_CITY':
     case 'ACTION_PASS_BUYOUT':
     case 'ACTION_UPGRADE_CITY':
+    case 'ACTION_DOWNGRADE_CITY':
     case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
     case 'ACTION_SELL_CITY_FOR_RENT':
@@ -363,6 +364,7 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_MONOPOLY':
     case 'ACTION_END_TURN':
     case 'ACTION_REACTION':
+    case 'ACTION_CHAT_EMOTE':
     case 'ACTION_REQUEST_PLAY_AGAIN':
     case 'ACTION_GUEST_LOBBY': {
       executeIncomingNetworkAction(msg);

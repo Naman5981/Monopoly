@@ -326,12 +326,16 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         checkAndTriggerMonopoly(playerIdx, tile.group);
       }
       if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_BUY_CITY', { playerIdx, tileId: tile.id });
+        broadcastAction('ACTION_BUY_CITY', { playerIdx, tileId: tile.id, isDoubles: Boolean(isDoubles) });
         broadcastFullGameState();
       }
     } else {
       showSpeechBubble(`Passed on ${tile.name}`, 1500);
       logEvent(`⏭️ <strong>${player.name}</strong> passed on buying <strong>${tile.name}</strong>.`);
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastAction('ACTION_PASS_BUY_CITY', { playerIdx, tileId: tile.id, isDoubles: Boolean(isDoubles) });
+        broadcastFullGameState();
+      }
     }
 
     clearThinkingState();
@@ -367,12 +371,16 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         checkAndTriggerMonopoly(playerIdx, tile.group);
       }
       if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_BUYOUT_CITY', { playerIdx, tileId: tile.id, buyoutCost, prevOwnerIdx: previousOwnerIdx, previousOwnerIdx });
+        broadcastAction('ACTION_BUYOUT_CITY', { playerIdx, tileId: tile.id, buyoutCost, prevOwnerIdx: previousOwnerIdx, isDoubles: Boolean(isDoubles) });
         broadcastFullGameState();
       }
     } else {
       showSpeechBubble(`Skipped buyout on ${tile.name}`, 1500);
       logEvent(`⏭️ <strong>${player.name}</strong> decided against buyout on <strong>${tile.name}</strong>.`);
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastAction('ACTION_PASS_BUYOUT', { playerIdx, tileId: tile.id, isDoubles: Boolean(isDoubles) });
+        broadcastFullGameState();
+      }
     }
 
     clearThinkingState();
@@ -400,6 +408,10 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     } else {
       showSpeechBubble(`Relaxing in ${tile.name}`, 1500);
       logEvent(`✨ <strong>${player.name}</strong> passed on upgrading <strong>${tile.name}</strong>.`);
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastAction('ACTION_END_UPGRADE', { playerIdx, tileId: tile.id, isDoubles: Boolean(isDoubles) });
+        broadcastFullGameState();
+      }
     }
 
     clearThinkingState();

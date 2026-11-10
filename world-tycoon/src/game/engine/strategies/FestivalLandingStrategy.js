@@ -118,7 +118,7 @@ export class FestivalLandingStrategy extends ITileLandingStrategy {
       renderCornerHUDs();
 
       if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_FESTIVAL_BOOST', { playerIdx, tileId: target.id });
+        broadcastAction('ACTION_FESTIVAL_BOOST', { playerIdx, tileId: target.id, isDoubles: Boolean(isDoubles) });
         broadcastFullGameState();
       }
 

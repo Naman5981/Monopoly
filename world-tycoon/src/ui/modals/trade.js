@@ -112,29 +112,40 @@ export function populateTradePartnerProps() {
 export function completeTradeTransfer(giverIdx, receiverIdx, offerCash = 0, reqCash = 0, offerTileIds = [], reqTileIds = []) {
   const giver = gameState.players[giverIdx];
   const receiver = gameState.players[receiverIdx];
-  if (!giver || !receiver) return;
+  if (!giver || !receiver || giver.bankrupt || receiver.bankrupt) return false;
+
+  const validOfferTiles = (offerTileIds || []).filter(id => gameState.properties[id]?.owner === giverIdx);
+  const validReqTiles = (reqTileIds || []).filter(id => gameState.properties[id]?.owner === receiverIdx);
+
+  const hadOffer = offerTileIds && offerTileIds.length > 0;
+  const hadReq = reqTileIds && reqTileIds.length > 0;
+
+  if ((hadOffer && validOfferTiles.length === 0) || (hadReq && validReqTiles.length === 0)) {
+    logEvent(`⚠️ <strong>Trade Voided:</strong> Cities are no longer held by original owners.`);
+    return false;
+  }
 
   if (offerCash || reqCash) {
     giver.cash = giver.cash - offerCash + reqCash;
     receiver.cash = receiver.cash - reqCash + offerCash;
   }
 
-  offerTileIds.forEach(id => {
-    if (gameState.properties[id]) {
+  validOfferTiles.forEach(id => {
+    if (gameState.properties[id] && gameState.properties[id].owner === giverIdx) {
       gameState.properties[id].owner = receiverIdx;
       refreshTileTextureAndBuildings(id);
     }
   });
 
-  reqTileIds.forEach(id => {
-    if (gameState.properties[id]) {
+  validReqTiles.forEach(id => {
+    if (gameState.properties[id] && gameState.properties[id].owner === receiverIdx) {
       gameState.properties[id].owner = giverIdx;
       refreshTileTextureAndBuildings(id);
     }
   });
 
   const affectedGroups = new Set();
-  [...offerTileIds, ...reqTileIds].forEach(id => {
+  [...validOfferTiles, ...validReqTiles].forEach(id => {
     if (BOARD_TILES[id]?.group) affectedGroups.add(BOARD_TILES[id].group);
   });
   affectedGroups.forEach(grp => {
@@ -155,6 +166,7 @@ export function completeTradeTransfer(giverIdx, receiverIdx, offerCash = 0, reqC
     clearSavedMatch();
     showVictoryModal(vic.winner, vic);
   }
+  return true;
 }
 
 export function executeTradeOffer() {

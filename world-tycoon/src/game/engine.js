@@ -127,7 +127,7 @@ export function initEngine() {
       const controller = PlayerControllerFactory.create(playerIdx);
       controller.onTurnStart({ executeRollFn: executePlayerRoll });
     },
-    onBuyCity: (playerIdx, tileId) => {
+    onBuyCity: (playerIdx, tileId, isDoubles) => {
       const tile = BOARD_TILES[tileId];
       const p = gameState.players[playerIdx];
       if (tile && p) {
@@ -145,8 +145,9 @@ export function initEngine() {
         if (networkState.isMultiplayer && networkState.isHost) {
           broadcastFullGameState();
         }
+        const effectiveDoubles = isDoubles !== undefined ? Boolean(isDoubles) : Boolean(gameState.pendingDoubles);
         if (concludeActionPhase) {
-          concludeActionPhase(Boolean(gameState.pendingDoubles));
+          concludeActionPhase(effectiveDoubles);
         }
       }
     },
@@ -312,6 +313,13 @@ export function initEngine() {
           } else if (gameState.phase === 'END') {
             advanceTurn();
           } else if (gameState.phase === 'MODAL' || gameState.phase === 'WORLD_TOUR' || gameState.phase === 'FESTIVAL_SELECT') {
+            if (gameState.pendingRentDebt && gameState.pendingRentDebt.debtorIdx === leavingIdx && typeof window.autoSellCheapestForRent === 'function') {
+              try {
+                window.autoSellCheapestForRent();
+              } catch (err) {
+                console.warn('[onPlayerConvertedToAI] Error auto-liquidating rent debt:', err);
+              }
+            }
             if (window.closeAllGameModals) window.closeAllGameModals();
             if (window.concludeActionPhase) window.concludeActionPhase(false);
           }
@@ -346,13 +354,18 @@ export function initEngine() {
             if (srcP.name) p.name = srcP.name;
             if (srcP.isAI !== undefined) p.isAI = Boolean(srcP.isAI);
             p.cash = srcP.cash;
-            p.position = srcP.position;
+            const isCurrentlyMoving = (gameState.phase === 'MOVING' && gameState.currentPlayerIdx === idx);
+            if (!isCurrentlyMoving) {
+              p.position = srcP.position;
+            }
             p.bankrupt = Boolean(srcP.bankrupt);
             p.inIsland = Boolean(srcP.inIsland);
             p.islandTurns = srcP.islandTurns || 0;
           }
         });
-        updatePlayerTokenPositions3D();
+        if (gameState.phase !== 'MOVING') {
+          updatePlayerTokenPositions3D();
+        }
       }
       if (typeof incomingState.festivalPot === 'number') {
         gameState.festivalPot = incomingState.festivalPot;
