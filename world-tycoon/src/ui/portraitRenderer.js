@@ -19,7 +19,7 @@ const playerMoods = new Map();
 let animationFrameId = null;
 let lastRenderTime = 0;
 
-export function getPlayerMood(playerIdx) {
+function getPlayerMood(playerIdx) {
   const entry = playerMoods.get(playerIdx);
   if (!entry) return 'idle';
   if (Date.now() > entry.until && entry.current !== 'bankrupt') {

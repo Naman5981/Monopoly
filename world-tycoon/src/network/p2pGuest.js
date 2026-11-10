@@ -108,7 +108,7 @@ export function sendClientProfileUpdate(profile) {
   }
 }
 
-export function applyGameplayMatchSettings(src) {
+function applyGameplayMatchSettings(src) {
   if (!src) return;
   if (typeof src.startingCash === 'number') matchSettings.startingCash = src.startingCash;
   if (typeof src.turnDuration === 'number') matchSettings.turnDuration = src.turnDuration;

@@ -18,6 +18,7 @@ import {
   generateRandomBotAppearance
 } from './playerCustomization.js';
 import { currentLobbyView } from './lobbyNavigation.js';
+import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
 
 export function buildPlayerCardActionControls(i, isGuest, isOnline, isConnectedPeer, isHuman, isSelf) {
   if (!isGuest) {
@@ -135,6 +136,37 @@ export function renderPlayerCards() {
 
   updateAllPointsBadges();
 
+  // Sync state into reactive Svelte lobbyStore
+  const lobbyPlayersList = [];
+  for (let i = 0; i < lobbyPlayerCount; i++) {
+    const cp = matchSettings.customPlayers[i];
+    const isOnline = networkState.isMultiplayer;
+    const isConnectedPeer = isOnline && (Boolean(cp?.isOnlinePeer) || Boolean(setupPlayers[i]?.isOnlinePeer) || Boolean(setupPlayers[i]?.peerId));
+    const isHuman = isConnectedPeer ? true : !cp?.isAI;
+    const isSelf = isOnline ? (i === networkState.localPlayerIdx) : (i === 0);
+    lobbyPlayersList.push({
+      idx: i,
+      name: cp?.name || `P${i + 1}`,
+      isAI: !isHuman,
+      isOnlinePeer: Boolean(cp?.isOnlinePeer),
+      colorHex: cp?.colorHex || '#10b981',
+      hatStyle: cp?.hatStyle || 0,
+      isSelected: i === selectedSetupPlayerIdx,
+      isSelf,
+      isHost: i === 0,
+      canEditName: isSelf && isHuman,
+      canEditSlot: canCurrentPlayerEditSlot(i),
+      isConnectedPeer
+    });
+  }
+  updateLobbyStore({
+    playerCount: lobbyPlayerCount,
+    selectedPlayerIdx: selectedSetupPlayerIdx,
+    activeDisplayName,
+    canEditCurrent: canCurrentPlayerEditSlot(selectedSetupPlayerIdx),
+    players: lobbyPlayersList
+  });
+
   // Update center hero archetype pill indicator based on selected player
   const curPlayer = matchSettings.customPlayers[selectedSetupPlayerIdx] || p0;
   const archEl = document.getElementById('setup-character-archetype-name');
@@ -197,191 +229,7 @@ export function renderPlayerCards() {
     }
   }
 
-  if (!container) return;
-
-  // Track active input focus and caret position before updating DOM
-  const activeEl = document.activeElement;
-  let focusedSlot = null;
-  let selStart = null;
-  let selEnd = null;
-  if (activeEl && activeEl.dataset && activeEl.dataset.slotIdx !== undefined) {
-    focusedSlot = parseInt(activeEl.dataset.slotIdx, 10);
-    selStart = activeEl.selectionStart;
-    selEnd = activeEl.selectionEnd;
-  }
-
-  // Keyed DOM reconciliation: update existing card rows in-place or rebuild when count changes
-  const existingCards = container.querySelectorAll('.player-setup-card');
-  const canReconcileInPlace = (existingCards.length === lobbyPlayerCount);
-
-  if (canReconcileInPlace) {
-    for (let i = 0; i < lobbyPlayerCount; i++) {
-      const cp = matchSettings.customPlayers[i];
-      const sp = setupPlayers[i];
-      const isOnline = networkState.isMultiplayer;
-      const isConnectedPeer = isOnline && (
-        Boolean(cp?.isOnlinePeer) ||
-        Boolean(sp?.isOnlinePeer) ||
-        Boolean(sp?.peerId)
-      );
-      if (isConnectedPeer) {
-        if (cp) {
-          cp.isAI = false;
-          cp.isOnlinePeer = true;
-        }
-        if (sp) {
-          sp.isAI = false;
-          sp.isOnlinePeer = true;
-        }
-      }
-      const isHuman = isConnectedPeer ? true : !cp.isAI;
-      const isSelected = (i === selectedSetupPlayerIdx);
-      const initial = (cp.name || `P${i + 1}`)[0].toUpperCase();
-      const isSelf = isOnline
-        ? (i === networkState.localPlayerIdx)
-        : (i === 0);
-      const canEditName = isSelf && !cp.isAI;
-      const row = existingCards[i];
-
-      row.classList.toggle('card-selected', isSelected);
-
-      // Update avatar medallion
-      const avatarEl = row.querySelector('.avatar-medallion');
-      if (avatarEl) {
-        avatarEl.textContent = initial;
-        avatarEl.style.background = cp.colorHex;
-        avatarEl.style.boxShadow = `0 3px 0 rgba(0,0,0,0.15), 0 0 0 2px ${cp.colorHex}55${isSelected ? ', 0 0 16px rgba(245,158,11,0.6)' : ''}`;
-      }
-
-      // Update name text
-      const inputEl = row.querySelector(`#player-name-input-${i}`);
-      if (inputEl) {
-        const span = document.createElement('span');
-        span.className = 'player-name-display font-black text-sm sm:text-base text-slate-800 uppercase px-1.5 py-0.5 select-none truncate';
-        span.textContent = cp.name;
-        span.title = cp.isAI ? 'AI Bot' : 'Player';
-        inputEl.replaceWith(span);
-      } else {
-        const textSpan = row.querySelector('.player-name-display');
-        if (textSpan && textSpan.textContent !== cp.name) {
-          textSpan.textContent = cp.name;
-        }
-      }
-
-      // Update podium tag
-      const podiumWrap = row.querySelector('.podium-tag-slot');
-      if (podiumWrap) {
-        podiumWrap.innerHTML = isSelected
-          ? '<span class="text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-2.5 py-0.5 rounded-full shadow-xs border border-amber-300 flex items-center gap-1"><span>👑</span> PODIUM</span>'
-          : '';
-      }
-
-      // Update action controls slot
-      const existingControls = row.querySelector('.action-controls-slot');
-      const newControlsHtml = buildPlayerCardActionControls(i, isGuest, isOnline, isConnectedPeer, isHuman, isSelf);
-      if (existingControls) {
-        existingControls.outerHTML = newControlsHtml;
-      } else {
-        row.insertAdjacentHTML('beforeend', newControlsHtml);
-      }
-    }
-    return;
-  }
-
-  container.innerHTML = '';
-
-  // Render active player rows with spacious game-grade design
-  for (let i = 0; i < lobbyPlayerCount; i++) {
-    const cp = matchSettings.customPlayers[i];
-    const sp = setupPlayers[i];
-    const isOnline = networkState.isMultiplayer;
-    const isConnectedPeer = isOnline && (
-      Boolean(cp?.isOnlinePeer) ||
-      Boolean(sp?.isOnlinePeer) ||
-      Boolean(sp?.peerId)
-    );
-    if (isConnectedPeer) {
-      if (cp) {
-        cp.isAI = false;
-        cp.isOnlinePeer = true;
-      }
-      if (sp) {
-        sp.isAI = false;
-        sp.isOnlinePeer = true;
-      }
-    }
-    const isHuman = isConnectedPeer ? true : !cp.isAI;
-    const isSelected = (i === selectedSetupPlayerIdx);
-    const initial = (cp.name || `P${i + 1}`)[0].toUpperCase();
-    const isSelf = isOnline
-      ? (i === networkState.localPlayerIdx)
-      : (i === 0);
-    // Player can ONLY change self name, and NEVER on AI
-    const canEditName = isSelf && !cp.isAI;
-
-    const row = document.createElement('div');
-    row.id = `player-setup-card-${i}`;
-    row.className = `player-setup-card ${isSelected ? 'card-selected' : ''} p-2.5 sm:p-3 flex items-center justify-between gap-2.5 cursor-pointer`;
-    row.onclick = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
-      if (window.selectSetupPlayer) window.selectSetupPlayer(i);
-    };
-
-    const hostCrown = (isOnline && i === 0) ? '<span class="text-sm" title="Table Host">👑</span>' : '';
-    const youTag = isSelf ? '<span class="text-[10px] font-black uppercase tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-2xs border border-sky-300">YOU</span>' : '';
-    const podiumTag = isSelected ? '<span class="text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-2.5 py-0.5 rounded-full shadow-xs border border-amber-300 flex items-center gap-1"><span>👑</span> PODIUM</span>' : '';
-
-    // Names in lobby are strictly read-only for fair play
-    const nameInputHtml = `<span class="player-name-display font-black text-sm sm:text-base text-slate-800 uppercase px-1.5 py-0.5 select-none truncate" title="${cp.isAI ? 'AI Bot' : 'Player'}">${cp.name}</span>`;
-    const actionControlsHtml = buildPlayerCardActionControls(i, isGuest, isOnline, isConnectedPeer, isHuman, isSelf);
-
-    row.innerHTML = `
-      <div class="flex items-center gap-2.5 min-w-0 flex-1">
-        <!-- Colored avatar medallion with arcade rim -->
-        <div class="avatar-medallion w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center font-black text-sm text-white flex-shrink-0" style="background:${cp.colorHex}; box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 0 0 2px ${cp.colorHex}55${isSelected ? ', 0 0 16px rgba(245,158,11,0.6)' : ''};">
-          ${initial}
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            ${hostCrown}
-            ${nameInputHtml}
-            ${youTag}
-            <span class="podium-tag-slot">${podiumTag}</span>
-          </div>
-        </div>
-      </div>
-      ${actionControlsHtml}
-    `;
-
-    container.appendChild(row);
-  }
-
-  // Single compact add player slot if under 6 players and not guest
-  if (!isGuest && lobbyPlayerCount < 6) {
-    const slot = document.createElement('div');
-    slot.className = 'game-slot-dashed p-2.5 flex items-center justify-center gap-2 cursor-pointer font-bold text-xs text-sky-700 bg-sky-50/50 hover:bg-sky-50 border-2 border-dashed border-sky-200 rounded-xl transition hover:scale-[1.005]';
-    slot.onclick = () => {
-      if (window.addBotOrSlot) window.addBotOrSlot();
-    };
-    slot.innerHTML = `
-      <i class="fa-solid fa-plus text-xs"></i>
-      <span>Add Player Slot (${lobbyPlayerCount}/6)</span>
-    `;
-    container.appendChild(slot);
-  }
-
-  // Restore active input focus and caret position if applicable
-  if (focusedSlot !== null) {
-    const restoredInput = document.getElementById(`player-name-input-${focusedSlot}`);
-    if (restoredInput) {
-      restoredInput.focus();
-      try {
-        if (typeof selStart === 'number' && typeof selEnd === 'number') {
-          restoredInput.setSelectionRange(selStart, selEnd);
-        }
-      } catch (_) {}
-    }
-  }
+  // Reactive Svelte PlayerSetupCards mounted at #setup-players-roster handles DOM declaratively
 }
 
 export function setPlayerSetupName(idx, name, isSystemOrBot = false) {

@@ -7,7 +7,7 @@ import { gameState, matchSettings, lobbyPlayerCount, setupPlayers, getSavedPlaye
 import { PLAYER_THEMES } from '../../game/data.js';
 import { playSFX } from '../../game/audio.js';
 import { fireConfettiBurst, applyLightingMode } from '../../three/effects.js';
-import { startIntroCameraFlyIn, playIntroCinematicFlyIn, getSceneLighting, initLobbyHeroStage, updateLobbyHeroAvatar } from '../../three/scene.js';
+import { playIntroCinematicFlyIn, getSceneLighting, initLobbyHeroStage, updateLobbyHeroAvatar } from '../../three/scene.js';
 import { startNewMatch } from '../../game/engine.js';
 import {
   networkState,

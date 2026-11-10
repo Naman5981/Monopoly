@@ -3,8 +3,8 @@
  * Core game-rule calculations: rent, group ownership, bankruptcy resolution.
  */
 
-import { BOARD_TILES, PLAYER_THEMES } from './data.js';
-import { gameState, displayedCash, matchSettings, matchSeconds } from './state.js';
+import { BOARD_TILES } from './data.js';
+import { gameState, matchSettings, matchSeconds } from './state.js';
 import { fmtMoney } from './utils.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../network/p2p.js';
 

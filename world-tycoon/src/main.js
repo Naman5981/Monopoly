@@ -3,10 +3,15 @@
  * Application entry point for Vite / Modern browsers.
  */
 
-import { PLAYER_THEMES, applyBoardEdition } from './game/data.js';
-import { gameState, debugState, toggleSoundEnabled, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, setSoundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed, getSavedPlayerName } from './game/state.js';
+import { applyBoardEdition } from './game/data.js';
+import { gameState, debugState, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed, getSavedPlayerName } from './game/state.js';
 import { updateMasterVolume, playSFX, initAudioUnlock, startAdaptiveMusic, stopAdaptiveMusic } from './game/audio.js';
-import { updateGameSpeedUI, showTurnLockToast, initFastHUDButtonInteractions } from './ui/hud.js';
+import { updateGameSpeedUI, showTurnLockToast, initFastHUDButtonInteractions, updateSoundUI, handleSetGameVolume, handleToggleSound } from './ui/hud.js';
+import { updateHudState } from './svelte/stores/hudStore.js';
+import { mount } from 'svelte';
+import ModalsRoot from './svelte/modals/ModalsRoot.svelte';
+import GameHud from './svelte/hud/GameHud.svelte';
+import PlayerSetupCards from './svelte/lobby/PlayerSetupCards.svelte';
 import { initThreeScene, initTheatreSuite, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
 import { context } from './three/core/context.js';
 import { checkVictoryConditions } from './game/rules.js';
@@ -34,6 +39,7 @@ import {
   initLandingSetup,
   setPlayerCount,
   setPlayerSetupName,
+  handlePlayerNameChange,
   togglePlayerRole,
   setPlayerArchetype,
   setPlayerColor,
@@ -163,7 +169,7 @@ import {
   startVictoryCelebration,
   stopVictoryCelebration
 } from './three/effects.js';
-import { initDebugSuite, toggleDebugPanel } from './game/debug.js';
+import { initDebugSuite } from './game/debug.js';
 import { initVersionChecker } from './game/versionCheck.js';
 import {
   initWardrobeSystem,
@@ -212,6 +218,7 @@ window.triggerVictoryTest = () => {
 window.openLandingSetupScreen = openLandingSetupScreen;
 window.setPlayerCount = setPlayerCount;
 window.setPlayerSetupName = setPlayerSetupName;
+window.handlePlayerNameChange = handlePlayerNameChange;
 window.togglePlayerRole = togglePlayerRole;
 window.setPlayerArchetype = setPlayerArchetype;
 window.setPlayerColor = setPlayerColor;
@@ -402,55 +409,9 @@ window.fireConfetti = (x, y) => {
   fireConfettiBurst(x, y);
 };
 
-export function updateSoundUI() {
-  const percent = soundEnabled ? Math.round(soundVolume * 100) : 0;
-
-  // In-game HUD slider & percentage label
-  const slider = document.getElementById('sound-volume-slider');
-  if (slider) slider.value = percent;
-  const valText = document.getElementById('sound-volume-val');
-  if (valText) valText.textContent = `${percent}%`;
-
-  // Lobby setup slider & percentage label
-  const setupSlider = document.getElementById('setup-sound-slider');
-  if (setupSlider) setupSlider.value = percent;
-  const setupValText = document.getElementById('setup-sound-volume-val');
-  if (setupValText) setupValText.textContent = `${percent}%`;
-
-  // Icon classes based on volume level
-  const isMuted = !soundEnabled || soundVolume <= 0;
-  const iconClass = isMuted
-    ? 'fa-solid fa-volume-xmark text-rose-500'
-    : soundVolume < 0.5
-      ? 'fa-solid fa-volume-low text-sky-600'
-      : 'fa-solid fa-volume-high text-sky-600';
-
-  const btnIcon = document.getElementById('btn-sound-icon');
-  if (btnIcon) btnIcon.className = `${iconClass} text-xs`;
-
-  const setupBtnIcon = document.getElementById('setup-btn-sound-icon');
-  if (setupBtnIcon) setupBtnIcon.className = `${iconClass} text-sm`;
-}
-
-window.setGameVolume = (val) => {
-  setSoundVolume(val);
-  updateMasterVolume(soundEnabled ? soundVolume : 0);
-  updateSoundUI();
-};
-
-window.toggleSound = () => {
-  toggleSoundEnabled();
-  updateMasterVolume(soundEnabled ? soundVolume : 0);
-  updateSoundUI();
-  if (soundEnabled) {
-    playSFX('click', 0.8);
-    if (gameState && gameState.gameStarted && gameState.phase !== 'VICTORY') {
-      startAdaptiveMusic();
-    }
-  } else {
-    stopAdaptiveMusic();
-  }
-};
+export { updateSoundUI };
+window.setGameVolume = handleSetGameVolume;
+window.toggleSound = handleToggleSound;
 
 // Tile click delegation from 3D scene
 function onTileClick(tileId) {
@@ -557,8 +518,18 @@ function initApp() {
     incrementMatchSeconds();
     const mins = String(Math.floor(matchSeconds / 60)).padStart(2, '0');
     const secs = String(matchSeconds % 60).padStart(2, '0');
+    const clockText = `${mins}:${secs}`;
     const clockEl = document.getElementById('hud-game-clock');
-    if (clockEl) clockEl.textContent = `${mins}:${secs}`;
+    if (clockEl) clockEl.textContent = clockText;
+    const turnMax = matchSettings.turnDuration || 15;
+    const offset = 113 - (gameState.turnTimeLeft / turnMax) * 113;
+
+    updateHudState({
+      clock: clockText,
+      turnTimeLeft: gameState.turnTimeLeft,
+      turnMax,
+      turnTimerOffset: offset
+    });
 
     // Check match time limit victory (Highest Net Worth wins)
     const timeVic = checkVictoryConditions();
@@ -670,6 +641,31 @@ function initApp() {
       phaseEndStallSeconds = 0;
     }
   }, 1000);
+
+  // Mount Svelte 5 Declarative Overlays (HUD, Modals & Lobby Roster)
+  try {
+    if (typeof document !== 'undefined') {
+      const rosterContainer = document.getElementById('setup-players-roster');
+      if (rosterContainer && !rosterContainer.hasChildNodes()) {
+        mount(PlayerSetupCards, { target: rosterContainer });
+      }
+      const hudContainer = document.getElementById('svelte-hud-mount');
+      if (hudContainer && !hudContainer.hasChildNodes()) {
+        mount(GameHud, { target: hudContainer });
+      }
+      let modalsContainer = document.getElementById('svelte-modals-mount');
+      if (!modalsContainer) {
+        modalsContainer = document.createElement('div');
+        modalsContainer.id = 'svelte-modals-mount';
+        document.body.appendChild(modalsContainer);
+      }
+      if (!modalsContainer.hasChildNodes()) {
+        mount(ModalsRoot, { target: modalsContainer });
+      }
+    }
+  } catch (err) {
+    console.warn('[Svelte] Components mounting deferred:', err);
+  }
 
   // Keyboard hotkeys for Leaderboard (Tab or L), Space to Roll, and Esc
   window.addEventListener('keydown', (e) => {

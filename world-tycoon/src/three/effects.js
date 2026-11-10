@@ -63,7 +63,7 @@ const FIREWORK_PALETTES = [
   ['#f43f5e', '#fb7185', '#f97316', '#facc15', '#ffffff', '#e11d48']
 ];
 
-export function initConfetti() {
+function initConfetti() {
   if (confettiCanvas) return;
   confettiCanvas = document.createElement('canvas');
   confettiCanvas.id = 'confetti-canvas';
@@ -119,7 +119,7 @@ export function fireConfettiBurst(x = window.innerWidth / 2, y = window.innerHei
   }
 }
 
-export function fireDualSideConfettiCannons() {
+function fireDualSideConfettiCannons() {
   if (isReducedMotion()) return;
   initConfetti();
   const w = confettiCanvas.width;
@@ -169,7 +169,7 @@ export function fireDualSideConfettiCannons() {
   if (!confettiAnimId) animateConfetti();
 }
 
-export function launchFireworkRocket(startX, targetY, colors) {
+function launchFireworkRocket(startX, targetY, colors) {
   initConfetti();
   const w = confettiCanvas.width;
   const h = confettiCanvas.height;
@@ -463,7 +463,7 @@ export function spawnAnimatedReaction(type = 'money', startX, startY) {
 /* ─────────────────────────────────────────────────────────────────────────────
    3. HARMONIOUS THEME COMBINATIONS: (BOARD STYLE x ATMOSPHERE)
 ───────────────────────────────────────────────────────────────────────────── */
-export const THEME_COMBINATIONS = {
+const THEME_COMBINATIONS = {
   // ── 🪵 WOOD BOARD STYLE ───────────────────────────────────────────────────
   'wood:day': {
     bg: 'radial-gradient(circle at 50% 28%, #f0f9ff 0%, #e0f2fe 32%, #bae6fd 65%, #7dd3fc 100%)',
@@ -531,13 +531,7 @@ export const THEME_COMBINATIONS = {
   }
 };
 
-export const LIGHTING_MODES = {
-  day: THEME_COMBINATIONS['wood:day'],
-  sunset: THEME_COMBINATIONS['wood:sunset'],
-  night: THEME_COMBINATIONS['wood:night']
-};
-
-export const LOBBY_THEMES = {
+const LOBBY_THEMES = {
   // 🪵 WOOD / DEFAULT
   'wood:day': {
     bg: 'linear-gradient(180deg, #38b6ff 0%, #2fa5f5 35%, #60a5fa 70%, #93c5fd 100%)',

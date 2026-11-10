@@ -61,7 +61,7 @@ export function ensure3DPortraitSystemInitialized() {
   }
 }
 
-export function rebuild3DPortraits() {
+function rebuild3DPortraits() {
   if (!portraitRenderer) {
     ensure3DPortraitSystemInitialized();
     return;

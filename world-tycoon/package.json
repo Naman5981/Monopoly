@@ -7,13 +7,16 @@
   "scripts": {
     "dev": "vite",
     "build:html": "node tools/assemble-html.js",
-    "build:css": "tailwindcss -i ./src/style.css -o ./public/compiled.css --minify && tailwindcss -i ./src/style.css -o ./src/compiled.css --minify",
-    "build": "npm run build:css && vite build",
+    "build:css": "node tools/build-css.js",
+    "build": "node tools/build-css.js && vite build",
     "preview": "vite preview",
     "test": "node --test test/**/*.test.js",
+    "test:watch": "node --test --watch test/**/*.test.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "svelte": "^5.0.0",
     "three": "^0.169.0"
   },
   "devDependencies": {

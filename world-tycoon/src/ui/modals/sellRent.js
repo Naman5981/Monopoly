@@ -13,6 +13,7 @@ import { renderCornerHUDs, logEvent } from '../hud.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateBankruptcyQuake, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 export function calculatePropertySaleValue(tile, propState) {
   if (!tile) return 0;
@@ -46,72 +47,10 @@ export function openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles, debt
   playSFX('hop');
 }
 
-function updateDebtFinancialsHUD(p, creditor, debt) {
-  const subtitleEl = document.getElementById('sell-cities-creditor-subtitle');
-  if (subtitleEl) {
-    subtitleEl.textContent = `Owe rent on ${debt.tile.name} to ${creditor.name}`;
-  }
-
-  const rentDueEl = document.getElementById('sell-cities-rent-due');
-  if (rentDueEl) rentDueEl.textContent = fmtMoney(debt.rentOwed);
-
-  const curCashEl = document.getElementById('sell-cities-current-cash');
-  if (curCashEl) curCashEl.textContent = fmtMoney(p.cash);
-
-  const deficit = Math.max(0, debt.rentOwed - p.cash);
-  const deficitEl = document.getElementById('sell-cities-deficit');
-  if (deficitEl) deficitEl.textContent = fmtMoney(deficit);
-}
-
 function getBuildingLevelDescription(level) {
   if (level === 4) return 'Skyscraper (MAX)';
   if (level > 0) return `${level} House${level > 1 ? 's' : ''}`;
   return 'Base Property';
-}
-
-function formatPropertySaleCard(tile, propState) {
-  const saleVal = calculatePropertySaleValue(tile, propState);
-  const color = tile.group && GROUP_META[tile.group] ? GROUP_META[tile.group].hex : '#0284c7';
-  const lvl = propState?.level || 0;
-  const lvlDesc = getBuildingLevelDescription(lvl);
-
-  return `
-    <div onclick="window.sellPropertyForRent(${tile.id})"
-         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.sellPropertyForRent(${tile.id});}"
-         tabindex="0"
-         role="button"
-         data-tile-id="${tile.id}"
-         aria-label="Sell ${tile.name} for ${fmtMoney(saleVal)}"
-         class="group bg-white border-2 border-slate-200/90 hover:border-rose-500 hover:bg-rose-50/20 active:scale-[0.99] rounded-2xl p-3 flex items-center justify-between gap-3 shadow-2xs hover:shadow-sm transition cursor-pointer select-none">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <span class="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0" style="background:${color}"></span>
-        <div class="truncate">
-          <div class="font-black text-xs sm:text-sm text-slate-900 group-hover:text-rose-950 transition-colors truncate">${tile.name}</div>
-          <div class="text-[10px] font-bold text-slate-500">${lvlDesc}</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <div class="text-right">
-          <div class="text-[9px] font-extrabold uppercase text-slate-400">SALE VALUE</div>
-          <div class="text-xs sm:text-sm font-black text-emerald-600">+${fmtMoney(saleVal)}</div>
-        </div>
-        <button type="button"
-                onclick="event.stopPropagation(); window.sellPropertyForRent(${tile.id})"
-                class="game-btn game-btn-rose !py-2 !px-3 text-xs font-black shadow-xs pointer-events-auto">
-          <i class="fa-solid fa-tag mr-1"></i> SELL
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-function renderEmptyPropertiesMessage() {
-  return `
-    <div class="text-center py-8 text-slate-500 font-bold text-xs">
-      <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg mb-1 block"></i>
-      No properties left to sell.
-    </div>
-  `;
 }
 
 export function renderSellCitiesModal() {
@@ -123,18 +62,31 @@ export function renderSellCitiesModal() {
   const creditor = gameState.players[debt.creditorIdx];
   if (!p || !creditor) return;
 
-  updateDebtFinancialsHUD(p, creditor, debt);
-
-  const grid = document.getElementById('sell-cities-card-grid');
-  if (!grid) return;
-
   const ownedTiles = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === pIdx);
-  if (ownedTiles.length === 0) {
-    grid.innerHTML = renderEmptyPropertiesMessage();
-    return;
-  }
+  const deficit = Math.max(0, debt.rentOwed - p.cash);
+  const ownedProps = ownedTiles.map(t => {
+    const propState = gameState.properties[t.id];
+    const saleVal = calculatePropertySaleValue(t, propState);
+    const color = t.group && GROUP_META[t.group] ? GROUP_META[t.group].hex : '#0284c7';
+    const lvl = propState?.level || 0;
+    const lvlDesc = getBuildingLevelDescription(lvl);
+    return {
+      id: t.id,
+      name: t.name,
+      color,
+      levelDesc: lvlDesc,
+      saleValFormatted: fmtMoney(saleVal)
+    };
+  });
 
-  grid.innerHTML = ownedTiles.map(t => formatPropertySaleCard(t, gameState.properties[t.id])).join('');
+  updateModalSlice('sellCities', {
+    visible: true,
+    creditorSubtitle: `Owe rent on ${debt.tile.name} to ${creditor.name}`,
+    rentDueFormatted: fmtMoney(debt.rentOwed),
+    currentCashFormatted: fmtMoney(p.cash),
+    deficitFormatted: fmtMoney(deficit),
+    ownedProperties: ownedProps
+  });
 }
 
 function applyPropertyLiquidation(player, tile, propState) {
@@ -232,6 +184,7 @@ export function autoSellCheapestForRent() {
 }
 
 function closeSellCitiesModal() {
+  updateModalSlice('sellCities', { visible: false });
   animateModalSpringClose('#modal-sell-cities', '#modal-sell-cities-card');
 }
 

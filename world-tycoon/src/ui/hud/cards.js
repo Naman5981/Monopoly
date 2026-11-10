@@ -13,6 +13,7 @@ import { playSFX } from '../../game/audio.js';
 import { animateNumberCounter, animateHUDCardSpringAbsorb } from '../anim.js';
 import { setPlayerPortraitMood, drawPortraitFrame, initPortraitRenderLoop } from '../portraitRenderer.js';
 import { setStatusPill } from './statusPill.js';
+import { updateHudState } from '../../svelte/stores/hudStore.js';
 
 export { setPlayerPortraitMood, drawPortraitFrame } from '../portraitRenderer.js';
 
@@ -51,11 +52,31 @@ export function renderCornerHUDs() {
     rightContainer.innerHTML = '';
   }
 
+  const leftPlayers = [];
+  const rightPlayers = [];
+
   gameState.players.forEach((p, idx) => {
     const isTurn = (idx === gameState.currentPlayerIdx);
     const isLeft = (idx % 2 === 0);
     const shownMoney = displayedCash[idx] !== undefined ? displayedCash[idx] : p.cash;
     const theme = PLAYER_THEMES[idx] || { colorHex: '#3b82f6', charColor: 0x3b82f6 };
+
+    const playerRecord = {
+      id: idx,
+      name: p.name,
+      isAI: Boolean(p.isAI),
+      isCurrent: isTurn,
+      colorHex: theme.colorHex,
+      cashFormatted: p.bankrupt ? 'OUT' : fmtMoney(shownMoney),
+      inIsland: Boolean(p.inIsland),
+      islandTurns: p.islandTurns || 0,
+      bankrupt: Boolean(p.bankrupt)
+    };
+    if (isLeft) {
+      leftPlayers.push(playerRecord);
+    } else {
+      rightPlayers.push(playerRecord);
+    }
 
     const turnBadgeHtml = isTurn
       ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[10px] tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>`
@@ -160,12 +181,20 @@ export function renderCornerHUDs() {
   });
 
   const aliveCount = gameState.players.filter(p => !p.bankrupt).length;
-  document.getElementById('hud-player-count').textContent = `${aliveCount}/${gameState.players.length}`;
+  const countEl = document.getElementById('hud-player-count');
+  if (countEl) countEl.textContent = `${aliveCount}/${gameState.players.length}`;
 
   const mySets = Object.keys(GROUP_META).filter(g => ownsFullColorGroup(0, g)).length;
   const targetSets = matchSettings.monopolySetsToWin || 3;
   const bonusEl = document.getElementById('hud-bonus-counter');
   if (bonusEl) bonusEl.textContent = `${mySets}/${targetSets} Sets`;
+
+  updateHudState({
+    playerCount: `${aliveCount}/${gameState.players.length}`,
+    monopolySets: `${mySets}/${targetSets} Sets`,
+    leftPlayers,
+    rightPlayers
+  });
 
   // Auto-refresh leaderboard modal if open
   const lbModal = document.getElementById('modal-leaderboard');

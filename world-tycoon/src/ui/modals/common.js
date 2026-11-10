@@ -164,7 +164,7 @@ export function getTierBadgeHTML(level) {
  * Modal IDs associated with turn-specific gameplay actions.
  * Only these modals are auto-dismissed when a turn advances.
  */
-export const TURN_ACTION_MODAL_IDS = [
+const TURN_ACTION_MODAL_IDS = [
   'modal-buy-city',
   'modal-buyout-city',
   'modal-sell-cities',
@@ -181,7 +181,7 @@ export const TURN_ACTION_MODAL_IDS = [
  * Informational user modals triggered from the top HUD bar.
  * Always elevated and togglable independently of turns.
  */
-export const USER_INFORMATIONAL_MODAL_IDS = [
+const USER_INFORMATIONAL_MODAL_IDS = [
   'modal-portfolio',
   'modal-trade',
   'modal-rules',

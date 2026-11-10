@@ -19,6 +19,115 @@ import { renderCornerHUDs, showTurnLockToast, logEvent, refreshActivePlayerTurnS
 import { saveCurrentMatchToStorage } from '../../game/persistence.js';
 import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML, closeOtherInformationalModals } from './common.js';
 import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
+
+function renderOwnerPill(tile, st, isOwnedByLocalPlayer) {
+  const el = document.getElementById('insp-owner-pill');
+  if (!el) return;
+  if (st && st.owner !== null) {
+    if (isOwnedByLocalPlayer) {
+      const levelDesc = (st.level === 4 ? 'Skyscraper (MAX)' : (st.level > 0 ? `${st.level} House${st.level > 1 ? 's' : ''}` : 'Base Land'));
+      el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-emerald-50 text-emerald-900 border-2 border-emerald-300 shadow-2xs';
+      el.innerHTML = `<i class="fa-solid fa-crown text-amber-500 mr-1"></i> Your Estate • ${levelDesc}`;
+    } else {
+      const ownerName = gameState.players[st.owner]?.name || 'Opponent';
+      el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs';
+      el.innerHTML = `Owned by <strong>${ownerName}</strong>`;
+    }
+  } else if (tile.price) {
+    el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-amber-50 text-amber-950 border-2 border-amber-300/80 shadow-2xs';
+    el.innerHTML = `Unowned • Price: <strong class="text-emerald-700">${fmtMoney(tile.price)}</strong>`;
+  } else {
+    el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs';
+    el.textContent = tile.subtitle || 'Special Tile';
+  }
+}
+
+function renderRentList(tile, st) {
+  const el = document.getElementById('insp-rent-list');
+  if (!el) return;
+  if (tile.type === 'city') {
+    const curLevel = st ? (st.level || 0) : -1;
+    const tierLabels = ['Base Land', '1 House', '2 Houses', '3 Houses', 'Skyscraper'];
+    el.innerHTML = [0, 1, 2, 3, 4].map(idx => {
+      const isCurrent = (curLevel === idx);
+      const isSky = (idx === 4);
+      const cardClass = isCurrent ? 'game-tier-card tier-card-current' : (isSky ? 'game-tier-card tier-card-skyscraper' : 'game-tier-card');
+      const valPillClass = isCurrent ? 'tier-val-pill bg-emerald-600 text-white border-emerald-500 shadow-xs' : (isSky ? 'tier-val-pill tier-val-skyscraper' : 'tier-val-pill');
+      const activeTag = isCurrent ? '<span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-600 text-white font-black ml-1.5 shadow-2xs">ACTIVE</span>' : '';
+      return `
+        <div class="${cardClass} py-1.5 px-2.5">
+          <div class="flex items-center gap-2">
+            ${getTierBadgeHTML(idx)}
+            <div class="flex items-center"><span class="font-display font-bold text-xs text-slate-800">${tierLabels[idx]}</span>${activeTag}</div>
+          </div>
+          <div class="${valPillClass} text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[idx])}</div>
+        </div>
+      `;
+    }).join('');
+  } else if (tile.type === 'resort') {
+    el.innerHTML = `
+      <div class="game-tier-card py-2 px-3">
+        <div class="flex items-center gap-2">
+          <div class="tier-level-badge tier-house"><svg class="ui-icon w-3.5 h-3.5 text-sky-600" aria-hidden="true"><use href="#icon-pin"></use></svg></div>
+          <span class="font-display font-bold text-xs text-slate-800">1 Resort Owned</span>
+        </div>
+        <div class="tier-val-pill text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[0])}</div>
+      </div>
+      <div class="game-tier-card tier-card-skyscraper py-2 px-3">
+        <div class="flex items-center gap-2">
+          <div class="tier-level-badge tier-skyscraper-badge"><svg class="ui-icon w-3.5 h-3.5 text-amber-600" aria-hidden="true"><use href="#icon-sparkle"></use></svg></div>
+          <span class="font-display font-bold text-xs text-amber-950">2 Resorts Owned (2×)</span>
+        </div>
+        <div class="tier-val-pill tier-val-skyscraper text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[1])}</div>
+      </div>
+    `;
+  } else {
+    el.innerHTML = `<div class="p-3 bg-white rounded-2xl border border-slate-200 text-center font-bold text-xs text-slate-700">${tile.subtitle || 'Land here to trigger special board rules.'}</div>`;
+  }
+}
+
+function renderInspectorActions(tile, tileId, st, myPlayer, isOwnedByLocalPlayer, isStandingOnTile) {
+  const el = document.getElementById('insp-actions');
+  if (!el) return;
+  el.innerHTML = '';
+  if (!isOwnedByLocalPlayer) return;
+
+  if (!isStandingOnTile) {
+    el.innerHTML = `
+      <div class="py-2.5 px-3 rounded-2xl bg-slate-100 border border-slate-200 text-slate-500 font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-2xs">
+        <i class="fa-solid fa-location-dot text-slate-400"></i>
+        <span>Land here to build upgrades</span>
+      </div>
+    `;
+    return;
+  }
+
+  if (!isHumanTurnActionable()) {
+    el.innerHTML = `
+      <div class="w-full py-2.5 px-3 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs">
+        <i class="fa-solid fa-lock text-amber-600"></i>
+        <span>Wait for your turn to build upgrades</span>
+      </div>
+    `;
+    return;
+  }
+
+  if (tile.type === 'city') {
+    const canUp = st.level < 4 && myPlayer.cash >= tile.houseCost;
+    const canDown = st.level > 0;
+    el.innerHTML = `
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="window.upgradeCityLevel(${tileId})" ${!canUp ? 'disabled' : ''} class="game-btn ${canUp ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs font-black">
+          +Upgrade (${fmtMoney(tile.houseCost)})
+        </button>
+        <button onclick="window.downgradeCityLevel(${tileId})" ${!canDown ? 'disabled' : ''} class="game-btn ${canDown ? 'game-btn-orange' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs font-black">
+          -Sell (+${fmtMoney(tile.houseCost / 2)})
+        </button>
+      </div>
+    `;
+  }
+}
 
 export function openInspectorModal(tileId) {
   if (isLobbyScreenActive()) return;
@@ -48,118 +157,20 @@ export function openInspectorModal(tileId) {
   const isOwnedByLocalPlayer = (st && st.owner === myIdx);
   const isStandingOnTile = (myPlayer && myPlayer.position === tileId);
 
-  const ownerPill = document.getElementById('insp-owner-pill');
-  if (ownerPill) {
-    if (st && st.owner !== null) {
-      if (isOwnedByLocalPlayer) {
-        const levelDesc = (st.level === 4 ? 'Skyscraper (MAX)' : (st.level > 0 ? `${st.level} House${st.level > 1 ? 's' : ''}` : 'Base Land'));
-        ownerPill.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-emerald-50 text-emerald-900 border-2 border-emerald-300 shadow-2xs';
-        ownerPill.innerHTML = `<i class="fa-solid fa-crown text-amber-500 mr-1"></i> Your Estate • ${levelDesc}`;
-      } else {
-        const ownerName = gameState.players[st.owner]?.name || 'Opponent';
-        ownerPill.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs';
-        ownerPill.innerHTML = `Owned by <strong>${ownerName}</strong>`;
-      }
-    } else if (tile.price) {
-      ownerPill.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-amber-50 text-amber-950 border-2 border-amber-300/80 shadow-2xs';
-      ownerPill.innerHTML = `Unowned • Price: <strong class="text-emerald-700">${fmtMoney(tile.price)}</strong>`;
-    } else {
-      ownerPill.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs';
-      ownerPill.textContent = tile.subtitle || 'Special Tile';
-    }
-  }
+  updateModalSlice('inspector', {
+    visible: true,
+    tile,
+    ownerName: st?.owner !== null && st?.owner !== undefined ? (gameState.players[st.owner]?.name || 'Unknown') : 'Unowned',
+    level: st?.level || 0,
+    mortgaged: Boolean(st?.mortgaged),
+    festivalBoost: Boolean(st?.festivalBoost),
+    isOwner: isOwnedByLocalPlayer,
+    canUpgrade: isOwnedByLocalPlayer && (st?.level || 0) < 4
+  });
 
-  const rentList = document.getElementById('insp-rent-list');
-  if (rentList) {
-    if (tile.type === 'city') {
-      const curLevel = st ? (st.level || 0) : -1;
-      const tierLabels = ['Base Land', '1 House', '2 Houses', '3 Houses', 'Skyscraper'];
-      rentList.innerHTML = [0, 1, 2, 3, 4].map(idx => {
-        const isCurrent = (curLevel === idx);
-        const isSky = (idx === 4);
-        const cardClass = isCurrent
-          ? 'game-tier-card tier-card-current'
-          : (isSky ? 'game-tier-card tier-card-skyscraper' : 'game-tier-card');
-        const valPillClass = isCurrent
-          ? 'tier-val-pill bg-emerald-600 text-white border-emerald-500 shadow-xs'
-          : (isSky ? 'tier-val-pill tier-val-skyscraper' : 'tier-val-pill');
-        const activeTag = isCurrent
-          ? '<span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-600 text-white font-black ml-1.5 shadow-2xs">ACTIVE</span>'
-          : '';
-        return `
-          <div class="${cardClass} py-1.5 px-2.5">
-            <div class="flex items-center gap-2">
-              ${getTierBadgeHTML(idx)}
-              <div class="flex items-center">
-                <span class="font-display font-bold text-xs text-slate-800">${tierLabels[idx]}</span>
-                ${activeTag}
-              </div>
-            </div>
-            <div class="${valPillClass} text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[idx])}</div>
-          </div>
-        `;
-      }).join('');
-    } else if (tile.type === 'resort') {
-      rentList.innerHTML = `
-        <div class="game-tier-card py-2 px-3">
-          <div class="flex items-center gap-2">
-            <div class="tier-level-badge tier-house"><svg class="ui-icon w-3.5 h-3.5 text-sky-600" aria-hidden="true"><use href="#icon-pin"></use></svg></div>
-            <span class="font-display font-bold text-xs text-slate-800">1 Resort Owned</span>
-          </div>
-          <div class="tier-val-pill text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[0])}</div>
-        </div>
-        <div class="game-tier-card tier-card-skyscraper py-2 px-3">
-          <div class="flex items-center gap-2">
-            <div class="tier-level-badge tier-skyscraper-badge"><svg class="ui-icon w-3.5 h-3.5 text-amber-600" aria-hidden="true"><use href="#icon-sparkle"></use></svg></div>
-            <span class="font-display font-bold text-xs text-amber-950">2 Resorts Owned (2×)</span>
-          </div>
-          <div class="tier-val-pill tier-val-skyscraper text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[1])}</div>
-        </div>
-      `;
-    } else {
-      rentList.innerHTML = `<div class="p-3 bg-white rounded-2xl border border-slate-200 text-center font-bold text-xs text-slate-700">${tile.subtitle || 'Land here to trigger special board rules.'}</div>`;
-    }
-  }
-
-  const actionsEl = document.getElementById('insp-actions');
-  if (actionsEl) {
-    actionsEl.innerHTML = '';
-
-    if (isOwnedByLocalPlayer) {
-      if (!isStandingOnTile) {
-        actionsEl.innerHTML = `
-          <div class="py-2.5 px-3 rounded-2xl bg-slate-100 border border-slate-200 text-slate-500 font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-2xs">
-            <i class="fa-solid fa-location-dot text-slate-400"></i>
-            <span>Land here to build upgrades</span>
-          </div>
-        `;
-      } else if (!isHumanTurnActionable()) {
-        actionsEl.innerHTML = `
-          <div class="w-full py-2.5 px-3 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs">
-            <i class="fa-solid fa-lock text-amber-600"></i>
-            <span>Wait for your turn to build upgrades</span>
-          </div>
-        `;
-      } else {
-        let html = '';
-        if (tile.type === 'city') {
-          const canUp = st.level < 4 && myPlayer.cash >= tile.houseCost;
-          const canDown = st.level > 0;
-          html += `
-            <div class="grid grid-cols-2 gap-2">
-              <button onclick="window.upgradeCityLevel(${tileId})" ${!canUp ? 'disabled' : ''} class="game-btn ${canUp ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs font-black">
-                +Upgrade (${fmtMoney(tile.houseCost)})
-              </button>
-              <button onclick="window.downgradeCityLevel(${tileId})" ${!canDown ? 'disabled' : ''} class="game-btn ${canDown ? 'game-btn-orange' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs font-black">
-                -Sell (+${fmtMoney(tile.houseCost / 2)})
-              </button>
-            </div>
-          `;
-        }
-        actionsEl.innerHTML = html;
-      }
-    }
-  }
+  renderOwnerPill(tile, st, isOwnedByLocalPlayer);
+  renderRentList(tile, st);
+  renderInspectorActions(tile, tileId, st, myPlayer, isOwnedByLocalPlayer, isStandingOnTile);
 
   populateCityPreview3DScene(tile, 'insp-city-3d-canvas');
 
@@ -187,6 +198,7 @@ export function openInspectorModal(tileId) {
 }
 
 export function closeInspectorModal() {
+  updateModalSlice('inspector', { visible: false });
   const m = document.getElementById('modal-tile-inspector');
   const card = document.getElementById('modal-tile-inspector-card');
   setTileHighlightRing(0, false);
@@ -304,6 +316,7 @@ export function openPortfolioModal() {
     return;
   }
   closeOtherInformationalModals('modal-portfolio');
+  updateModalSlice('portfolio', { visible: true });
   renderPortfolioGrid();
   if (m) {
     m.style.removeProperty('display');
@@ -314,6 +327,7 @@ export function openPortfolioModal() {
 }
 
 export function closePortfolioModal() {
+  updateModalSlice('portfolio', { visible: false });
   const m = document.getElementById('modal-portfolio');
   if (m) {
     animateModalSpringClose(m, '#modal-portfolio .game-modal-shell', () => {

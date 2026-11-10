@@ -21,6 +21,7 @@ import { fireConfettiBurst, spawnAnimatedReaction } from '../../three/effects.js
 import { checkAndTriggerMonopoly } from './victory.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateBuyoutHostileStamp, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 let buyoutCountdownInterval = null;
 let buyoutCountdownTimer = null;
@@ -71,56 +72,29 @@ export function openBuyoutCityModal(tile, isDoubles) {
   const housesCost = (st?.level || 0) * (tile.houseCost || 0);
   const totalBuyoutCost = basePrice + housesCost;
 
-  const header = document.getElementById('buyout-modal-header');
-  if (header && tile.group && GROUP_META[tile.group]) {
-    header.style.background = `linear-gradient(135deg, ${GROUP_META[tile.group].hex}, #ea580c, #dc2626)`;
-  }
+  let secondsLeft = 12;
+  updateModalSlice('buyout', {
+    visible: true,
+    tile,
+    buyoutCost: totalBuyoutCost,
+    buyoutCostFormatted: fmtMoney(totalBuyoutCost),
+    basePriceFormatted: fmtMoney(basePrice),
+    housesCostFormatted: (st?.level || 0) > 0 ? `${fmtMoney(housesCost)} (${st.level} built)` : '$0 (None)',
+    sellerName: prevOwner?.name || 'Opponent',
+    buyerBalanceFormatted: fmtMoney(p?.cash || 0),
+    canAfford: Boolean(p && p.cash >= totalBuyoutCost),
+    secondsLeft
+  });
 
-  const nameEl = document.getElementById('buyout-modal-name');
-  if (nameEl) nameEl.textContent = tile.name;
-
-  const ownerEl = document.getElementById('buyout-modal-owner');
-  if (ownerEl && prevOwner) {
-    const lvl = st?.level || 0;
-    ownerEl.innerHTML = `Acquire from <strong class="text-rose-600">${prevOwner.name}</strong> • ${lvl > 0 ? `${lvl} House${lvl > 1 ? 's' : ''}` : 'Base Property'}`;
-  }
-
-  const basePriceEl = document.getElementById('buyout-modal-base-price');
-  if (basePriceEl) basePriceEl.textContent = fmtMoney(basePrice);
-
-  const housesCostEl = document.getElementById('buyout-modal-houses-cost');
-  if (housesCostEl) {
-    const lvl = st?.level || 0;
-    housesCostEl.textContent = lvl > 0 ? `${fmtMoney(housesCost)} (${lvl} built)` : '$0 (None)';
-  }
-
-  const totalCostEl = document.getElementById('buyout-modal-total-cost');
-  if (totalCostEl) totalCostEl.textContent = fmtMoney(totalBuyoutCost);
-
-  const balEl = document.getElementById('buyout-modal-balance');
-  if (balEl && p) balEl.textContent = fmtMoney(p.cash);
-
-  const confirmBtn = document.getElementById('btn-confirm-buyout');
-  if (confirmBtn) {
-    const canAfford = p && p.cash >= totalBuyoutCost;
-    confirmBtn.disabled = !canAfford;
-    confirmBtn.innerHTML = `<i class="fa-solid fa-handshake mr-1"></i> BUYOUT CITY (${fmtMoney(totalBuyoutCost)})`;
-  }
-
-  const passBtn = document.getElementById('btn-pass-buyout');
-  if (passBtn) {
-    let secondsLeft = 12;
-    passBtn.innerHTML = `<i class="fa-solid fa-forward mr-1"></i> PASS (${secondsLeft}s)`;
-    buyoutCountdownInterval = setInterval(() => {
-      secondsLeft--;
-      if (secondsLeft > 0) {
-        if (passBtn) passBtn.innerHTML = `<i class="fa-solid fa-forward mr-1"></i> PASS (${secondsLeft}s)`;
-      } else {
-        clearBuyoutTimers();
-        passBuyoutCity();
-      }
-    }, 1000);
-  }
+  buyoutCountdownInterval = setInterval(() => {
+    secondsLeft--;
+    if (secondsLeft > 0) {
+      updateModalSlice('buyout', { secondsLeft });
+    } else {
+      clearBuyoutTimers();
+      passBuyoutCity();
+    }
+  }, 1000);
 
   try {
     populateCityPreview3DScene(tile, 'buyout-city-3d-canvas');
@@ -135,6 +109,7 @@ export function openBuyoutCityModal(tile, isDoubles) {
 
 export function confirmBuyoutCity() {
   clearBuyoutTimers();
+  updateModalSlice('buyout', { visible: false });
   const tile = gameState.pendingBuyoutTile;
   const isDoubles = gameState.pendingDoubles;
   const pIdx = gameState.currentPlayerIdx;
@@ -187,6 +162,7 @@ export function confirmBuyoutCity() {
 
 export function passBuyoutCity() {
   clearBuyoutTimers();
+  updateModalSlice('buyout', { visible: false });
   const tile = gameState.pendingBuyoutTile;
   const isDoubles = gameState.pendingDoubles;
   if (tile) {

@@ -25,6 +25,7 @@ import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML } from './common
 import { animateBuildingUpgradeBounce, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { playLandmarkCinematicReveal } from '../../three/theatre.js';
 import { setPlayerPortraitMood } from '../portraitRenderer.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 export function openUpgradeCityModal(tile, isDoubles) {
   if (isLobbyScreenActive()) return;
@@ -57,145 +58,50 @@ export function renderUpgradeModalContent(tile) {
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx] || gameState.players[0];
 
-  const header = document.getElementById('upgrade-modal-header');
-  if (header) {
-    const groupColor = tile.group ? GROUP_META[tile.group].hex : '#10b981';
-    header.style.background = groupColor;
-  }
-
-  const countryEl = document.getElementById('upgrade-modal-country');
-  if (countryEl) {
-    countryEl.innerHTML = `<i class="fa-solid fa-crown text-amber-300"></i> ${tile.group ? GROUP_META[tile.group].name : 'ESTATE'}`;
-  }
-
+  const groupColor = tile.group ? GROUP_META[tile.group].hex : '#10b981';
+  const countryName = tile.group ? GROUP_META[tile.group].name : 'ESTATE';
   const levelLabels = ['Base', '1 House', '2 Houses', '3 Houses', 'Skyscraper'];
-  const levelPill = document.getElementById('upgrade-modal-level-pill');
-  if (levelPill) {
-    levelPill.textContent = `Level ${st.level}: ${levelLabels[st.level] || 'Base'}`;
-    levelPill.className = 'text-xs font-black px-2.5 py-1 rounded-full bg-white/25 border border-white/40 shadow-xs';
-  }
-
-  const nameEl = document.getElementById('upgrade-modal-name');
-  if (nameEl) nameEl.textContent = tile.name;
-
   const curRent = calculateTileRent(tile.id);
-  const curRentEl = document.getElementById('upgrade-modal-current-rent');
-  if (curRentEl) curRentEl.textContent = fmtMoney(curRent);
-  const costEl = document.getElementById('upgrade-modal-cost');
-  if (costEl) costEl.textContent = fmtMoney(tile.houseCost);
-  const balEl = document.getElementById('upgrade-modal-balance');
-  if (balEl) balEl.textContent = `Balance: ${fmtMoney(p.cash)}`;
 
-  const tiersEl = document.getElementById('upgrade-modal-tiers');
-  if (tiersEl) {
-    tiersEl.innerHTML = levelLabels.map((lbl, idx) => {
-      const isCurrent = (st.level === idx);
-      const isNext = (st.level + 1 === idx);
-      const rentVal = tile.rent[idx];
-      const isSky = (idx === 4);
+  const tiers = levelLabels.map((lbl, idx) => ({
+    label: lbl,
+    rent: fmtMoney(tile.rent[idx]),
+    isCurrent: (st.level === idx),
+    isSkyscraper: (idx === 4)
+  }));
 
-      let cardClass = isCurrent
-        ? 'game-tier-card tier-card-current'
-        : (isNext ? 'game-tier-card tier-card-next' : (isSky ? 'game-tier-card tier-card-skyscraper' : 'game-tier-card'));
-
-      let statusPill = '';
-      if (isCurrent) {
-        statusPill = '<span class="text-[9px] uppercase px-2 py-0.5 rounded-full bg-emerald-600 text-white font-black shadow-2xs">ACTIVE</span>';
-      } else if (isNext) {
-        statusPill = '<span class="text-[9px] uppercase px-2 py-0.5 rounded-full bg-sky-500 text-white font-black shadow-2xs">+NEXT</span>';
-      } else if (isSky) {
-        statusPill = '<span class="text-[9px] uppercase px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 font-black shadow-2xs">MAX</span>';
-      }
-
-      let valPillClass = isCurrent
-        ? 'tier-val-pill bg-emerald-600 text-white border-emerald-500 shadow-xs'
-        : (isSky ? 'tier-val-pill tier-val-skyscraper' : 'tier-val-pill');
-
-      return `
-        <div class="${cardClass}">
-          <div class="flex items-center gap-2.5">
-            ${getTierBadgeHTML(idx)}
-            <div>
-              <div class="font-display font-black text-xs sm:text-sm text-slate-800 flex items-center gap-1.5 leading-tight">
-                <span>${lbl}</span>
-                ${statusPill}
-              </div>
-              <div class="text-[10px] text-slate-400 font-bold">${idx === 0 ? 'Base Land Payout' : (isSky ? 'Maximum Empire Rent' : `District Level ${idx}`)}</div>
-            </div>
-          </div>
-          <div class="${valPillClass}">${fmtMoney(rentVal)}</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  const noticeEl = document.getElementById('upgrade-modal-notice');
-  const btnUpgrade = document.getElementById('btn-confirm-upgrade');
-  const btnUpgrade2 = document.getElementById('btn-confirm-upgrade-2');
-  const btnClose = document.getElementById('btn-close-upgrade-modal');
   const upgradesDone = gameState.upgradesThisVisit || 0;
+  const canAfford1 = p.cash >= tile.houseCost;
+  const canAfford2 = p.cash >= (tile.houseCost * 2);
+  const canUpgrade = canAfford1 && upgradesDone < 2 && st.level < 4;
+  const canUpgradeTwo = canAfford2 && upgradesDone === 0 && st.level <= 2;
 
+  let noticeText = '';
   if (upgradesDone >= 2) {
-    if (btnUpgrade2) btnUpgrade2.classList.add('hidden');
-    if (noticeEl) {
-      noticeEl.classList.remove('hidden');
-      noticeEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> <strong class="text-emerald-800">Visit Limit Reached (2/2)!</strong> You can upgrade at most 2 levels at one time.`;
-    }
-    if (btnUpgrade) {
-      btnUpgrade.disabled = true;
-      btnUpgrade.className = 'game-btn game-btn-slate opacity-50 cursor-not-allowed flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug';
-      btnUpgrade.innerHTML = `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-ban text-amber-500"></i> MAX REACHED</span><span class="text-xs font-bold opacity-80">(2/2 Levels)</span>`;
-    }
-    if (btnClose) btnClose.textContent = 'DONE';
+    noticeText = 'Visit Limit Reached (2/2)! You can upgrade at most 2 levels at one time.';
   } else if (st.level >= 4) {
-    if (btnUpgrade2) btnUpgrade2.classList.add('hidden');
-    if (noticeEl) {
-      noticeEl.classList.remove('hidden');
-      noticeEl.innerHTML = `🏆 <strong class="text-amber-800">Skyscraper Maxed!</strong> This estate is generating maximum rent of ${fmtMoney(tile.rent[4])}.`;
-    }
-    if (btnUpgrade) {
-      btnUpgrade.disabled = true;
-      btnUpgrade.className = 'game-btn game-btn-slate opacity-50 cursor-not-allowed flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug';
-      btnUpgrade.innerHTML = `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-crown text-amber-500"></i> MAX LEVEL</span><span class="text-xs font-bold opacity-80">(Skyscraper)</span>`;
-    }
-    if (btnClose) btnClose.textContent = 'DONE';
-  } else {
-    const canAfford = p.cash >= tile.houseCost;
-    if (btnUpgrade) {
-      btnUpgrade.disabled = !canAfford;
-      btnUpgrade.className = `game-btn ${canAfford ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug`;
-      btnUpgrade.innerHTML = canAfford
-        ? `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-arrow-up-right-dots"></i> +1 LEVEL</span><span class="text-xs font-bold opacity-90">(${fmtMoney(tile.houseCost)})</span>`
-        : `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-lock"></i> +1 LEVEL</span><span class="text-xs font-bold opacity-80">(NEED ${fmtMoney(tile.houseCost)})</span>`;
-    }
-
-    if (btnUpgrade2) {
-      if (upgradesDone === 0 && st.level <= 2) {
-        btnUpgrade2.classList.remove('hidden');
-        const cost2 = tile.houseCost * 2;
-        const canAfford2 = p.cash >= cost2;
-        btnUpgrade2.disabled = !canAfford2;
-        btnUpgrade2.className = `game-btn ${canAfford2 ? 'game-btn-blue' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-3 px-3 text-xs sm:text-sm font-black flex flex-col items-center justify-center gap-0.5 leading-snug`;
-        btnUpgrade2.innerHTML = canAfford2
-          ? `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-angles-up"></i> +2 LEVELS</span><span class="text-xs font-bold opacity-90">(${fmtMoney(cost2)})</span>`
-          : `<span class="flex items-center justify-center gap-1.5"><i class="fa-solid fa-lock"></i> +2 LEVELS</span><span class="text-xs font-bold opacity-80">(NEED ${fmtMoney(cost2)})</span>`;
-      } else {
-        btnUpgrade2.classList.add('hidden');
-      }
-    }
-
-    if (noticeEl) {
-      if (upgradesDone > 0) {
-        noticeEl.classList.remove('hidden');
-        noticeEl.innerHTML = `⭐ <strong>${upgradesDone}/2 Upgrades completed</strong> this visit. You may upgrade 1 more level.`;
-      } else {
-        noticeEl.classList.add('hidden');
-      }
-    }
-    if (btnClose) {
-      btnClose.textContent = (upgradesDone > 0 || st.level > 0) ? 'DONE' : 'CONTINUE';
-    }
+    noticeText = `Skyscraper Maxed! This estate is generating maximum rent of ${fmtMoney(tile.rent[4])}.`;
+  } else if (upgradesDone > 0) {
+    noticeText = `${upgradesDone}/2 Upgrades completed this visit. You may upgrade 1 more level.`;
   }
+
+  updateModalSlice('upgradeCity', {
+    visible: true,
+    tile,
+    cityName: tile.name,
+    countryName,
+    levelLabel: `Level ${st.level}: ${levelLabels[st.level] || 'Base'}`,
+    colorHex: groupColor,
+    currentRentFormatted: fmtMoney(curRent),
+    upgradeCostFormatted: fmtMoney(tile.houseCost),
+    balanceFormatted: `Balance: ${fmtMoney(p.cash)}`,
+    noticeText,
+    canUpgrade,
+    canUpgradeTwo,
+    costOneFormatted: fmtMoney(tile.houseCost),
+    costTwoFormatted: fmtMoney(tile.houseCost * 2),
+    tiers
+  });
 }
 
 export function confirmUpgradeFromModal() {
@@ -284,6 +190,7 @@ export function closeUpgradeCityModal() {
     setTileHighlightRing(tile.id, false);
   }
   clearCityPreview();
+  updateModalSlice('upgradeCity', { visible: false });
   animateModalSpringClose('#modal-upgrade-city', '#modal-upgrade-city-card');
   gameState.pendingUpgradeTile = null;
 

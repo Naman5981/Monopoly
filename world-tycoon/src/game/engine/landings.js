@@ -14,7 +14,7 @@ import { PropertyLandingStrategy } from './strategies/PropertyLandingStrategy.js
 
 // Lazy instantiated landing registry to eliminate circular evaluation cycles
 let landingRegistry = null;
-export function getLandingRegistry() {
+function getLandingRegistry() {
   if (!landingRegistry) {
     landingRegistry = new TileLandingRegistry(evaluateTileLanding);
   }

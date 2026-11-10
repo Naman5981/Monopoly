@@ -7,6 +7,7 @@ import { PLAYER_THEMES } from '../../game/data.js';
 import { gameState, matchSettings } from '../../game/state.js';
 import { networkState } from '../../network/p2p.js';
 import { animateToastAccordionPush } from '../anim.js';
+import { updateHudState } from '../../svelte/stores/hudStore.js';
 
 let statusPillResetTimer = null;
 let currentThinkingState = null;
@@ -42,6 +43,20 @@ export function setStatusPill(htmlContent, options = {}) {
   if (isThinking) {
     currentThinkingState = { htmlContent, options: { ...options, playerIdx } };
   }
+
+  const resolvedDotColor = (playerIdx !== null && playerIdx !== undefined && PLAYER_THEMES[playerIdx])
+    ? PLAYER_THEMES[playerIdx].colorHex
+    : (isThinking ? '#38bdf8' : '#fbbf24');
+
+  updateHudState({
+    statusPill: {
+      text: htmlContent,
+      dotColor: resolvedDotColor,
+      isThinking,
+      icon: icon || (isThinking ? '⚡' : '🎲'),
+      visible: true
+    }
+  });
 
   textEl.innerHTML = htmlContent;
 

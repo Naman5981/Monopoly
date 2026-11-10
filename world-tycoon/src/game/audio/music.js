@@ -426,9 +426,7 @@ export function updateAdaptiveMusicTension(factor) {
   adaptiveMusic.setTension(factor);
 }
 
-export function setMusicVolume(vol) {
-  adaptiveMusic.setVolume(vol);
-}
+
 
 /**
  * Evaluates the live dynamic tension of the current match.

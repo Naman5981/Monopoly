@@ -9,9 +9,9 @@ import { playSFX } from '../../game/audio.js';
 import { applyLightingMode } from '../../three/effects.js';
 import { getSceneLighting, applyBoardStyle, refreshAllTileTexturesAndMaterials } from '../../three/scene.js';
 import { networkState, broadcastLobbySettings, broadcastAction } from '../../network/p2p.js';
-import { CANDY_PALETTE, canCurrentPlayerEditSlot, canCurrentPlayerChangeColor, selectedSetupPlayerIdx } from './playerCustomization.js';
+import { CANDY_PALETTE, canCurrentPlayerChangeColor, selectedSetupPlayerIdx } from './playerCustomization.js';
 
-export const MATCH_DURATION_OPTIONS = [15, 30, 45, 60, 75];
+const MATCH_DURATION_OPTIONS = [15, 30, 45, 60, 75];
 
 export function setStartingCash(amt) {
   if (networkState.isMultiplayer && !networkState.isHost) return;

@@ -12,10 +12,10 @@
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Outfit (Executive Display & Modern Typography) + Rubik -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
 
   <!-- Pre-compiled Production Tailwind CSS & Custom Styles (5x faster load, zero runtime DOM observation) -->
   <link rel="stylesheet" href="./src/compiled.css">
@@ -52,23 +52,14 @@
   <!-- ================================================================= -->
   <!-- MODALS & POPUPS                                                   -->
   <!-- ================================================================= -->
-  <!-- #include "src/templates/modals/buy-city.html" -->
-  <!-- #include "src/templates/modals/festival.html" -->
-  <!-- #include "src/templates/modals/buyout-city.html" -->
-  <!-- #include "src/templates/modals/sell-cities.html" -->
-  <!-- #include "src/templates/modals/upgrade-city.html" -->
-  <!-- #include "src/templates/modals/auction.html" -->
-  <!-- #include "src/templates/modals/chance-wheel.html" -->
-  <!-- #include "src/templates/modals/tile-inspector.html" -->
-  <!-- #include "src/templates/modals/portfolio.html" -->
-  <!-- #include "src/templates/modals/trade.html" -->
+  <!-- Svelte 5 Declarative Modals Root (BuyCity, UpgradeCity, SellCities, Auction, Portfolio, Rules, Victory, Wardrobe, Buyout, Trade, Chance, Inspector, Festival) -->
+  <div id="svelte-modals-mount"></div>
+
+  <!-- Traditional & Remaining Modals -->
   <!-- #include "src/templates/modals/setup-dialog.html" -->
-  <!-- #include "src/templates/modals/rules.html" -->
-  <!-- #include "src/templates/modals/victory.html" -->
   <!-- #include "src/templates/modals/monopoly-celebration.html" -->
   <!-- #include "src/templates/modals/network-alerts.html" -->
   <!-- #include "src/templates/modals/leaderboard.html" -->
-  <!-- #include "src/templates/modals/wardrobe.html" -->
   <!-- #include "src/templates/modals/update-alert.html" -->
 
 </body>

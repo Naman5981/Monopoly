@@ -4,7 +4,6 @@
  */
 
 import { gameState, isHumanTurnActionable, matchSettings, debugState } from '../state.js';
-import { fmtMoney } from '../utils.js';
 import { playSFX } from '../audio.js';
 import { calculatePlayerNetWorth, checkVictoryConditions } from '../rules.js';
 import {
@@ -29,7 +28,7 @@ import {
   setPlayerPortraitMood,
   hideDiceSumBadge
 } from '../../ui/hud.js';
-import { showVictoryModal, closeAllGameModals, closeTurnActionModals } from '../../ui/modals.js';
+import { showVictoryModal, closeTurnActionModals } from '../../ui/modals.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from '../persistence.js';
@@ -47,7 +46,7 @@ import { evaluateTileLanding } from './landings.js';
 let autoEndTurnTimer = null;
 let observerEndTurnWatchdog = null;
 
-export function clearObserverEndTurnWatchdog() {
+function clearObserverEndTurnWatchdog() {
   if (observerEndTurnWatchdog) {
     clearTimeout(observerEndTurnWatchdog);
     observerEndTurnWatchdog = null;

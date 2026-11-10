@@ -3,15 +3,18 @@
  * Roll dice & bail buttons, turn lock toasts, and game speed controls.
  */
 
-import { gameState, matchSettings } from '../../game/state.js';
+import { gameState, matchSettings, soundEnabled, soundVolume, setSoundVolume, toggleSoundEnabled } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { networkState } from '../../network/p2p.js';
 import { showSpeechBubble } from '../../three/scene.js';
 import { animateToastAccordionPush } from '../anim.js';
 import { hideDiceSumBadge } from './statusPill.js';
+import { updateMasterVolume, playSFX, startAdaptiveMusic, stopAdaptiveMusic } from '../../game/audio.js';
+import { updateHudState } from '../../svelte/stores/hudStore.js';
 
 export function updateGameSpeedUI() {
   const speed = matchSettings.gameSpeed || 1;
+  updateHudState({ gameSpeed: speed });
   const label = document.getElementById('game-speed-label');
   const btn = document.getElementById('btn-game-speed');
   if (label) {
@@ -30,6 +33,7 @@ export function updateGameSpeedUI() {
 
 /** Show the turn-lock warning toast. */
 export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') {
+  updateHudState({ toast: { visible: true, text: msg } });
   const toast = document.getElementById('turn-lock-toast');
   const textEl = document.getElementById('turn-lock-toast-text');
   if (!toast || !textEl) return;
@@ -42,6 +46,7 @@ export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') 
   toast._timer = setTimeout(() => {
     toast.classList.add('hidden');
     toast.style.display = 'none';
+    updateHudState({ toast: { visible: false, text: '' } });
   }, 2200);
 }
 
@@ -113,6 +118,10 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
       btnBottom.style.display = 'none';
     }
     updateBailButtons(false, false);
+    updateHudState({
+      rollButton: { visible: false, label: 'Roll', enabled: false },
+      bailButton: { visible: false, label: 'Pay 150K Bail', canAfford: false }
+    });
     return;
   }
 
@@ -131,6 +140,10 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
       btnBottom.style.display = 'none';
     }
     updateBailButtons(false, false);
+    updateHudState({
+      rollButton: { visible: false, label: 'Roll', enabled: false },
+      bailButton: { visible: false, label: 'Pay 150K Bail', canAfford: false }
+    });
     return;
   }
 
@@ -148,12 +161,16 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
     }
     if (lblCenter) lblCenter.textContent = 'Roll';
     if (lblBottom) lblBottom.textContent = 'Roll';
+    const canAfford = p.inIsland ? (p.cash >= 150000) : false;
     if (p.inIsland) {
-      const canAfford = p.cash >= 150000;
       updateBailButtons(true, canAfford, p.cash);
     } else {
       updateBailButtons(false, false);
     }
+    updateHudState({
+      rollButton: { visible: true, label: 'Roll', enabled: true },
+      bailButton: { visible: Boolean(p.inIsland), label: canAfford ? 'Pay 150K Bail' : 'Need 150K Bail', canAfford }
+    });
   } else if (gameState.phase === 'END') {
     if (btnCenter) {
       btnCenter.classList.remove('hidden');
@@ -168,6 +185,10 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
     if (lblCenter) lblCenter.textContent = 'End Turn';
     if (lblBottom) lblBottom.textContent = 'End Turn';
     updateBailButtons(false, false);
+    updateHudState({
+      rollButton: { visible: true, label: 'End Turn', enabled: true },
+      bailButton: { visible: false, label: 'Pay 150K Bail', canAfford: false }
+    });
   } else {
     // MOVING, MODAL, CHANCE, FLIGHT, etc.
     if (btnCenter) {
@@ -179,11 +200,71 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
       btnBottom.style.display = 'none';
     }
     updateBailButtons(false, false);
+    updateHudState({
+      rollButton: { visible: false, label: 'Roll', enabled: false },
+      bailButton: { visible: false, label: 'Pay 150K Bail', canAfford: false }
+    });
+  }
+}
+
+export function updateSoundUI() {
+  const percent = soundEnabled ? Math.round(soundVolume * 100) : 0;
+  updateHudState({
+    soundVolume: percent,
+    soundEnabled: Boolean(soundEnabled)
+  });
+
+  // In-game HUD slider & percentage label
+  const slider = document.getElementById('sound-volume-slider');
+  if (slider) slider.value = percent;
+  const valText = document.getElementById('sound-volume-val');
+  if (valText) valText.textContent = `${percent}%`;
+
+  // Lobby setup slider & percentage label
+  const setupSlider = document.getElementById('setup-sound-slider');
+  if (setupSlider) setupSlider.value = percent;
+  const setupValText = document.getElementById('setup-sound-volume-val');
+  if (setupValText) setupValText.textContent = `${percent}%`;
+
+  // Icon classes based on volume level
+  const isMuted = !soundEnabled || soundVolume <= 0;
+  const iconClass = isMuted
+    ? 'fa-solid fa-volume-xmark text-rose-500'
+    : soundVolume < 0.5
+      ? 'fa-solid fa-volume-low text-sky-600'
+      : 'fa-solid fa-volume-high text-sky-600';
+
+  const btnIcon = document.getElementById('btn-sound-icon');
+  if (btnIcon) btnIcon.className = `${iconClass} text-xs`;
+
+  const setupBtnIcon = document.getElementById('setup-btn-sound-icon');
+  if (setupBtnIcon) setupBtnIcon.className = `${iconClass} text-sm`;
+}
+
+export function handleSetGameVolume(val) {
+  setSoundVolume(val);
+  updateMasterVolume(soundEnabled ? soundVolume : 0);
+  updateSoundUI();
+}
+
+export function handleToggleSound() {
+  toggleSoundEnabled();
+  updateMasterVolume(soundEnabled ? soundVolume : 0);
+  updateSoundUI();
+  if (soundEnabled) {
+    playSFX('click', 0.8);
+    if (gameState && gameState.gameStarted && gameState.phase !== 'VICTORY') {
+      startAdaptiveMusic();
+    }
+  } else {
+    stopAdaptiveMusic();
   }
 }
 
 if (typeof window !== 'undefined') {
   window.updateRollButtonsUI = updateRollButtonsUI;
+  window.setGameVolume = handleSetGameVolume;
+  window.toggleSound = handleToggleSound;
 }
 
 

@@ -14,10 +14,11 @@ import { animateWardrobeGridCascade, animateNumberCounter } from './anim.js';
 import { networkState, sendClientProfileUpdate, broadcastLobbySettings } from '../network/p2p.js';
 import { currentLobbyView } from './setup/lobbyNavigation.js';
 import { showTurnLockToast } from './hud.js';
+import { updateModalSlice } from '../svelte/stores/modalStore.js';
 
-export const WARDROBE_STORAGE_KEY = 'WORLD_TYCOON_PROFILE_V3';
+const WARDROBE_STORAGE_KEY = 'WORLD_TYCOON_PROFILE_V3';
 
-export const RARITY_STYLES = {
+const RARITY_STYLES = {
   common: 'bg-slate-100 text-slate-700 border-slate-200',
   rare: 'bg-sky-100 text-sky-800 border-sky-300',
   epic: 'bg-purple-100 text-purple-800 border-purple-300',
@@ -64,7 +65,7 @@ let previewState = {
  * Includes automatic migration from previous versions with a balanced 150 ⭐ wallet.
  * @returns {object}
  */
-export function getTycoonProfile() {
+function getTycoonProfile() {
   const currentSavedName = getSavedPlayerName();
   if (typeof localStorage === 'undefined') {
     return getDefaultProfile(currentSavedName);
@@ -123,7 +124,7 @@ export function resetTycoonProfile() {
  * Persists the tycoon profile to localStorage.
  * @param {object} profile
  */
-export function saveTycoonProfile(profile) {
+function saveTycoonProfile(profile) {
   if (typeof localStorage === 'undefined') return;
   try {
     localStorage.setItem(WARDROBE_STORAGE_KEY, JSON.stringify(profile));
@@ -272,7 +273,7 @@ export function previewWardrobeItem(category, itemId) {
  * @param {string} itemId
  * @returns {object|null}
  */
-export function findItemById(itemId) {
+function findItemById(itemId) {
   for (const cat of ['hat', 'dice', 'pedestal']) {
     const found = WARDROBE_ITEMS[cat].find(i => i.id === itemId);
     if (found) return { ...found, category: cat };
@@ -283,7 +284,7 @@ export function findItemById(itemId) {
 /**
  * Applies currently equipped wardrobe cosmetics to active game state and 3D diorama.
  */
-export function applyEquippedCosmeticsToPlayer() {
+function applyEquippedCosmeticsToPlayer() {
   const profile = getTycoonProfile();
   const equippedHat = findItemById(profile.equipped.hat);
   const equippedPedestal = findItemById(profile.equipped.pedestal);
@@ -333,6 +334,7 @@ export function setWardrobeCategory(cat) {
   if (!['hat', 'dice', 'pedestal'].includes(cat)) return;
   activeCategory = cat;
   playSFX('click');
+  updateModalSlice('wardrobe', { activeCategory: cat });
 
   // Update tab button active states
   const tabs = document.querySelectorAll('.wardrobe-tab-btn');
@@ -457,6 +459,7 @@ function renderWardrobeGrid() {
  */
 function renderWardrobeHeader() {
   const profile = getTycoonProfile();
+  updateModalSlice('wardrobe', { starsBalance: profile.tycoonStars });
   const balEl = document.getElementById('wardrobe-stars-balance');
   if (balEl) {
     const curVal = parseInt(balEl.textContent.replace(/\D/g, ''), 10) || 0;
@@ -523,6 +526,11 @@ export function openWardrobeModal() {
   };
 
   // 1. Unhide modal and trigger hardware-accelerated drawer slide
+  updateModalSlice('wardrobe', {
+    visible: true,
+    activeCategory,
+    starsBalance: profile.tycoonStars
+  });
   modal.classList.remove('hidden');
   modal.classList.add('flex');
   void modal.offsetWidth; // Force reflow for smooth entry transition
@@ -576,6 +584,7 @@ export function closeWardrobeModal() {
     if (!landingScreen?.classList.contains('wardrobe-mode-active')) {
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+      updateModalSlice('wardrobe', { visible: false });
     }
     wardrobeCloseTimer = null;
   }, 360);

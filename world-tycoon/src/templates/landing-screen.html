@@ -67,12 +67,12 @@
           <i class="fa-solid fa-book-open text-sky-600 text-xs"></i>
           <span class="hidden sm:inline">RULES</span>
         </button>
-        <div class="h-[38px] flex items-center gap-1 sm:gap-1.5 bg-white/95 backdrop-blur-md px-1.5 sm:px-2.5 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
-          <button onclick="window.toggleSound()" id="setup-btn-sound" class="text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center p-1" title="Mute / Unmute Sound" aria-label="Mute or Unmute Sound">
+        <div class="h-[38px] flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
+          <button onclick="window.toggleSound()" id="setup-btn-sound" class="text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center p-1 rounded-full hover:bg-slate-100/80 active:scale-95 flex-shrink-0" title="Mute / Unmute Sound" aria-label="Mute or Unmute Sound">
             <i id="setup-btn-sound-icon" class="fa-solid fa-volume-high text-xs text-sky-600"></i>
           </button>
-          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="hidden sm:inline-block w-14 sm:w-18 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500" title="Slide to adjust volume" aria-label="Volume Slider">
-          <span id="setup-sound-volume-val" class="hidden sm:inline-block text-[11px] font-black tabular-nums text-slate-700 w-5">75%</span>
+          <input type="range" id="setup-sound-slider" min="0" max="100" value="75" oninput="window.setGameVolume(this.value / 100)" class="sound-slider hidden sm:inline-block w-14 sm:w-18 flex-shrink-0" title="Slide to adjust volume" aria-label="Volume Slider">
+          <span id="setup-sound-volume-val" class="hidden sm:inline-block text-[11px] font-black tabular-nums text-slate-700 w-7 text-right flex-shrink-0">75%</span>
         </div>
         <button onclick="if(confirm('Reset match settings to defaults?')) window.location.reload()" class="w-[38px] h-[38px] rounded-full border-2 border-white bg-rose-500 hover:bg-rose-600 text-white shadow-md flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer" title="Reset Lobby" aria-label="Reset Match Settings to Defaults">
           <i class="fa-solid fa-rotate-left text-xs font-black"></i>

@@ -4,7 +4,7 @@
  * Supports multiple board editions: World Cities and Rajasthan (India) Cities.
  */
 
-export const WORLD_GROUP_META = {
+const WORLD_GROUP_META = {
   brown:     { hex: '#8d6e63', name: 'Caucasus & Nile' },
   lightblue: { hex: '#38bdf8', name: 'Aegean & Black Sea' },
   pink:      { hex: '#f472b6', name: 'Anatolia & Levant' },
@@ -15,7 +15,7 @@ export const WORLD_GROUP_META = {
   darkblue:  { hex: '#6366f1', name: 'Bosphorus & Crown' },
 };
 
-export const RAJASTHAN_GROUP_META = {
+const RAJASTHAN_GROUP_META = {
   brown:     { hex: '#8d6e63', name: 'Matsya & Gateway' },
   lightblue: { hex: '#38bdf8', name: 'Hadoti & Ajmer' },
   pink:      { hex: '#f472b6', name: 'Shekhawati Heritage' },
@@ -26,7 +26,7 @@ export const RAJASTHAN_GROUP_META = {
   darkblue:  { hex: '#6366f1', name: 'Royal Jewels (Udaipur & Jaipur)' },
 };
 
-export const WORLD_BOARD_TILES = [
+const WORLD_BOARD_TILES = [
   // Bottom Corner (0)
   { id: 0,  name: 'START',      subtitle: 'Pass +300K / Land +400K',        type: 'start'   },
 
@@ -76,7 +76,7 @@ export const WORLD_BOARD_TILES = [
   { id: 31, name: 'ISTANBUL',   price: 600000, rent: [190000, 480000, 1050000, 1700000, 2450000],houseCost: 300000, type: 'city', group: 'darkblue' },
 ];
 
-export const RAJASTHAN_BOARD_TILES = [
+const RAJASTHAN_BOARD_TILES = [
   // Bottom Corner (0)
   { id: 0,  name: 'START',       subtitle: 'Pass +300K / Land +400K',        type: 'start'   },
 
@@ -126,7 +126,7 @@ export const RAJASTHAN_BOARD_TILES = [
   { id: 31, name: 'JAIPUR',      price: 600000, rent: [190000, 480000, 1050000, 1700000, 2450000],houseCost: 300000, type: 'city', group: 'darkblue' },
 ];
 
-export const WORLD_CHANCE_WHEEL_PRIZES = [
+const WORLD_CHANCE_WHEEL_PRIZES = [
   { label: '+400K Grant',  color: '#4ade80', type: 'cash',   amount: 400000, desc: 'World Bank Development Grant! Collect 400K!'           },
   { label: 'Fly to START', color: '#38bdf8', type: 'move',   target: 0,      desc: 'Express Jet to START! Collect +300K!'                  },
   { label: '-200K Fine',   color: '#f43f5e', type: 'tax',    amount: 200000, desc: 'Global Carbon Tax Audit! Pay 200K into Festival Pool.' },
@@ -135,7 +135,7 @@ export const WORLD_CHANCE_WHEEL_PRIZES = [
   { label: 'World Tour!',  color: '#a855f7', type: 'move',   target: 24,     desc: 'VIP Ticket to World Tour Airport!'                     },
 ];
 
-export const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
+const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
   { label: '+400K Grant',  color: '#4ade80', type: 'cash',   amount: 400000, desc: 'Royal Heritage Trust Grant! Collect 400K!'             },
   { label: 'Fly to START', color: '#38bdf8', type: 'move',   target: 0,      desc: 'Royal Express to START! Collect +300K!'                },
   { label: '-200K Fine',   color: '#f43f5e', type: 'tax',    amount: 200000, desc: 'Fort Preservation Audit! Pay 200K into Festival Pool.' },
@@ -144,7 +144,7 @@ export const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
   { label: 'World Tour!',  color: '#a855f7', type: 'move',   target: 24,     desc: 'VIP Ticket to Royal Express Station!'                   },
 ];
 
-export const BOARD_EDITIONS = {
+const BOARD_EDITIONS = {
   world: {
     id: 'world',
     name: 'World Cities',

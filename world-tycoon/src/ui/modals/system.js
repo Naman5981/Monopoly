@@ -12,6 +12,7 @@ import { networkState, broadcastAction } from '../../network/p2p.js';
 import { closeAllGameModals, closeOtherInformationalModals } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { renderCornerHUDs, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SETUP / LOBBY MODAL
@@ -71,6 +72,7 @@ export function openRulesModal() {
     return;
   }
   closeOtherInformationalModals('modal-rules');
+  updateModalSlice('rules', { visible: true });
   if (m) {
     m.style.removeProperty('display');
     m.style.removeProperty('pointer-events');
@@ -80,6 +82,7 @@ export function openRulesModal() {
 }
 
 export function closeRulesModal() {
+  updateModalSlice('rules', { visible: false });
   const m = document.getElementById('modal-rules');
   if (m) {
     animateModalSpringClose(m, '#modal-rules .game-modal-shell', () => {

@@ -1,4 +1,4 @@
-# 🌐 World Tycoon: Global Edition (Monopoly 3D)
+# World Tycoon: Global Edition
 
 [![Three.js](https://img.shields.io/badge/Three.js-r128-black?style=for-the-badge&logo=three.js)](https://threejs.org/)
 [![WebRTC](https://img.shields.io/badge/WebRTC-PeerJS-339933?style=for-the-badge&logo=webrtc)](https://peerjs.com/)
@@ -6,150 +6,76 @@
 [![Build & Release](https://img.shields.io/github/actions/workflow/status/Naman5981/Monopoly/build-and-release.yml?branch=main&style=for-the-badge&label=Build%20%26%20Release)](https://github.com/Naman5981/Monopoly/actions/workflows/build-and-release.yml)
 [![Download EXE](https://img.shields.io/badge/Download-WorldTycoon.exe-brightgreen?style=for-the-badge&logo=windows)](https://github.com/Naman5981/Monopoly/releases/download/latest/WorldTycoon.exe)
 
-> 🎮 **[Click here to download WorldTycoon.exe (Latest Standalone Build)](https://github.com/Naman5981/Monopoly/releases/download/latest/WorldTycoon.exe)** — Single-click native Windows executable, zero installation needed! Full release packages and macOS bundles available under [**Releases**](https://github.com/Naman5981/Monopoly/releases/tag/latest).
+A 3D Monopoly board game built with Three.js, WebRTC (PeerJS), and Tailwind CSS. You can play solo against AI bots or start an online match with friends using a simple 4-character room code.
 
-**World Tycoon: Global Edition** is an isometric 3D global property trading board game built with **Three.js**, **WebRTC P2P DataChannels (PeerJS)**, **Web Audio API**, and **Tailwind CSS**. It combines classic Monopoly real-estate trading mechanics with modern serverless multiplayer, animated 3D dioramas, customizable avatars, and live auctions.
-
----
-
-## 🎮 Highlights & Current Features
-
-### 🌐 1. Serverless WebRTC P2P Multiplayer
-- **Direct Peer-to-Peer Networking**: Play online with friends anywhere in the world using WebRTC DataChannels powered by PeerJS.
-- **Easy Room Sharing**: Generate instant 4-character Room Codes (e.g. `8492`) or one-click copyable invite links (`?room=8492`).
-- **Synchronized Turn State**: Real-time broadcast and receipt of dice rolls, property acquisitions, house/skyscraper construction, mortgages, auction bids, trades, reactions, and chat events.
-- **Room Preservation on Return to Lobby**: Online players remain connected in the room when returning to the lobby after match completion—no accidental room disconnections.
-
-### 🏆 2. Victory Celebration & Seamless Rematches
-- **Victory Royale Card**: Displays champion accolades, final cash totals, and empire city counts with spinning radiant sunbursts and celebratory crowd fanfares.
-- **Instant Play Again Button**: Restart immediately with the same players and settings. In multiplayer, the host triggers a synchronous rematch for all connected clients.
-- **Dedicated Lobby Button**: Brings all table players back to the interactive 3D lobby without disconnecting the multiplayer room session.
-- **Guest Rematch Requests**: Connected guests can request a rematch with real-time notification alerts sent to the host.
-
-### 👥 3. Interactive 3D Lobby Table
-- **Dynamic Player Count**: Support for 2, 3, or 4 players (1v1, Triangle, or Grand Slam).
-- **Custom Tycoon Profiles**: Custom player names with a 🎲 Randomize Names generator.
-- **Human vs AI Bots**: Flexible slot assignment allowing solo play against smart AI bots or any mix of human and bot opponents.
-- **4 Distinct Character Archetypes**:
-  - ✈️ **The Aviator**: Vintage flight helmet & brass goggles
-  - 🎩 **The Banker**: Top hat & golden monocle
-  - 🧭 **The Explorer**: Safari pith helmet & crest
-  - 👑 **Cyber Nova**: Futuristic neon crown & visor
-- **Candy Color Themes**: Ruby Red, Sky Blue, Lawn Green, Lime, Purple, Peach, Pink, Turquoise.
-- **Live 3D Hero Podium**: Center stage featuring a 3D rotating grass island with custom avatars, trees, and mini dice.
-
-### 🏙️ 4. 3D Isometric Diorama & World Board
-- **32 International Tiles**: Global metropolitan cities across color groups (London, Tokyo, New York, Paris, Rome, Sydney, Cairo, etc.) plus exotic Resort Destinations.
-- **Procedural 3D Architecture**: Distinct 3D houses and skyscrapers that dynamically construct and populate on the game tiles as properties are upgraded.
-- **Animated Atmosphere**:
-  - Dual-lane road traffic with independent wheel rotation and suspension bobbing.
-  - Floating low-poly atmospheric clouds and hot-air balloons.
-  - Animated central city park with water fountain and trees.
-  - Dynamic time-of-day lighting: **☀️ Day**, **🌅 Sunset**, and **🌙 Cyber Night**.
-
-### 💼 5. Real Estate & Monopoly Mechanics
-- **Color Group Monopolies**: Owning all cities of a color set unlocks house and skyscraper construction, with doubled base rent.
-- **Property Management & Mortgages**: Manage Cities portfolio inspector to mortgage properties for 50% cash value or unmortgage for 55%.
-- **Live City Auctions**: When a player declines purchasing an unowned city, it can be put up for live public bidding with interactive countdown timers and raise increments.
-- **Player-to-Player Trading**: Propose direct property trades and cash considerations with any opponent.
-
-### 🎡 6. Corner Landmarks & Special Mechanics
-- 🚩 **START**: Collect +300K salary every time you pass the origin tile.
-- 🏝️ **Tropical Island**: Detention zone requiring doubles or 150K bail to escape.
-- 🎪 **World Festival**: Accumulates tax jackpot pools and applies a 2× festival rent boost to an owned city.
-- ✈️ **World Tour Airport**: Select and fly directly to any tile across the entire board.
-- 🎡 **Chance Fortune Wheel**: 8 dynamic randomized outcomes including cash bonuses, rent multipliers, free city deeds, and travel perks.
-
-### 🔊 7. Procedural Web Audio & Physics Reactions
-- **100% Synthesized Sound FX**: Procedural Web Audio API sound synthesis for dice rolls, token hops, building construction, auction gavels, cash registers, and victory heralds without external audio asset downloads.
-- **Interactive Reactions**: Physics-based floating emoji animations (Tomato Splat 🍅, Cash Shower 💸, Fire Celebration 🔥, Sunglasses 😎, Tears 😭, Rocket 🚀).
-
-### 💻 8. Standalone Windows Executable (`WorldTycoon.exe`)
-- Embedded C# multi-threaded HTTP server compiled with .NET Framework 4.0+.
-- Packaged with all web assets into a lightweight, standalone Windows executable (~127 KB) that runs out-of-the-box with zero installation or runtime dependencies.
+Downloads and releases are available on the [Releases page](https://github.com/Naman5981/Monopoly/releases/tag/latest).
 
 ---
 
-## 🚀 Getting Started
+## Downloads
 
-### Option 1: Standalone Windows Executable (Fastest)
-1. Double-click `WorldTycoon.exe` in the root folder.
-2. The game will automatically launch in your default web browser on `http://localhost:3000`.
+| Platform | File | Notes |
+| :--- | :--- | :--- |
+| Windows | [WorldTycoon.exe](https://github.com/Naman5981/Monopoly/releases/download/latest/WorldTycoon.exe) | Single executable, no setup required. Double-click to start. |
+| Windows (ZIP) | [WorldTycoon_Online_Game.zip](https://github.com/Naman5981/Monopoly/releases/download/latest/WorldTycoon_Online_Game.zip) | Portable directory with batch launcher. |
+| macOS | [WorldTycoon-Mac.zip](https://github.com/Naman5981/Monopoly/releases/download/latest/WorldTycoon-Mac.zip) | Mac app bundle. |
 
-### Option 2: Windows Batch Launcher
-1. Double-click `run.bat` in the project root.
-2. If `WorldTycoon.exe` exists, it will launch the game; otherwise, it will start the local PowerShell server (`server.ps1`).
+---
 
-### Option 3: Local PowerShell Server
-```powershell
-powershell -ExecutionPolicy Bypass -File .\server.ps1
-```
-Open your browser at `http://localhost:3000`.
+## Features
 
-### Option 4: Vite Development Server
+- **P2P Multiplayer**: Share a 4-digit code or link to play with friends over WebRTC. No account setup or dedicated server needed.
+- **Solo Play with AI**: Fill any empty seat with an AI bot for quick offline matches.
+- **3D Board**: 32 international cities, animated road traffic, day/sunset/night lighting modes, and visible houses and skyscrapers on tiles.
+- **Property Trading & Upgrades**: Buy cities, complete color sets, construct houses and skyscrapers, trade with opponents, and collect rent.
+- **Special Tiles**: Tropical Island jail, World Festival rent boost, World Tour Airport fast-travel, and Chance wheels.
+- **Avatars & Reactions**: 4 character archetypes (Aviator, Banker, Explorer, Cyber Nova), custom colors, and animated emoji reactions.
+- **Synthesized Audio**: Sound effects for dice rolls, token moves, purchases, and victory celebrations built with the Web Audio API.
+
+---
+
+## Controls
+
+| Action | Input |
+| :--- | :--- |
+| Roll dice / Confirm turn | `Space` or click Roll |
+| Rotate camera | Right-click + drag, or Middle-click + drag |
+| Pan camera | Left-click + drag |
+| Zoom | Mouse wheel |
+| Send reactions | Click emojis on the bottom dock |
+
+---
+
+## Running Locally
+
+### Option 1: Development Server (Node.js)
 ```bash
 cd world-tycoon
 npm install
 npm run dev
 ```
+Open `http://localhost:5173` in your browser.
+
+### Option 2: PowerShell Server
+```powershell
+powershell -ExecutionPolicy Bypass -File .\server.ps1
+```
+Open `http://localhost:3000` in your browser.
+
+### Option 3: Windows Batch Script
+Double-click `run.bat` in the project root.
 
 ---
 
-## 📂 Project Architecture
-
-```
-Monopoly/
-├── world-tycoon/                    # Modular web application
-│   ├── index.html                   # Game shell, UI HUD & modals
-│   ├── package.json                 # Project configuration
-│   ├── vite.config.js               # Vite build configuration
-│   └── src/
-│       ├── main.js                  # App bootstrap, clock loop & global bindings
-│       ├── style.css                # Game CSS, animations & UI styling
-│       ├── game/
-│       │   ├── data.js              # 32 Board tiles, archetypes & prizes
-│       │   ├── state.js             # Reactive game state & match settings
-│       │   ├── rules.js             # Rent calculations, monopolies & liquidation
-│       │   ├── audio.js             # Web Audio procedural sound synthesizer
-│       │   ├── engine.js            # Turn progression, dice rolls & AI bot logic
-│       │   ├── persistence.js       # LocalStorage auto-save & match resume
-│       │   └── utils.js             # Formatting & currency helpers
-│       ├── network/
-│       │   └── p2p.js               # WebRTC PeerJS multiplayer engine
-│       ├── three/
-│       │   ├── scene.js             # Three.js 3D diorama, avatars, dice & traffic
-│       │   └── effects.js           # Confetti cannons, lighting & reactions
-│       └── ui/
-│           ├── setup.js             # Interactive landing lobby table manager
-│           ├── hud.js               # 4-Corner player HUD cards & live ticker
-│           └── modals.js            # Buy city, auction, chance wheel & trade dialogs
-├── Launcher.cs                      # C# Standalone WebRTC server launcher source
-├── build_exe.ps1                    # Compiles Launcher.cs into WorldTycoon.exe
-├── build_zip.ps1                    # Packages world-tycoon/ into world-tycoon.zip
-├── package_distribution.ps1         # Builds standalone distribution package
-├── server.ps1                       # Lightweight local HTTP server
-├── run.bat                          # One-click Windows launch script
-└── README.md                        # Documentation & feature overview
-```
-
----
-
-## 🛠️ Building the Standalone Executable
+## Building the Windows Executable
 
 To compile `WorldTycoon.exe` from source:
 ```powershell
-# 1. Package game assets into zip
-powershell -ExecutionPolicy Bypass -File .\build_zip.ps1
-
-# 2. Compile C# launcher with embedded assets
 powershell -ExecutionPolicy Bypass -File .\build_exe.ps1
-
-# 3. Create clean distribution package
-powershell -ExecutionPolicy Bypass -File .\package_distribution.ps1
 ```
 
 ---
 
-## 📜 License
-MIT License. Built for fun, open real-estate strategy gaming!
+## License
 
+MIT

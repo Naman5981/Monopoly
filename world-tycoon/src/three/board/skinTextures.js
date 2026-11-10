@@ -1,0 +1,425 @@
+/**
+ * three/board/skinTextures.js
+ * Procedural Canvas 2D texture generators for board styles (Wood, Cyberpunk, Elegant Marble).
+ */
+
+import * as THREE from 'three';
+import { context } from '../core/context.js';
+
+/**
+ * Procedural Cyberpunk Obsidian / Carbon & Laser Circuits Base Texture
+ */
+export function createProceduralCyberpunkBaseTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 512;
+  const ctx = c.getContext('2d');
+
+  // 1. Sleek dark obsidian / matte carbon background
+  const grad = ctx.createLinearGradient(0, 0, 1024, 0);
+  grad.addColorStop(0.0, '#04070e');
+  grad.addColorStop(0.25, '#080d1a');
+  grad.addColorStop(0.50, '#0c1324');
+  grad.addColorStop(0.75, '#080d1a');
+  grad.addColorStop(1.0, '#04070e');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // 2. High-tech carbon micro-weave
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.018)';
+  for (let x = 0; x < 1024; x += 12) {
+    for (let y = 0; y < 512; y += 12) {
+      if ((x + y) % 24 === 0) {
+        ctx.fillRect(x, y, 6, 6);
+      }
+    }
+  }
+
+  // 3. Subtle laser circuit conduits (Restrained, fine architectural lines)
+  const circuits = [
+    { y: 80, col: 'rgba(0, 229, 255, 0.35)', glow: 'rgba(0, 229, 255, 0.20)', w: 1.8 },
+    { y: 170, col: 'rgba(147, 51, 234, 0.30)', glow: 'rgba(147, 51, 234, 0.15)', w: 1.5 },
+    { y: 260, col: 'rgba(0, 229, 255, 0.35)', glow: 'rgba(0, 229, 255, 0.20)', w: 2.0 },
+    { y: 350, col: 'rgba(14, 165, 233, 0.30)', glow: 'rgba(14, 165, 233, 0.15)', w: 1.5 },
+    { y: 430, col: 'rgba(168, 85, 247, 0.30)', glow: 'rgba(168, 85, 247, 0.15)', w: 1.8 }
+  ];
+
+  circuits.forEach(cDef => {
+    ctx.shadowColor = cDef.glow;
+    ctx.shadowBlur = 4;
+    ctx.strokeStyle = cDef.col;
+    ctx.lineWidth = cDef.w;
+
+    ctx.beginPath();
+    ctx.moveTo(0, cDef.y);
+    for (let x = 60; x < 1024; x += 160) {
+      ctx.lineTo(x, cDef.y);
+      const angleY = cDef.y + ((x % 320 === 0) ? 28 : -28);
+      ctx.lineTo(x + 30, angleY);
+      ctx.lineTo(x + 100, angleY);
+      ctx.lineTo(x + 130, cDef.y);
+    }
+    ctx.lineTo(1024, cDef.y);
+    ctx.stroke();
+
+    // Small, refined node pads
+    for (let nx = 120; nx < 1024; nx += 160) {
+      ctx.fillStyle = cDef.col;
+      ctx.beginPath();
+      ctx.arc(nx, cDef.y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  ctx.shadowBlur = 0;
+
+  // 4. Subtle ambient edge illumination
+  const edgeGlow = ctx.createLinearGradient(0, 0, 0, 512);
+  edgeGlow.addColorStop(0, 'rgba(0, 229, 255, 0.12)');
+  edgeGlow.addColorStop(0.08, 'rgba(0, 229, 255, 0.03)');
+  edgeGlow.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
+  edgeGlow.addColorStop(0.92, 'rgba(147, 51, 234, 0.03)');
+  edgeGlow.addColorStop(1, 'rgba(147, 51, 234, 0.15)');
+  ctx.fillStyle = edgeGlow;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 1);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = context.maxAnisotropy || 4;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/**
+ * Procedural Carrara Marble & 24K Gold Veins Base Texture
+ */
+export function createProceduralMarbleBaseTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 512;
+  const ctx = c.getContext('2d');
+
+  // 1. Pristine Italian Carrara White Marble background
+  const grad = ctx.createLinearGradient(0, 0, 1024, 512);
+  grad.addColorStop(0.0, '#ffffff');
+  grad.addColorStop(0.30, '#f8fafc');
+  grad.addColorStop(0.65, '#f1f5f9');
+  grad.addColorStop(1.0, '#fafaf9');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // 2. Soft atmospheric stone clouding
+  for (let i = 0; i < 30; i++) {
+    const rx = Math.random() * 1024;
+    const ry = Math.random() * 512;
+    const rad = 60 + Math.random() * 120;
+    const cloudGrad = ctx.createRadialGradient(rx, ry, 0, rx, ry, rad);
+    cloudGrad.addColorStop(0, 'rgba(226, 232, 240, 0.30)');
+    cloudGrad.addColorStop(0.6, 'rgba(241, 245, 249, 0.15)');
+    cloudGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = cloudGrad;
+    ctx.beginPath();
+    ctx.arc(rx, ry, rad, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 3. Delicate branching veins in champagne gold & platinum
+  const veinDefs = [
+    { x: 80, y: 0, dx: 450, dy: 512, col: 'rgba(212, 175, 55, 0.42)', w: 2.4 },
+    { x: 380, y: 0, dx: 300, dy: 512, col: 'rgba(148, 163, 184, 0.30)', w: 1.8 },
+    { x: 680, y: 0, dx: 320, dy: 512, col: 'rgba(212, 175, 55, 0.38)', w: 2.2 },
+    { x: 920, y: 0, dx: 240, dy: 512, col: 'rgba(180, 140, 45, 0.35)', w: 1.6 }
+  ];
+
+  veinDefs.forEach(vd => {
+    ctx.beginPath();
+    ctx.moveTo(vd.x, vd.y);
+    let curX = vd.x;
+    for (let stepY = 20; stepY <= 512; stepY += 25) {
+      curX += (vd.dx / 20) + (Math.sin(stepY * 0.04) * 16) + (Math.cos(stepY * 0.08) * 8);
+      ctx.lineTo(curX, stepY);
+      if (stepY % 100 === 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(curX, stepY);
+        ctx.lineTo(curX + 35, stepY + 30);
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
+        ctx.lineWidth = vd.w * 0.55;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+    ctx.strokeStyle = vd.col;
+    ctx.lineWidth = vd.w;
+    ctx.stroke();
+  });
+
+  // 4. Polished marble lacquer sheen
+  const sheen = ctx.createLinearGradient(0, 0, 0, 512);
+  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+  sheen.addColorStop(0.15, 'rgba(255, 255, 255, 0.15)');
+  sheen.addColorStop(0.5, 'rgba(240, 235, 220, 0.05)');
+  sheen.addColorStop(0.9, 'rgba(212, 175, 55, 0.08)');
+  sheen.addColorStop(1, 'rgba(180, 140, 40, 0.18)');
+  ctx.fillStyle = sheen;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 1);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = context.maxAnisotropy || 4;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/**
+ * Classic Wood Park & Roadway Texture
+ */
+export function createWoodParkTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 1024;
+  const ctx = c.getContext('2d');
+
+  // Roadway: Dark slate-charcoal asphalt
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(0, 0, 1024, 1024);
+
+  // Outer solid road border
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 10;
+  ctx.strokeRect(5, 5, 1014, 1014);
+
+  // Dashed lane divider
+  ctx.strokeStyle = '#f8fafc';
+  ctx.lineWidth = 7;
+  ctx.setLineDash([28, 22]);
+  ctx.strokeRect(52, 52, 920, 920);
+  ctx.setLineDash([]);
+
+  // Pedestrian crosswalks at corners
+  const crossWalks = [
+    { x: 30, y: 30, w: 70, h: 70 },
+    { x: 924, y: 30, w: 70, h: 70 },
+    { x: 30, y: 924, w: 70, h: 70 },
+    { x: 924, y: 924, w: 70, h: 70 }
+  ];
+  ctx.fillStyle = '#f8fafc';
+  crossWalks.forEach(cwk => {
+    for (let s = 6; s < cwk.w - 6; s += 14) {
+      ctx.fillRect(cwk.x + s, cwk.y + 4, 8, cwk.h - 8);
+    }
+  });
+
+  // Central lawn curbing
+  const pm = 104, ps = 1024 - pm * 2, gc = 6, cw = ps / gc;
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillRect(pm - 8, pm - 8, ps + 16, ps + 16);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(pm - 8, pm - 8, ps + 16, ps + 16);
+
+  // Checkered green lawn
+  for (let gx = 0; gx < gc; gx++) {
+    for (let gz = 0; gz < gc; gz++) {
+      ctx.fillStyle = (gx + gz) % 2 === 0 ? '#4ade80' : '#22c55e';
+      ctx.fillRect(pm + gx * cw, pm + gz * cw, cw, cw);
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(pm + gx * cw, pm + gz * cw, cw, cw);
+    }
+  }
+
+  // Inner lawn perimeter
+  ctx.strokeStyle = '#fef08a';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(pm, pm, ps, ps);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+/**
+ * Cyberpunk Obsidian Tech Plaza & Precision Laser Circuit Park
+ */
+export function createCyberpunkParkTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 1024;
+  const ctx = c.getContext('2d');
+
+  // Roadway: Matte carbon asphalt
+  ctx.fillStyle = '#060a14';
+  ctx.fillRect(0, 0, 1024, 1024);
+
+  // Subtle carbon micro-texture
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+  for (let y = 0; y < 1024; y += 4) {
+    ctx.fillRect(0, y, 1024, 1.5);
+  }
+
+  // Refined electric cyan road boundary (restrained 2.5px width)
+  ctx.strokeStyle = 'rgba(2, 132, 199, 0.7)';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#0284c7';
+  ctx.shadowBlur = 4;
+  ctx.strokeRect(8, 8, 1008, 1008);
+  ctx.shadowBlur = 0;
+
+  // Discreet slate center lane divider
+  ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([18, 14]);
+  ctx.strokeRect(52, 52, 920, 920);
+  ctx.setLineDash([]);
+
+  // Corner tech transition markers
+  const crossWalks = [
+    { x: 30, y: 30, w: 70, h: 70 },
+    { x: 924, y: 30, w: 70, h: 70 },
+    { x: 30, y: 924, w: 70, h: 70 },
+    { x: 924, y: 924, w: 70, h: 70 }
+  ];
+  ctx.fillStyle = 'rgba(14, 165, 233, 0.35)';
+  crossWalks.forEach(cwk => {
+    for (let s = 6; s < cwk.w - 6; s += 16) {
+      ctx.fillRect(cwk.x + s, cwk.y + 6, 6, cwk.h - 12);
+    }
+  });
+
+  // Central cyber plaza curb (dark titanium)
+  const pm = 104, ps = 1024 - pm * 2, gc = 6, cw = ps / gc;
+  ctx.fillStyle = '#090e1a';
+  ctx.fillRect(pm - 6, pm - 6, ps + 12, ps + 12);
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(pm - 6, pm - 6, ps + 12, ps + 12);
+
+  // Obsidian tech pavers with subtle micro-seams
+  for (let gx = 0; gx < gc; gx++) {
+    for (let gz = 0; gz < gc; gz++) {
+      const isAlt = (gx + gz) % 2 === 0;
+      ctx.fillStyle = isAlt ? '#0a0f1d' : '#0e1526';
+      ctx.fillRect(pm + gx * cw, pm + gz * cw, cw, cw);
+
+      // Fine architectural seam lines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(pm + gx * cw, pm + gz * cw, cw, cw);
+    }
+  }
+
+  // Central Dice Arena / Holographic Medallion Ring
+  const cx = 512, cy = 512;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 148, 0, Math.PI * 2);
+  ctx.fillStyle = '#070b16';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(14, 165, 233, 0.4)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Subtle concentric calibration ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, 110, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(71, 85, 105, 0.3)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Inner boundary frame
+  ctx.strokeStyle = 'rgba(2, 132, 199, 0.5)';
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(pm, pm, ps, ps);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+/**
+ * Elegant French Pearl-Stone Promenade & Versailles Emerald Garden
+ */
+export function createElegantParkTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 1024;
+  const ctx = c.getContext('2d');
+
+  // Roadway: Polished French pearl-stone promenade
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(0, 0, 1024, 1024);
+
+  // Outer 24K gold foil inlay border
+  ctx.strokeStyle = '#d4af37';
+  ctx.lineWidth = 9;
+  ctx.strokeRect(6, 6, 1012, 1012);
+
+  // Inner gold filigree dashed trim
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 5;
+  ctx.setLineDash([20, 16]);
+  ctx.strokeRect(52, 52, 920, 920);
+  ctx.setLineDash([]);
+
+  // Corner pearl pavers
+  const crossWalks = [
+    { x: 28, y: 28, w: 74, h: 74 },
+    { x: 922, y: 28, w: 74, h: 74 },
+    { x: 28, y: 922, w: 74, h: 74 },
+    { x: 922, y: 922, w: 74, h: 74 }
+  ];
+  ctx.fillStyle = '#d4af37';
+  crossWalks.forEach(cwk => {
+    for (let s = 6; s < cwk.w - 6; s += 14) {
+      ctx.fillRect(cwk.x + s, cwk.y + 4, 7, cwk.h - 8);
+    }
+  });
+
+  // Central Versailles lawn curb: Carrara marble & gold rim
+  const pm = 104, ps = 1024 - pm * 2, gc = 6, cw = ps / gc;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(pm - 8, pm - 8, ps + 16, ps + 16);
+  ctx.strokeStyle = '#d4af37';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(pm - 8, pm - 8, ps + 16, ps + 16);
+
+  // Royal emerald parterre lawn
+  for (let gx = 0; gx < gc; gx++) {
+    for (let gz = 0; gz < gc; gz++) {
+      ctx.fillStyle = (gx + gz) % 2 === 0 ? '#047857' : '#065f46';
+      ctx.fillRect(pm + gx * cw, pm + gz * cw, cw, cw);
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.45)';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(pm + gx * cw, pm + gz * cw, cw, cw);
+    }
+  }
+
+  // Golden rosette center compass star
+  ctx.fillStyle = '#d4af37';
+  ctx.beginPath();
+  const midX = pm + ps / 2, midY = pm + ps / 2;
+  ctx.arc(midX, midY, 44, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(midX, midY, 32, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Perimeter gold frame
+  ctx.strokeStyle = '#ffd700';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(pm, pm, ps, ps);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}

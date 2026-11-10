@@ -80,7 +80,7 @@ export function returnToLobbyFromDisconnect() {
   }
 }
 
-export function showCopyFeedback(triggerEl, message) {
+function showCopyFeedback(triggerEl, message) {
   playSFX('hop');
   logEvent(message);
   if (triggerEl && triggerEl.tagName === 'BUTTON') {

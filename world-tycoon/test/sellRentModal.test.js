@@ -24,6 +24,13 @@ import {
   autoSellCheapestForRent
 } from '../src/ui/modals/sellRent.js';
 import { engineCallbacks } from '../src/ui/modals/common.js';
+import { modalStore } from '../src/svelte/stores/modalStore.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 describe('Liquidate Properties to Pay Rent (/bug-hunter /clean-code)', () => {
   let cairoTile;
@@ -141,27 +148,35 @@ describe('Liquidate Properties to Pay Rent (/bug-hunter /clean-code)', () => {
   });
 
   describe('Modal Rendering & Interactive City Selection', () => {
-    it('renders clickable city cards with direct onclick, role="button", and tabindex="0"', () => {
-      openSellCitiesModal(tokyoTile, 150000, 1, false, 0);
+    it('renders clickable city cards with direct onclick, role="button", and tabindex="0" via Svelte component', () => {
+      const svelteFile = path.resolve(__dirname, '../src/svelte/modals/SellCitiesModal.svelte');
+      const content = fs.readFileSync(svelteFile, 'utf8');
 
-      const grid = document.getElementById('sell-cities-card-grid');
-      assert.ok(grid.innerHTML.includes(`onclick="window.sellPropertyForRent(${cairoTile.id})"`));
-      assert.ok(grid.innerHTML.includes(`onclick="window.sellPropertyForRent(${mumbaiTile.id})"`));
-      assert.ok(grid.innerHTML.includes('role="button"'));
-      assert.ok(grid.innerHTML.includes('tabindex="0"'));
-      assert.ok(grid.innerHTML.includes('cursor-pointer'));
-      assert.ok(grid.innerHTML.includes('data-tile-id'));
+      assert.ok(content.includes('role="button"'));
+      assert.ok(content.includes('tabindex="0"'));
+      assert.ok(content.includes('cursor-pointer'));
+      assert.ok(content.includes('data-tile-id="{prop.id}"'));
+      assert.ok(content.includes('onSell(prop.id)'));
     });
 
-    it('provides stopPropagation on inner SELL button to prevent duplicate triggers', () => {
-      openSellCitiesModal(tokyoTile, 150000, 1, false, 0);
+    it('provides stopPropagation on inner SELL button to prevent duplicate triggers in Svelte component', () => {
+      const svelteFile = path.resolve(__dirname, '../src/svelte/modals/SellCitiesModal.svelte');
+      const content = fs.readFileSync(svelteFile, 'utf8');
 
-      const grid = document.getElementById('sell-cities-card-grid');
-      assert.ok(grid.innerHTML.includes('event.stopPropagation()'));
+      assert.ok(content.includes('e.stopPropagation()'));
     });
 
-    it('displays financial summary (rent due, current cash, deficit) correctly', () => {
+    it('displays financial summary (rent due, current cash, deficit) correctly in modalStore and DOM', () => {
       openSellCitiesModal(tokyoTile, 200000, 1, false, 0);
+
+      let state;
+      const unsub = modalStore.subscribe(val => { state = val.sellCities; });
+      unsub();
+
+      assert.equal(state.visible, true);
+      assert.ok(state.rentDueFormatted.includes('200'));
+      assert.ok(state.currentCashFormatted.includes('50'));
+      assert.ok(state.deficitFormatted.includes('150'));
 
       const rentDue = document.getElementById('sell-cities-rent-due');
       const curCash = document.getElementById('sell-cities-current-cash');
@@ -185,9 +200,11 @@ describe('Liquidate Properties to Pay Rent (/bug-hunter /clean-code)', () => {
       assert.equal(gameState.players[0].cash, 170000);
 
       // Modal should still be open with remaining property (Mumbai)
-      const grid = document.getElementById('sell-cities-card-grid');
-      assert.ok(!grid.innerHTML.includes(cairoTile.name));
-      assert.ok(grid.innerHTML.includes(mumbaiTile.name));
+      let state;
+      const unsub = modalStore.subscribe(val => { state = val.sellCities; });
+      unsub();
+      assert.equal(state.ownedProperties.length, 1);
+      assert.equal(state.ownedProperties[0].name, mumbaiTile.name);
     });
 
     it('settles rent debt and closes modal once cumulative cash covers debt', () => {

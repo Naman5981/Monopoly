@@ -101,7 +101,7 @@ export function updateMasterVolume(vol) {
 /**
  * Normalizes Cartesian coordinates from {x, z} or Vector3 into {x, y, z}.
  */
-export function normalizeWorldPosition(worldPos) {
+function normalizeWorldPosition(worldPos) {
   if (!worldPos) return null;
   const x = typeof worldPos.x === 'number' ? worldPos.x : 0;
   const y = typeof worldPos.y === 'number' ? worldPos.y : 0.4;

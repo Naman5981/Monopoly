@@ -81,7 +81,7 @@ import {
 
 let lastProcessedStateSeq = 0;
 
-export function resetStateSequenceTracker() {
+function resetStateSequenceTracker() {
   lastProcessedStateSeq = 0;
 }
 export * from './engine/flight.js';

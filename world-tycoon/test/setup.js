@@ -11,7 +11,10 @@ export function setupBrowserMocks() {
       createLinearGradient: () => ({ addColorStop: () => {} }),
       createRadialGradient: () => ({ addColorStop: () => {} }),
       getImageData: () => ({ data: new Uint8ClampedArray(4) }),
-      putImageData: () => {}
+      putImageData: () => {},
+      getShaderPrecisionFormat: () => ({ precision: 1, rangeMin: 1, rangeMax: 1 }),
+      getExtension: () => null,
+      getParameter: () => 'WebGL 2.0'
     }, {
       get(target, prop) {
         if (prop in target) return target[prop];
@@ -189,6 +192,7 @@ export function setupBrowserMocks() {
       },
       querySelectorAll: () => [],
       createElement: (tag) => createMockElement(tag),
+      createElementNS: (ns, tag) => createMockElement(tag),
       addEventListener: () => {},
       removeEventListener: () => {},
       body: createMockElement('BODY')

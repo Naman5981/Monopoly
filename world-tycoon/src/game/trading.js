@@ -5,13 +5,13 @@
  * and maintains context-aware diplomatic flexibility.
  */
 
-import { BOARD_TILES, GROUP_META } from './data.js';
+import { BOARD_TILES } from './data.js';
 import { gameState, matchSettings, localPlayerIdx } from './state.js';
 import { fmtMoney } from './utils.js';
-import { ownsFullColorGroup, countCompletedColorGroups, calculatePlayerNetWorth } from './rules.js';
+import { ownsFullColorGroup, calculatePlayerNetWorth } from './rules.js';
 
-export const lastBotTradeTurn = {};
-export let lastGlobalBotTradeTurn = -999;
+const lastBotTradeTurn = {};
+let lastGlobalBotTradeTurn = -999;
 export const declinedTradeTargetTurns = {};
 
 export function resetTradeMemory() {

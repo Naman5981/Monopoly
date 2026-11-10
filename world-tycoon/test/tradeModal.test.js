@@ -76,7 +76,7 @@ describe('Diplomatic Trade Modal & Property-Only Rules (/bug-hunter)', () => {
   });
 
   it('verifies trade modal contains property containers and wallet badges, with cash inputs removed', () => {
-    const templatePath = path.resolve(__dirname, '../src/templates/modals/trade.html');
+    const templatePath = path.resolve(__dirname, '../src/svelte/modals/TradeModal.svelte');
     const content = fs.readFileSync(templatePath, 'utf8');
 
     assert.equal(content.includes('id="trade-offer-cash"'), false, 'trade-offer-cash input must be removed');

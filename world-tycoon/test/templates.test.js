@@ -12,7 +12,7 @@ const rootDir = path.resolve(__dirname, '..');
 describe('Modular Templates & HTML Assembly (/clean-code)', () => {
   it('assembles index.html from index.template.html cleanly without errors', () => {
     const res = assembleIndexHtml();
-    assert.ok(res.size > 100000, 'Assembled index.html should be over 100KB');
+    assert.ok(res.size > 70000, 'Assembled index.html should be over 70KB');
     assert.ok(fs.existsSync(res.path), 'Output file must exist');
 
     const content = fs.readFileSync(res.path, 'utf8');
@@ -26,33 +26,43 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
     // Essential SVG sprite symbol container
     assert.ok(content.includes('id="game-svg-symbols"'));
 
-    // Essential screens and canvas
+    // Essential screens, mounts, and canvas
     assert.ok(content.includes('id="landing-setup-screen"'));
     assert.ok(content.includes('id="three-canvas-container"'));
+    assert.ok(content.includes('id="svelte-hud-mount"'));
+    assert.ok(content.includes('id="svelte-modals-mount"'));
 
-    // Essential modals
+    // Essential traditional modals in assembled index.html
     const expectedModalIds = [
-      'modal-buy-city',
-      'modal-festival-boost',
-      'modal-festival-no-properties',
-      'modal-buyout-city',
-      'modal-sell-cities',
-      'modal-upgrade-city',
-      'modal-auction',
-      'modal-chance-wheel',
-      'modal-chance-result',
-      'modal-tile-inspector',
-      'modal-portfolio',
-      'modal-trade',
-      'modal-rules',
-      'modal-victory',
+      'modal-setup',
       'modal-monopoly-celebration',
-      'modal-wardrobe',
+      'modal-leaderboard',
       'modal-update-alert'
     ];
 
     for (const modalId of expectedModalIds) {
       assert.ok(content.includes(`id="${modalId}"`), `index.html must include modal id "${modalId}"`);
+    }
+
+    // Essential Svelte 5 declarative modal components
+    const svelteModals = [
+      'BuyCityModal.svelte',
+      'UpgradeCityModal.svelte',
+      'SellCitiesModal.svelte',
+      'AuctionModal.svelte',
+      'PortfolioModal.svelte',
+      'RulesModal.svelte',
+      'VictoryModal.svelte',
+      'WardrobeModal.svelte',
+      'BuyoutModal.svelte',
+      'TradeModal.svelte',
+      'ChanceWheelModal.svelte',
+      'InspectorModal.svelte',
+      'FestivalBoostModal.svelte'
+    ];
+    const svelteModalsDir = path.join(rootDir, 'src', 'svelte', 'modals');
+    for (const svelteModal of svelteModals) {
+      assert.ok(fs.existsSync(path.join(svelteModalsDir, svelteModal)), `Svelte modal ${svelteModal} must exist`);
     }
   });
 
@@ -62,7 +72,7 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
     const modalFiles = fs.readdirSync(path.join(templatesDir, 'modals')).filter(f => f.endsWith('.html'));
 
     assert.ok(files.length >= 3, 'Top-level templates must exist');
-    assert.ok(modalFiles.length >= 15, 'Modal templates must exist');
+    assert.ok(modalFiles.length >= 5, 'Modal templates must exist');
 
     for (const f of files) {
       const stat = fs.statSync(path.join(templatesDir, f));
@@ -91,13 +101,13 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
     const indexPath = path.join(rootDir, 'index.html');
     const content = fs.readFileSync(indexPath, 'utf8');
 
-    // Ensure #modal-buyout-city is not inside #modal-buy-city
-    const buyCityIndex = content.indexOf('id="modal-buy-city"');
-    const buyoutCityIndex = content.indexOf('id="modal-buyout-city"');
-    assert.ok(buyCityIndex !== -1 && buyoutCityIndex !== -1, 'Both modals must exist');
+    // Ensure #modal-monopoly-celebration is not inside #modal-setup
+    const setupIndex = content.indexOf('id="modal-setup"');
+    const celebrationIndex = content.indexOf('id="modal-monopoly-celebration"');
+    assert.ok(setupIndex !== -1 && celebrationIndex !== -1, 'Both modals must exist');
 
     // Verify closing tag between them
-    const sliceBetween = content.slice(buyCityIndex, buyoutCityIndex);
+    const sliceBetween = content.slice(setupIndex, celebrationIndex);
     assert.ok(sliceBetween.includes('</div>'), 'There must be closing tags between modal declarations');
   });
 });

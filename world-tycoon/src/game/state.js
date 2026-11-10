@@ -127,7 +127,7 @@ const SAVED_VOLUME = (typeof localStorage !== 'undefined') ? localStorage.getIte
 const INITIAL_VOL = SAVED_VOLUME !== null ? Math.max(0, Math.min(1, parseFloat(SAVED_VOLUME))) : 0.55;
 
 export let soundVolume = isNaN(INITIAL_VOL) ? 0.55 : INITIAL_VOL;
-export let lastNonZeroVolume = soundVolume > 0 ? soundVolume : 0.55;
+let lastNonZeroVolume = soundVolume > 0 ? soundVolume : 0.55;
 export let soundEnabled = soundVolume > 0;
 
 export function toggleSoundEnabled() {
@@ -154,16 +154,12 @@ export function setSoundVolume(v) {
   }
 }
 
-export let tomatoThrows = 0;
-export function incrementTomato() { tomatoThrows++; }
-
 export let matchSeconds = 0;
 export function incrementMatchSeconds() { matchSeconds++; }
 export function setMatchSeconds(sec) { matchSeconds = typeof sec === 'number' ? sec : 0; }
 
 export let localPlayerIdx = 0;
 export function setLocalPlayerIdx(idx) { localPlayerIdx = idx; }
-export function getLocalPlayerIdx() { return localPlayerIdx; }
 
 /**
  * Returns true only when it is the local human player's active turn

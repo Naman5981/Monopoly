@@ -11,11 +11,12 @@ import { saveCurrentMatchToStorage, clearSavedMatch } from '../../game/persisten
 import { checkVictoryConditions } from '../../game/rules.js';
 import { evaluateTradeDeal, recordDeclinedTrade } from '../../game/trading.js';
 import { refreshTileTextureAndBuildings } from '../../three/scene.js';
-import { logEvent, renderCornerHUDs, showTurnLockToast, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
+import { logEvent, renderCornerHUDs, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
 import { checkAndTriggerMonopoly, showVictoryModal } from './victory.js';
 import { isLobbyScreenActive, closeOtherInformationalModals } from './common.js';
 import { animateBotTradeHandshake, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    DIPLOMATIC TRADE MODAL
@@ -46,6 +47,18 @@ export function openTradeModal() {
   }
 
   const myProps = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === myIdx);
+  updateModalSlice('trade', {
+    visible: true,
+    statusMessage: '',
+    isWaiting: false,
+    myWallet: fmtMoney(gameState.players[myIdx]?.cash || 0),
+    myProperties: myProps.map(t => ({
+      id: t.id,
+      name: t.name,
+      color: t.colorHex || '#3b82f6',
+      rentFormatted: fmtMoney(t.baseRent || 0)
+    }))
+  });
   const offerPropsEl = document.getElementById('trade-offer-props');
   if (offerPropsEl) {
     offerPropsEl.innerHTML = myProps.map(t => `
@@ -345,6 +358,7 @@ function safelyResumeBotTurn() {
 }
 
 export function closeTradeModal() {
+  updateModalSlice('trade', { visible: false });
   animateModalSpringClose('#modal-trade');
   const banner = document.getElementById('trade-counter-banner');
   if (banner) banner.classList.add('hidden');

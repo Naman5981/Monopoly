@@ -35,7 +35,7 @@ export const CANDY_PALETTE = [
 
 export const FIXED_AI_NAMES = ['BARON', 'ATLAS', 'NOVA', 'PHOENIX', 'CYBER'];
 
-export const FUN_NAMES = [
+const FUN_NAMES = [
   ['ACE', 'TITAN', 'BLAZE', 'VIPER', 'SHADOW'],
   ['BARON', 'DUKE', 'MONARCH', 'REX', 'CZAR'],
   ['NOVA', 'LUNA', 'STELLA', 'AURORA', 'COSMO'],

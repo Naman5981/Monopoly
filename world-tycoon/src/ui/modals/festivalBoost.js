@@ -30,6 +30,7 @@ import {
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML } from './common.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 let pendingFestivalDoubles = false;
 let festivalPlayerIdx = null;
@@ -45,29 +46,16 @@ export function showFestivalNoPropertiesModal(player, isDoubles = false) {
 
   pendingFestivalDoubles = Boolean(isDoubles);
   gameState.phase = 'MODAL';
-
-  const modal = document.getElementById('modal-festival-no-properties');
-  if (modal) {
-    animateModalSpringOpen('#modal-festival-no-properties', '#modal-festival-no-properties-card');
-    playSFX('hop');
-    setStatusPill(`🎪 Visited World Festival (No properties owned to increase rent)`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
-
-    setTimeout(() => {
-      document.getElementById('btn-festival-no-props-ok')?.focus();
-    }, 60);
-  } else {
-    // Fallback if modal container missing
-    if (window.concludeActionPhase) {
-      window.concludeActionPhase(pendingFestivalDoubles);
-    }
-  }
+  updateModalSlice('festivalBoost', { noPropertiesVisible: true });
+  playSFX('hop');
+  setStatusPill(`🎪 Visited World Festival (No properties owned to increase rent)`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
 }
 
 /**
  * Closes the No Properties Owned alert modal and concludes action phase.
  */
 export function closeFestivalNoPropertiesModal() {
-  animateModalSpringClose('#modal-festival-no-properties', '#modal-festival-no-properties-card');
+  updateModalSlice('festivalBoost', { noPropertiesVisible: false });
   const isDoubles = pendingFestivalDoubles;
   if (window.concludeActionPhase) {
     window.concludeActionPhase(isDoubles);
@@ -106,10 +94,9 @@ export function openFestivalBoostModal(ownedProperties, isDoubles, playerIdx = n
 
   if (engineCallbacks.updateUI) engineCallbacks.updateUI();
 
-  // 3. Render modal cards in background so they are ready if user clicks "View List",
-  // but DO NOT auto-open the center modal. Keep the 3D board completely clear and visible
-  // so the player can watch the owned properties flashing on the board and click them directly!
+  // 3. Update reactive Svelte modalStore slice
   renderFestivalBoostModal(cachedFestivalProperties, pIdx);
+  updateModalSlice('festivalBoost', { visible: false });
   playSFX('hop');
   setStatusPill(`🎪 Click any flashing owned city on the board to double rent (2×)!`, { isThinking: false, playerIdx: pIdx });
 }
@@ -120,6 +107,7 @@ export function openFestivalBoostModal(ownedProperties, isDoubles, playerIdx = n
 export function openFestivalBoostModalFromBanner() {
   if (cachedFestivalProperties.length > 0) {
     renderFestivalBoostModal(cachedFestivalProperties, festivalPlayerIdx ?? gameState.currentPlayerIdx);
+    updateModalSlice('festivalBoost', { visible: true });
     animateModalSpringOpen('#modal-festival-boost', '#modal-festival-boost-card');
   }
 }
@@ -130,105 +118,29 @@ export function openFestivalBoostModalFromBanner() {
  * @param {number} pIdx
  */
 export function renderFestivalBoostModal(ownedProperties, pIdx) {
-  const grid = document.getElementById('festival-boost-grid');
-  if (!grid) return;
-
-  const player = gameState.players[pIdx];
+  const player = gameState.players ? gameState.players[pIdx] : null;
   const countEl = document.getElementById('festival-boost-count');
   if (countEl) countEl.textContent = `${ownedProperties.length} Properties Owned`;
-
   const playerNameEl = document.getElementById('festival-boost-player-name');
   if (playerNameEl && player) playerNameEl.textContent = player.name;
 
-  if (ownedProperties.length === 0) {
-    grid.innerHTML = `
-      <div class="text-center py-8 text-slate-500 font-bold text-xs col-span-full">
-        <i class="fa-solid fa-building-circle-xmark text-amber-500 text-2xl mb-2 block"></i>
-        You do not own any properties to boost with the Festival.
-      </div>
-    `;
-    return;
-  }
-
-  // Identify any currently boosted festival city across the entire board (no player constraint)
-  const currentHostTile = BOARD_TILES.find(t => gameState.properties[t.id]?.festivalBoost);
-  const currentHostProp = currentHostTile ? gameState.properties[currentHostTile.id] : null;
-  const currentHostOwner = (currentHostProp && currentHostProp.owner !== null && gameState.players)
-    ? gameState.players[currentHostProp.owner]
-    : null;
-
-  let hostNoticeHTML = '';
-  if (currentHostTile) {
-    const isOwnedByMe = currentHostProp?.owner === pIdx;
-    hostNoticeHTML = `
-      <div class="col-span-full p-2.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5 mb-1 shadow-2xs">
-        <i class="fa-solid fa-champagne-glasses text-amber-500 text-base shrink-0"></i>
-        <div class="text-[11px] leading-tight">
-          ${isOwnedByMe
-            ? `<strong>${currentHostTile.name}</strong> currently holds the World Festival. You may re-confirm it or move the 2× rent boost to any other owned city!`
-            : `<strong>${currentHostTile.name}</strong> (owned by <strong>${currentHostOwner?.name || 'Rival'}</strong>) currently hosts the Festival. Selecting a city will transfer the festival and restore <strong>${currentHostTile.name}</strong>'s rent to normal.`}
-        </div>
-      </div>
-    `;
-  }
-
-  const cardsHTML = ownedProperties.map(tile => {
-    const st = gameState.properties[tile.id] || { level: 0, festivalBoost: false };
-    const isAlreadyBoosted = Boolean(st.festivalBoost);
-    const color = tile.group && GROUP_META[tile.group] ? GROUP_META[tile.group].hex : '#0284c7';
-    const groupName = tile.group && GROUP_META[tile.group] ? GROUP_META[tile.group].name : tile.type.toUpperCase();
-
-    // Standard base rent (unboosted 1x)
-    const baseRent = calculateBaseTileRent(tile.id);
-    const festivalRent = baseRent * 2;
-    const levelBadge = getTierBadgeHTML(st.level || 0);
-
-    const buttonLabel = isAlreadyBoosted
-      ? 'RE-CONFIRM FESTIVAL (2× RENT)'
-      : (currentHostTile ? 'TRANSFER FESTIVAL HERE (2×)' : 'HOST FESTIVAL (2× RENT)');
-
-    return `
-      <div class="bg-white border-2 ${isAlreadyBoosted ? 'border-amber-400 bg-amber-50/40 shadow-sm' : 'border-slate-200/90 hover:border-emerald-500 hover:shadow-md'} rounded-2xl p-3.5 flex flex-col justify-between gap-3 transition">
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <span class="w-4 h-4 rounded-full border border-black/20 shrink-0" style="background:${color};" title="${groupName}"></span>
-            <div class="truncate">
-              <div class="font-black text-sm text-slate-900 truncate flex items-center gap-1.5">
-                <span>${tile.name}</span>
-                ${isAlreadyBoosted ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-400 text-amber-950">Active Host</span>' : ''}
-              </div>
-              <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">${groupName}</div>
-            </div>
-          </div>
-          <div class="shrink-0">
-            ${levelBadge}
-          </div>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200/70 rounded-xl p-2.5 flex items-center justify-between text-xs">
-          <div>
-            <div class="text-[9px] font-black uppercase text-slate-400">BASE RENT</div>
-            <div class="font-extrabold text-slate-700">${fmtMoney(baseRent)}</div>
-          </div>
-          <div class="text-right">
-            <div class="text-[9px] font-black uppercase text-emerald-600">FESTIVAL (2×)</div>
-            <div class="font-black text-emerald-600 text-sm flex items-center justify-end gap-1">
-              <i class="fa-solid fa-arrow-trend-up text-xs"></i>
-              <span>${fmtMoney(festivalRent)}</span>
-            </div>
-          </div>
-        </div>
-
-        <button onclick="window.chooseFestivalBoostCity(${tile.id})"
-          class="game-btn ${isAlreadyBoosted ? 'game-btn-orange' : 'game-btn-green'} w-full py-2.5 text-xs font-black shadow-xs cursor-pointer flex items-center justify-center gap-1.5 transition">
-          <i class="fa-solid fa-sparkles"></i>
-          <span>${buttonLabel}</span>
-        </button>
-      </div>
-    `;
-  }).join('');
-
-  grid.innerHTML = hostNoticeHTML + cardsHTML;
+  updateModalSlice('festivalBoost', {
+    playerName: player?.name || 'Player',
+    potAmountFormatted: fmtMoney(gameState.festivalPot || 0),
+    ownedProperties: ownedProperties.map(tile => {
+      const st = gameState.properties[tile.id] || { level: 0, festivalBoost: false };
+      const color = tile.group && GROUP_META[tile.group] ? GROUP_META[tile.group].hex : '#0284c7';
+      const baseRent = calculateBaseTileRent(tile.id);
+      return {
+        id: tile.id,
+        name: tile.name,
+        color,
+        level: st.level || 0,
+        rentFormatted: fmtMoney(baseRent * 2),
+        festivalBoost: Boolean(st.festivalBoost)
+      };
+    })
+  });
 }
 
 /**
@@ -321,6 +233,7 @@ export function chooseFestivalBoostCity(tileId) {
  * @param {boolean} [forceCancelHighlights=false] - Whether to also shut down 3D breathing highlights
  */
 export function closeFestivalBoostModal(forceCancelHighlights = false) {
+  updateModalSlice('festivalBoost', { visible: false });
   animateModalSpringClose('#modal-festival-boost', '#modal-festival-boost-card');
 
   if (forceCancelHighlights) {

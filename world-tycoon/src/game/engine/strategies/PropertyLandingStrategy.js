@@ -41,7 +41,7 @@ import { animateBankruptcyQuake } from '../../../ui/anim.js';
 
 let autoEndTurnTimer = null;
 
-export const lastBotBuyoutTurn = {};
+const lastBotBuyoutTurn = {};
 
 export function resetBuyoutMemory() {
   for (const k in lastBotBuyoutTurn) delete lastBotBuyoutTurn[k];

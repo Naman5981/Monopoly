@@ -12,6 +12,7 @@ import { renderCornerHUDs, logEvent } from '../hud.js';
 import { checkAndTriggerMonopoly } from './victory.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateAuctionGavelRipple, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 export function startCityAuction() {
   if (isLobbyScreenActive()) return;
@@ -37,21 +38,21 @@ export function startCityAuction() {
 export function updateAuctionModalUI() {
   const a = gameState.auction;
   if (!a) return;
-  const cityNameEl = document.getElementById('auction-city-name');
-  if (cityNameEl) cityNameEl.textContent = `Bidding on ${a.tile.name}`;
-  const baseValEl = document.getElementById('auction-base-val');
-  if (baseValEl) baseValEl.textContent = `Value: ${fmtMoney(a.tile.price)}`;
-  const highBidEl = document.getElementById('auction-high-bid');
-  if (highBidEl) highBidEl.textContent = fmtMoney(a.highBid);
-  const highBidderEl = document.getElementById('auction-high-bidder');
-  if (highBidderEl) {
-    highBidderEl.textContent = (a.highBidder !== null && gameState.players[a.highBidder])
-      ? `Leading: ${gameState.players[a.highBidder].name}`
-      : 'No bids yet';
-  }
+
   const curBidderIdx = a.activeBidders[a.turnPos % a.activeBidders.length];
-  const turnPlayerEl = document.getElementById('auction-turn-player');
-  if (turnPlayerEl) turnPlayerEl.textContent = gameState.players[curBidderIdx]?.name || 'Unknown';
+  const highBidder = (a.highBidder !== null && gameState.players[a.highBidder])
+    ? `Leading: ${gameState.players[a.highBidder].name}`
+    : 'No bids yet';
+  const activeBidder = gameState.players[curBidderIdx]?.name || 'Unknown';
+
+  updateModalSlice('auction', {
+    visible: true,
+    cityName: a.tile.name,
+    baseValFormatted: `Value: ${fmtMoney(a.tile.price)}`,
+    highBidFormatted: fmtMoney(a.highBid),
+    highBidder,
+    activeBidder
+  });
 }
 
 export function placeAuctionBid(increment) {
@@ -82,6 +83,7 @@ export function passAuctionBid() {
     if (a.highBidder === null) {
       // Everyone passed and no bids were placed: property remains unowned
       logEvent(`🔨 No bids placed on <strong>${a.tile.name}</strong>. Property remains unowned.`);
+      updateModalSlice('auction', { visible: false });
       animateModalSpringClose('#modal-auction');
       gameState.auction = null;
       if (engineCallbacks.concludeActionPhase) {
@@ -101,6 +103,7 @@ export function passAuctionBid() {
     }
     logEvent(`🔨 <strong>${winner.name}</strong> won the auction for <strong>${a.tile.name}</strong> at <strong>${fmtMoney(a.highBid)}</strong>!`);
 
+    updateModalSlice('auction', { visible: false });
     animateModalSpringClose('#modal-auction');
     refreshTileTextureAndBuildings(a.tile.id);
     renderCornerHUDs();

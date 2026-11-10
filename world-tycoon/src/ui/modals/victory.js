@@ -9,16 +9,17 @@ import { fmtMoney } from '../../game/utils.js';
 import { playSFX, stopAdaptiveMusic } from '../../game/audio.js';
 import { ownsFullColorGroup } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastReturnToLobby, broadcastStartOnlineMatch } from '../../network/p2p.js';
-import { setMonopolyTileHighlights, startIntroCameraFlyIn } from '../../three/scene.js';
+import { setMonopolyTileHighlights } from '../../three/scene.js';
 import { fireConfettiBurst, spawnAnimatedReaction, startVictoryCelebration, stopVictoryCelebration } from '../../three/effects.js';
 import { logEvent } from '../hud.js';
 import { renderNetWorthTimelineChart } from './leaderboard.js';
-import { engineCallbacks, isLobbyScreenActive, closeAllGameModals } from './common.js';
+import { engineCallbacks, closeAllGameModals } from './common.js';
 import { ARCHETYPES } from '../setup.js';
 import { awardMatchPoints } from '../wardrobe.js';
 import { animateVictoryTally, animateNumberCounter, animateModalPunchIn, animateMonopolyRibbonUnfurl } from '../anim.js';
 import { playVictoryCinematicOrbit, playIntroCinematicFlyIn } from '../../three/theatre.js';
 import { setPlayerPortraitMood } from '../portraitRenderer.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    VICTORY CELEBRATION MODAL
@@ -58,6 +59,7 @@ export function showVictoryModal(winner, victoryDetails = null) {
   }
 
   // Immediately make victory modal and card visible with top z-index
+  updateModalSlice('victory', { visible: true });
   const modal = document.getElementById('modal-victory');
   if (modal) {
     modal.classList.remove('hidden');
@@ -245,6 +247,7 @@ export function handlePlayAgainAction() {
   }
 
   stopVictoryCelebration();
+  updateModalSlice('victory', { visible: false });
   const modal = document.getElementById('modal-victory');
   if (modal) {
     modal.classList.add('hidden');
@@ -274,6 +277,7 @@ export function handlePlayAgainAction() {
 
 export function handleReturnToLobbyFromVictory() {
   stopVictoryCelebration();
+  updateModalSlice('victory', { visible: false });
   const modal = document.getElementById('modal-victory');
   if (modal) {
     modal.classList.add('hidden');

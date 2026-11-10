@@ -22,6 +22,7 @@ import { checkAndTriggerMonopoly } from './victory.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { drawPortraitFrame } from '../portraitRenderer.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 export function openBuyCityModal(tile, isDoubles) {
   if (isLobbyScreenActive()) return;
@@ -33,76 +34,37 @@ export function openBuyCityModal(tile, isDoubles) {
   setTileHighlightRing(tile.id, true);
   setStatusPill(`🏢 Deciding whether to buy <strong>${tile.name}</strong> (${fmtMoney(tile.price)})...`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
 
-  const header = document.getElementById('buy-modal-header');
-  if (header) {
-    header.style.background = tile.group ? GROUP_META[tile.group].hex : '#0284c7';
-  }
-  const countryEl = document.getElementById('buy-modal-country');
-  if (countryEl) {
-    countryEl.textContent = tile.group ? GROUP_META[tile.group].name : 'RESORT DESTINATION';
-  }
-  const nameEl = document.getElementById('buy-modal-name');
-  if (nameEl) nameEl.textContent = tile.name;
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx] || gameState.players[0];
-
-  // Buyer profile info & avatar
-  const buyerNameEl = document.getElementById('buy-modal-buyer-name');
-  if (buyerNameEl && p) buyerNameEl.textContent = p.name;
-  const buyerBadgeEl = document.getElementById('buy-modal-buyer-badge');
+  const canAfford = p && p.cash >= tile.price;
   const theme = (PLAYER_THEMES && PLAYER_THEMES[pIdx]) || { colorHex: '#3b82f6' };
-  const avatarWrap = document.getElementById('buy-modal-buyer-avatar-wrap');
-  if (avatarWrap) avatarWrap.style.boxShadow = `0 0 0 2px ${theme.colorHex}`;
-  if (buyerBadgeEl && p) {
-    const myLocalIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : 0;
-    const isLocalHuman = (pIdx === myLocalIdx) && !p.isAI;
-    buyerBadgeEl.textContent = p.isAI ? 'BOT' : (isLocalHuman ? 'YOU' : p.name);
-    buyerBadgeEl.style.borderColor = theme.colorHex;
-  }
+  const myLocalIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : 0;
+  const isLocalHuman = (pIdx === myLocalIdx) && !p.isAI;
+
+  const colorHex = tile.group ? GROUP_META[tile.group].hex : '#0284c7';
+  const countryName = tile.group ? GROUP_META[tile.group].name : 'RESORT DESTINATION';
+  const maxRentHtml = (tile.type === 'city')
+    ? `<span class="text-amber-700">${fmtMoney(tile.rent[tile.rent.length - 1] || tile.rent[4])}</span> <span class="text-[10px] text-slate-500 font-bold">(Skyscraper)</span>`
+    : `<span class="text-sky-700">2× Boosted</span> <span class="text-[10px] text-slate-500 font-bold">(Set of 2)</span>`;
+
+  updateModalSlice('buyCity', {
+    visible: true,
+    tile,
+    cityName: tile.name,
+    countryName,
+    colorHex,
+    priceFormatted: fmtMoney(tile.price),
+    rentFormatted: fmtMoney(tile.rent[0]),
+    buyerName: p.name,
+    buyerBadge: p.isAI ? 'BOT' : (isLocalHuman ? 'YOU' : p.name),
+    buyerColor: theme.colorHex,
+    canAfford,
+    balancePreview: canAfford ? `${fmtMoney(p.cash)} → ${fmtMoney(p.cash - tile.price)}` : `${fmtMoney(p.cash)} (Need ${fmtMoney(tile.price - p.cash)} more)`,
+    maxRentHtml
+  });
+
   const buyerCanvas = document.getElementById('buy-modal-buyer-avatar-canvas');
   if (buyerCanvas) drawPortraitFrame(buyerCanvas, pIdx, performance.now());
-
-  const priceEl = document.getElementById('buy-modal-price');
-  if (priceEl) priceEl.textContent = fmtMoney(tile.price);
-  const rentEl = document.getElementById('buy-modal-rent');
-  if (rentEl) rentEl.textContent = fmtMoney(tile.rent[0]);
-
-  // Balance after purchase preview
-  const balancePreviewEl = document.getElementById('buy-modal-balance-preview');
-  if (balancePreviewEl) {
-    if (p) {
-      if (p.cash >= tile.price) {
-        const remaining = p.cash - tile.price;
-        balancePreviewEl.className = 'font-mono tabular-nums font-black text-emerald-700';
-        balancePreviewEl.textContent = `${fmtMoney(p.cash)} → ${fmtMoney(remaining)}`;
-      } else {
-        balancePreviewEl.className = 'font-mono tabular-nums font-black text-rose-600';
-        balancePreviewEl.textContent = `${fmtMoney(p.cash)} (Need ${fmtMoney(tile.price - p.cash)} more)`;
-      }
-    }
-  }
-
-  // Max Potential preview
-  const maxRentEl = document.getElementById('buy-modal-max-rent');
-  if (maxRentEl) {
-    if (tile.type === 'city') {
-      const maxVal = tile.rent[tile.rent.length - 1] || tile.rent[4];
-      maxRentEl.innerHTML = `<span class="text-amber-700">${fmtMoney(maxVal)}</span> <span class="text-[10px] text-slate-500 font-bold">(Skyscraper)</span>`;
-    } else {
-      maxRentEl.innerHTML = `<span class="text-sky-700">2× Boosted</span> <span class="text-[10px] text-slate-500 font-bold">(Set of 2)</span>`;
-    }
-  }
-
-  // Primary Action Button with embedded price
-  const btnBuy = document.getElementById('btn-confirm-buy');
-  if (btnBuy) {
-    const canAfford = p && p.cash >= tile.price;
-    btnBuy.disabled = !canAfford;
-    btnBuy.innerHTML = canAfford
-      ? `<i class="fa-solid fa-cart-shopping mr-1.5"></i> BUY FOR ${fmtMoney(tile.price)}`
-      : `<i class="fa-solid fa-lock mr-1.5"></i> NEED ${fmtMoney(tile.price)}`;
-    btnBuy.className = `game-btn ${canAfford ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} flex-1 py-3 text-sm font-black shadow-md cursor-pointer transition`;
-  }
 
   populateCityPreview3DScene(tile, 'buy-city-3d-canvas');
 
@@ -137,6 +99,7 @@ export function confirmBuyCity() {
   }
 
   clearCityPreview();
+  updateModalSlice('buyCity', { visible: false });
   animateModalSpringClose('#modal-buy-city', '#modal-buy-city-card');
   setTileHighlightRing(tile.id, false);
   gameState.pendingBuyTile = null;
@@ -159,6 +122,7 @@ export function passBuyCity() {
     if (p) logEvent(`🏷️ <strong>${p.name}</strong> passed on buying <strong>${tile.name}</strong>.`);
   }
   clearCityPreview();
+  updateModalSlice('buyCity', { visible: false });
   animateModalSpringClose('#modal-buy-city', '#modal-buy-city-card');
   gameState.pendingBuyTile = null;
 
