@@ -21,7 +21,7 @@
   function onDebug() { window.toggleDebugPanel?.(); }
 </script>
 
-<header id="main-game-hud-bar" class="fixed top-2.5 sm:top-3 inset-x-3 sm:inset-x-5 z-[1300] flex items-center justify-between pointer-events-none select-none gap-2 flex-nowrap">
+<header id="main-game-hud-bar" class="fixed top-2.5 sm:top-3 inset-x-3 sm:inset-x-5 z-[1300] hidden items-center justify-between pointer-events-none select-none gap-2 flex-nowrap">
   <!-- Left Pod: Navigation & Primary Actions -->
   <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-shrink-0">
     <button id="btn-top-lobby" onclick={onLobby} class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby" aria-label="Return to Lobby">

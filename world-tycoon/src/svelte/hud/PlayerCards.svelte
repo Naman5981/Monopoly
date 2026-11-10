@@ -6,7 +6,7 @@
 </script>
 
 <!-- Left Players Column -->
-<div id="hud-left-players" class="fixed top-[54px] sm:top-[58px] left-3 sm:left-5 z-30 flex flex-col gap-2.5 sm:gap-3 pointer-events-auto">
+<div id="hud-left-players" class="fixed top-[54px] sm:top-[58px] left-3 sm:left-5 z-30 hidden flex-col gap-2.5 sm:gap-3 pointer-events-auto">
   {#each state.leftPlayers || [] as player (player.id)}
     <div class="player-hud-wrapper flex items-center {player.bankrupt ? 'opacity-35 grayscale' : (player.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150">
       <div id="hud-card-{player.id}" class="player-hud-card {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''}">
@@ -55,7 +55,7 @@
 </div>
 
 <!-- Right Players Column -->
-<div id="hud-right-players" class="fixed top-[54px] sm:top-[58px] right-3 sm:right-5 z-30 flex flex-col gap-2.5 sm:gap-3 items-end pointer-events-auto">
+<div id="hud-right-players" class="fixed top-[54px] sm:top-[58px] right-3 sm:right-5 z-30 hidden flex-col gap-2.5 sm:gap-3 items-end pointer-events-auto">
   {#each state.rightPlayers || [] as player (player.id)}
     <div class="player-hud-wrapper flex items-center {player.bankrupt ? 'opacity-35 grayscale' : (player.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150">
       <div id="hud-card-{player.id}" class="player-hud-card {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''}">

@@ -232,6 +232,10 @@ export function renderPlayerCards() {
   // Reactive Svelte PlayerSetupCards mounted at #setup-players-roster handles DOM declaratively
 }
 
+export function handlePlayerNameChange(idx, name) {
+  setPlayerSetupName(idx, name);
+}
+
 export function setPlayerSetupName(idx, name, isSystemOrBot = false) {
   if (!isSystemOrBot && currentLobbyView !== 'title') {
     showTurnLockToast('Names can only be changed on the Home Screen!');

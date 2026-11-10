@@ -646,11 +646,13 @@ function initApp() {
   try {
     if (typeof document !== 'undefined') {
       const rosterContainer = document.getElementById('setup-players-roster');
-      if (rosterContainer && !rosterContainer.hasChildNodes()) {
+      if (rosterContainer) {
+        rosterContainer.innerHTML = '';
         mount(PlayerSetupCards, { target: rosterContainer });
       }
       const hudContainer = document.getElementById('svelte-hud-mount');
-      if (hudContainer && !hudContainer.hasChildNodes()) {
+      if (hudContainer) {
+        hudContainer.innerHTML = '';
         mount(GameHud, { target: hudContainer });
       }
       let modalsContainer = document.getElementById('svelte-modals-mount');
@@ -659,9 +661,8 @@ function initApp() {
         modalsContainer.id = 'svelte-modals-mount';
         document.body.appendChild(modalsContainer);
       }
-      if (!modalsContainer.hasChildNodes()) {
-        mount(ModalsRoot, { target: modalsContainer });
-      }
+      modalsContainer.innerHTML = '';
+      mount(ModalsRoot, { target: modalsContainer });
     }
   } catch (err) {
     console.warn('[Svelte] Components mounting deferred:', err);
