@@ -7,7 +7,7 @@ import { gameState, matchSettings, displayedCash, matchSeconds, setMatchSeconds,
 import { BOARD_TILES, applyBoardEdition } from './data.js';
 import { fmtMoney } from './utils.js';
 import { refreshTileTextureAndBuildings, spawnAllPlayerTokens3D, updatePlayerTokenPositions3D, showSpeechBubble, applyBoardStyle } from '../three/scene.js';
-import { renderCornerHUDs, updateRollButtonsUI, logEvent } from '../ui/hud.js';
+import { renderCornerHUDs, updateRollButtonsUI, revealGameHud, logEvent } from '../ui/hud.js';
 import { updateModalSlice } from '../svelte/stores/modalStore.js';
 import { playSFX, startAdaptiveMusic } from './audio.js';
 import { resumeActiveTurn } from './engine.js';
@@ -146,6 +146,7 @@ export function resumeSavedMatch() {
     updatePlayerTokenPositions3D();
 
     // 5. Update HUD
+    revealGameHud();
     renderCornerHUDs();
     updateRollButtonsUI(isHumanTurnActionable());
 
@@ -159,8 +160,10 @@ export function resumeSavedMatch() {
       landing.style.setProperty('display', 'none', 'important');
     }
 
-    playSFX('win');
-    startAdaptiveMusic();
+    try {
+      playSFX('win');
+      startAdaptiveMusic();
+    } catch (_) {}
     showSpeechBubble('🎮 Match resumed! Welcome back!', 3000);
     logEvent(`💾 <strong>Unfinished match resumed</strong> from previous session.`);
 

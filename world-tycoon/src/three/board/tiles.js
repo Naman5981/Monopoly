@@ -134,7 +134,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     boardGroup.add(tileMesh);
     context.tilesMeshMap[tile.id] = tileMesh;
 
-    const poolGeo = new THREE.PlaneGeometry(4.8, 4.8);
+    const poolGeo = new THREE.PlaneGeometry(2.92, 2.92);
     const poolMat = new THREE.MeshBasicMaterial({
       map: getGroundPoolTexture(),
       color: ownerTheme ? new THREE.Color(ownerTheme.colorHex) : 0xffeedd,
@@ -288,22 +288,22 @@ export function refreshTileTextureAndBuildings(tileId) {
 
   if (lvl === 0) {
     const flagMesh = createDetailedFlagMesh(ownerColor);
-    // Flag placed with pole at left of color bar so the large banner waves proudly across the upper rim
-    flagMesh.position.set(-0.45, 0, -0.98);
+    // Flag placed cleanly at top-left rim so pole plinth never encroaches on owner ribbon
+    flagMesh.position.set(-0.48, 0, -1.06);
     flagMesh.scale.set(0.01, 0.01, 0.01);
     bGroup.add(flagMesh);
     animatedBuildingPopups.push({ mesh: flagMesh, startTime: performance.now(), duration: 400, targetScale: 1.05 });
   } else if (lvl >= 1 && lvl <= 3) {
     const hGroup = createDetailedHouseMesh(ownerColor, lvl);
-    // House sits comfortably on upper rim of tile with perfect proportion
-    hGroup.position.set(0, 0, -0.96);
+    // House sits comfortably on upper rim of tile with generous margin
+    hGroup.position.set(0, 0, -1.02);
     hGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(hGroup);
     animatedBuildingPopups.push({ mesh: hGroup, startTime: performance.now(), duration: 420, targetScale: 0.92 });
   } else if (lvl >= 4) {
     const towerGroup = createDetailedSkyscraperMesh(ownerColor);
     // Skyscraper sits at upper rim with balanced height that leaves city name fully clear
-    towerGroup.position.set(0, 0, -0.96);
+    towerGroup.position.set(0, 0, -1.02);
     towerGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(towerGroup);
     animatedBuildingPopups.push({ mesh: towerGroup, startTime: performance.now(), duration: 480, targetScale: 0.85 });

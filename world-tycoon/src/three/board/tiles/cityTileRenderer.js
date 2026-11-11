@@ -41,9 +41,9 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
   const slotBadge = `P${ownerIdx + 1}`;
 
   const rx = 36;
-  const ry = 146;
+  const ry = 154;
   const rw = 440;
-  const rh = 48;
+  const rh = 46;
   const radius = 12;
 
   ctx.save();
@@ -175,7 +175,7 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
   const valFontSize = valLen <= 4 ? 126 : (valLen <= 5 ? 114 : (valLen <= 6 ? 102 : 90));
   const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
-  const nameY = 265;
+  const nameY = 270;
   const valY = 415;
 
   if (isOwned) {
@@ -268,7 +268,7 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
   const valFontSize = valLen <= 4 ? 126 : (valLen <= 5 ? 114 : (valLen <= 6 ? 102 : 90));
   const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
-  const nameY = 265;
+  const nameY = 270;
   const valY = 415;
 
   if (isOwned) {

@@ -35,6 +35,8 @@ import { context } from '../three/core/context.js';
 import {
   renderCornerHUDs,
   updateRollButtonsUI,
+  revealGameHud,
+  hideGameHud,
   logEvent,
   refreshActivePlayerTurnStatus,
   setStatusPill,
@@ -530,26 +532,7 @@ export function startNewMatch() {
   });
 
   // Reveal in-game HUD layers
-  const hudBar = document.getElementById('main-game-hud-bar');
-  if (hudBar) {
-    hudBar.classList.remove('hidden');
-    hudBar.style.removeProperty('display');
-  }
-  const capsule = document.getElementById('hud-match-status-capsule');
-  if (capsule) {
-    capsule.classList.remove('hidden');
-    capsule.style.removeProperty('display');
-  }
-  const hudLeft = document.getElementById('hud-left-players');
-  if (hudLeft) {
-    hudLeft.classList.remove('hidden');
-    hudLeft.style.removeProperty('display');
-  }
-  const hudRight = document.getElementById('hud-right-players');
-  if (hudRight) {
-    hudRight.classList.remove('hidden');
-    hudRight.style.removeProperty('display');
-  }
+  revealGameHud();
 
   spawnAllPlayerTokens3D();
   renderCornerHUDs();
@@ -594,42 +577,7 @@ export function terminateMatchAndReturnToLobby(isRemote = false) {
   } catch (_) {}
 
   // Hide all in-game overlays and badges
-  const hudBar = document.getElementById('main-game-hud-bar');
-  if (hudBar) {
-    hudBar.classList.add('hidden');
-    hudBar.style.setProperty('display', 'none', 'important');
-  }
-  const hudLeft = document.getElementById('hud-left-players');
-  if (hudLeft) {
-    hudLeft.classList.add('hidden');
-    hudLeft.style.setProperty('display', 'none', 'important');
-  }
-  const hudRight = document.getElementById('hud-right-players');
-  if (hudRight) {
-    hudRight.classList.add('hidden');
-    hudRight.style.setProperty('display', 'none', 'important');
-  }
-  const turnToast = document.getElementById('turn-lock-toast');
-  if (turnToast) turnToast.classList.add('hidden');
-  const flightBanner = document.getElementById('world-tour-banner');
-  if (flightBanner) flightBanner.classList.add('hidden');
-  const diceOverlay = document.getElementById('screen-dice-overlay');
-  if (diceOverlay) {
-    diceOverlay.classList.add('hidden');
-    diceOverlay.style.display = 'none';
-  }
-  const speechBubble = document.getElementById('token-speech-bubble');
-  if (speechBubble) speechBubble.classList.add('hidden');
-  const diceSumBadge = document.getElementById('dice-sum-badge');
-  if (diceSumBadge) {
-    diceSumBadge.classList.add('hidden');
-    diceSumBadge.style.setProperty('display', 'none', 'important');
-  }
-  const statusWrap = document.getElementById('hud-bottom-status-wrap');
-  if (statusWrap) {
-    statusWrap.classList.add('hidden');
-    statusWrap.style.setProperty('display', 'none', 'important');
-  }
+  hideGameHud();
 
   if (networkState.isMultiplayer) {
     if (networkState.isHost) {

@@ -16,7 +16,7 @@ export const animatedBuildingPopups = [];
 
 // Shared Geometries Cache for maximum GPU reuse
 const geomCache = {
-  plinth: new THREE.CylinderGeometry(0.22, 0.28, 0.08, 16),
+  plinth: new THREE.CylinderGeometry(0.16, 0.20, 0.07, 16),
   brassCollar: new THREE.CylinderGeometry(0.14, 0.19, 0.05, 16),
   boltRing: new THREE.CylinderGeometry(0.08, 0.11, 0.04, 12),
   pole: new THREE.CylinderGeometry(0.042, 0.056, 1.80, 16),

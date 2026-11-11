@@ -209,12 +209,12 @@ export function buildStreetLampsAndBulbs3D(boardGroup) {
     lamp.add(beam);
     streetLightBeams.push(beamMat);
 
-    const poolGeo = new THREE.CircleGeometry(2.4, 32);
+    const poolGeo = new THREE.CircleGeometry(1.65, 24);
     const poolMat = new THREE.MeshBasicMaterial({
       map: getGroundPoolTexture(),
-      color: 0xfffaed,
+      color: 0xfff7ed,
       transparent: true,
-      opacity: 0.40,
+      opacity: 0.20,
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
       depthWrite: false

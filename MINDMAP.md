@@ -249,7 +249,7 @@ sequenceDiagram
     - **Chance Result Toast**: Celebratory fortune wheel payout (`modal-chance-result` in `ChanceWheelModal.svelte`) renders as a floating top notification chip (`fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[1100]`) rather than a full-screen blackout.
   - `lobby/`: Declarative setup roster (`PlayerSetupCards.svelte`).
 - **HUD Controllers**:
-  - [`world-tycoon/src/ui/hud/controls.js`](world-tycoon/src/ui/hud/controls.js): Roll button, fast-forward toggle, and turn controls dispatching to `hudStore`.
+  - [`world-tycoon/src/ui/hud/controls.js`](world-tycoon/src/ui/hud/controls.js): Roll button, fast-forward toggle, and turn controls dispatching to `hudStore`; includes centralized `revealGameHud()` and `hideGameHud()` lifecycle controllers ensuring seamless HUD restoration when continuing saved matches across browser reloads.
   - [`world-tycoon/src/ui/hud/cards.js`](world-tycoon/src/ui/hud/cards.js): Player cash cards and status bars dispatching to `hudStore` without dual-rendering DOM collisions; rendered in Svelte by `PlayerCards.svelte` with interactive hover, focus, and touch empire spotlighting (`setEmpireSpotlight`).
   - [`world-tycoon/src/ui/hud/statusPill.js`](world-tycoon/src/ui/hud/statusPill.js): Turn phase notification banner dispatching unconditionally to `hudStore` with full DOM ID alignment (`#hud-status-pill`, `#hud-status-pill-dot`, `#hud-status-pill-text`).
 - **Modals (Svelte-Driven)**:

@@ -284,3 +284,54 @@ export function initFastHUDButtonInteractions() {
     btn.style.pointerEvents = 'auto';
   });
 }
+
+/**
+ * Unhides and reveals all in-game HUD layers (TopBar, PlayerCards, StatusPill, MatchCapsule).
+ */
+export function revealGameHud() {
+  if (typeof document === 'undefined') return;
+  const elements = [
+    'main-game-hud-bar',
+    'hud-match-status-capsule',
+    'hud-left-players',
+    'hud-right-players',
+    'hud-bottom-status-wrap'
+  ];
+  elements.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.remove('hidden');
+      el.style.removeProperty('display');
+    }
+  });
+}
+
+/**
+ * Hides all in-game HUD layers and badges when returning to setup/lobby.
+ */
+export function hideGameHud() {
+  if (typeof document === 'undefined') return;
+  const elements = [
+    'main-game-hud-bar',
+    'hud-match-status-capsule',
+    'hud-left-players',
+    'hud-right-players',
+    'hud-bottom-status-wrap',
+    'turn-lock-toast',
+    'world-tour-banner',
+    'token-speech-bubble',
+    'dice-sum-badge'
+  ];
+  elements.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('hidden');
+      el.style.setProperty('display', 'none', 'important');
+    }
+  });
+  const diceOverlay = document.getElementById('screen-dice-overlay');
+  if (diceOverlay) {
+    diceOverlay.classList.add('hidden');
+    diceOverlay.style.display = 'none';
+  }
+}
