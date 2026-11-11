@@ -87,15 +87,25 @@ describe('Lobby Appearance Lock & Dynamic Bot Appearances', () => {
       assert.equal(success, true, 'Color update to available color should succeed in lobby');
       assert.equal(matchSettings.customPlayers[0].colorHex, '#22c55e', 'Player color should update');
 
-      // Player cannot take an already taken color (#ef4444 is used by slot 1)
-      const failCollision = setLocalPlayerColor('#ef4444', 0xef4444);
-      assert.equal(failCollision, false, 'Taken color should be rejected');
-      assert.equal(matchSettings.customPlayers[0].colorHex, '#22c55e', 'Player color remains previous color');
+      // Player CAN take a color currently used by a bot (#ef4444 in slot 1), and bot re-rolls to a random color
+      matchSettings.customPlayers[1].colorHex = '#ef4444';
+      matchSettings.customPlayers[1].isAI = true;
+      const takeBotColor = setLocalPlayerColor('#ef4444', 0xef4444);
+      assert.equal(takeBotColor, true, 'Player should be able to take color even if currently used by bot');
+      assert.equal(matchSettings.customPlayers[0].colorHex, '#ef4444', 'Player color should become #ef4444');
+      assert.notEqual(matchSettings.customPlayers[1].colorHex, '#ef4444', 'Bot should re-roll to a different color');
 
-      // Player cannot edit bot's color
+      // Player cannot take a color used by another HUMAN player
+      matchSettings.customPlayers[1].isAI = false; // mark as human
+      matchSettings.customPlayers[1].colorHex = '#84cc16';
+      const failCollision = setLocalPlayerColor('#84cc16', 0x84cc16);
+      assert.equal(failCollision, false, 'Color taken by another human player should be rejected');
+      assert.equal(matchSettings.customPlayers[0].colorHex, '#ef4444', 'Player color remains previous color');
+      matchSettings.customPlayers[1].isAI = true; // restore
+
+      // Player cannot edit bot's color directly
       const botColorAttempt = setPlayerColor(1, '#8b5cf6', 0x8b5cf6);
-      assert.equal(botColorAttempt, false, 'Player cannot modify bot color');
-      assert.equal(matchSettings.customPlayers[1].colorHex, '#ef4444', 'Bot color should remain unchanged');
+      assert.equal(botColorAttempt, false, 'Player cannot modify bot color directly');
     });
 
     it('allows real players to change their own color in Multiplayer Room, but blocks other players and archetypes', () => {

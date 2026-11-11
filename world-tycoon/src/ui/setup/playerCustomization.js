@@ -121,30 +121,56 @@ export function setPlayerCount(n) {
   if (selectedSetupPlayerIdx >= lobbyPlayerCount) {
     selectedSetupPlayerIdx = 0;
   }
-  // Ensure no active players share duplicate colors
-  const used = new Set();
-  for (let i = 0; i < lobbyPlayerCount; i++) {
-    const p = matchSettings.customPlayers[i];
-    if (!p) continue;
-    const norm = (p.colorHex || '').toLowerCase();
-    if (!norm || used.has(norm)) {
-      const free = CANDY_PALETTE.find(c => !used.has(c.hex.toLowerCase()));
-      if (free) {
-        p.colorHex = free.hex;
-        p.charColor = free.charColor;
-        if (PLAYER_THEMES[i]) {
-          PLAYER_THEMES[i].colorHex = free.hex;
-          PLAYER_THEMES[i].charColor = free.charColor;
-        }
-        used.add(free.hex.toLowerCase());
-      }
-    } else {
-      used.add(norm);
-    }
-  }
+  // Ensure all bots have distinct, non-conflicting colors
+  ensureBotsHaveUniqueColors();
   if (window.renderPlayerCards) window.renderPlayerCards();
   if (window.renderMatchSettingButtons) window.renderMatchSettingButtons();
   playSFX('hop');
+}
+
+/**
+ * Ensures all AI bots in the lobby have unique colors that do not clash with
+ * any human player or any other bot. If a bot's color conflicts with a human
+ * or another bot, that bot picks a RANDOM available color from CANDY_PALETTE
+ * that is not currently taken by any player in the game.
+ */
+export function ensureBotsHaveUniqueColors() {
+  // 1. Collect all colors taken by HUMAN players
+  const usedColors = new Set();
+  matchSettings.customPlayers.forEach((p, idx) => {
+    if (idx < lobbyPlayerCount && !p.isAI && p.colorHex) {
+      usedColors.add(p.colorHex.toLowerCase());
+    }
+  });
+
+  // 2. Identify bots whose color is either empty, clashes with a human, or clashes with another bot
+  matchSettings.customPlayers.forEach((p, idx) => {
+    if (idx < lobbyPlayerCount && p.isAI) {
+      const curHex = (p.colorHex || '').toLowerCase();
+      if (!curHex || usedColors.has(curHex)) {
+        // Find all colors in CANDY_PALETTE not used by any human or previously processed bot
+        const available = CANDY_PALETTE.filter(c => !usedColors.has(c.hex.toLowerCase()));
+        const chosen = available.length > 0
+          ? available[Math.floor(Math.random() * available.length)]
+          : CANDY_PALETTE[Math.floor(Math.random() * CANDY_PALETTE.length)];
+
+        p.colorHex = chosen.hex;
+        p.charColor = chosen.charColor;
+        if (PLAYER_THEMES[idx]) {
+          PLAYER_THEMES[idx].colorHex = chosen.hex;
+          PLAYER_THEMES[idx].charColor = chosen.charColor;
+          PLAYER_THEMES[idx].color = chosen.charColor;
+        }
+        if (setupPlayers[idx]) {
+          setupPlayers[idx].colorHex = chosen.hex;
+          setupPlayers[idx].charColor = chosen.charColor;
+        }
+        usedColors.add(chosen.hex.toLowerCase());
+      } else {
+        usedColors.add(curHex);
+      }
+    }
+  });
 }
 
 export function addBotOrSlot() {
@@ -333,10 +359,12 @@ export function setLocalPlayerColor(hex, charColor) {
 export function setPlayerColor(playerIdx, hex, charColor) {
   if (!canCurrentPlayerChangeColor(playerIdx)) return false;
   const normHex = (hex || '').toLowerCase();
-  const isTaken = matchSettings.customPlayers.some((p, idx) => 
-    idx !== playerIdx && idx < lobbyPlayerCount && (p.colorHex || '').toLowerCase() === normHex
+
+  // A color is ONLY taken if another HUMAN player in the game already has it!
+  const isTakenByHuman = matchSettings.customPlayers.some((p, idx) => 
+    idx !== playerIdx && idx < lobbyPlayerCount && !p.isAI && (p.colorHex || '').toLowerCase() === normHex
   );
-  if (isTaken) {
+  if (isTakenByHuman) {
     playSFX('flinch');
     return false;
   }
@@ -353,6 +381,10 @@ export function setPlayerColor(playerIdx, hex, charColor) {
       setupPlayers[playerIdx].colorHex = hex;
       setupPlayers[playerIdx].charColor = charColor;
     }
+
+    // When a player takes a color, any conflicting bot immediately picks a random unused color
+    ensureBotsHaveUniqueColors();
+
     if (playerIdx === selectedSetupPlayerIdx) {
       updateLobbyHeroAvatar(matchSettings.customPlayers[playerIdx].hatStyle || 0, hex, charColor);
     }

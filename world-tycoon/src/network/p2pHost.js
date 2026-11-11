@@ -11,7 +11,7 @@ import { networkState, networkCallbacks, generateRoomCode, formatPeerRoomId, ICE
 import { updateMultiplayerUI } from './p2pUI.js';
 import { executeIncomingNetworkAction } from './p2pActions.js';
 import { isValidPacket, sanitizeProfileUpdate, createSafeLobbyStatePacket } from './protocol.js';
-import { CANDY_PALETTE } from '../ui/setup/playerCustomization.js';
+import { CANDY_PALETTE, ensureBotsHaveUniqueColors } from '../ui/setup/playerCustomization.js';
 
 export function hostRoom(customCode = null) {
   return new Promise((resolve, reject) => {
@@ -227,6 +227,7 @@ export function handleHostReceivedMessage(conn, msg) {
             PLAYER_THEMES[idx].colorHex = clean.colorHex;
             if (clean.charColor) PLAYER_THEMES[idx].charColor = clean.charColor;
           }
+          ensureBotsHaveUniqueColors();
         }
         if (typeof clean.hatStyle === 'number') {
           setupPlayers[idx].hatStyle = clean.hatStyle;
@@ -327,6 +328,9 @@ export function handleHostReceivedMessage(conn, msg) {
           PLAYER_THEMES[slotIdx].charColor = guestCharColor;
           PLAYER_THEMES[slotIdx].color = guestCharColor;
         }
+
+        // Reassign any remaining bots with conflicting colors to random unused colors
+        ensureBotsHaveUniqueColors();
 
         conn.send({
           type: 'JOIN_ACCEPTED',

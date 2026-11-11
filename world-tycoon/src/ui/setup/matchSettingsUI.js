@@ -285,14 +285,15 @@ export function renderMatchSettingButtons() {
     colorContainer.innerHTML = CANDY_PALETTE.map(c => {
       const cHex = c.hex.toLowerCase();
       const isSelected = (curHex === cHex);
-      const otherOwner = matchSettings.customPlayers.find((p, idx) => 
-        idx !== curIdx && idx < lobbyPlayerCount && (p.colorHex || '').toLowerCase() === cHex
+      // A color is ONLY considered taken and locked if another HUMAN player in the game has it!
+      const otherHumanOwner = matchSettings.customPlayers.find((p, idx) => 
+        idx !== curIdx && idx < lobbyPlayerCount && !p.isAI && (p.colorHex || '').toLowerCase() === cHex
       );
-      const isTaken = Boolean(otherOwner);
+      const isTaken = Boolean(otherHumanOwner);
 
       if (isTaken) {
         return `
-          <button type="button" disabled aria-disabled="true" class="color-swatch-btn swatch-disabled" style="background:${c.hex}" title="${c.name} (Taken by ${otherOwner.name})" aria-label="${c.name} - Taken by ${otherOwner.name}">
+          <button type="button" disabled aria-disabled="true" class="color-swatch-btn swatch-disabled" style="background:${c.hex}" title="${c.name} (Taken by ${otherHumanOwner.name})" aria-label="${c.name} - Taken by ${otherHumanOwner.name}">
             <i class="fa-solid fa-lock text-[9px] text-white/90 drop-shadow"></i>
           </button>
         `;

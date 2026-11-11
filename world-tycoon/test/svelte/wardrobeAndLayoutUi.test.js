@@ -15,7 +15,10 @@ setupBrowserMocks();
 
 import { modalStore, updateModalSlice, closeAllModalsInStore } from '../../src/svelte/stores/modalStore.js';
 import { WARDROBE_ITEMS, openWardrobeModal, closeWardrobeModal, previewWardrobeItem, setWardrobeCategory } from '../../src/ui/wardrobe.js';
-import { matchSettings } from '../../src/game/state.js';
+import { matchSettings, lobbyPlayerCount, setLobbyPlayerCount } from '../../src/game/state.js';
+import { CANDY_PALETTE, setPlayerColor, setLocalPlayerColor, ensureBotsHaveUniqueColors, setSelectedSetupPlayerIdx } from '../../src/ui/setup/playerCustomization.js';
+import { renderMatchSettingButtons } from '../../src/ui/setup/matchSettingsUI.js';
+import { setLobbyView } from '../../src/ui/setup/lobbyNavigation.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,5 +115,54 @@ describe('Wardrobe & HUD Layout Verification (/better-interface /game-art /bug-h
       tailwindConfig.includes('./src/**/*.{js,ts,html,svelte}'),
       'tailwind.config.js must scan .svelte files'
     );
+  });
+
+  it('allows human player to take any color, automatically re-rolling conflicting bots to unique random colors', () => {
+    setLobbyView('title', false);
+    setLobbyPlayerCount(4);
+    setSelectedSetupPlayerIdx(0);
+
+    // Setup 1 human and 3 bots
+    matchSettings.customPlayers[0] = { name: 'HUMAN', isAI: false, colorHex: '#3b82f6', charColor: 0x3b82f6, hatStyle: 0 };
+    matchSettings.customPlayers[1] = { name: 'BARON', isAI: true, colorHex: '#ef4444', charColor: 0xef4444, hatStyle: 1 };
+    matchSettings.customPlayers[2] = { name: 'ATLAS', isAI: true, colorHex: '#22c55e', charColor: 0x22c55e, hatStyle: 2 };
+    matchSettings.customPlayers[3] = { name: 'NOVA', isAI: true, colorHex: '#84cc16', charColor: 0x84cc16, hatStyle: 3 };
+
+    // Player takes #ef4444 (previously held by bot BARON)
+    const success = setLocalPlayerColor('#ef4444', 0xef4444);
+    assert.equal(success, true, 'Human player must be able to take color previously held by bot');
+    assert.equal(matchSettings.customPlayers[0].colorHex, '#ef4444', 'Human player receives chosen color');
+
+    // Bot 1 must have given up #ef4444 and picked a different random color
+    assert.notEqual(matchSettings.customPlayers[1].colorHex, '#ef4444', 'Bot must not have #ef4444');
+
+    // All active players must have distinct colors
+    const activeColors = matchSettings.customPlayers.slice(0, 4).map(p => p.colorHex.toLowerCase());
+    const uniqueColors = new Set(activeColors);
+    assert.equal(uniqueColors.size, 4, 'All 4 players must have unique, non-colliding colors');
+    assert.ok(!matchSettings.customPlayers.slice(1, 4).some(b => b.colorHex.toLowerCase() === '#ef4444'), 'No bot should share the human player color');
+  });
+
+  it('renders color swatches enabled on home screen even when bots hold those colors', () => {
+    setLobbyView('title', false);
+    setLobbyPlayerCount(4);
+    setSelectedSetupPlayerIdx(0);
+
+    const swatchesContainer = document.createElement('div');
+    swatchesContainer.id = 'setup-color-swatches';
+    document.body.appendChild(swatchesContainer);
+
+    matchSettings.customPlayers[0] = { name: 'HUMAN', isAI: false, colorHex: '#3b82f6', charColor: 0x3b82f6 };
+    matchSettings.customPlayers[1] = { name: 'BOT1', isAI: true, colorHex: '#ef4444', charColor: 0xef4444 };
+    matchSettings.customPlayers[2] = { name: 'BOT2', isAI: true, colorHex: '#22c55e', charColor: 0x22c55e };
+    matchSettings.customPlayers[3] = { name: 'BOT3', isAI: true, colorHex: '#84cc16', charColor: 0x84cc16 };
+
+    renderMatchSettingButtons();
+
+    // Verify #ef4444 (held by BOT1) is NOT disabled or locked with swatch-disabled
+    const rubyRedButton = swatchesContainer.querySelector('button[title*="Ruby Red"]');
+    assert.ok(rubyRedButton, 'Ruby Red swatch button must be rendered');
+    assert.equal(rubyRedButton.disabled, false, 'Ruby Red must NOT be disabled just because a bot has it');
+    assert.ok(!rubyRedButton.classList.contains('swatch-disabled'), 'Ruby Red must not have swatch-disabled class');
   });
 });
