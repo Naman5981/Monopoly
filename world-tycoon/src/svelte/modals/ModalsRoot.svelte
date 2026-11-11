@@ -7,6 +7,7 @@
   import BuyCityModal from './BuyCityModal.svelte';
   import UpgradeCityModal from './UpgradeCityModal.svelte';
   import SellCitiesModal from './SellCitiesModal.svelte';
+  import AuctionModal from './AuctionModal.svelte';
   import PortfolioModal from './PortfolioModal.svelte';
   import RulesModal from './RulesModal.svelte';
   import VictoryModal from './VictoryModal.svelte';
@@ -29,6 +30,7 @@
   <BuyCityModal />
   <UpgradeCityModal />
   <SellCitiesModal />
+  <AuctionModal />
   <PortfolioModal />
   <RulesModal />
   <VictoryModal />

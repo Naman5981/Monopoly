@@ -110,6 +110,9 @@ import {
   closeUpgradeCityModal,
   confirmUpgradeFromModal,
   confirmUpgradeTwoLevelsFromModal,
+  placeAuctionBid,
+  passAuctionBid,
+  startSoldPropertiesAuctionSequence,
   spinChanceWheel,
   showChanceAwardPopup,
   openInspectorModal,
@@ -334,9 +337,9 @@ window.openUpgradeCityModal = openUpgradeCityModal;
 window.closeUpgradeCityModal = closeUpgradeCityModal;
 window.confirmUpgradeFromModal = confirmUpgradeFromModal;
 window.confirmUpgradeTwoLevelsFromModal = confirmUpgradeTwoLevelsFromModal;
-window.startCityAuction = () => {};
-window.placeAuctionBid = () => {};
-window.passAuctionBid = () => {};
+window.placeAuctionBid = placeAuctionBid;
+window.passAuctionBid = passAuctionBid;
+window.startSoldPropertiesAuctionSequence = startSoldPropertiesAuctionSequence;
 window.spinChanceWheel = spinChanceWheel;
 window.showChanceAwardPopup = showChanceAwardPopup;
 window.executeWorldTourFlight = executeWorldTourFlight;

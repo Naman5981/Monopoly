@@ -219,8 +219,9 @@ describe('Liquidate Properties to Pay Rent (/bug-hunter /clean-code)', () => {
       assert.equal(gameState.players[1].cash, 650000);
       // Debt resolved, pendingRentDebt cleared
       assert.equal(gameState.pendingRentDebt, null);
-      // Action phase concluded
-      assert.notEqual(concludedPhase, null);
+      // Sold property queued for public auction
+      assert.equal(gameState.auction?.active, true);
+      assert.equal(gameState.auction?.tile?.id, cairoTile.id);
     });
 
     it('safely handles string tileId passed from dataset or DOM attributes', () => {

@@ -13,6 +13,10 @@ import {
   calculateBuyoutCost,
   clearBuyoutTimers
 } from '../src/ui/modals/buyoutCity.js';
+import { animateBuyoutHostileStamp } from '../src/ui/anim.js';
+import { playBuyoutCinematicFocus } from '../src/three/scene.js';
+import { cameraState } from '../src/three/core/camera.js';
+import { context } from '../src/three/core/context.js';
 
 describe('Hostile Buyout Lifecycle & P2P Synchronization (/bug-hunter)', () => {
   let bangkokTile;
@@ -114,5 +118,42 @@ describe('Hostile Buyout Lifecycle & P2P Synchronization (/bug-hunter)', () => {
     passBuyoutCity();
 
     assert.equal(gameState.properties[bangkokTile.id].owner, 1);
+  });
+
+  describe('Hostile Takeover Banner, Sound & 1.5s Panning Zoom (/web-games)', () => {
+    it('renders hostile takeover stamp banner with buyer and victim names', () => {
+      animateBuyoutHostileStamp('BANGKOK', 'Naman', 'Baron');
+
+      const stamp = document.getElementById('buyout-hostile-stamp');
+      assert.ok(stamp !== null);
+      assert.equal(stamp.style.display, 'flex');
+      assert.match(stamp.innerHTML, /HOSTILE TAKEOVER!/);
+      assert.match(stamp.innerHTML, /Naman/);
+      assert.match(stamp.innerHTML, /BANGKOK/);
+      assert.match(stamp.innerHTML, /Baron/);
+    });
+
+    it('smoothly glides camera to tile for 1.5s and restores previous framing', async () => {
+      // Setup mock camera context
+      context.camera = { position: { set: () => {} }, lookAt: () => {}, updateProjectionMatrix: () => {} };
+      cameraState.targetCameraTarget.set(0, 0, 0);
+      cameraState.targetCameraZoom = 1.0;
+      cameraState.targetCameraAzimuth = Math.PI / 4;
+
+      const promise = playBuyoutCinematicFocus(bangkokTile.id, 50);
+
+      // Verify camera immediately focuses on the property with close-up zoom
+      assert.notEqual(cameraState.targetCameraZoom, 1.0);
+      assert.equal(cameraState.targetCameraZoom, 2.15);
+
+      await promise;
+
+      // Verify camera framing restored after cutscene completion
+      assert.equal(cameraState.targetCameraZoom, 1.0);
+      assert.equal(cameraState.targetCameraTarget.x, 0);
+      assert.equal(cameraState.targetCameraTarget.z, 0);
+
+      context.camera = null;
+    });
   });
 });

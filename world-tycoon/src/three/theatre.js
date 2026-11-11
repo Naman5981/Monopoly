@@ -68,6 +68,9 @@ export async function playCinematicCutscene(sequenceName, params = {}) {
       return playIntroCinematicFlyIn();
     case 'landmark':
       return playLandmarkCinematicReveal(params.tileId || 0);
+    case 'buyout':
+    case 'takeover':
+      return playBuyoutCinematicFocus(params.tileId || 0, params.durationMs || 1500);
     case 'victory':
       return playVictoryCinematicOrbit(params.durationMs || 12000);
     default:
@@ -187,6 +190,62 @@ export function playVictoryCinematicOrbit(durationMs = 12000) {
   });
 }
 
+/**
+ * 4. Hostile Takeover / Buyout: Smooth cinematic camera pan and zoom onto the seized property for 1.5s.
+ * @param {number} tileId
+ * @param {number} [durationMs=1500]
+ * @returns {Promise<void>}
+ */
+export function playBuyoutCinematicFocus(tileId, durationMs = 1500) {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !context.camera || !cameraState) {
+      resolve();
+      return;
+    }
+
+    let cancelled = false;
+    cutsceneCancel = () => {
+      cancelled = true;
+      resolve();
+    };
+
+    const tilePos = getTileWorldPosition(tileId);
+    if (!tilePos) {
+      resolve();
+      return;
+    }
+
+    const origTarget = cameraState.targetCameraTarget.clone();
+    const origZoom = cameraState.targetCameraZoom;
+    const origAzimuth = cameraState.targetCameraAzimuth;
+
+    // Glide camera directly to the seized property with close-up focus
+    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 1.1, tilePos.z);
+    cameraState.targetCameraZoom = 2.15; // Close-up focus on property
+
+    // Angle to face the city
+    const angleToCenter = Math.atan2(tilePos.z, tilePos.x);
+    cameraState.targetCameraAzimuth = angleToCenter + Math.PI / 6;
+
+    theatreState.activeCutsceneName = 'BuyoutFocus';
+
+    // Hold dramatic framing on the property for durationMs (1.5s)
+    setTimeout(() => {
+      if (cancelled) return;
+      cameraState.targetCameraTarget.copy(origTarget);
+      cameraState.targetCameraZoom = origZoom;
+      cameraState.targetCameraAzimuth = origAzimuth;
+
+      setTimeout(() => {
+        cutsceneCancel = null;
+        theatreState.activeCutsceneName = null;
+        resolve();
+      }, 350);
+    }, durationMs);
+  });
+}
+
 if (typeof window !== 'undefined') {
   window.playCinematicCutscene = playCinematicCutscene;
+  window.playBuyoutCinematicFocus = playBuyoutCinematicFocus;
 }

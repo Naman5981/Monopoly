@@ -1,15 +1,65 @@
 <script>
   import { hudStore } from '../stores/hudStore.js';
+  import { setEmpireSpotlight } from '../../three/scene.js';
 
   let state = $state({});
+  let activeSpotlightPlayerId = $state(null);
   hudStore.subscribe(val => { state = val; });
+
+  function onEmpireHover(playerId) {
+    if (activeSpotlightPlayerId !== null) return;
+    if (typeof setEmpireSpotlight === 'function') {
+      setEmpireSpotlight(playerId);
+    } else if (typeof window !== 'undefined' && window.setEmpireSpotlight) {
+      window.setEmpireSpotlight(playerId);
+    }
+  }
+
+  function onEmpireLeave() {
+    if (activeSpotlightPlayerId !== null) return;
+    if (typeof setEmpireSpotlight === 'function') {
+      setEmpireSpotlight(null);
+    } else if (typeof window !== 'undefined' && window.setEmpireSpotlight) {
+      window.setEmpireSpotlight(null);
+    }
+  }
+
+  function toggleEmpireSpotlight(playerId) {
+    if (activeSpotlightPlayerId === playerId) {
+      activeSpotlightPlayerId = null;
+      if (typeof setEmpireSpotlight === 'function') {
+        setEmpireSpotlight(null);
+      } else if (typeof window !== 'undefined' && window.setEmpireSpotlight) {
+        window.setEmpireSpotlight(null);
+      }
+    } else {
+      activeSpotlightPlayerId = playerId;
+      if (typeof setEmpireSpotlight === 'function') {
+        setEmpireSpotlight(playerId);
+      } else if (typeof window !== 'undefined' && window.setEmpireSpotlight) {
+        window.setEmpireSpotlight(playerId);
+      }
+    }
+  }
 </script>
 
 <!-- Left Players Column -->
 <div id="hud-left-players" class="fixed left-3 sm:left-5 z-30 hidden flex flex-col gap-2.5 sm:gap-3 pointer-events-auto">
   {#each state.leftPlayers || [] as player (player.id)}
     <div class="player-hud-wrapper flex items-center {player.bankrupt ? 'opacity-35 grayscale' : (player.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150">
-      <div id="hud-card-{player.id}" class="player-hud-card {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''}">
+      <div
+        id="hud-card-{player.id}"
+        class="player-hud-card cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''} {activeSpotlightPlayerId === player.id ? 'ring-2 ring-white scale-105' : 'hover:scale-[1.02]'}"
+        onmouseenter={() => onEmpireHover(player.id)}
+        onmouseleave={onEmpireLeave}
+        onfocus={() => onEmpireHover(player.id)}
+        onblur={onEmpireLeave}
+        onclick={() => toggleEmpireSpotlight(player.id)}
+        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleEmpireSpotlight(player.id); } }}
+        role="button"
+        tabindex="0"
+        title="Click or hover to highlight {player.name}'s empire on the board"
+      >
         <div class="avatar-circle" style="box-shadow: 0 0 0 2.5px {player.colorHex || '#3b82f6'}, 0 4px 10px rgba(0,0,0,0.12);">
           <canvas id="hud-avatar-canvas-{player.id}" width="104" height="104" class="w-full h-full block"></canvas>
         </div>
@@ -58,7 +108,19 @@
 <div id="hud-right-players" class="fixed right-3 sm:right-5 z-30 hidden flex flex-col gap-2.5 sm:gap-3 items-end pointer-events-auto">
   {#each state.rightPlayers || [] as player (player.id)}
     <div class="player-hud-wrapper flex items-center {player.bankrupt ? 'opacity-35 grayscale' : (player.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150">
-      <div id="hud-card-{player.id}" class="player-hud-card {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''}">
+      <div
+        id="hud-card-{player.id}"
+        class="player-hud-card cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''} {activeSpotlightPlayerId === player.id ? 'ring-2 ring-white scale-105' : 'hover:scale-[1.02]'}"
+        onmouseenter={() => onEmpireHover(player.id)}
+        onmouseleave={onEmpireLeave}
+        onfocus={() => onEmpireHover(player.id)}
+        onblur={onEmpireLeave}
+        onclick={() => toggleEmpireSpotlight(player.id)}
+        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleEmpireSpotlight(player.id); } }}
+        role="button"
+        tabindex="0"
+        title="Click or hover to highlight {player.name}'s empire on the board"
+      >
         <div class="hud-info-col items-end text-right">
           <div class="hud-header-row justify-end">
             <span class="hud-turn-badge">

@@ -124,6 +124,10 @@ export function buildAllBoardTiles3D(boardGroup) {
 
     const borderFrame = createTileBorderFrame(ownerTheme ? ownerTheme.colorHex : '#e2e8f0');
     borderFrame.visible = !!isOwned;
+    if (isOwned && ownerTheme) {
+      const isLocalPlayer = (propState.owner === gameState.localPlayerIdx);
+      borderFrame.userData.borderMat.emissiveIntensity = isLocalPlayer ? 0.55 : 0.28;
+    }
     tileMesh.add(borderFrame);
     context.tileBorderFrames[tile.id] = borderFrame;
 
@@ -189,12 +193,14 @@ export function refreshTileTextureAndBuildings(tileId) {
 
     if (topMat.emissiveMap) topMat.emissiveMap.dispose();
     topMat.emissiveMap = newEmissiveTex || null;
-    if (newEmissiveTex && (isNight || isSunset)) {
-      topMat.emissive.setHex(0xffffff);
-      topMat.emissiveIntensity = isNight ? 0.85 : 0.55;
-    } else {
-      topMat.emissive.setHex(0x000000);
-      topMat.emissiveIntensity = 0;
+    if (topMat.emissive) {
+      if (newEmissiveTex && (isNight || isSunset)) {
+        topMat.emissive.setHex(0xffffff);
+        topMat.emissiveIntensity = isNight ? 0.85 : 0.55;
+      } else {
+        topMat.emissive.setHex(0x000000);
+        topMat.emissiveIntensity = 0;
+      }
     }
     topMat.needsUpdate = true;
   }
@@ -217,15 +223,17 @@ export function refreshTileTextureAndBuildings(tileId) {
         mesh.material[idx].color.copy(sideColor);
         mesh.material[idx].roughness = isCyber ? 0.28 : (isElegant ? 0.18 : 0.42);
         mesh.material[idx].metalness = isCyber ? 0.85 : (isElegant ? 0.25 : 0.04);
-        if (isOwned && isNight && ownerTheme) {
-          mesh.material[idx].emissive.setStyle(ownerTheme.colorHex);
-          mesh.material[idx].emissiveIntensity = 0.50;
-        } else if (isOwned && isSunset && ownerTheme) {
-          mesh.material[idx].emissive.setStyle(ownerTheme.colorHex);
-          mesh.material[idx].emissiveIntensity = 0.25;
-        } else {
-          mesh.material[idx].emissive.setHex(0x000000);
-          mesh.material[idx].emissiveIntensity = 0;
+        if (mesh.material[idx].emissive) {
+          if (isOwned && isNight && ownerTheme) {
+            mesh.material[idx].emissive.setStyle(ownerTheme.colorHex);
+            mesh.material[idx].emissiveIntensity = 0.50;
+          } else if (isOwned && isSunset && ownerTheme) {
+            mesh.material[idx].emissive.setStyle(ownerTheme.colorHex);
+            mesh.material[idx].emissiveIntensity = 0.25;
+          } else {
+            mesh.material[idx].emissive.setHex(0x000000);
+            mesh.material[idx].emissiveIntensity = 0;
+          }
         }
         mesh.material[idx].needsUpdate = true;
       }
@@ -238,12 +246,13 @@ export function refreshTileTextureAndBuildings(tileId) {
       frame.visible = true;
       frame.userData.borderMat.color.setStyle(ownerTheme.colorHex);
       frame.userData.borderMat.emissive.setStyle(ownerTheme.colorHex);
+      const isLocalPlayer = (propState.owner === gameState.localPlayerIdx);
       if (isNight) {
-        frame.userData.borderMat.emissiveIntensity = 0.85;
+        frame.userData.borderMat.emissiveIntensity = isLocalPlayer ? 1.15 : 0.85;
       } else if (isSunset) {
-        frame.userData.borderMat.emissiveIntensity = 0.50;
+        frame.userData.borderMat.emissiveIntensity = isLocalPlayer ? 0.75 : 0.50;
       } else {
-        frame.userData.borderMat.emissiveIntensity = 0.28;
+        frame.userData.borderMat.emissiveIntensity = isLocalPlayer ? 0.55 : 0.28;
       }
     } else {
       frame.visible = false;
@@ -278,6 +287,20 @@ export function refreshTileTextureAndBuildings(tileId) {
   const lvl = propState.level || 0;
 
   if (lvl === 0) {
+    // 1. Architectural circular base plinth under flagpole
+    const plinthGeo = new THREE.CylinderGeometry(0.28, 0.34, 0.08, 20);
+    const plinthMat = new THREE.MeshStandardMaterial({
+      color: ownerColor,
+      emissive: ownerColor,
+      emissiveIntensity: 0.35,
+      roughness: 0.25,
+      metalness: 0.70
+    });
+    const plinthMesh = new THREE.Mesh(plinthGeo, plinthMat);
+    plinthMesh.position.set(-0.45, 0.04, -0.98);
+    plinthMesh.receiveShadow = true;
+    bGroup.add(plinthMesh);
+
     const flagMesh = createDetailedFlagMesh(ownerColor);
     // Flag placed with pole at left of color bar so the large banner waves proudly across the upper rim
     flagMesh.position.set(-0.45, 0, -0.98);
@@ -285,6 +308,31 @@ export function refreshTileTextureAndBuildings(tileId) {
     bGroup.add(flagMesh);
     animatedBuildingPopups.push({ mesh: flagMesh, startTime: performance.now(), duration: 400, targetScale: 1.05 });
   } else if (lvl >= 1 && lvl <= 3) {
+    // 2. Foundation plinth slab underneath house group
+    const slabGeo = new THREE.BoxGeometry(2.10, 0.08, 0.96);
+    const slabMat = new THREE.MeshStandardMaterial({
+      color: ownerColor,
+      emissive: ownerColor,
+      emissiveIntensity: 0.32,
+      roughness: 0.28,
+      metalness: 0.60
+    });
+    const slabMesh = new THREE.Mesh(slabGeo, slabMat);
+    slabMesh.position.set(0, 0.04, -0.96);
+    slabMesh.receiveShadow = true;
+    bGroup.add(slabMesh);
+
+    // Top slate deck for architectural contrast
+    const deckGeo = new THREE.BoxGeometry(2.00, 0.03, 0.88);
+    const deckMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.45,
+      metalness: 0.25
+    });
+    const deckMesh = new THREE.Mesh(deckGeo, deckMat);
+    deckMesh.position.set(0, 0.085, -0.96);
+    bGroup.add(deckMesh);
+
     const hGroup = createDetailedHouseMesh(ownerColor, lvl);
     // House sits comfortably on upper rim of tile with perfect proportion
     hGroup.position.set(0, 0, -0.96);
@@ -292,6 +340,35 @@ export function refreshTileTextureAndBuildings(tileId) {
     bGroup.add(hGroup);
     animatedBuildingPopups.push({ mesh: hGroup, startTime: performance.now(), duration: 420, targetScale: 0.92 });
   } else if (lvl >= 4) {
+    // 3. Skyscraper Grand Champion Pedestal Slab
+    const champGeo = new THREE.BoxGeometry(2.26, 0.10, 1.06);
+    const champMat = new THREE.MeshStandardMaterial({
+      color: ownerColor,
+      emissive: ownerColor,
+      emissiveIntensity: 0.40,
+      roughness: 0.20,
+      metalness: 0.75
+    });
+    const champMesh = new THREE.Mesh(champGeo, champMat);
+    champMesh.position.set(0, 0.05, -0.96);
+    champMesh.receiveShadow = true;
+    bGroup.add(champMesh);
+
+    // 4 Golden Champion corner clamps
+    const goldCornerGeo = new THREE.BoxGeometry(0.18, 0.14, 0.18);
+    const goldCornerMat = new THREE.MeshStandardMaterial({
+      color: 0xfacc15,
+      emissive: 0xfacc15,
+      emissiveIntensity: 0.30,
+      roughness: 0.20,
+      metalness: 0.90
+    });
+    [[-1.04, -0.44], [1.04, -0.44], [-1.04, 0.44], [1.04, 0.44]].forEach(([cx, cz]) => {
+      const clip = new THREE.Mesh(goldCornerGeo, goldCornerMat);
+      clip.position.set(cx, 0.07, -0.96 + cz);
+      bGroup.add(clip);
+    });
+
     const towerGroup = createDetailedSkyscraperMesh(ownerColor);
     // Skyscraper sits at upper rim with balanced height that leaves city name fully clear
     towerGroup.position.set(0, 0, -0.96);

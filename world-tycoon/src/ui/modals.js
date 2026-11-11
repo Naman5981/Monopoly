@@ -9,6 +9,7 @@ export * from './modals/buyCity.js';
 export * from './modals/buyoutCity.js';
 export * from './modals/upgradeCity.js';
 export * from './modals/sellRent.js';
+export * from '../game/engine/auction.js';
 export * from './modals/chanceWheel.js';
 export * from './modals/inspector.js';
 export * from './modals/trade.js';

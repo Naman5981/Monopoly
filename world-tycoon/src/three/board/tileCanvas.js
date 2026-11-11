@@ -240,6 +240,36 @@ export function createTileEmissiveTexture(tile, propState) {
   drawEmissiveLight(tile.name, 256, nameY, nameFont);
   drawEmissiveLight(valStr, 256, valY, valFont);
 
+  // 4. Owner Ribbon Emissive Contour & Name Glow
+  const ownerIdx = propState?.owner;
+  if (ownerIdx !== null && ownerIdx !== undefined) {
+    const theme = PLAYER_THEMES[ownerIdx];
+    const player = gameState.players[ownerIdx];
+    const colorHex = player?.colorHex || theme?.colorHex || '#ffffff';
+    const ownerName = (player?.name || theme?.name || 'OWNER').toUpperCase();
+
+    ctx.save();
+    ctx.strokeStyle = colorHex;
+    ctx.lineWidth = 4;
+    ctx.shadowColor = colorHex;
+    ctx.shadowBlur = 8;
+    if (ctx.roundRect) {
+      ctx.roundRect(24, 148, 464, 56, 14);
+    } else {
+      ctx.rect(24, 148, 464, 56);
+    }
+    ctx.stroke();
+
+    ctx.font = '900 24px Rubik, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 6;
+    ctx.fillText(ownerName, 256, 176);
+    ctx.restore();
+  }
+
   ctx.restore();
 
   const tex = new THREE.CanvasTexture(c);

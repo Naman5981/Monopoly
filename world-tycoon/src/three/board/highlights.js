@@ -10,11 +10,14 @@ import { BOARD_TILES, PLAYER_THEMES } from '../../game/data.js';
 import { gameState } from '../../game/state.js';
 import { getTileWorldPosition } from './coords.js';
 import { getLightPlayerAccent } from '../core/lighting.js';
+import { disposeHierarchy } from '../core/dispose.js';
 
 let activePlayerBeaconGroup = null;
 let flightHighlightsGroup = null;
 let monopolyRingsGroup = null;
 let festivalHighlightsGroup = null;
+let empireHighlightsGroup = null;
+const originalTileMaterials = new Map();
 const activeTurnSpriteMap = {};
 
 export function buildTileHighlightRing3D(boardGroup = context.boardGroup) {
@@ -357,6 +360,128 @@ export function setFestivalSelectionHighlights(active, tileIds = [], colorHex = 
 }
 
 /**
+ * Activates or deactivates the 3D Empire Spotlight for a given player.
+ * Highlights all tiles owned by targetPlayerIdx with glowing rings and gentle elevation pulse,
+ * while subtly dimming non-owned tiles so the player's full territory pops out across the board.
+ * Passing null resets the board to standard lighting.
+ * @param {number|null} targetPlayerIdx
+ */
+export function setEmpireSpotlight(targetPlayerIdx) {
+  if (!context.boardGroup) return;
+
+  // 1. Clean up existing spotlight meshes
+  if (empireHighlightsGroup) {
+    while (empireHighlightsGroup.children.length > 0) {
+      const child = empireHighlightsGroup.children[0];
+      disposeHierarchy(child);
+      empireHighlightsGroup.remove(child);
+    }
+    if (empireHighlightsGroup.parent !== context.boardGroup) {
+      context.boardGroup.add(empireHighlightsGroup);
+    }
+  } else {
+    empireHighlightsGroup = new THREE.Group();
+    empireHighlightsGroup.name = 'empireHighlightsGroup';
+    context.boardGroup.add(empireHighlightsGroup);
+  }
+
+  // 2. Restore previous tile materials if stored
+  if (originalTileMaterials.size > 0) {
+    BOARD_TILES.forEach(tile => {
+      const mesh = context.tilesMeshMap[tile.id];
+      if (mesh && Array.isArray(mesh.material) && mesh.material[2]) {
+        const topMat = mesh.material[2];
+        const orig = originalTileMaterials.get(tile.id);
+        if (orig) {
+          topMat.color.setHex(orig.colorHex);
+        }
+      }
+    });
+    originalTileMaterials.clear();
+  }
+
+  // If null or undefined, simply hide group and exit
+  if (targetPlayerIdx === null || targetPlayerIdx === undefined) {
+    empireHighlightsGroup.visible = false;
+    return;
+  }
+
+  const theme = PLAYER_THEMES[targetPlayerIdx];
+  const colorHex = theme?.colorHex || '#3b82f6';
+  const threeColor = new THREE.Color(colorHex);
+
+  // Find all tiles owned by targetPlayerIdx
+  const ownedTileIds = [];
+  BOARD_TILES.forEach(tile => {
+    const prop = gameState.properties?.[tile.id];
+    if (prop && prop.owner === targetPlayerIdx) {
+      ownedTileIds.push(tile.id);
+    }
+  });
+
+  // Store original top material colors and apply focus contrast
+  BOARD_TILES.forEach(tile => {
+    const mesh = context.tilesMeshMap[tile.id];
+    if (mesh && Array.isArray(mesh.material) && mesh.material[2]) {
+      const topMat = mesh.material[2];
+      originalTileMaterials.set(tile.id, {
+        colorHex: topMat.color.getHex()
+      });
+
+      if (!ownedTileIds.includes(tile.id)) {
+        // Subtly dim non-owned tiles so the selected empire stands out
+        topMat.color.setHex(0x85929e);
+      } else {
+        // Pristine white for owned tiles
+        topMat.color.setHex(0xffffff);
+      }
+    }
+  });
+
+  // Create radiant empire highlight discs and rings for each owned tile
+  const ringGeo = new THREE.RingGeometry(1.20, 1.48, 32);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: threeColor,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.92,
+    blending: THREE.AdditiveBlending
+  });
+
+  const discGeo = new THREE.CircleGeometry(1.18, 32);
+  const discMat = new THREE.MeshBasicMaterial({
+    color: threeColor,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.28,
+    blending: THREE.AdditiveBlending
+  });
+
+  ownedTileIds.forEach(tileId => {
+    const pos = getTileWorldPosition(tileId);
+    const tileMesh = context.tilesMeshMap[tileId];
+    const yPos = (tileMesh ? tileMesh.position.y : 0.12) + 0.130;
+
+    const itemGroup = new THREE.Group();
+    itemGroup.position.set(pos.x, yPos, pos.z);
+    itemGroup.userData = { tileId };
+
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    itemGroup.add(ring);
+
+    const disc = new THREE.Mesh(discGeo, discMat);
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.y = 0.002;
+    itemGroup.add(disc);
+
+    empireHighlightsGroup.add(itemGroup);
+  });
+
+  empireHighlightsGroup.visible = true;
+}
+
+/**
  * Updates active player spotlight beacon and monopoly ring pulsing each render frame.
  * @param {number} t - Time in seconds
  */
@@ -401,6 +526,21 @@ export function updateActivePlayerBeacon(t) {
         beam.scale.set(pulseScale, beamPulseHeight, pulseScale);
         if (beam.material) beam.material.opacity = pulseOpacity * 0.55;
       }
+    });
+  }
+
+  if (empireHighlightsGroup?.visible) {
+    const s = 1 + Math.sin(t * 5.2) * 0.06;
+    const op = 0.70 + Math.sin(t * 5.2) * 0.28;
+    empireHighlightsGroup.children.forEach(group => {
+      const tileId = group.userData?.tileId;
+      const tileMesh = tileId !== undefined ? context.tilesMeshMap[tileId] : null;
+      if (tileMesh) {
+        group.position.y = tileMesh.position.y + 0.130;
+      }
+      group.scale.set(s, 1, s);
+      const ring = group.children[0];
+      if (ring && ring.material) ring.material.opacity = op;
     });
   }
 

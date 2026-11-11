@@ -224,6 +224,7 @@ export function simulateDicePhysicsToss(dieMesh1, dieMesh2, d1, d2, durationMs =
 export function spawnShatterDebris(x = 0, z = 0, colorHex = 0xef4444, count = 28) {
   initPhysicsEngine();
   ensurePhysicsAssets();
+  if (!physicsSceneGroup) return;
 
   const mat = new THREE.MeshStandardMaterial({
     color: new THREE.Color(colorHex),

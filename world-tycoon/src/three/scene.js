@@ -23,7 +23,7 @@ import { buildFourCornerLandmarks3D } from './assets/landmarks.js';
 import { buildStreetLampsAndBulbs3D } from './core/lighting.js';
 import { buildAnimatedRoadCars3D } from './environment/cars.js';
 import { build3DDicePair } from './assets/dice.js';
-import { buildTileHighlightRing3D, buildActivePlayerHighlightSystem } from './board/highlights.js';
+import { buildTileHighlightRing3D, buildActivePlayerHighlightSystem, setEmpireSpotlight } from './board/highlights.js';
 import { ensure3DPortraitSystemInitialized } from './pawns/tokens.js';
 import { applyBoardStyle, BOARD_STYLES } from './board/skins.js';
 import { initInputHandlers } from './core/input.js';
@@ -178,6 +178,9 @@ export function initThreeScene(onTileClickCb) {
   build3DDicePair(context.boardGroup);
   buildTileHighlightRing3D(context.boardGroup);
   buildActivePlayerHighlightSystem(context.boardGroup);
+  if (typeof window !== 'undefined') {
+    window.setEmpireSpotlight = setEmpireSpotlight;
+  }
   ensure3DPortraitSystemInitialized();
 
   // 8B. Apply initial board style skin (wood, cyberpunk, elegant)
@@ -248,7 +251,8 @@ export {
   buildActivePlayerHighlightSystem,
   setFlightModeHighlights,
   setFestivalSelectionHighlights,
-  setMonopolyTileHighlights
+  setMonopolyTileHighlights,
+  setEmpireSpotlight
 } from './board/highlights.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -318,7 +322,8 @@ export {
   playCinematicCutscene,
   playIntroCinematicFlyIn,
   playLandmarkCinematicReveal,
-  playVictoryCinematicOrbit
+  playVictoryCinematicOrbit,
+  playBuyoutCinematicFocus
 } from './theatre.js';
 
 

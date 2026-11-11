@@ -8,7 +8,7 @@ import { getCtx, getAudioDestination, createSpatialPanner } from './context.js';
 
 /**
  * Play a synthesized SFX.
- * @param {'gameStart'|'click'|'dice'|'diceShuffle'|'diceBounce'|'hop'|'cash'|'build'|'monopoly'|'bankrupt'|'gavel'|'win'|'victory'|'flight'|'whoosh'|'hurt'|'flinch'|'wheelTick'|'jail'|'jailDoor'|'pop'|'fireworkLaunch'|'fireworkBoom'} type
+ * @param {'gameStart'|'click'|'dice'|'diceShuffle'|'diceBounce'|'hop'|'cash'|'build'|'monopoly'|'bankrupt'|'gavel'|'win'|'victory'|'flight'|'whoosh'|'hurt'|'flinch'|'wheelTick'|'jail'|'jailDoor'|'pop'|'fireworkLaunch'|'fireworkBoom'|'takeover'|'buyout'} type
  * @param {number} [volumeMultiplier=1.0]
  * @param {{x: number, y?: number, z: number}|null} [worldPos=null] Optional 3D emitter coordinates for spatial audio
  */
@@ -256,11 +256,60 @@ export function playSFX(type, volumeMultiplier = 1.0, worldPos = null) {
         harm.stop(t + 0.85);
       });
 
-    // ═══ 9. BANKRUPT / DOWNTURN MOTIF ═══
+    // ═══ 9. BANKRUPT / ELIMINATION MOTIF ═══
     } else if (type === 'bankrupt') {
-      const pitches = [392.0, 369.99, 349.23, 311.13];
+      // 1. Deep cinematic sub-bass impact gong
+      const subOsc = ctx.createOscillator();
+      const subGain = ctx.createGain();
+      const subFilter = ctx.createBiquadFilter();
+
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(130, now);
+      subOsc.frequency.exponentialRampToValueAtTime(38, now + 1.2);
+
+      subFilter.type = 'lowpass';
+      subFilter.frequency.setValueAtTime(260, now);
+      subFilter.frequency.linearRampToValueAtTime(60, now + 1.2);
+
+      subGain.gain.setValueAtTime(0.0001, now);
+      subGain.gain.linearRampToValueAtTime(0.38 * vol, now + 0.03);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.25);
+
+      subOsc.connect(subFilter);
+      subFilter.connect(subGain);
+      subGain.connect(soundOutput);
+
+      subOsc.start(now);
+      subOsc.stop(now + 1.25);
+
+      // 2. Shatter transient noise burst
+      try {
+        const noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.18), ctx.sampleRate);
+        const noiseData = noiseBuf.getChannelData(0);
+        for (let i = 0; i < noiseData.length; i++) {
+          noiseData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04));
+        }
+        const noiseSrc = ctx.createBufferSource();
+        noiseSrc.buffer = noiseBuf;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(500, now);
+        noiseFilter.Q.value = 1.8;
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.22 * vol, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+        noiseSrc.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(soundOutput);
+        noiseSrc.start(now);
+      } catch (_) {}
+
+      // 3. Descending doom chord arpeggio
+      const pitches = [392.0, 369.99, 349.23, 311.13, 261.63];
       pitches.forEach((f, i) => {
-        const t = now + i * 0.16;
+        const t = now + 0.08 + i * 0.18;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         const filter = ctx.createBiquadFilter();
@@ -268,20 +317,20 @@ export function playSFX(type, volumeMultiplier = 1.0, worldPos = null) {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(f, t);
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(750, t);
-        filter.frequency.linearRampToValueAtTime(300, t + 0.15);
-        filter.Q.value = 2.5;
+        filter.frequency.setValueAtTime(800, t);
+        filter.frequency.linearRampToValueAtTime(260, t + 0.22);
+        filter.Q.value = 3.0;
 
         gain.gain.setValueAtTime(0.0001, t);
-        gain.gain.linearRampToValueAtTime(0.09 * vol, t + 0.025);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.20);
+        gain.gain.linearRampToValueAtTime(0.22 * vol, t + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
 
         osc.connect(filter);
         filter.connect(gain);
         gain.connect(soundOutput);
 
         osc.start(t);
-        osc.stop(t + 0.20);
+        osc.stop(t + 0.28);
       });
 
     // ═══ 10. WOODEN AUCTION GAVEL KNOCK ═══
@@ -513,6 +562,78 @@ export function playSFX(type, volumeMultiplier = 1.0, worldPos = null) {
       gain.connect(soundOutput);
       osc.start(now);
       osc.stop(now + 0.30);
+
+    // ═══ 18. HOSTILE TAKEOVER / BUYOUT: DRAMATIC IMPACT & BRASS POWER STING ═══
+    } else if (type === 'takeover' || type === 'buyout') {
+      const takeoverVol = 0.95 * vol;
+
+      // 1. Heavy sub-bass impact slam (140Hz -> 36Hz)
+      const sub = ctx.createOscillator();
+      const subG = ctx.createGain();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(140, now);
+      sub.frequency.exponentialRampToValueAtTime(36, now + 0.45);
+      subG.gain.setValueAtTime(0.0001, now);
+      subG.gain.linearRampToValueAtTime(0.25 * takeoverVol, now + 0.012);
+      subG.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+      sub.connect(subG);
+      subG.connect(soundOutput);
+      sub.start(now);
+      sub.stop(now + 0.55);
+
+      // 2. Metallic clash / sharp strike (dual dissonant high ring: 920Hz & 1480Hz)
+      [920, 1480].forEach((freq) => {
+        const metal = ctx.createOscillator();
+        const metalG = ctx.createGain();
+        metal.type = 'triangle';
+        metal.frequency.setValueAtTime(freq, now);
+        metal.frequency.exponentialRampToValueAtTime(freq * 0.7, now + 0.18);
+        metalG.gain.setValueAtTime(0.0001, now);
+        metalG.gain.linearRampToValueAtTime(0.12 * takeoverVol, now + 0.004);
+        metalG.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+        metal.connect(metalG);
+        metalG.connect(soundOutput);
+        metal.start(now);
+        metal.stop(now + 0.22);
+      });
+
+      // 3. Ruthless power brass sting (Sawtooth drop with bandpass filter: 320Hz -> 180Hz)
+      const brass = ctx.createOscillator();
+      const brassFilter = ctx.createBiquadFilter();
+      const brassG = ctx.createGain();
+      brass.type = 'sawtooth';
+      brass.frequency.setValueAtTime(320, now + 0.02);
+      brass.frequency.exponentialRampToValueAtTime(160, now + 0.38);
+
+      brassFilter.type = 'bandpass';
+      brassFilter.frequency.setValueAtTime(540, now + 0.02);
+      brassFilter.Q.value = 2.2;
+
+      brassG.gain.setValueAtTime(0.0001, now + 0.02);
+      brassG.gain.linearRampToValueAtTime(0.18 * takeoverVol, now + 0.04);
+      brassG.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+
+      brass.connect(brassFilter);
+      brassFilter.connect(brassG);
+      brassG.connect(soundOutput);
+      brass.start(now + 0.02);
+      brass.stop(now + 0.42);
+
+      // 4. Seized cash coins rattle (3 fast clicks at 0.15s, 0.22s, 0.30s)
+      [0.15, 0.22, 0.30].forEach((delay, idx) => {
+        const coin = ctx.createOscillator();
+        const coinG = ctx.createGain();
+        coin.type = 'sine';
+        coin.frequency.setValueAtTime(1200 + idx * 250, now + delay);
+        coin.frequency.exponentialRampToValueAtTime(600, now + delay + 0.06);
+        coinG.gain.setValueAtTime(0.0001, now + delay);
+        coinG.gain.linearRampToValueAtTime(0.08 * takeoverVol, now + delay + 0.003);
+        coinG.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.06);
+        coin.connect(coinG);
+        coinG.connect(soundOutput);
+        coin.start(now + delay);
+        coin.stop(now + delay + 0.06);
+      });
     }
   } catch (_) { /* silently ignore audio errors */ }
 }

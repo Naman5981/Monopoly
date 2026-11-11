@@ -9,9 +9,10 @@ import { playSFX } from '../game/audio.js';
 import { fmtMoney } from '../game/utils.js';
 import { spawnAnimatedReaction } from '../three/effects.js';
 import { BOARD_TILES } from '../game/data.js';
-import { refreshTileTextureAndBuildings, showSpeechBubble } from '../three/scene.js';
+import { refreshTileTextureAndBuildings, showSpeechBubble, spawnShatterDebris, triggerBoardShockwave } from '../three/scene.js';
 import { checkVictoryConditions } from '../game/rules.js';
 import { showVictoryModal } from '../ui/modals.js';
+import { animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../ui/anim.js';
 import { networkState, networkCallbacks } from './p2pState.js';
 import { broadcastToAll, broadcastFullGameState } from './p2pHost.js';
 
@@ -155,14 +156,26 @@ export function executeIncomingNetworkAction(msg) {
       break;
     }
 
+    case 'ACTION_RENT_DEBT': {
+      if (networkCallbacks.onRentDebt) {
+        networkCallbacks.onRentDebt(msg);
+      }
+      break;
+    }
+
     case 'ACTION_SETTLE_RENT': {
       const debtor = gameState.players[msg.debtorIdx];
-      const creditor = gameState.players[msg.creditorIdx];
-      if (debtor && creditor) {
+      const hasCreditor = msg.creditorIdx !== undefined && msg.creditorIdx !== null;
+      const creditor = hasCreditor ? gameState.players[msg.creditorIdx] : null;
+      if (debtor) {
         debtor.cash -= msg.rentOwed;
-        creditor.cash += msg.rentOwed;
+        if (creditor) {
+          creditor.cash += msg.rentOwed;
+          logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(msg.rentOwed)}</strong> rent to <strong>${creditor.name}</strong>.`);
+        } else {
+          logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(msg.rentOwed)}</strong> debt to the Bank.`);
+        }
         playSFX('cash');
-        logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(msg.rentOwed)}</strong> rent to <strong>${creditor.name}</strong>.`);
         renderCornerHUDs();
         refreshActivePlayerTurnStatus();
       }
@@ -174,7 +187,8 @@ export function executeIncomingNetworkAction(msg) {
 
     case 'ACTION_BANKRUPTCY': {
       const bankruptP = gameState.players[msg.bankruptIdx];
-      const creditorP = msg.creditorIdx !== undefined ? gameState.players[msg.creditorIdx] : null;
+      const hasCreditor = msg.creditorIdx !== undefined && msg.creditorIdx !== null;
+      const creditorP = hasCreditor ? gameState.players[msg.creditorIdx] : null;
       if (bankruptP) {
         bankruptP.cash = 0;
         bankruptP.bankrupt = true;
@@ -193,9 +207,20 @@ export function executeIncomingNetworkAction(msg) {
             refreshTileTextureAndBuildings(t.id);
           }
         });
-        logEvent(`💥 <strong>${bankruptP.name}</strong> declared bankruptcy!`);
+        if (creditorP) {
+          logEvent(`💥 <strong>${bankruptP.name}</strong> went bankrupt to <strong>${creditorP.name}</strong>!`);
+        } else {
+          logEvent(`💥 <strong>${bankruptP.name}</strong> declared bankruptcy!`);
+        }
         renderCornerHUDs();
         refreshActivePlayerTurnStatus();
+
+        // Broadcast elimination effects: dramatic SFX, announcement banner, HUD quake, shockwave, debris
+        playSFX('bankrupt');
+        animatePlayerEliminatedBanner(bankruptP, creditorP);
+        animateBankruptcyQuake(msg.bankruptIdx);
+        spawnShatterDebris(0, 0, 0xef4444, 36);
+        triggerBoardShockwave(0, 0, 26, 32);
 
         const vic = checkVictoryConditions();
         if (vic) {

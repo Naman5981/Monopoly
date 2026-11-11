@@ -16,8 +16,11 @@ import {
   refreshTileTextureAndBuildings,
   showSpeechBubble,
   spawnShatterDebris,
-  triggerBoardShockwave
+  triggerBoardShockwave,
+  playBuyoutCinematicFocus
 } from '../../../three/scene.js';
+import { context } from '../../../three/core/context.js';
+import { animateBuyoutHostileStamp, animateBankruptcyQuake, animatePlayerEliminatedBanner } from '../../../ui/anim.js';
 import {
   renderCornerHUDs,
   spawnFloatingCashOnHUD,
@@ -37,7 +40,6 @@ import {
   checkAndTriggerMonopoly
 } from '../../../ui/modals.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
-import { animateBankruptcyQuake } from '../../../ui/anim.js';
 
 let autoEndTurnTimer = null;
 
@@ -147,10 +149,48 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         } else {
           if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
             showSpeechBubble(`${player.name} is selling cities to pay rent...`, 3000);
+            setStatusPill(`💸 Waiting for <strong>${player.name}</strong> to sell cities to pay <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>...`, { isThinking: true, playerIdx });
+            gameState.phase = 'MODAL';
+            gameState.pendingRentDebt = {
+              tile,
+              rentOwed: rent,
+              creditorIdx: st.owner,
+              debtorIdx: playerIdx,
+              isDoubles: Boolean(isDoubles)
+            };
             logEvent(`💸 <strong>${player.name}</strong> is selling cities to pay rent to <strong>${owner.name}</strong>.`);
+            broadcastAction('ACTION_RENT_DEBT', {
+              debtorIdx: playerIdx,
+              creditorIdx: st.owner,
+              rentOwed: rent,
+              tileId: tile.id,
+              isDoubles: Boolean(isDoubles)
+            });
+
+            // Host safety timeout if remote debtor peer disconnects or freezes
+            if (networkState.isHost) {
+              setTimeout(() => {
+                if (gameState.phase === 'MODAL' && gameState.pendingRentDebt && gameState.pendingRentDebt.debtorIdx === playerIdx) {
+                  if (typeof window.autoSellCheapestForRent === 'function') {
+                    window.autoSellCheapestForRent();
+                  } else if (window.concludeActionPhase) {
+                    window.concludeActionPhase(Boolean(isDoubles));
+                  }
+                }
+              }, 28000);
+            }
             return;
           }
           logEvent(`💸 <strong>${player.name}</strong> owes <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong> and must liquidate properties.`);
+          if (networkState.isMultiplayer) {
+            broadcastAction('ACTION_RENT_DEBT', {
+              debtorIdx: playerIdx,
+              creditorIdx: st.owner,
+              rentOwed: rent,
+              tileId: tile.id,
+              isDoubles: Boolean(isDoubles)
+            });
+          }
           openSellCitiesModal(tile, rent, st.owner, isDoubles, playerIdx);
           return;
         }
@@ -276,22 +316,32 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
   executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles) {
     const paid = Math.max(0, player.cash);
     player.cash = 0;
-    owner.cash += paid;
+    if (owner) {
+      owner.cash += paid;
+    }
     player.bankrupt = true;
 
     playSFX('bankrupt', 1.0, tile ? getTileWorldPosition(tile.id) : null);
     showSpeechBubble(`Bankrupt! 💥`, 2500);
-    logEvent(`💥 <strong>${player.name}</strong> has no cities to sell, transferred all remaining <strong>${fmtMoney(paid)}</strong> to <strong>${owner.name}</strong> for <strong>${fmtMoney(rent)}</strong> rent. <strong>BANKRUPT!</strong>`);
+    if (owner) {
+      logEvent(`💥 <strong>${player.name}</strong> has no cities to sell, transferred all remaining <strong>${fmtMoney(paid)}</strong> to <strong>${owner.name}</strong> for <strong>${fmtMoney(rent)}</strong> rent. <strong>BANKRUPT!</strong>`);
+    } else {
+      logEvent(`💥 <strong>${player.name}</strong> has no cities to sell to pay <strong>${fmtMoney(rent)}</strong> debt. <strong>BANKRUPT!</strong>`);
+    }
 
     renderCornerHUDs();
+    animatePlayerEliminatedBanner(player, owner);
     animateBankruptcyQuake(playerIdx);
     spawnShatterDebris(0, 0, 0xef4444, 36);
     triggerBoardShockwave(0, 0, 26, 32);
 
     if (networkState.isMultiplayer) {
+      const creditorIdx = owner
+        ? (owner.id !== undefined ? owner.id : (gameState.players.indexOf(owner) >= 0 ? gameState.players.indexOf(owner) : null))
+        : null;
       broadcastAction('ACTION_BANKRUPTCY', {
         bankruptIdx: playerIdx,
-        creditorIdx: owner ? owner.id : undefined,
+        creditorIdx,
         paidCash: paid
       });
       if (networkState.isHost) {
@@ -360,7 +410,8 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       player.cash -= buyoutCost;
       prevOwner.cash += buyoutCost;
       st.owner = playerIdx;
-      playSFX('build', 1.0, getTileWorldPosition(tile.id));
+      playSFX('takeover', 1.0, getTileWorldPosition(tile.id));
+      animateBuyoutHostileStamp(tile.name, player.name, prevOwner ? prevOwner.name : 'Opponent');
       spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(buyoutCost)} Buyout`, false);
       spawnFloatingCashOnHUD(previousOwnerIdx, `+${fmtMoney(buyoutCost)} Sold`, true);
       showSpeechBubble(`Hostile Buyout on ${tile.name}! 💰`, 2000);
@@ -373,6 +424,9 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       if (networkState.isMultiplayer && networkState.isHost) {
         broadcastAction('ACTION_BUYOUT_CITY', { playerIdx, tileId: tile.id, buyoutCost, prevOwnerIdx: previousOwnerIdx, isDoubles: Boolean(isDoubles) });
         broadcastFullGameState();
+      }
+      if (context.camera) {
+        await playBuyoutCinematicFocus(tile.id, 1500);
       }
     } else {
       showSpeechBubble(`Skipped buyout on ${tile.name}`, 1500);

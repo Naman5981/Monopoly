@@ -28,8 +28,10 @@ import {
   spawnAllPlayerTokens3D,
   showSpeechBubble,
   setTileHighlightRing,
-  updatePlayerTokenPositions3D
+  updatePlayerTokenPositions3D,
+  playBuyoutCinematicFocus
 } from '../three/scene.js';
+import { context } from '../three/core/context.js';
 import {
   renderCornerHUDs,
   updateRollButtonsUI,
@@ -39,7 +41,7 @@ import {
   spawnFloatingCashOnHUD
 } from '../ui/hud.js';
 import { stopVictoryCelebration } from '../three/effects.js';
-import { animateDoublesBurstBanner } from '../ui/anim.js';
+import { animateDoublesBurstBanner, animateBuyoutHostileStamp } from '../ui/anim.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from './persistence.js';
 import {
   networkState,
@@ -60,7 +62,12 @@ import {
   closeTradeModal,
   handleTradeDeclined,
   showChanceAwardPopup,
-  executeRemoteChanceSpin
+  executeRemoteChanceSpin,
+  calculateAuctionBidIncrements,
+  syncAuctionModalUI,
+  placeAuctionBid,
+  passAuctionBid,
+  openSellCitiesModal
 } from '../ui/modals.js';
 
 import { executeWorldTourFlight } from './engine/flight.js';
@@ -196,6 +203,39 @@ export function initEngine() {
         concludeActionPhase(Boolean(isDoubles));
       }
     },
+    onRentDebt: (msg) => {
+      if (!msg) return;
+      const debtorIdx = msg.debtorIdx;
+      const hasCreditor = msg.creditorIdx !== undefined && msg.creditorIdx !== null;
+      const creditorIdx = hasCreditor ? msg.creditorIdx : null;
+      const tile = BOARD_TILES[msg.tileId];
+      const rentOwed = msg.rentOwed;
+      const isDoubles = Boolean(msg.isDoubles);
+
+      gameState.phase = 'MODAL';
+      gameState.pendingRentDebt = {
+        tile,
+        rentOwed,
+        creditorIdx,
+        debtorIdx,
+        isDoubles
+      };
+
+      const debtor = gameState.players ? gameState.players[debtorIdx] : null;
+      const creditor = hasCreditor ? gameState.players[creditorIdx] : null;
+
+      if (debtorIdx === networkState.localPlayerIdx) {
+        openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles, debtorIdx);
+      } else {
+        const creditorName = creditor ? creditor.name : 'the Bank';
+        setStatusPill(`💸 Waiting for <strong>${debtor ? debtor.name : 'Player'}</strong> to sell cities to pay <strong>${fmtMoney(rentOwed)}</strong> to <strong>${creditorName}</strong>...`, { isThinking: true, playerIdx: debtorIdx });
+        if (debtor) {
+          showSpeechBubble(`${debtor.name} is selling cities to pay rent...`, 3000);
+        }
+      }
+      renderCornerHUDs();
+      refreshActivePlayerTurnStatus();
+    },
     onDowngradeCity: (playerIdx, tileId, refund) => {
       const st = gameState.properties[tileId];
       const p = gameState.players[playerIdx];
@@ -216,6 +256,52 @@ export function initEngine() {
       refreshActivePlayerTurnStatus();
       if (networkState.isMultiplayer && networkState.isHost) {
         broadcastFullGameState();
+      }
+    },
+    onAuctionAction: (msg) => {
+      if (!msg) return;
+      if (msg.type === 'ACTION_AUCTION_BID') {
+        if (msg.isNewAuction) {
+          const tile = BOARD_TILES[msg.tileId];
+          if (tile) {
+            gameState.auction = {
+              active: true,
+              tile,
+              sellerIdx: msg.sellerIdx !== undefined ? msg.sellerIdx : null,
+              currentBid: typeof msg.currentBid === 'number' ? msg.currentBid : 0,
+              hasBids: Boolean(msg.hasBids),
+              highBidderIdx: msg.highBidderIdx !== undefined ? msg.highBidderIdx : null,
+              isDoubles: Boolean(msg.isDoubles),
+              increments: calculateAuctionBidIncrements(tile.price),
+              secondsLeft: typeof msg.secondsLeft === 'number' ? msg.secondsLeft : 5.0,
+              passedPlayerIndices: new Set()
+            };
+            syncAuctionModalUI();
+            playSFX('hop');
+          }
+        } else if (typeof msg.bidAmount === 'number') {
+          if (networkState.isHost) {
+            placeAuctionBid(msg.bidAmount, msg.bidderIdx);
+          } else {
+            if (gameState.auction && gameState.auction.active) {
+              gameState.auction.currentBid = msg.bidAmount;
+              gameState.auction.highBidderIdx = msg.bidderIdx;
+              gameState.auction.hasBids = true;
+              gameState.auction.secondsLeft = typeof msg.secondsLeft === 'number' ? msg.secondsLeft : 5.0;
+              playSFX('cash');
+              syncAuctionModalUI();
+            }
+          }
+        }
+      } else if (msg.type === 'ACTION_AUCTION_PASS') {
+        if (networkState.isHost) {
+          passAuctionBid(msg.playerIdx);
+        } else {
+          if (gameState.auction && gameState.auction.passedPlayerIndices && typeof msg.playerIdx === 'number') {
+            gameState.auction.passedPlayerIndices.add(msg.playerIdx);
+            syncAuctionModalUI();
+          }
+        }
       }
     },
     onTradeAction: (msg) => {
@@ -256,22 +342,32 @@ export function initEngine() {
       const st = gameState.properties[tileId];
       const buyer = gameState.players[playerIdx];
       const prevOwner = gameState.players[prevOwnerIdx];
+      const tile = BOARD_TILES[tileId];
       if (st && buyer) {
         buyer.cash -= buyoutCost;
         if (prevOwner) prevOwner.cash += buyoutCost;
         st.owner = playerIdx;
-        playSFX('build', 1.0, getTileWorldPosition(tileId));
+        playSFX('takeover', 1.0, getTileWorldPosition(tileId));
+        animateBuyoutHostileStamp(tile ? tile.name : 'PROPERTY', buyer.name, prevOwner ? prevOwner.name : 'Opponent');
         spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(buyoutCost)}`, false);
         if (prevOwner) spawnFloatingCashOnHUD(prevOwnerIdx, `+${fmtMoney(buyoutCost)}`, true);
-        logEvent(`⚔️ <strong>${buyer.name}</strong> bought out <strong>${BOARD_TILES[tileId]?.name || 'City'}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong>!`);
+        logEvent(`⚔️ <strong>${buyer.name}</strong> bought out <strong>${tile ? tile.name : 'City'}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong>!`);
         refreshTileTextureAndBuildings(tileId);
         renderCornerHUDs();
         saveCurrentMatchToStorage();
         if (networkState.isMultiplayer && networkState.isHost) {
           broadcastFullGameState();
         }
-        if (concludeActionPhase) {
-          concludeActionPhase(Boolean(isDoubles));
+        const finish = () => {
+          if (concludeActionPhase) {
+            concludeActionPhase(Boolean(isDoubles));
+          }
+        };
+
+        if (context.camera) {
+          playBuyoutCinematicFocus(tileId, 1500).then(finish);
+        } else {
+          finish();
         }
       }
     },
@@ -360,6 +456,7 @@ export function initEngine() {
         incomingState.players.forEach((srcP, idx) => {
           const p = gameState.players[idx];
           if (p && srcP) {
+            p.id = srcP.id !== undefined ? srcP.id : idx;
             if (srcP.name) p.name = srcP.name;
             if (srcP.isAI !== undefined) p.isAI = Boolean(srcP.isAI);
             p.cash = srcP.cash;
@@ -392,7 +489,16 @@ export function initEngine() {
           gameState.currentPlayerIdx = incomingIdx;
         }
         if (incomingState.phase && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
-          gameState.phase = incomingState.phase;
+          // If local player is actively in debt liquidation or modal phase, do not let host's transient 'MOVING' stomp our modal!
+          const isLocalPlayerInModal = (gameState.phase === 'MODAL' && (
+            (gameState.pendingRentDebt && gameState.pendingRentDebt.debtorIdx === networkState.localPlayerIdx) ||
+            gameState.pendingBuyTile ||
+            gameState.pendingBuyoutTile ||
+            gameState.pendingUpgradeTile
+          ));
+          if (!isLocalPlayerInModal || incomingState.phase === 'MODAL') {
+            gameState.phase = incomingState.phase;
+          }
         }
       }
 

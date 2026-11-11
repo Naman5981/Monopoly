@@ -14,8 +14,10 @@ import {
   setTileHighlightRing,
   refreshTileTextureAndBuildings,
   getTileWorldPosition,
-  getTileScreenPosition
+  getTileScreenPosition,
+  playBuyoutCinematicFocus
 } from '../../three/scene.js';
+import { context } from '../../three/core/context.js';
 import { renderCornerHUDs, logEvent, setStatusPill } from '../hud.js';
 import { fireConfettiBurst, spawnAnimatedReaction } from '../../three/effects.js';
 import { checkAndTriggerMonopoly } from './victory.js';
@@ -130,10 +132,10 @@ export function confirmBuyoutCity() {
   }
   st.owner = pIdx;
 
-  playSFX('build', 1.0, getTileWorldPosition(tile.id));
+  playSFX('takeover', 1.0, getTileWorldPosition(tile.id));
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.4, 45);
   spawnAnimatedReaction('money', window.innerWidth / 2, window.innerHeight * 0.4);
-  animateBuyoutHostileStamp(tile.name);
+  animateBuyoutHostileStamp(tile.name, p.name, prevOwner ? prevOwner.name : 'Opponent');
   if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(pIdx, `-${fmtMoney(buyoutCost)}`, false);
   logEvent(`⚔️ <strong>${p.name}</strong> bought out <strong>${tile.name}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong> for <strong>${fmtMoney(buyoutCost)}</strong>!`);
 
@@ -154,10 +156,19 @@ export function confirmBuyoutCity() {
   if (tile.group) {
     checkAndTriggerMonopoly(pIdx, tile.group);
   }
-  if (engineCallbacks.concludeActionPhase) {
-    engineCallbacks.concludeActionPhase(isDoubles);
-  } else if (typeof window !== 'undefined' && window.concludeActionPhase) {
-    window.concludeActionPhase(isDoubles);
+
+  const finish = () => {
+    if (engineCallbacks.concludeActionPhase) {
+      engineCallbacks.concludeActionPhase(isDoubles);
+    } else if (typeof window !== 'undefined' && window.concludeActionPhase) {
+      window.concludeActionPhase(isDoubles);
+    }
+  };
+
+  if (context.camera) {
+    playBuyoutCinematicFocus(tile.id, 1500).then(finish);
+  } else {
+    finish();
   }
 }
 
