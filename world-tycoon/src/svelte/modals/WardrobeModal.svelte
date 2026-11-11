@@ -19,7 +19,7 @@
   }
 </script>
 
-<div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 pointer-events-none items-stretch justify-end {state.visible ? 'flex' : 'hidden wardrobe-panel-hidden'}">
+<div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 items-stretch justify-end {state.visible ? 'flex wardrobe-panel-visible pointer-events-auto' : 'hidden wardrobe-panel-hidden pointer-events-none'}">
   <!-- Clickable backdrop on left side (clean transparent, zero blur on 3D character) -->
   <div id="wardrobe-backdrop" onclick={onClose} class="absolute inset-0 bg-transparent pointer-events-none transition-opacity duration-300 {state.visible ? 'opacity-100 pointer-events-auto' : 'opacity-0'}" title="Click to return to lobby"></div>
 

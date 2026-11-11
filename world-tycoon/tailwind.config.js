@@ -5,7 +5,7 @@ export default {
     files: [
       './index.html',
       './index.template.html',
-      './src/**/*.{js,ts,html}',
+      './src/**/*.{js,ts,html,svelte}',
       './src/templates/**/*.html'
     ]
   },

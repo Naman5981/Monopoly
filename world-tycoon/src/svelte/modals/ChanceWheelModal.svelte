@@ -29,11 +29,11 @@
     <div class="p-5 space-y-4 bg-gradient-to-b from-slate-50 via-white to-indigo-50/50">
       <div class="relative w-[310px] h-[310px] mx-auto flex items-center justify-center p-2 rounded-full bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200 border-3 border-white shadow-[inset_0_4px_10px_rgba(0,0,0,0.12),0_8px_20px_rgba(15,23,42,0.15)]">
         <!-- 3D Golden Pointer / Ticker Pin (Dynamic needle vibrating against pegs) -->
-        <div id="chance-wheel-ticker-pin" class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)] origin-top transition-transform duration-75">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 border-2.5 border-white shadow-lg flex items-center justify-center">
-            <div class="w-3.5 h-3.5 rounded-full bg-rose-600 border border-amber-200 shadow-inner"></div>
+        <div id="chance-wheel-ticker-pin" class="chance-wheel-ticker-pin">
+          <div class="ticker-pin-head">
+            <div class="ticker-pin-gem"></div>
           </div>
-          <div class="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[22px] border-t-amber-500 -mt-1.5 filter drop-shadow-[0_3px_3px_rgba(0,0,0,0.5)]"></div>
+          <div class="ticker-pin-needle"></div>
         </div>
         <canvas id="chance-wheel-canvas" width="640" height="640" class="w-[290px] h-[290px] rounded-full drop-shadow-xl select-none"></canvas>
       </div>
