@@ -7,6 +7,7 @@ import { gameState, setupPlayers, setLocalPlayerIdx } from '../game/state.js';
 import { logEvent } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { networkState, networkCallbacks, stopHostHeartbeat } from './p2pState.js';
+import { updateHudState } from '../svelte/stores/hudStore.js';
 
 export function leaveMultiplayerRoom() {
   stopHostHeartbeat();
@@ -32,6 +33,12 @@ export function leaveMultiplayerRoom() {
     }
   });
 
+  updateHudState({
+    isMultiplayer: false,
+    roomCode: '',
+    isHost: false,
+    localPlayerIdx: 0
+  });
   updateMultiplayerUI();
   if (networkCallbacks.onLobbyUpdate) networkCallbacks.onLobbyUpdate();
 }
@@ -115,6 +122,14 @@ export function copyRoomCodeOnly(e) {
 }
 
 export function updateMultiplayerUI() {
+  // Sync multiplayer status to reactive Svelte HUD
+  updateHudState({
+    isMultiplayer: Boolean(networkState.isMultiplayer),
+    roomCode: networkState.roomCode || '',
+    isHost: Boolean(networkState.isHost),
+    localPlayerIdx: networkState.localPlayerIdx ?? 0
+  });
+
   // Update HUD multiplayer pill
   const pill = document.getElementById('hud-multiplayer-pill');
   const pillText = document.getElementById('hud-multiplayer-text');

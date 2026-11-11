@@ -23,7 +23,7 @@
 {/if}
 
 <!-- Unified Bottom Action Dock -->
-<div id="hud-bottom-status-wrap" class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 hidden flex-col items-center gap-2.5 pointer-events-none w-full max-w-xl px-4 transition-[transform,opacity] duration-300">
+<div id="hud-bottom-status-wrap" class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 hidden flex flex-col items-center gap-2.5 pointer-events-none w-full max-w-xl px-4 transition-[transform,opacity] duration-300">
   <!-- Status Pill -->
   <div onclick={onStatusPill} class="hud-status-pill pointer-events-auto cursor-pointer" title="Click to roll dice or view activity log">
     <div class="hud-status-pill-avatar shrink-0">

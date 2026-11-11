@@ -1,7 +1,7 @@
 {
   "name": "world-tycoon-monorepo",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "World Tycoon monorepo root",
   "scripts": {
     "build": "npm --prefix world-tycoon run build",

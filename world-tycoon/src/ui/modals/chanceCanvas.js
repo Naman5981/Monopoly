@@ -91,12 +91,18 @@ export function drawChanceWheelCanvas() {
     ctx.lineWidth = 3.5;
     ctx.stroke();
 
-    // 3. Tactile 3D White Badge Card (Tangential Orientation)
+    // 3. Tactile 3D White Badge Card (Tangential Orientation, always right-side up)
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(midAngle);
     ctx.translate(165, 0);
-    ctx.rotate(Math.PI / 2);
+    // When midAngle is in the lower hemisphere (0 to PI), rotate -90° instead of +90°
+    // so badges on the bottom slices are never upside-down
+    if (midAngle > 0 && midAngle < Math.PI) {
+      ctx.rotate(-Math.PI / 2);
+    } else {
+      ctx.rotate(Math.PI / 2);
+    }
 
     // Determine slice vector icon & readable label
     let iconPath = WHEEL_VECTOR_ICONS.gift;

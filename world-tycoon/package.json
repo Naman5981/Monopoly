@@ -1,6 +1,6 @@
 {
   "name": "world-tycoon",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "World Tycoon: Global Edition — 3D Isometric Monopoly-style board game",
   "private": true,
   "type": "module",

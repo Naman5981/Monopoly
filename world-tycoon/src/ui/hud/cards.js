@@ -44,8 +44,9 @@ export function renderCornerHUDs() {
   const rightContainer = document.getElementById('hud-right-players');
   if (!leftContainer || !rightContainer) return;
 
+  const isSvelteMounted = Boolean(document.getElementById('svelte-hud-mount')?.firstElementChild);
   const totalCards = leftContainer.querySelectorAll('.player-hud-card').length + rightContainer.querySelectorAll('.player-hud-card').length;
-  const needsRebuild = (totalCards !== gameState.players.length);
+  const needsRebuild = !isSvelteMounted && (totalCards !== gameState.players.length);
 
   if (needsRebuild) {
     leftContainer.innerHTML = '';
@@ -60,16 +61,24 @@ export function renderCornerHUDs() {
     const isLeft = (idx % 2 === 0);
     const shownMoney = displayedCash[idx] !== undefined ? displayedCash[idx] : p.cash;
     const theme = PLAYER_THEMES[idx] || { colorHex: '#3b82f6', charColor: 0x3b82f6 };
+    const isDetained = Boolean(p.inIsland);
+    const islandTurns = p.islandTurns || 0;
+    const isSelf = networkState.isMultiplayer
+      ? (idx === networkState.localPlayerIdx)
+      : (idx === 0);
+    const isHost = networkState.isMultiplayer && (idx === 0);
 
     const playerRecord = {
       id: idx,
       name: p.name,
       isAI: Boolean(p.isAI),
+      isSelf,
+      isHost,
       isCurrent: isTurn,
       colorHex: theme.colorHex,
       cashFormatted: p.bankrupt ? 'OUT' : fmtMoney(shownMoney),
-      inIsland: Boolean(p.inIsland),
-      islandTurns: p.islandTurns || 0,
+      inIsland: isDetained,
+      islandTurns,
       bankrupt: Boolean(p.bankrupt)
     };
     if (isLeft) {
@@ -91,8 +100,6 @@ export function renderCornerHUDs() {
             )
         );
 
-    const isDetained = Boolean(p.inIsland);
-    const islandTurns = p.islandTurns || 0;
     const islandBadgeHtml = isDetained
       ? `<span class="hud-detention-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/50 text-amber-900 font-black text-[9px] tracking-wider shadow-2xs" title="In Island Detention (Turn ${islandTurns}/3)"><i class="fa-solid fa-lock text-[8px] text-amber-700"></i> JAIL ${islandTurns}/3</span>`
       : '';

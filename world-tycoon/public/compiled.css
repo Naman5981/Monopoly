@@ -3261,9 +3261,29 @@ body {
   }
 }
 
+#main-game-hud-bar {
+  display: flex;
+}
+#main-game-hud-bar.hidden {
+  display: none !important;
+}
+
 #hud-left-players,
 #hud-right-players {
+  top: 58px;
   z-index: 55;
+  display: flex;
+}
+#hud-left-players.hidden,
+#hud-right-players.hidden {
+  display: none !important;
+}
+
+#hud-bottom-status-wrap {
+  display: flex;
+}
+#hud-bottom-status-wrap.hidden {
+  display: none !important;
 }
 
 .player-hud-card.active-turn-hud {
