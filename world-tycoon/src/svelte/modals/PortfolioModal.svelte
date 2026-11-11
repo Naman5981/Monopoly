@@ -33,7 +33,7 @@
             MANAGE YOUR GLOBAL CITIES
           </h3>
           <p class="text-xs font-bold text-emerald-100 drop-shadow mt-0.5">
-            Upgrade with Houses & Skyscrapers
+            Upgrade with Houses &amp; Skyscrapers
           </p>
         </div>
       </div>
@@ -43,6 +43,19 @@
       </button>
     </div>
 
+    <!-- Portfolio Summary Metrics Bar -->
+    <div id="portfolio-summary-bar" class="px-5 py-2.5 bg-slate-900/90 border-b border-white/10 text-white flex items-center justify-between text-xs font-bold">
+      <div class="flex items-center gap-1.5">
+        <span class="text-slate-400 font-extrabold uppercase text-[10px]">Cities Owned:</span>
+        <span class="text-emerald-400 font-black text-sm">{state.totalCities ?? 0}</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-slate-400 font-extrabold uppercase text-[10px]">Total Rent Yield:</span>
+        <span class="text-emerald-400 font-black text-sm">{state.totalRentFormatted || '$0'}</span>
+      </div>
+    </div>
+
+    <!-- Scrollable Properties Grid -->
     <div id="portfolio-grid" class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-gradient-to-b from-white to-slate-50/70">
       {#if state.properties && state.properties.length > 0}
         {#each state.properties as prop}
@@ -60,6 +73,14 @@
             </div>
           </div>
         {/each}
+      {:else}
+        <div class="col-span-2 text-center py-10 px-4 flex flex-col items-center justify-center space-y-3">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-sky-100 flex items-center justify-center text-3xl shadow-inner border border-indigo-200">
+            🏙️
+          </div>
+          <div class="font-rounded font-black text-base text-slate-800">NO EMPIRE CITIES YET</div>
+          <div class="text-xs font-semibold text-slate-500 max-w-sm">Roll the dice to travel the board, purchase world properties, and build houses and skyscrapers!</div>
+        </div>
       {/if}
     </div>
   </div>

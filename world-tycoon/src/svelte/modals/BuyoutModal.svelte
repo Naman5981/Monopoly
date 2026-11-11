@@ -1,5 +1,6 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import ActionChipShell from '../components/ActionChipShell.svelte';
 
   let state = $state({});
   modalStore.subscribe(val => { state = val.buyout || {}; });
@@ -13,55 +14,41 @@
   }
 </script>
 
-<div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}" onclick={(e) => { if (e.target.id === 'modal-buyout-city') onPass(); }}>
-  <div id="modal-buyout-city-card" class="game-modal-shell modal-shell-amber max-w-md w-full shadow-2xl">
-    <!-- Header -->
-    <div id="buyout-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md bg-gradient-to-r from-rose-600 to-rose-800">
-      <button onclick={onPass} class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition z-20" title="Pass Buyout">
-        ✕
-      </button>
-
-      <span id="buyout-modal-country" class="modal-badge-pill bg-black/30 border border-white/30 text-amber-200">⚔️ HOSTILE BUYOUT</span>
-      <canvas id="buyout-city-3d-canvas" width="220" height="110" class="w-[180px] h-[90px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
-      <h3 id="buyout-modal-name" class="modal-city-title">{state.tile?.name || 'CITY'}</h3>
+<ActionChipShell modalId="modal-buyout-city" cardId="modal-buyout-city-card" visible={state.visible} borderColor="border-rose-500/80">
+  <!-- Top Summary Line -->
+  <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+    <div class="flex items-center gap-2 truncate">
+      <span class="text-xs px-2.5 py-0.5 rounded-full bg-gradient-to-r from-rose-600 to-rose-800 text-white font-black shadow-sm shrink-0">
+        ⚔️ BUYOUT
+      </span>
+      <h3 id="buyout-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate">
+        {state.tile?.name || 'CITY'}
+      </h3>
+      <span id="buyout-modal-owner" class="text-[11px] font-bold text-slate-300 truncate">
+        From {state.sellerName || 'Opponent'}
+      </span>
     </div>
-
-    <!-- Body -->
-    <div class="p-5 space-y-3.5 bg-gradient-to-b from-white to-slate-50/70">
-      <div id="buyout-modal-owner" class="text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-amber-50 text-amber-950 border-2 border-amber-300 shadow-2xs">
-        Acquire from <strong>{state.sellerName || 'Opponent'}</strong>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="game-stat-card stat-card-sky">
-          <span class="stat-card-badge">2× BASE PRICE</span>
-          <div id="buyout-modal-base-price" class="stat-card-value text-sky-950">{state.basePriceFormatted || '$0'}</div>
-        </div>
-        <div class="game-stat-card stat-card-emerald">
-          <span class="stat-card-badge">HOUSES BUILT</span>
-          <div id="buyout-modal-houses-cost" class="stat-card-value text-emerald-950">{state.housesCostFormatted || '$0'}</div>
-        </div>
-      </div>
-
-      <div class="p-3 bg-gradient-to-r from-rose-500/10 to-rose-600/10 rounded-2xl border-2 border-rose-400 flex items-center justify-between">
-        <div>
-          <div class="text-[10px] font-black uppercase text-amber-800 tracking-wider">TOTAL BUYOUT COST</div>
-          <div id="buyout-modal-total-cost" class="text-xl font-black text-amber-950">{state.buyoutCostFormatted || '$0'}</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[10px] font-black uppercase text-slate-500 tracking-wider">YOUR BALANCE</div>
-          <div id="buyout-modal-balance" class="text-sm font-black text-emerald-600">{state.buyerBalanceFormatted || '$0'}</div>
-        </div>
-      </div>
-
-      <div class="flex gap-3 pt-1">
-        <button id="btn-confirm-buyout" onclick={onConfirm} disabled={!state.canAfford} class="game-btn game-btn-orange flex-1 py-3.5 text-sm font-black shadow-lg {!state.canAfford ? 'opacity-50 cursor-not-allowed' : ''}">
-          BUYOUT CITY
-        </button>
-        <button id="btn-pass-buyout" onclick={onPass} class="game-btn game-btn-slate flex-1 py-3.5 text-sm font-black">
-          PASS ({state.secondsLeft || 12}s)
-        </button>
-      </div>
+    <div class="flex items-center gap-1.5 text-xs font-black text-right shrink-0">
+      <span class="text-slate-400">Cost:</span>
+      <span id="buyout-modal-total-cost" class="text-rose-400 font-extrabold">{state.buyoutCostFormatted || '$0'}</span>
     </div>
   </div>
-</div>
+
+  <!-- Hidden compatibility elements for tests and scripts -->
+  <span id="buyout-modal-base-price" class="hidden">{state.basePriceFormatted || '$0'}</span>
+  <span id="buyout-modal-houses-cost" class="hidden">{state.housesCostFormatted || '$0'}</span>
+  <span id="buyout-modal-balance" class="hidden">{state.buyerBalanceFormatted || '$0'}</span>
+
+  <!-- Action Buttons Row -->
+  <div class="flex items-center gap-2 pt-0.5">
+    <button id="btn-confirm-buyout" onclick={onConfirm} disabled={!state.canAfford} class="game-btn game-btn-orange flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md {!state.canAfford ? 'opacity-50 cursor-not-allowed' : ''}">
+      <i class="fa-solid fa-handshake-slash"></i>
+      <span>ACQUIRE CITY</span>
+      <span class="text-xs font-bold opacity-90">({state.buyoutCostFormatted || '$0'})</span>
+    </button>
+
+    <button id="btn-pass-buyout" onclick={onPass} class="game-btn game-btn-slate py-2.5 px-4 text-xs font-black shrink-0">
+      PASS ({state.secondsLeft || 12}s) ✕
+    </button>
+  </div>
+</ActionChipShell>

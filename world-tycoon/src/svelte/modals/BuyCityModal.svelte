@@ -1,5 +1,6 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import ActionChipShell from '../components/ActionChipShell.svelte';
 
   let state = $state({});
   modalStore.subscribe(val => { state = val.buyCity || {}; });
@@ -13,89 +14,38 @@
   }
 </script>
 
-<div id="modal-buy-city" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}">
-  <div id="modal-buy-city-card" class="game-modal-shell modal-shell-sky max-w-sm w-full flex flex-col overflow-hidden shadow-2xl">
-    <!-- 1. Header with Country, 3D landmark canvas, and City Title -->
-    <div id="buy-modal-header" class="game-modal-header h-32 p-3 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0" style="background: {state.colorHex || '#0284c7'};">
-      <!-- Floating Watermark Icons -->
-      <svg class="ui-watermark absolute -right-2 -top-2 w-16 h-16 text-white opacity-15" aria-hidden="true"><use href="#icon-building"></use></svg>
-      <svg class="ui-watermark absolute -left-2 -bottom-2 w-16 h-16 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
-
-      <span id="buy-modal-country" class="modal-badge-pill">{state.countryName || 'GLOBAL METROPOLIS'}</span>
-      <canvas id="buy-city-3d-canvas" width="220" height="110" class="w-[170px] h-[85px] -my-2 relative z-10 pointer-events-none drop-shadow-xl"></canvas>
-      <h3 id="buy-modal-name" class="modal-city-title text-xl sm:text-2xl">{state.cityName || 'ISTANBUL'}</h3>
+<ActionChipShell modalId="modal-buy-city" cardId="modal-buy-city-card" visible={state.visible} borderColor="border-sky-500/80">
+  <!-- Top Summary Line -->
+  <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+    <div class="flex items-center gap-2 truncate">
+      <span class="w-3.5 h-3.5 rounded-full border border-white/40 shrink-0" style="background-color: {state.colorHex || '#0284c7'};"></span>
+      <h3 id="buy-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate">
+        {state.cityName || 'CITY'}
+      </h3>
+      <span id="buy-modal-country" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/10 text-slate-300 border border-white/20 shrink-0">
+        {state.countryName || 'ESTATE'}
+      </span>
     </div>
-
-    <!-- 2. Minimalist Body: Buyer info + 2 Stat Badges + Affordability Balance + Single-Line Growth Teaser -->
-    <div class="p-4 sm:p-5 space-y-3 bg-gradient-to-b from-white to-slate-50/70">
-      <!-- Active Buyer Strip -->
-      <div id="buy-modal-buyer-row" class="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-100/90 border border-slate-200/90 shadow-2xs">
-        <div class="flex items-center gap-2.5">
-          <div id="buy-modal-buyer-avatar-wrap" class="w-8 h-8 rounded-full border-2 border-white shadow-xs overflow-hidden flex-shrink-0 bg-slate-200 flex items-center justify-center" style="box-shadow: 0 0 0 2px {state.buyerColor || '#3b82f6'};">
-            <canvas id="buy-modal-buyer-avatar-canvas" width="64" height="64" class="w-full h-full block rounded-full"></canvas>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">BUYING TYCOON</span>
-            <span id="buy-modal-buyer-name" class="text-xs font-black text-slate-800 leading-tight">{state.buyerName || 'Player 1'}</span>
-          </div>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span id="buy-modal-buyer-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
-            {state.buyerBadge || 'ACTIVE TURN'}
-          </span>
-        </div>
-      </div>
-
-      <!-- Dual Compact Badges: Price & Base Rent -->
-      <div class="grid grid-cols-2 gap-2.5">
-        <div class="game-stat-card stat-card-sky p-2.5">
-          <span class="stat-card-badge text-[10px]">
-            <i class="fa-solid fa-tag text-sky-500"></i> CITY PRICE
-          </span>
-          <div id="buy-modal-price" class="stat-card-value text-sky-950 text-xl font-black">{state.priceFormatted || '600K'}</div>
-        </div>
-        <div class="game-stat-card stat-card-emerald p-2.5">
-          <span class="stat-card-badge text-[10px]">
-            <i class="fa-solid fa-coins text-emerald-500"></i> BASE RENT
-          </span>
-          <div id="buy-modal-rent" class="stat-card-value text-emerald-950 text-xl font-black">{state.rentFormatted || '90K'}</div>
-        </div>
-      </div>
-
-      <!-- Dynamic Context Strip: Affordability & Max Potential -->
-      <div class="p-3 rounded-2xl bg-slate-100/90 border border-slate-200/90 space-y-1.5 shadow-2xs">
-        <!-- Balance after purchase -->
-        <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-          <span class="text-slate-500 flex items-center gap-1.5">
-            <i class="fa-solid fa-wallet text-amber-500 text-xs"></i> Balance After:
-          </span>
-          <span id="buy-modal-balance-preview" class="font-mono tabular-nums font-black {state.canAfford ? 'text-emerald-700' : 'text-rose-600'}">{state.balancePreview || '$2.0M → $1.4M'}</span>
-        </div>
-
-        <!-- Max potential / Resort perk -->
-        <div id="buy-modal-potential-row" class="flex items-center justify-between text-[11px] font-bold text-slate-600 pt-1.5 border-t border-slate-200/80">
-          <span class="text-slate-400 flex items-center gap-1">
-            <i class="fa-solid fa-bolt text-amber-500 text-xs"></i> Max Potential:
-          </span>
-          <span id="buy-modal-max-rent" class="font-mono tabular-nums font-extrabold text-amber-600">
-            {#if state.maxRentHtml}
-              {@html state.maxRentHtml}
-            {:else}
-              $1.2M (Skyscraper)
-            {/if}
-          </span>
-        </div>
-      </div>
-
-      <!-- Primary Action CTAs -->
-      <div class="flex gap-2.5 pt-1">
-        <button id="btn-confirm-buy" onclick={onConfirmBuy} disabled={!state.canAfford} class="game-btn game-btn-green flex-1 py-3 text-sm font-black shadow-md cursor-pointer transition {!state.canAfford ? 'opacity-50 cursor-not-allowed' : ''}">
-          <i class="fa-solid fa-cart-shopping mr-1.5"></i> BUY CITY
-        </button>
-        <button id="btn-pass-buy" onclick={onPassBuy} class="game-btn game-btn-slate w-28 py-3 text-sm font-black cursor-pointer transition">
-          <i class="fa-solid fa-forward mr-1"></i> PASS
-        </button>
-      </div>
+    <div class="flex items-center gap-2 text-xs font-black text-right shrink-0">
+      <span class="text-slate-400">Rent:</span>
+      <span id="buy-modal-rent" class="text-emerald-400 font-extrabold">{state.rentFormatted || '0'}</span>
     </div>
   </div>
-</div>
+
+  <!-- Hidden compatibility elements -->
+  <span id="buy-modal-price" class="hidden">{state.priceFormatted || '0'}</span>
+  <span id="buy-modal-balance-preview" class="hidden">{state.balancePreview || ''}</span>
+
+  <!-- Action Buttons Row -->
+  <div class="flex items-center gap-2 pt-0.5">
+    <button id="btn-confirm-buy" onclick={onConfirmBuy} disabled={!state.canAfford} class="game-btn game-btn-green flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md {!state.canAfford ? 'opacity-50 cursor-not-allowed' : ''}">
+      <i class="fa-solid fa-cart-shopping"></i>
+      <span>BUY PROPERTY</span>
+      <span class="text-xs font-bold opacity-90">({state.priceFormatted || '0'})</span>
+    </button>
+
+    <button id="btn-pass-buy" onclick={onPassBuy} class="game-btn game-btn-slate py-2.5 px-4 text-xs font-black shrink-0">
+      PASS ✕
+    </button>
+  </div>
+</ActionChipShell>

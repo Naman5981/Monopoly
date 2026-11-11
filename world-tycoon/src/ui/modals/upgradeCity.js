@@ -7,7 +7,7 @@ import { GROUP_META } from '../../game/data.js';
 import { gameState } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
-import { calculateTileRent } from '../../game/rules.js';
+import { calculateTileRent, getPropertyLevelMetadata } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import {
   populateCityPreview3DScene,
@@ -45,7 +45,6 @@ export function openUpgradeCityModal(tile, isDoubles) {
   setTileHighlightRing(tile.id, true);
   setStatusPill(`🏗️ Managing property upgrades for <strong>${tile.name}</strong>...`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
   renderUpgradeModalContent(tile);
-  populateCityPreview3DScene(tile, 'upgrade-city-3d-canvas');
 
   const origin = getTileScreenPosition(tile.id);
   animateModalSpringOpen('#modal-upgrade-city', '#modal-upgrade-city-card', origin);
@@ -60,13 +59,12 @@ export function renderUpgradeModalContent(tile) {
 
   const groupColor = tile.group ? GROUP_META[tile.group].hex : '#10b981';
   const countryName = tile.group ? GROUP_META[tile.group].name : 'ESTATE';
-  const levelLabels = ['Base', '1 House', '2 Houses', '3 Houses', 'Skyscraper'];
   const curRent = calculateTileRent(tile.id);
   const nextRent = (st.level < 4) ? tile.rent[st.level + 1] : curRent;
   const remainingCash = Math.max(0, p.cash - tile.houseCost);
 
-  const tiers = levelLabels.map((lbl, idx) => ({
-    label: lbl,
+  const tiers = [0, 1, 2, 3, 4].map(idx => ({
+    label: getPropertyLevelMetadata(idx).shortLabel,
     rent: fmtMoney(tile.rent[idx]),
     isCurrent: (st.level === idx),
     isSkyscraper: (idx === 4)
@@ -80,7 +78,7 @@ export function renderUpgradeModalContent(tile) {
     tile,
     cityName: tile.name,
     countryName,
-    levelLabel: `Level ${st.level}: ${levelLabels[st.level] || 'Base'}`,
+    levelLabel: `Level ${st.level}: ${getPropertyLevelMetadata(st.level).label}`,
     colorHex: groupColor,
     currentRentFormatted: fmtMoney(curRent),
     nextRentFormatted: fmtMoney(nextRent),

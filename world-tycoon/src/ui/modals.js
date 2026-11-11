@@ -1,11 +1,14 @@
 /**
  * ui/modals.js
- * Unified facade barrel re-exporting all specialized modal modules.
+ * Unified facade re-exporting specialized modal modules.
  * Architecture refactored following Clean Code Single Responsibility Principles (SRP).
  */
 
 export * from './modals/common.js';
-export * from './modals/buyUpgrade.js';
+export * from './modals/buyCity.js';
+export * from './modals/buyoutCity.js';
+export * from './modals/upgradeCity.js';
+export * from './modals/sellRent.js';
 export * from './modals/auction.js';
 export * from './modals/chanceWheel.js';
 export * from './modals/inspector.js';

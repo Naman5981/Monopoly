@@ -50,45 +50,48 @@ export function setStatusPill(htmlContent, options = {}) {
     }
   });
 
-  const wrap = document.getElementById('hud-bottom-status-wrap');
-  if (wrap) wrap.classList.remove('hidden');
+  const isSvelteMounted = Boolean(document.getElementById('svelte-hud-mount')?.firstElementChild);
+  if (!isSvelteMounted) {
+    const wrap = document.getElementById('hud-bottom-status-wrap');
+    if (wrap) wrap.classList.remove('hidden');
 
-  const pill = document.getElementById('hud-status-pill');
-  const textEl = document.getElementById('hud-status-pill-text');
-  const dotEl = document.getElementById('hud-status-pill-dot');
-  const iconEl = document.getElementById('hud-status-pill-icon');
+    const pill = document.getElementById('hud-status-pill');
+    const textEl = document.getElementById('hud-status-pill-text');
+    const dotEl = document.getElementById('hud-status-pill-dot');
+    const iconEl = document.getElementById('hud-status-pill-icon');
 
-  if (textEl) {
-    textEl.innerHTML = htmlContent;
-  }
-
-  if (playerIdx !== null && playerIdx !== undefined && PLAYER_THEMES[playerIdx]) {
-    if (dotEl) {
-      dotEl.style.backgroundColor = PLAYER_THEMES[playerIdx].colorHex;
-      dotEl.className = isThinking ? 'w-2.5 h-2.5 rounded-full animate-ping' : 'w-2.5 h-2.5 rounded-full';
+    if (textEl) {
+      textEl.innerHTML = htmlContent;
     }
-  } else if (dotEl) {
-    dotEl.style.backgroundColor = isThinking ? '#38bdf8' : '#fbbf24';
-    dotEl.className = isThinking ? 'w-2.5 h-2.5 rounded-full animate-pulse' : 'w-2.5 h-2.5 rounded-full';
-  }
 
-  if (iconEl) {
-    if (icon) {
-      iconEl.innerHTML = icon;
-      iconEl.classList.remove('hidden');
-    } else if (isThinking) {
-      iconEl.innerHTML = '<span class="inline-block animate-spin text-sky-400 text-xs">⚡</span>';
-      iconEl.classList.remove('hidden');
-    } else {
-      iconEl.classList.add('hidden');
+    if (playerIdx !== null && playerIdx !== undefined && PLAYER_THEMES[playerIdx]) {
+      if (dotEl) {
+        dotEl.style.backgroundColor = PLAYER_THEMES[playerIdx].colorHex;
+        dotEl.className = isThinking ? 'w-2.5 h-2.5 rounded-full animate-ping' : 'w-2.5 h-2.5 rounded-full';
+      }
+    } else if (dotEl) {
+      dotEl.style.backgroundColor = isThinking ? '#38bdf8' : '#fbbf24';
+      dotEl.className = isThinking ? 'w-2.5 h-2.5 rounded-full animate-pulse' : 'w-2.5 h-2.5 rounded-full';
     }
-  }
 
-  if (pill) {
-    pill.classList.toggle('pill-thinking', isThinking);
-    pill.classList.remove('pill-event-pop');
-    void pill.offsetWidth;
-    pill.classList.add('pill-event-pop');
+    if (iconEl) {
+      if (icon) {
+        iconEl.innerHTML = icon;
+        iconEl.classList.remove('hidden');
+      } else if (isThinking) {
+        iconEl.innerHTML = '<span class="inline-block animate-spin text-sky-400 text-xs">⚡</span>';
+        iconEl.classList.remove('hidden');
+      } else {
+        iconEl.classList.add('hidden');
+      }
+    }
+
+    if (pill) {
+      pill.classList.toggle('pill-thinking', isThinking);
+      pill.classList.remove('pill-event-pop');
+      void pill.offsetWidth;
+      pill.classList.add('pill-event-pop');
+    }
   }
 
   if (statusPillResetTimer) {

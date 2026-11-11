@@ -7,7 +7,7 @@ import { BOARD_TILES, GROUP_META } from '../../game/data.js';
 import { gameState, isHumanTurnActionable, localPlayerIdx } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
-import { calculateTileRent } from '../../game/rules.js';
+import { calculateTileRent, getPropertyLevelMetadata } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import {
   populateCityPreview3DScene,
@@ -21,29 +21,148 @@ import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML, closeOtherInfor
 import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
+function isSvelteInspectorMounted() {
+  const root = document.getElementById('modal-tile-inspector');
+  if (!root) return false;
+  const hasAttr = typeof root.hasAttribute === 'function' && root.hasAttribute('data-svelte-h');
+  const hasChild = typeof root.querySelector === 'function' && Boolean(root.querySelector('[class*="svelte"]'));
+  return Boolean(hasAttr || hasChild);
+}
+
+export function buildInspectorSliceData(tileId) {
+  const tile = BOARD_TILES[tileId];
+  if (!tile) return { visible: false };
+
+  const st = gameState.properties[tileId];
+  const myIdx = (typeof localPlayerIdx === 'number' ? localPlayerIdx : 0);
+  const myPlayer = gameState.players[myIdx] || gameState.players[0];
+  const isOwned = Boolean(st && st.owner !== null && st.owner !== undefined);
+  const isOwner = Boolean(st && st.owner === myIdx);
+  const isStandingOnTile = Boolean(myPlayer && myPlayer.position === tileId);
+  const isTurnActionable = isHumanTurnActionable();
+  const curLevel = st ? (st.level || 0) : 0;
+  const groupMeta = tile.group ? GROUP_META[tile.group] : null;
+  const groupHex = groupMeta ? groupMeta.hex : '#3b82f6';
+  const groupName = groupMeta ? groupMeta.name : tile.type.toUpperCase();
+
+  const owner = isOwned ? gameState.players[st.owner] : null;
+  const ownerName = owner ? owner.name : 'Unowned';
+  const ownerColorHex = owner?.colorHex || '#f43f5e';
+  const levelMetadata = getPropertyLevelMetadata(curLevel);
+
+  const rentTiers = [];
+  if (tile.type === 'city' && Array.isArray(tile.rent)) {
+    const tierLabels = ['Base Land', '1 House', '2 Houses', '3 Houses', 'Skyscraper'];
+    const tierIcons = ['fa-location-dot', 'fa-house', 'fa-house', 'fa-house', 'fa-city'];
+    const badgeTexts = ['Base', '1', '2', '3', 'MAX'];
+    for (let idx = 0; idx < tile.rent.length; idx++) {
+      rentTiers.push({
+        index: idx,
+        label: tierLabels[idx] || `Level ${idx}`,
+        rent: fmtMoney(tile.rent[idx]),
+        isCurrent: isOwned ? curLevel === idx : idx === 0,
+        isMax: idx === 4,
+        icon: tierIcons[idx] || 'fa-building',
+        badgeText: badgeTexts[idx] || String(idx)
+      });
+    }
+  } else if (tile.type === 'resort' && Array.isArray(tile.rent)) {
+    rentTiers.push({
+      index: 0,
+      label: '1 Resort Owned',
+      rent: fmtMoney(tile.rent[0]),
+      isCurrent: isOwned ? curLevel === 0 : true,
+      isMax: false,
+      icon: 'fa-umbrella-beach',
+      badgeText: '1'
+    });
+    if (tile.rent.length > 1) {
+      rentTiers.push({
+        index: 1,
+        label: '2 Resorts Owned (2×)',
+        rent: fmtMoney(tile.rent[1]),
+        isCurrent: isOwned ? curLevel === 1 : false,
+        isMax: true,
+        icon: 'fa-crown',
+        badgeText: 'MAX'
+      });
+    }
+  }
+
+  const canUpgrade = Boolean(
+    tile.type === 'city' &&
+    isOwner &&
+    curLevel < 4 &&
+    isStandingOnTile &&
+    isTurnActionable &&
+    myPlayer &&
+    myPlayer.cash >= tile.houseCost &&
+    (gameState.upgradesThisVisit || 0) < 2
+  );
+
+  const canDowngrade = Boolean(
+    tile.type === 'city' &&
+    isOwner &&
+    curLevel > 0 &&
+    isStandingOnTile &&
+    isTurnActionable
+  );
+
+  return {
+    visible: true,
+    tile,
+    tileId,
+    cityName: tile.name,
+    subtitle: tile.subtitle || '',
+    groupHex,
+    groupName,
+    isOwned,
+    isOwner,
+    ownerName,
+    ownerColorHex,
+    level: curLevel,
+    levelLabel: levelMetadata.label,
+    priceFormatted: tile.price ? fmtMoney(tile.price) : null,
+    houseCost: tile.houseCost || 0,
+    houseCostFormatted: tile.houseCost ? fmtMoney(tile.houseCost) : null,
+    downgradeRefundFormatted: tile.houseCost ? fmtMoney(tile.houseCost / 2) : null,
+    currentRentFormatted: isOwned ? fmtMoney(calculateTileRent(tileId)) : null,
+    isStandingOnTile,
+    isTurnActionable,
+    canUpgrade,
+    canDowngrade,
+    rentTiers,
+    festivalBoost: Boolean(st?.festivalBoost)
+  };
+}
+
 function renderOwnerPill(tile, st, isOwnedByLocalPlayer) {
+  if (isSvelteInspectorMounted()) return;
   const el = document.getElementById('insp-owner-pill');
   if (!el) return;
   if (st && st.owner !== null) {
     if (isOwnedByLocalPlayer) {
-      const levelDesc = (st.level === 4 ? 'Skyscraper (MAX)' : (st.level > 0 ? `${st.level} House${st.level > 1 ? 's' : ''}` : 'Base Land'));
-      el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-emerald-50 text-emerald-900 border-2 border-emerald-300 shadow-2xs';
-      el.innerHTML = `<i class="fa-solid fa-crown text-amber-500 mr-1"></i> Your Estate • ${levelDesc}`;
+      const levelDesc = getPropertyLevelMetadata(st.level).label;
+      el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-emerald-950/60 text-emerald-300 border border-emerald-500/40 shadow-xs flex items-center justify-center gap-1.5';
+      el.innerHTML = `<i class="fa-solid fa-crown text-amber-400"></i> <span>Your Estate • ${levelDesc}</span>`;
     } else {
-      const ownerName = gameState.players[st.owner]?.name || 'Opponent';
-      el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs';
-      el.innerHTML = `Owned by <strong>${ownerName}</strong>`;
+      const owner = gameState.players[st.owner];
+      const ownerName = owner?.name || 'Opponent';
+      const ownerColor = owner?.colorHex || '#f43f5e';
+      el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-900/80 text-slate-200 border border-white/10 shadow-xs flex items-center justify-center gap-1.5';
+      el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full inline-block shrink-0 shadow-xs" style="background:${ownerColor}"></span> <span>Owned by <strong class="text-white">${ownerName}</strong></span>`;
     }
   } else if (tile.price) {
-    el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-amber-50 text-amber-950 border-2 border-amber-300/80 shadow-2xs';
-    el.innerHTML = `Unowned • Price: <strong class="text-emerald-700">${fmtMoney(tile.price)}</strong>`;
+    el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-900/80 text-slate-300 border border-white/10 shadow-xs flex items-center justify-center gap-1.5';
+    el.innerHTML = `<span>Unowned</span> <span class="text-white/40">•</span> <span>Price: <strong class="text-emerald-400">${fmtMoney(tile.price)}</strong></span>`;
   } else {
-    el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-100 text-slate-800 border-2 border-slate-200/80 shadow-2xs';
+    el.className = 'text-xs sm:text-sm font-display font-black text-center py-2 px-3 rounded-2xl bg-slate-900/80 text-slate-300 border border-white/10 shadow-xs';
     el.textContent = tile.subtitle || 'Special Tile';
   }
 }
 
 function renderRentList(tile, st) {
+  if (isSvelteInspectorMounted()) return;
   const el = document.getElementById('insp-rent-list');
   if (!el) return;
   if (tile.type === 'city') {
@@ -52,42 +171,78 @@ function renderRentList(tile, st) {
     el.innerHTML = [0, 1, 2, 3, 4].map(idx => {
       const isCurrent = (curLevel === idx);
       const isSky = (idx === 4);
-      const cardClass = isCurrent ? 'game-tier-card tier-card-current' : (isSky ? 'game-tier-card tier-card-skyscraper' : 'game-tier-card');
-      const valPillClass = isCurrent ? 'tier-val-pill bg-emerald-600 text-white border-emerald-500 shadow-xs' : (isSky ? 'tier-val-pill tier-val-skyscraper' : 'tier-val-pill');
-      const activeTag = isCurrent ? '<span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-600 text-white font-black ml-1.5 shadow-2xs">ACTIVE</span>' : '';
+
+      let rowClass = 'flex items-center justify-between py-1.5 px-2.5 rounded-xl border transition-all duration-150 ';
+      let badgeHtml = '';
+      let labelClass = 'font-display font-bold text-xs ';
+      let valClass = 'text-xs font-mono font-black py-0.5 px-2 rounded-lg ';
+
+      if (isCurrent) {
+        rowClass += 'bg-emerald-950/70 border-emerald-500/60 shadow-[0_0_12px_rgba(16,185,129,0.2)] text-white';
+        labelClass += 'text-emerald-300';
+        valClass += 'bg-emerald-500 text-slate-950 font-black shadow-xs';
+      } else if (isSky) {
+        rowClass += 'bg-amber-950/30 border-amber-500/30 text-amber-200';
+        labelClass += 'text-amber-300';
+        valClass += 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+      } else {
+        rowClass += 'bg-slate-900/50 border-white/5 hover:border-white/10 text-slate-300';
+        labelClass += 'text-slate-300';
+        valClass += 'text-slate-200';
+      }
+
+      const activeTag = isCurrent ? '<span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 font-black ml-1.5 shadow-xs">ACTIVE</span>' : '';
+
+      if (idx === 0) {
+        badgeHtml = `<span class="w-6 h-6 rounded-md ${isCurrent ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/40' : 'bg-white/5 text-slate-400 border border-white/10'} flex items-center justify-center text-[10px] shrink-0"><i class="fa-solid fa-location-dot"></i></span>`;
+      } else if (idx === 4) {
+        badgeHtml = `<span class="w-6 h-6 rounded-md ${isCurrent ? 'bg-amber-500 text-slate-950' : 'bg-amber-500/20 text-amber-400 border border-amber-400/40'} flex items-center justify-center text-[10px] font-black shrink-0"><i class="fa-solid fa-crown"></i></span>`;
+      } else {
+        badgeHtml = `<span class="w-6 h-6 rounded-md ${isCurrent ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/40' : 'bg-white/5 text-slate-400 border border-white/10'} flex items-center justify-center text-[10px] font-black shrink-0">${idx}</span>`;
+      }
+
       return `
-        <div class="${cardClass} py-1.5 px-2.5">
+        <div class="${rowClass}">
           <div class="flex items-center gap-2">
-            ${getTierBadgeHTML(idx)}
-            <div class="flex items-center"><span class="font-display font-bold text-xs text-slate-800">${tierLabels[idx]}</span>${activeTag}</div>
+            ${badgeHtml}
+            <div class="flex items-center">
+              <span class="${labelClass}">${tierLabels[idx]}</span>
+              ${activeTag}
+            </div>
           </div>
-          <div class="${valPillClass} text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[idx])}</div>
+          <div class="${valClass}">${fmtMoney(tile.rent[idx])}</div>
         </div>
       `;
     }).join('');
   } else if (tile.type === 'resort') {
+    const curLevel = st ? (st.level || 0) : -1;
+    const isCurrent0 = (curLevel === 0);
+    const isCurrent1 = (curLevel === 1);
     el.innerHTML = `
-      <div class="game-tier-card py-2 px-3">
+      <div class="flex items-center justify-between py-2 px-2.5 rounded-xl border ${isCurrent0 ? 'bg-emerald-950/70 border-emerald-500/60 shadow-[0_0_12px_rgba(16,185,129,0.2)]' : 'bg-slate-900/50 border-white/5'}">
         <div class="flex items-center gap-2">
-          <div class="tier-level-badge tier-house"><svg class="ui-icon w-3.5 h-3.5 text-sky-600" aria-hidden="true"><use href="#icon-pin"></use></svg></div>
-          <span class="font-display font-bold text-xs text-slate-800">1 Resort Owned</span>
+          <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 border border-sky-400/30 flex items-center justify-center text-[10px]"><i class="fa-solid fa-umbrella-beach"></i></span>
+          <span class="font-display font-bold text-xs ${isCurrent0 ? 'text-emerald-300' : 'text-slate-300'}">1 Resort Owned</span>
+          ${isCurrent0 ? '<span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 font-black ml-1.5">ACTIVE</span>' : ''}
         </div>
-        <div class="tier-val-pill text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[0])}</div>
+        <div class="text-xs font-mono font-black ${isCurrent0 ? 'bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-lg' : 'text-slate-200'}">${fmtMoney(tile.rent[0])}</div>
       </div>
-      <div class="game-tier-card tier-card-skyscraper py-2 px-3">
+      <div class="flex items-center justify-between py-2 px-2.5 rounded-xl border ${isCurrent1 ? 'bg-emerald-950/70 border-emerald-500/60 shadow-[0_0_12px_rgba(16,185,129,0.2)]' : 'bg-amber-950/30 border-amber-500/20'} mt-1">
         <div class="flex items-center gap-2">
-          <div class="tier-level-badge tier-skyscraper-badge"><svg class="ui-icon w-3.5 h-3.5 text-amber-600" aria-hidden="true"><use href="#icon-sparkle"></use></svg></div>
-          <span class="font-display font-bold text-xs text-amber-950">2 Resorts Owned (2×)</span>
+          <span class="w-6 h-6 rounded-md bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center justify-center text-[10px]"><i class="fa-solid fa-crown"></i></span>
+          <span class="font-display font-bold text-xs ${isCurrent1 ? 'text-emerald-300' : 'text-amber-300'}">2 Resorts Owned (2×)</span>
+          ${isCurrent1 ? '<span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 font-black ml-1.5">ACTIVE</span>' : ''}
         </div>
-        <div class="tier-val-pill tier-val-skyscraper text-xs py-1 px-2.5 font-black">${fmtMoney(tile.rent[1])}</div>
+        <div class="text-xs font-mono font-black ${isCurrent1 ? 'bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-lg' : 'text-amber-400'}">${fmtMoney(tile.rent[1])}</div>
       </div>
     `;
   } else {
-    el.innerHTML = `<div class="p-3 bg-white rounded-2xl border border-slate-200 text-center font-bold text-xs text-slate-700">${tile.subtitle || 'Land here to trigger special board rules.'}</div>`;
+    el.innerHTML = `<div class="p-3 bg-slate-900/60 rounded-2xl border border-white/10 text-center font-bold text-xs text-slate-300">${tile.subtitle || 'Land here to trigger special board rules.'}</div>`;
   }
 }
 
 function renderInspectorActions(tile, tileId, st, myPlayer, isOwnedByLocalPlayer, isStandingOnTile) {
+  if (isSvelteInspectorMounted()) return;
   const el = document.getElementById('insp-actions');
   if (!el) return;
   el.innerHTML = '';
@@ -95,8 +250,8 @@ function renderInspectorActions(tile, tileId, st, myPlayer, isOwnedByLocalPlayer
 
   if (!isStandingOnTile) {
     el.innerHTML = `
-      <div class="py-2.5 px-3 rounded-2xl bg-slate-100 border border-slate-200 text-slate-500 font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-2xs">
-        <i class="fa-solid fa-location-dot text-slate-400"></i>
+      <div class="py-2 px-3 rounded-xl bg-slate-900/60 border border-white/10 text-slate-400 font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-2xs">
+        <i class="fa-solid fa-location-dot text-slate-500"></i>
         <span>Land here to build upgrades</span>
       </div>
     `;
@@ -105,8 +260,8 @@ function renderInspectorActions(tile, tileId, st, myPlayer, isOwnedByLocalPlayer
 
   if (!isHumanTurnActionable()) {
     el.innerHTML = `
-      <div class="w-full py-2.5 px-3 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs">
-        <i class="fa-solid fa-lock text-amber-600"></i>
+      <div class="w-full py-2 px-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-300 font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs">
+        <i class="fa-solid fa-lock text-amber-400"></i>
         <span>Wait for your turn to build upgrades</span>
       </div>
     `;
@@ -118,10 +273,10 @@ function renderInspectorActions(tile, tileId, st, myPlayer, isOwnedByLocalPlayer
     const canDown = st.level > 0;
     el.innerHTML = `
       <div class="grid grid-cols-2 gap-2">
-        <button onclick="window.upgradeCityLevel(${tileId})" ${!canUp ? 'disabled' : ''} class="game-btn ${canUp ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs font-black">
+        <button onclick="window.upgradeCityLevel(${tileId})" ${!canUp ? 'disabled' : ''} class="game-btn ${canUp ? 'game-btn-green' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2 text-xs font-black">
           +Upgrade (${fmtMoney(tile.houseCost)})
         </button>
-        <button onclick="window.downgradeCityLevel(${tileId})" ${!canDown ? 'disabled' : ''} class="game-btn ${canDown ? 'game-btn-orange' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2.5 text-xs font-black">
+        <button onclick="window.downgradeCityLevel(${tileId})" ${!canDown ? 'disabled' : ''} class="game-btn ${canDown ? 'game-btn-orange' : 'game-btn-slate opacity-50 cursor-not-allowed'} py-2 text-xs font-black">
           -Sell (+${fmtMoney(tile.houseCost / 2)})
         </button>
       </div>
@@ -138,14 +293,19 @@ export function openInspectorModal(tileId) {
   setTileHighlightRing(tile.id, true);
 
   const st = gameState.properties[tileId];
+  const hex = tile.group ? GROUP_META[tile.group].hex : '#3b82f6';
   const header = document.getElementById('insp-header');
   if (header) {
-    header.style.background = tile.group ? GROUP_META[tile.group].hex : '#475569';
+    header.style.background = `linear-gradient(180deg, ${hex}40 0%, rgba(2, 6, 23, 0.95) 100%)`;
+    header.style.borderBottom = `1px solid ${hex}50`;
   }
 
   const groupEl = document.getElementById('insp-group');
   if (groupEl) {
     groupEl.textContent = tile.group ? GROUP_META[tile.group].name : tile.type.toUpperCase();
+    groupEl.style.borderColor = `${hex}60`;
+    groupEl.style.backgroundColor = `${hex}20`;
+    groupEl.style.color = '#ffffff';
   }
   const titleEl = document.getElementById('insp-title');
   if (titleEl) {
@@ -157,16 +317,8 @@ export function openInspectorModal(tileId) {
   const isOwnedByLocalPlayer = (st && st.owner === myIdx);
   const isStandingOnTile = (myPlayer && myPlayer.position === tileId);
 
-  updateModalSlice('inspector', {
-    visible: true,
-    tile,
-    ownerName: st?.owner !== null && st?.owner !== undefined ? (gameState.players[st.owner]?.name || 'Unknown') : 'Unowned',
-    level: st?.level || 0,
-    mortgaged: Boolean(st?.mortgaged),
-    festivalBoost: Boolean(st?.festivalBoost),
-    isOwner: isOwnedByLocalPlayer,
-    canUpgrade: isOwnedByLocalPlayer && (st?.level || 0) < 4
-  });
+  const sliceData = buildInspectorSliceData(tileId);
+  updateModalSlice('inspector', sliceData);
 
   renderOwnerPill(tile, st, isOwnedByLocalPlayer);
   renderRentList(tile, st);
@@ -206,6 +358,17 @@ export function closeInspectorModal() {
   if (card) {
     card.style.borderColor = '';
     card.style.boxShadow = '';
+  }
+  const header = document.getElementById('insp-header');
+  if (header) {
+    header.style.background = '';
+    header.style.borderBottom = '';
+  }
+  const groupEl = document.getElementById('insp-group');
+  if (groupEl) {
+    groupEl.style.borderColor = '';
+    groupEl.style.backgroundColor = '';
+    groupEl.style.color = '';
   }
   animateTileInspectorSpringClose(m, card, () => {
     clearCityPreview();
@@ -347,11 +510,32 @@ export function renderPortfolioGrid() {
   const grid = document.getElementById('portfolio-grid');
   const myIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : localPlayerIdx;
   const owned = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === myIdx);
-  const summaryBar = document.getElementById('portfolio-summary-bar');
+  const totalCities = owned.length;
+  const totalRent = owned.reduce((sum, t) => sum + calculateTileRent(t.id), 0);
+  const totalRentFormatted = fmtMoney(totalRent);
 
+  const formattedProps = owned.map(t => {
+    const st = gameState.properties[t.id];
+    const color = t.group ? GROUP_META[t.group].hex : '#0284c7';
+    const meta = getPropertyLevelMetadata(st ? st.level : 0);
+    return {
+      id: t.id,
+      name: t.name,
+      color,
+      levelDesc: meta.label,
+      rentFormatted: fmtMoney(calculateTileRent(t.id))
+    };
+  });
+
+  updateModalSlice('portfolio', {
+    visible: true,
+    totalCities,
+    totalRentFormatted,
+    properties: formattedProps
+  });
+
+  const summaryBar = document.getElementById('portfolio-summary-bar');
   if (summaryBar) {
-    const totalCities = owned.length;
-    const totalRent = owned.reduce((sum, t) => sum + calculateTileRent(t.id), 0);
     summaryBar.innerHTML = `
       <div class="flex items-center gap-1.5">
         <span class="text-slate-500 font-extrabold uppercase text-[10px]">Cities Owned:</span>
@@ -359,77 +543,45 @@ export function renderPortfolioGrid() {
       </div>
       <div class="flex items-center gap-1.5">
         <span class="text-slate-500 font-extrabold uppercase text-[10px]">Total Rent Yield:</span>
-        <span class="text-emerald-700 font-black text-sm">${fmtMoney(totalRent)}</span>
+        <span class="text-emerald-700 font-black text-sm">${totalRentFormatted}</span>
       </div>
     `;
   }
 
-  if (owned.length === 0) {
-    grid.innerHTML = `
-      <div class="col-span-2 text-center py-10 px-4 flex flex-col items-center justify-center space-y-3">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-sky-100 flex items-center justify-center text-3xl shadow-inner border border-indigo-200">
-          🏙️
-        </div>
-        <div class="font-rounded font-black text-base text-slate-800">NO EMPIRE CITIES YET</div>
-        <div class="text-xs font-semibold text-slate-500 max-w-sm">Roll the dice to travel the board, purchase world properties, and build houses and skyscrapers!</div>
-      </div>
-    `;
-    return;
-  }
-
-  grid.innerHTML = owned.map(t => {
-    const st = gameState.properties[t.id];
-    const color = t.group ? GROUP_META[t.group].hex : '#0284c7';
-    const myPlayer = (gameState.players && gameState.players[myIdx]) || (gameState.players && gameState.players[0]);
-    const isPlayerOnTile = myPlayer ? (myPlayer.position === t.id) : false;
-    const upgradesLeft = Math.max(0, 2 - (gameState.upgradesThisVisit || 0));
-    const canBeUpgraded = (t.type === 'city' && st && st.level < 4 && upgradesLeft > 0);
-    const isIlluminated = isPlayerOnTile && canBeUpgraded;
-
-    const cardClass = isIlluminated
-      ? 'rounded-2xl p-3.5 flex flex-col justify-between gap-3 shadow-md transition-[transform,box-shadow,border-color,background-color] duration-300 transform scale-[1.01]'
-      : 'bg-slate-50 border-2 border-slate-200 rounded-2xl p-3.5 flex flex-col justify-between gap-3 shadow-xs';
-
-    const cardStyle = isIlluminated
-      ? `background: linear-gradient(145deg, ${color}26, ${color}0f); border: 2.5px solid ${color}; box-shadow: 0 10px 24px -4px ${color}45, 0 0 16px 2px ${color}30, inset 0 1px 2px 0 rgba(255,255,255,0.95);`
-      : '';
-
-    return `
-      <div class="${cardClass}" style="${cardStyle}">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-4 h-4 rounded-full border border-black/20" style="background:${color}; ${isIlluminated ? `box-shadow: 0 0 8px ${color};` : ''}"></span>
-            <span class="font-black text-sm text-slate-900">${t.name}</span>
-            ${isIlluminated ? `
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase text-white shadow-2xs flex items-center gap-1" style="background:${color}">
-                <i class="fa-solid fa-location-dot"></i> ACTIVE (${2 - upgradesLeft}/2)
-              </span>
-            ` : ''}
+  // Defensive fallback for headless environments when Svelte is not mounted
+  const isSvelteMounted = Boolean(document.getElementById('svelte-modals-mount')?.firstElementChild);
+  if (grid && !isSvelteMounted) {
+    if (owned.length === 0) {
+      grid.innerHTML = `
+        <div class="col-span-2 text-center py-10 px-4 flex flex-col items-center justify-center space-y-3">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-sky-100 flex items-center justify-center text-3xl shadow-inner border border-indigo-200">
+            🏙️
           </div>
-          <span class="text-xs sm:text-sm font-black text-emerald-700">
-            Rent: ${fmtMoney(calculateTileRent(t.id))}
-          </span>
+          <div class="font-rounded font-black text-base text-slate-800">NO EMPIRE CITIES YET</div>
+          <div class="text-xs font-semibold text-slate-500 max-w-sm">Roll the dice to travel the board, purchase world properties, and build houses and skyscrapers!</div>
         </div>
-        <div class="flex gap-2">
-          ${t.type === 'city' ? `
-            ${isPlayerOnTile ? `
-              ${canBeUpgraded ? `
-                <button onclick="window.upgradeCityLevel(${t.id})" class="game-btn game-btn-green flex-1 py-2 text-xs sm:text-sm font-black shadow-md">
-                  <i class="fa-solid fa-arrow-up-right-dots mr-1"></i> +Upgrade (${fmtMoney(t.houseCost)}) <span class="text-xs opacity-90 font-bold ml-1">(${2 - upgradesLeft}/2)</span>
-                </button>
-              ` : `
-                <div class="flex-1 py-2 text-xs font-extrabold text-slate-600 bg-slate-100 rounded-xl text-center flex items-center justify-center gap-1 border border-slate-200">
-                  <i class="fa-solid fa-ban text-amber-500"></i> ${st.level >= 4 ? 'Max Level' : 'Max 2/visit reached'}
-                </div>
-              `}
-            ` : `
-              <div class="flex-1 py-2 text-xs font-extrabold text-slate-600 bg-slate-100 rounded-xl text-center flex items-center justify-center gap-1 border border-slate-200" title="You can only upgrade when your avatar is standing on this tile">
-                <i class="fa-solid fa-location-dot text-amber-500"></i> Land here to upgrade
-              </div>
-            `}
-          ` : ''}
+      `;
+      return;
+    }
+
+    grid.innerHTML = owned.map(t => {
+      const color = t.group ? GROUP_META[t.group].hex : '#0284c7';
+      const st = gameState.properties[t.id];
+      const meta = getPropertyLevelMetadata(st ? st.level : 0);
+      return `
+        <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-3.5 flex flex-col justify-between gap-3 shadow-xs">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full border border-black/20" style="background:${color}"></span>
+              <span class="font-black text-sm text-slate-900">${t.name}</span>
+            </div>
+            <span class="text-xs sm:text-sm font-black text-emerald-700">
+              Rent: ${fmtMoney(calculateTileRent(t.id))}
+            </span>
+          </div>
+          <div class="text-xs font-bold text-slate-500">${meta.label}</div>
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
 }

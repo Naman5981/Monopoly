@@ -7,7 +7,7 @@ import { BOARD_TILES, GROUP_META, CHANCE_WHEEL_PRIZES } from '../data.js';
 import { gameState, debugState } from '../state.js';
 import { fmtMoney } from '../utils.js';
 import { calculateTileRent } from '../rules.js';
-import { openBuyCityModal, startCityAuction, openTradeModal } from '../../ui/modals.js';
+import { openBuyCityModal, openTradeModal } from '../../ui/modals.js';
 import { getDebugPanelHTML } from './debugPanelTemplate.js';
 import {
   ensureGameStarted,
@@ -438,6 +438,5 @@ window.triggerDebugWorldTour = function() {
 };
 
 window.triggerDebugAuctionModal = function() {
-  const tileId = parseInt(document.getElementById('debug-prop-select')?.value, 10) || 1;
-  startCityAuction(tileId);
+  // Auction feature has been removed.
 };

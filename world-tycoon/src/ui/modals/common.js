@@ -5,6 +5,7 @@
 
 import { gameState } from '../../game/state.js';
 import { clearCityPreview } from '../../three/stages/cityPreview.js';
+import { getPropertyLevelMetadata } from '../../game/rules.js';
 
 export const engineCallbacks = {};
 
@@ -151,13 +152,14 @@ export function isLobbyScreenActive() {
  * @returns {string}
  */
 export function getTierBadgeHTML(level) {
+  const meta = getPropertyLevelMetadata(level);
   if (level === 0) {
-    return `<div class="tier-level-badge tier-house"><svg class="ui-icon w-3 h-3 text-emerald-700 mr-1" aria-hidden="true"><use href="#icon-pin"></use></svg><span class="text-[11px] font-black text-emerald-800">Base</span></div>`;
+    return `<div class="tier-level-badge ${meta.badgeClass}"><svg class="ui-icon w-3 h-3 text-emerald-700 mr-1" aria-hidden="true"><use href="#icon-${meta.icon}"></use></svg><span class="text-[11px] font-black text-emerald-800">${meta.shortLabel}</span></div>`;
   }
   if (level === 4) {
-    return `<div class="tier-level-badge tier-skyscraper-badge"><svg class="ui-icon w-3 h-3 text-amber-700 mr-1" aria-hidden="true"><use href="#icon-city"></use></svg><span class="text-[10px] font-black text-amber-900 tracking-tight">MAX</span></div>`;
+    return `<div class="tier-level-badge ${meta.badgeClass}"><svg class="ui-icon w-3 h-3 text-amber-700 mr-1" aria-hidden="true"><use href="#icon-${meta.icon}"></use></svg><span class="text-[10px] font-black text-amber-900 tracking-tight">MAX</span></div>`;
   }
-  return `<div class="tier-level-badge tier-house"><svg class="ui-icon w-3 h-3 text-emerald-700 mr-1" aria-hidden="true"><use href="#icon-building"></use></svg><span class="text-[11px] font-black text-emerald-800">${level}</span></div>`;
+  return `<div class="tier-level-badge ${meta.badgeClass}"><svg class="ui-icon w-3 h-3 text-emerald-700 mr-1" aria-hidden="true"><use href="#icon-${meta.icon}"></use></svg><span class="text-[11px] font-black text-emerald-800">${level}</span></div>`;
 }
 
 /**

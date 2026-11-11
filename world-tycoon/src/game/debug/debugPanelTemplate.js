@@ -362,9 +362,6 @@ export function getDebugPanelHTML() {
             <button onclick="window.openTradeModal()" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700 flex items-center justify-center gap-1.5">
               <i class="fa-solid fa-handshake text-emerald-400"></i> Trade Modal
             </button>
-            <button onclick="window.triggerDebugAuctionModal()" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700 flex items-center justify-center gap-1.5">
-              <i class="fa-solid fa-gavel text-amber-400"></i> City Auction
-            </button>
             <button onclick="window.debug.victory()" class="py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-xs shadow flex items-center justify-center gap-1.5">
               <i class="fa-solid fa-trophy"></i> Victory Screen
             </button>

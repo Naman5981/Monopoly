@@ -8,6 +8,31 @@ import { gameState, matchSettings, matchSeconds } from './state.js';
 import { fmtMoney } from './utils.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../network/p2p.js';
 
+/**
+ * Clean Code: Unified metadata for property building tiers (0 to 4).
+ * Single Source of Truth for tier names, icons, and labels.
+ *
+ * @param {number} level - 0 (Base), 1-3 (Houses), 4 (Skyscraper)
+ * @returns {{ label: string, shortLabel: string, isMax: boolean, badgeClass: string, icon: string }}
+ */
+export function getPropertyLevelMetadata(level) {
+  const lvl = Math.max(0, Math.min(4, Number(level) || 0));
+  switch (lvl) {
+    case 0:
+      return { label: 'Base Land', shortLabel: 'Base', isMax: false, badgeClass: 'tier-house', icon: 'pin' };
+    case 1:
+      return { label: '1 House', shortLabel: '1 House', isMax: false, badgeClass: 'tier-house', icon: 'building' };
+    case 2:
+      return { label: '2 Houses', shortLabel: '2 Houses', isMax: false, badgeClass: 'tier-house', icon: 'building' };
+    case 3:
+      return { label: '3 Houses', shortLabel: '3 Houses', isMax: false, badgeClass: 'tier-house', icon: 'building' };
+    case 4:
+      return { label: 'Skyscraper (MAX)', shortLabel: 'Skyscraper', isMax: true, badgeClass: 'tier-skyscraper-badge', icon: 'city' };
+    default:
+      return { label: 'Base Land', shortLabel: 'Base', isMax: false, badgeClass: 'tier-house', icon: 'pin' };
+  }
+}
+
 /** Check whether a player owns every city in a colour group. */
 export function ownsFullColorGroup(playerIdx, groupKey) {
   if (!groupKey) return false;

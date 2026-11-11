@@ -21,7 +21,6 @@ import { fireConfettiBurst, spawnAnimatedReaction } from '../../three/effects.js
 import { checkAndTriggerMonopoly } from './victory.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
-import { drawPortraitFrame } from '../portraitRenderer.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 export function openBuyCityModal(tile, isDoubles) {
@@ -62,11 +61,6 @@ export function openBuyCityModal(tile, isDoubles) {
     balancePreview: canAfford ? `${fmtMoney(p.cash)} → ${fmtMoney(p.cash - tile.price)}` : `${fmtMoney(p.cash)} (Need ${fmtMoney(tile.price - p.cash)} more)`,
     maxRentHtml
   });
-
-  const buyerCanvas = document.getElementById('buy-modal-buyer-avatar-canvas');
-  if (buyerCanvas) drawPortraitFrame(buyerCanvas, pIdx, performance.now());
-
-  populateCityPreview3DScene(tile, 'buy-city-3d-canvas');
 
   const origin = getTileScreenPosition(tile.id);
   animateModalSpringOpen('#modal-buy-city', '#modal-buy-city-card', origin);
