@@ -32,6 +32,7 @@ import { BOARD_TILES } from './game/data.js';
 import { container } from './core/Container.js';
 import { eventBus } from './core/EventBus.js';
 import { GameEvents } from './core/Events.js';
+import { inject as injectAnalytics, track as trackAnalytics } from '@vercel/analytics';
 window.BOARD_TILES = BOARD_TILES;
 window.evaluateTileLanding = evaluateTileLanding;
 window.executePlayerRoll = executePlayerRoll;
@@ -465,6 +466,36 @@ function initApp() {
   initTheatreSuite();
   initVersionChecker();
 
+  // Initialize Vercel Web Analytics
+  try {
+    injectAnalytics();
+    if (typeof window !== 'undefined') {
+      window.vaTrack = trackAnalytics;
+    }
+  } catch (err) {
+    console.warn('[Analytics] Vercel Analytics initialization deferred:', err);
+  }
+
+  // Track key gameplay milestones via Vercel Analytics
+  eventBus.on(GameEvents.MATCH_STARTED, () => {
+    try {
+      trackAnalytics('match_started', {
+        mode: networkState?.isMultiplayer ? 'multiplayer' : 'local',
+        boardEdition: matchSettings?.boardEdition || 'world',
+        playerCount: gameState?.players?.length || 2
+      });
+    } catch (_) {}
+  });
+
+  eventBus.on(GameEvents.VICTORY, (data) => {
+    try {
+      trackAnalytics('match_victory', {
+        winner: data?.winner?.name || 'Unknown',
+        turns: gameState?.turnCount || 0
+      });
+    } catch (_) {}
+  });
+
   // Apply initial lighting mode
   applyLightingMode(matchSettings.lightingTheme || 'day', getSceneLighting());
 
@@ -643,29 +674,39 @@ function initApp() {
   }, 1000);
 
   // Mount Svelte 5 Declarative Overlays (HUD, Modals & Lobby Roster)
-  try {
-    if (typeof document !== 'undefined') {
-      const rosterContainer = document.getElementById('setup-players-roster');
-      if (rosterContainer) {
+  if (typeof document !== 'undefined') {
+    const rosterContainer = document.getElementById('setup-players-roster');
+    if (rosterContainer) {
+      try {
         rosterContainer.innerHTML = '';
         mount(PlayerSetupCards, { target: rosterContainer });
+      } catch (err) {
+        console.warn('[Svelte] PlayerSetupCards mounting deferred:', err);
       }
-      const hudContainer = document.getElementById('svelte-hud-mount');
-      if (hudContainer) {
+    }
+
+    const hudContainer = document.getElementById('svelte-hud-mount');
+    if (hudContainer) {
+      try {
         hudContainer.innerHTML = '';
         mount(GameHud, { target: hudContainer });
+      } catch (err) {
+        console.warn('[Svelte] GameHud mounting deferred:', err);
       }
-      let modalsContainer = document.getElementById('svelte-modals-mount');
-      if (!modalsContainer) {
-        modalsContainer = document.createElement('div');
-        modalsContainer.id = 'svelte-modals-mount';
-        document.body.appendChild(modalsContainer);
-      }
+    }
+
+    let modalsContainer = document.getElementById('svelte-modals-mount');
+    if (!modalsContainer) {
+      modalsContainer = document.createElement('div');
+      modalsContainer.id = 'svelte-modals-mount';
+      document.body.appendChild(modalsContainer);
+    }
+    try {
       modalsContainer.innerHTML = '';
       mount(ModalsRoot, { target: modalsContainer });
+    } catch (err) {
+      console.warn('[Svelte] ModalsRoot mounting deferred:', err);
     }
-  } catch (err) {
-    console.warn('[Svelte] Components mounting deferred:', err);
   }
 
   // Keyboard hotkeys for Leaderboard (Tab or L), Space to Roll, and Esc

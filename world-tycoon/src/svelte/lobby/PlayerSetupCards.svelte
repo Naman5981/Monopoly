@@ -5,12 +5,6 @@
    */
   import { lobbyStore } from '../stores/lobbyStore.js';
 
-  let state = $state({ players: [], selectedPlayerIdx: 0, playerCount: 4 });
-
-  lobbyStore.subscribe(val => {
-    state = val;
-  });
-
   function selectPlayer(idx) {
     if (typeof window !== 'undefined' && window.selectSetupPlayer) {
       window.selectSetupPlayer(idx);
@@ -39,13 +33,13 @@
 </script>
 
 <div class="player-cards-grid flex flex-col gap-2 w-full">
-  {#each state.players as p, idx (p.idx)}
+  {#each ($lobbyStore?.players || []) as p, idx (p.idx ?? idx)}
     <div
       role="button"
       tabindex="0"
       onclick={() => selectPlayer(idx)}
       onkeydown={(e) => e.key === 'Enter' && selectPlayer(idx)}
-      class="player-setup-card group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer {idx === state.selectedPlayerIdx ? 'card-selected bg-white border-sky-400 shadow-md ring-2 ring-sky-300/40' : 'bg-white/80 border-slate-200/90 hover:bg-white hover:border-slate-300'}"
+      class="player-setup-card group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer {idx === $lobbyStore.selectedPlayerIdx ? 'card-selected bg-white border-sky-400 shadow-md ring-2 ring-sky-300/40' : 'bg-white/80 border-slate-200/90 hover:bg-white hover:border-slate-300'}"
     >
       <!-- Left: Avatar Medallion + Name -->
       <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -87,6 +81,7 @@
           </span>
         {:else}
           <button
+            type="button"
             onclick={(e) => toggleRole(idx, e)}
             class="text-[11px] font-black px-2 py-0.5 rounded-xl border transition cursor-pointer {p.isAI ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200' : 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 shadow-2xs'}"
             title="Toggle Human / Bot"
@@ -94,8 +89,9 @@
             {p.isAI ? 'Bot' : 'Player'}
           </button>
 
-          {#if idx > 0 && state.playerCount > 2}
+          {#if idx > 0 && ($lobbyStore.playerCount || 4) > 2}
             <button
+              type="button"
               onclick={(e) => removeSlot(idx, e)}
               class="w-6 h-6 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 flex items-center justify-center transition cursor-pointer shadow-2xs"
               title="Remove Player Slot"

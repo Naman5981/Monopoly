@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@vercel/analytics": "^2.0.1",
     "svelte": "^5.0.0",
     "three": "^0.169.0"
   },
