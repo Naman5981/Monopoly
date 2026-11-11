@@ -74,7 +74,8 @@ export function joinRoom(roomCode, playerProfile = {}) {
     const peer = new Peer(null, {
       debug: 1,
       config: {
-        iceServers: ICE_SERVERS
+        iceServers: ICE_SERVERS,
+        sdpSemantics: 'unified-plan'
       }
     });
 

@@ -39,7 +39,8 @@ export function hostRoom(customCode = null) {
     const peer = new Peer(peerId, {
       debug: 1,
       config: {
-        iceServers: ICE_SERVERS
+        iceServers: ICE_SERVERS,
+        sdpSemantics: 'unified-plan'
       }
     });
 

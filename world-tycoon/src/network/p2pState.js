@@ -53,14 +53,35 @@ export function generateRoomCode() {
 }
 
 export const ICE_SERVERS = [
+  // Fast Anycast STUN servers for direct low-latency P2P
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
-  { urls: 'stun:stun3.l.google.com:19302' },
-  { urls: 'stun:stun4.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'stun:stun.services.mozilla.com' },
-  { urls: 'stun:global.stun.twilio.com:3478' }
+  { urls: 'stun:stun.relay.metered.ca:80' },
+
+  // Enterprise TURN Relays (Port 80 UDP/TCP, Port 443 UDP, and TLS Port 443 TURNS)
+  // Bypasses Symmetric NAT, Carrier-Grade NAT (CGNAT), and restrictive mobile firewalls
+  {
+    urls: 'turn:standard.relay.metered.ca:80',
+    username: 'fb1196664ecd226fccae55c8',
+    credential: 'vxqp3kJ5a/BD5qZa'
+  },
+  {
+    urls: 'turn:standard.relay.metered.ca:80?transport=tcp',
+    username: 'fb1196664ecd226fccae55c8',
+    credential: 'vxqp3kJ5a/BD5qZa'
+  },
+  {
+    urls: 'turn:standard.relay.metered.ca:443',
+    username: 'fb1196664ecd226fccae55c8',
+    credential: 'vxqp3kJ5a/BD5qZa'
+  },
+  {
+    urls: 'turns:standard.relay.metered.ca:443?transport=tcp',
+    username: 'fb1196664ecd226fccae55c8',
+    credential: 'vxqp3kJ5a/BD5qZa'
+  }
 ];
 
 let hostHeartbeatTimer = null;
