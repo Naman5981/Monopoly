@@ -237,7 +237,7 @@ sequenceDiagram
 - **HUD Controllers**:
   - [`world-tycoon/src/ui/hud/controls.js`](world-tycoon/src/ui/hud/controls.js): Roll button, fast-forward toggle, and turn controls dispatching to `hudStore`.
   - [`world-tycoon/src/ui/hud/cards.js`](world-tycoon/src/ui/hud/cards.js): Player cash cards and status bars dispatching to `hudStore` without dual-rendering DOM collisions.
-  - [`world-tycoon/src/ui/hud/statusPill.js`](world-tycoon/src/ui/hud/statusPill.js): Turn phase notification banner dispatching to `hudStore`.
+  - [`world-tycoon/src/ui/hud/statusPill.js`](world-tycoon/src/ui/hud/statusPill.js): Turn phase notification banner dispatching unconditionally to `hudStore` with full DOM ID alignment (`#hud-status-pill`, `#hud-status-pill-dot`, `#hud-status-pill-text`).
 - **Modals (Svelte-Driven)**:
   - [`world-tycoon/src/ui/modals/buyCity.js`](world-tycoon/src/ui/modals/buyCity.js): Property purchase prompt (driven by Svelte `BuyCityModal.svelte`).
   - [`world-tycoon/src/ui/modals/buyoutCity.js`](world-tycoon/src/ui/modals/buyoutCity.js): Acquisition buyout of opponent property (driven by Svelte `BuyoutModal.svelte`).

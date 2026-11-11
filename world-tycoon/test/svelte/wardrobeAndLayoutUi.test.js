@@ -165,4 +165,12 @@ describe('Wardrobe & HUD Layout Verification (/better-interface /game-art /bug-h
     assert.equal(rubyRedButton.disabled, false, 'Ruby Red must NOT be disabled just because a bot has it');
     assert.ok(!rubyRedButton.classList.contains('swatch-disabled'), 'Ruby Red must not have swatch-disabled class');
   });
+
+  it('verifies StatusPill.svelte contains required DOM IDs and updates dynamically during match turns', () => {
+    const svelteSrc = fs.readFileSync(path.join(rootDir, 'src', 'svelte', 'hud', 'StatusPill.svelte'), 'utf8');
+    assert.ok(svelteSrc.includes('id="hud-status-pill"'), 'StatusPill must define id="hud-status-pill"');
+    assert.ok(svelteSrc.includes('id="hud-status-pill-dot"'), 'StatusPill must define id="hud-status-pill-dot"');
+    assert.ok(svelteSrc.includes('id="hud-status-pill-text"'), 'StatusPill must define id="hud-status-pill-text"');
+    assert.ok(svelteSrc.includes('{#if state.rollButton?.visible}'), 'Roll station must only render when rollButton is visible');
+  });
 });

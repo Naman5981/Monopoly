@@ -10,7 +10,7 @@
 
 export const BUILD_CONFIG = {
   DEBUG_ENABLED: true,
-  VERSION: '1.0.5',
+  VERSION: '1.0.6',
   REPO_OWNER: 'Naman5981',
   REPO_NAME: 'Monopoly',
   RELEASE_URL: 'https://github.com/Naman5981/Monopoly/releases/latest',

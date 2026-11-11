@@ -131,6 +131,7 @@ export function updateRollButtonsUI(isHumanTurnActionable) {
   const isOnlineOtherTurn = networkState.isMultiplayer && (gameState.currentPlayerIdx !== networkState.localPlayerIdx);
 
   if (p.isAI || isOnlineOtherTurn) {
+    if (rollStation) rollStation.classList.add('hidden');
     if (btnCenter) {
       btnCenter.classList.add('hidden');
       btnCenter.style.display = 'none';

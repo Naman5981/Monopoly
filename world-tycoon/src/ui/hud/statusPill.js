@@ -29,15 +29,6 @@ export function clearThinkingState() {
  * @param {{ isThinking?: boolean, playerIdx?: number, icon?: string, durationMs?: number }} options
  */
 export function setStatusPill(htmlContent, options = {}) {
-  const wrap = document.getElementById('hud-bottom-status-wrap');
-  const pill = document.getElementById('hud-status-pill');
-  const textEl = document.getElementById('hud-status-pill-text');
-  const dotEl = document.getElementById('hud-status-pill-dot');
-  const iconEl = document.getElementById('hud-status-pill-icon');
-  if (!pill || !textEl) return;
-
-  if (wrap) wrap.classList.remove('hidden');
-
   const { isThinking = false, playerIdx = null, icon = null, durationMs = 3800 } = options;
 
   if (isThinking) {
@@ -48,6 +39,7 @@ export function setStatusPill(htmlContent, options = {}) {
     ? PLAYER_THEMES[playerIdx].colorHex
     : (isThinking ? '#38bdf8' : '#fbbf24');
 
+  // ALWAYS dispatch to reactive Svelte hudStore first!
   updateHudState({
     statusPill: {
       text: htmlContent,
@@ -58,7 +50,17 @@ export function setStatusPill(htmlContent, options = {}) {
     }
   });
 
-  textEl.innerHTML = htmlContent;
+  const wrap = document.getElementById('hud-bottom-status-wrap');
+  if (wrap) wrap.classList.remove('hidden');
+
+  const pill = document.getElementById('hud-status-pill');
+  const textEl = document.getElementById('hud-status-pill-text');
+  const dotEl = document.getElementById('hud-status-pill-dot');
+  const iconEl = document.getElementById('hud-status-pill-icon');
+
+  if (textEl) {
+    textEl.innerHTML = htmlContent;
+  }
 
   if (playerIdx !== null && playerIdx !== undefined && PLAYER_THEMES[playerIdx]) {
     if (dotEl) {
@@ -82,10 +84,12 @@ export function setStatusPill(htmlContent, options = {}) {
     }
   }
 
-  pill.classList.toggle('pill-thinking', isThinking);
-  pill.classList.remove('pill-event-pop');
-  void pill.offsetWidth;
-  pill.classList.add('pill-event-pop');
+  if (pill) {
+    pill.classList.toggle('pill-thinking', isThinking);
+    pill.classList.remove('pill-event-pop');
+    void pill.offsetWidth;
+    pill.classList.add('pill-event-pop');
+  }
 
   if (statusPillResetTimer) {
     clearTimeout(statusPillResetTimer);
