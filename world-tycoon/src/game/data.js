@@ -127,21 +127,21 @@ const RAJASTHAN_BOARD_TILES = [
 ];
 
 const WORLD_CHANCE_WHEEL_PRIZES = [
-  { label: '+400K Grant',  color: '#4ade80', type: 'cash',   amount: 400000, desc: 'World Bank Development Grant! Collect 400K!'           },
-  { label: 'Fly to START', color: '#38bdf8', type: 'move',   target: 0,      desc: 'Express Jet to START! Collect +300K!'                  },
-  { label: '-200K Fine',   color: '#f43f5e', type: 'tax',    amount: 200000, desc: 'Global Carbon Tax Audit! Pay 200K into Festival Pool.' },
-  { label: '+250K Bonus',  color: '#facc15', type: 'cash',   amount: 250000, desc: 'Tech Unicorn Dividend! Collect 250K!'                  },
-  { label: 'Go to Island', color: '#fb923c', type: 'island',                 desc: 'Stormy Seas! Detained on Tropical Island!'              },
-  { label: 'World Tour!',  color: '#a855f7', type: 'move',   target: 24,     desc: 'VIP Ticket to World Tour Airport!'                     },
+  { label: '+400K Grant',  color: '#1e293b', type: 'cash',   amount: 400000, desc: 'World Bank Development Grant! Collect 400K!'           },
+  { label: 'Fly to START', color: '#312e81', type: 'move',   target: 0,      desc: 'Express Jet to START! Collect +300K!'                  },
+  { label: '-200K Fine',   color: '#1e293b', type: 'tax',    amount: 200000, desc: 'Global Carbon Tax Audit! Pay 200K into Festival Pool.' },
+  { label: '+250K Bonus',  color: '#312e81', type: 'cash',   amount: 250000, desc: 'Tech Unicorn Dividend! Collect 250K!'                  },
+  { label: 'Go to Island', color: '#1e293b', type: 'island',                 desc: 'Stormy Seas! Detained on Tropical Island!'              },
+  { label: 'World Tour!',  color: '#312e81', type: 'move',   target: 24,     desc: 'VIP Ticket to World Tour Airport!'                     },
 ];
 
 const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
-  { label: '+400K Grant',  color: '#4ade80', type: 'cash',   amount: 400000, desc: 'Royal Heritage Trust Grant! Collect 400K!'             },
-  { label: 'Fly to START', color: '#38bdf8', type: 'move',   target: 0,      desc: 'Royal Express to START! Collect +300K!'                },
-  { label: '-200K Fine',   color: '#f43f5e', type: 'tax',    amount: 200000, desc: 'Fort Preservation Audit! Pay 200K into Festival Pool.' },
-  { label: '+250K Bonus',  color: '#facc15', type: 'cash',   amount: 250000, desc: 'Marwar Trade Syndicate Dividend! Collect 250K!'        },
-  { label: 'Go to Island', color: '#fb923c', type: 'island',                 desc: 'Thar Dust Storm! Detained at Desert Retreat!'          },
-  { label: 'World Tour!',  color: '#a855f7', type: 'move',   target: 24,     desc: 'VIP Ticket to Royal Express Station!'                   },
+  { label: '+400K Grant',  color: '#1e293b', type: 'cash',   amount: 400000, desc: 'Royal Heritage Trust Grant! Collect 400K!'             },
+  { label: 'Fly to START', color: '#312e81', type: 'move',   target: 0,      desc: 'Royal Express to START! Collect +300K!'                },
+  { label: '-200K Fine',   color: '#1e293b', type: 'tax',    amount: 200000, desc: 'Fort Preservation Audit! Pay 200K into Festival Pool.' },
+  { label: '+250K Bonus',  color: '#312e81', type: 'cash',   amount: 250000, desc: 'Marwar Trade Syndicate Dividend! Collect 250K!'        },
+  { label: 'Go to Island', color: '#1e293b', type: 'island',                 desc: 'Thar Dust Storm! Detained at Desert Retreat!'          },
+  { label: 'World Tour!',  color: '#312e81', type: 'move',   target: 24,     desc: 'VIP Ticket to Royal Express Station!'                   },
 ];
 
 const BOARD_EDITIONS = {

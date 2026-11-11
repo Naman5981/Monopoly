@@ -91,18 +91,13 @@ export function drawChanceWheelCanvas() {
     ctx.lineWidth = 3.5;
     ctx.stroke();
 
-    // 3. Tactile 3D White Badge Card (Tangential Orientation, always right-side up)
+    // 3. Tactile 3D White Badge Card (Fixed Horizontal Orientation, 100% Upright & Readable)
+    const cardR = 172;
+    const bx = cx + Math.cos(midAngle) * cardR;
+    const by = cy + Math.sin(midAngle) * cardR;
+
     ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(midAngle);
-    ctx.translate(165, 0);
-    // When midAngle is in the lower hemisphere (0 to PI), rotate -90° instead of +90°
-    // so badges on the bottom slices are never upside-down
-    if (midAngle > 0 && midAngle < Math.PI) {
-      ctx.rotate(-Math.PI / 2);
-    } else {
-      ctx.rotate(Math.PI / 2);
-    }
+    ctx.translate(bx, by);
 
     // Determine slice vector icon & readable label
     let iconPath = WHEEL_VECTOR_ICONS.gift;
@@ -115,41 +110,41 @@ export function drawChanceWheelCanvas() {
         iconPath = WHEEL_VECTOR_ICONS.money;
         mainLabel = '+400K';
         subLabel = 'GRANT';
-        themeColor = '#047857'; // emerald
+        themeColor = '#059669'; // emerald
       } else {
         iconPath = WHEEL_VECTOR_ICONS.gem;
         mainLabel = '+250K';
         subLabel = 'BONUS';
-        themeColor = '#b45309'; // amber
+        themeColor = '#d97706'; // warm amber
       }
     } else if (p.type === 'tax') {
       iconPath = WHEEL_VECTOR_ICONS.warning;
       mainLabel = '-200K';
       subLabel = 'FINE';
-      themeColor = '#be123c'; // rose red
+      themeColor = '#e11d48'; // rose red
     } else if (p.type === 'island') {
       iconPath = WHEEL_VECTOR_ICONS.palm;
       mainLabel = 'ISLAND';
       subLabel = 'JAIL';
-      themeColor = '#c2410c'; // orange
+      themeColor = '#ea580c'; // orange
     } else if (p.type === 'move') {
       if (p.target === 0) {
         iconPath = WHEEL_VECTOR_ICONS.start;
         mainLabel = 'START';
         subLabel = '+300K';
-        themeColor = '#0369a1'; // sky blue
+        themeColor = '#0284c7'; // sky blue
       } else {
         iconPath = WHEEL_VECTOR_ICONS.plane;
         mainLabel = 'TOUR';
         subLabel = 'AIRPORT';
-        themeColor = '#6b21a8'; // purple
+        themeColor = '#4f46e5'; // indigo
       }
     }
 
     // Draw White Tactile Card Plate
-    const cw = 112;
-    const ch = 64;
-    const cr = 14;
+    const cw = 100;
+    const ch = 54;
+    const cr = 12;
 
     ctx.beginPath();
     if (ctx.roundRect) {
@@ -158,21 +153,21 @@ export function drawChanceWheelCanvas() {
       ctx.rect(-cw / 2, -ch / 2, cw, ch);
     }
     ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(15, 23, 42, 0.28)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
     ctx.shadowBlur = 8;
     ctx.shadowOffsetY = 3;
     ctx.fill();
 
-    // Card border
+    // Card border tinted to match prize role
     ctx.shadowColor = 'transparent';
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.12)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = themeColor;
+    ctx.lineWidth = 1.8;
     ctx.stroke();
 
-    // Top Row: Big Centered Vector Icon
+    // Top Row: Centered Vector Icon
     ctx.save();
-    ctx.translate(0, -16);
-    ctx.scale(0.85, 0.85);
+    ctx.translate(0, -13);
+    ctx.scale(0.78, 0.78);
     ctx.translate(-12, -12);
     ctx.fillStyle = themeColor;
     if (iconPath) {
@@ -183,14 +178,14 @@ export function drawChanceWheelCanvas() {
     // Middle Row: Big Bold Colored Main Amount/Action
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '900 16px Inter, sans-serif';
+    ctx.font = '900 15px Inter, system-ui, sans-serif';
     ctx.fillStyle = themeColor;
-    ctx.fillText(mainLabel, 0, 7);
+    ctx.fillText(mainLabel, 0, 5);
 
     // Bottom Row: Subtitle pill/text
-    ctx.font = '900 10px Inter, sans-serif';
-    ctx.fillStyle = '#64748b';
-    ctx.fillText(subLabel, 0, 22);
+    ctx.font = '800 10px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.fillText(subLabel, 0, 18);
 
     ctx.restore();
   });

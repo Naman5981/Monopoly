@@ -53,6 +53,7 @@ function ensurePhysicsAssets() {
 
 export function initPhysicsEngine(scene = context.scene) {
   if (physicsSceneGroup) return;
+  if (!scene) return;
   physicsSceneGroup = new THREE.Group();
   physicsSceneGroup.name = 'physics_simulation_group';
   scene.add(physicsSceneGroup);
@@ -280,6 +281,7 @@ export function spawnShatterDebris(x = 0, z = 0, colorHex = 0xef4444, count = 28
 export function spawnGoldCoinShower(x = 0, z = 0, count = 24) {
   initPhysicsEngine();
   ensurePhysicsAssets();
+  if (!physicsSceneGroup) return;
 
   for (let i = 0; i < count; i++) {
     const mesh = new THREE.Mesh(coinGeometry, coinMaterial);

@@ -62,6 +62,8 @@ export function renderUpgradeModalContent(tile) {
   const countryName = tile.group ? GROUP_META[tile.group].name : 'ESTATE';
   const levelLabels = ['Base', '1 House', '2 Houses', '3 Houses', 'Skyscraper'];
   const curRent = calculateTileRent(tile.id);
+  const nextRent = (st.level < 4) ? tile.rent[st.level + 1] : curRent;
+  const remainingCash = Math.max(0, p.cash - tile.houseCost);
 
   const tiers = levelLabels.map((lbl, idx) => ({
     label: lbl,
@@ -70,20 +72,8 @@ export function renderUpgradeModalContent(tile) {
     isSkyscraper: (idx === 4)
   }));
 
-  const upgradesDone = gameState.upgradesThisVisit || 0;
-  const canAfford1 = p.cash >= tile.houseCost;
-  const canAfford2 = p.cash >= (tile.houseCost * 2);
-  const canUpgrade = canAfford1 && upgradesDone < 2 && st.level < 4;
-  const canUpgradeTwo = canAfford2 && upgradesDone === 0 && st.level <= 2;
-
-  let noticeText = '';
-  if (upgradesDone >= 2) {
-    noticeText = 'Visit Limit Reached (2/2)! You can upgrade at most 2 levels at one time.';
-  } else if (st.level >= 4) {
-    noticeText = `Skyscraper Maxed! This estate is generating maximum rent of ${fmtMoney(tile.rent[4])}.`;
-  } else if (upgradesDone > 0) {
-    noticeText = `${upgradesDone}/2 Upgrades completed this visit. You may upgrade 1 more level.`;
-  }
+  const canAfford1 = p.cash >= tile.houseCost && st.level < 4;
+  const canAfford2 = p.cash >= (tile.houseCost * 2) && st.level <= 2;
 
   updateModalSlice('upgradeCity', {
     visible: true,
@@ -93,11 +83,13 @@ export function renderUpgradeModalContent(tile) {
     levelLabel: `Level ${st.level}: ${levelLabels[st.level] || 'Base'}`,
     colorHex: groupColor,
     currentRentFormatted: fmtMoney(curRent),
+    nextRentFormatted: fmtMoney(nextRent),
     upgradeCostFormatted: fmtMoney(tile.houseCost),
-    balanceFormatted: `Balance: ${fmtMoney(p.cash)}`,
-    noticeText,
-    canUpgrade,
-    canUpgradeTwo,
+    playerCashFormatted: fmtMoney(p.cash),
+    remainingCashFormatted: fmtMoney(remainingCash),
+    canAfford: canAfford1,
+    canUpgrade: canAfford1,
+    canUpgradeTwo: canAfford2,
     costOneFormatted: fmtMoney(tile.houseCost),
     costTwoFormatted: fmtMoney(tile.houseCost * 2),
     tiers
@@ -112,15 +104,10 @@ export function confirmUpgradeFromModal() {
   const p = gameState.players[pIdx];
   if (!st || !p) return;
 
-  if ((gameState.upgradesThisVisit || 0) >= 2) {
-    showTurnLockToast("You can only upgrade at most 2 levels at one time!");
-    return;
-  }
-
   if (st.level >= 4 || p.cash < tile.houseCost) return;
 
   upgradeCityLevel(tile.id, true);
-  gameState.upgradesThisVisit = (gameState.upgradesThisVisit || 0) + 1;
+  gameState.upgradesThisVisit = 1;
   const newLevel = gameState.properties[tile.id]?.level;
   if (newLevel >= 4) {
     setPlayerPortraitMood(pIdx, 'cheering', 4500);
@@ -133,15 +120,14 @@ export function confirmUpgradeFromModal() {
   triggerBoardShockwave(tilePos.x, tilePos.z, 18, 26);
 
   if (networkState.isMultiplayer) {
-    broadcastAction('ACTION_UPGRADE_CITY', { playerIdx: pIdx, tileId: tile.id });
+    broadcastAction('ACTION_UPGRADE_CITY', { playerIdx: pIdx, tileId: tile.id, count: 1 });
     if (networkState.isHost) {
       broadcastFullGameState();
     }
   }
 
-  renderUpgradeModalContent(tile);
-  populateCityPreview3DScene(tile, 'upgrade-city-3d-canvas');
-  animateBuildingUpgradeBounce('#upgrade-city-3d-canvas');
+  // Decisive conclusion: close modal and conclude turn cleanly
+  closeUpgradeCityModal();
 }
 
 export function confirmUpgradeTwoLevelsFromModal() {
@@ -153,7 +139,7 @@ export function confirmUpgradeTwoLevelsFromModal() {
   if (!st || !p) return;
 
   const cost2 = tile.houseCost * 2;
-  if ((gameState.upgradesThisVisit || 0) > 0 || st.level > 2 || p.cash < cost2) return;
+  if (st.level > 2 || p.cash < cost2) return;
 
   upgradeCityLevel(tile.id, true);
   upgradeCityLevel(tile.id, true);
@@ -176,9 +162,8 @@ export function confirmUpgradeTwoLevelsFromModal() {
     }
   }
 
-  renderUpgradeModalContent(tile);
-  populateCityPreview3DScene(tile, 'upgrade-city-3d-canvas');
-  animateBuildingUpgradeBounce('#upgrade-city-3d-canvas');
+  // Decisive conclusion: close modal and conclude turn cleanly
+  closeUpgradeCityModal();
 }
 
 export function closeUpgradeCityModal() {

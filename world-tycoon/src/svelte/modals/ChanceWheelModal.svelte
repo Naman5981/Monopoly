@@ -17,7 +17,7 @@
 <div id="modal-chance-wheel" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}">
   <div id="modal-chance-wheel-card" class="game-modal-shell modal-shell-purple max-w-md w-full relative overflow-hidden shadow-2xl">
     <!-- Header -->
-    <div class="game-modal-header p-4 flex flex-col items-center justify-center text-center text-white relative shadow-md" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);">
+    <div class="game-modal-header bg-gradient-to-r from-indigo-700 to-indigo-900 p-4 flex flex-col items-center justify-center text-center text-white relative shadow-md">
       <div class="modal-badge-pill relative z-10">
         GLOBAL FORTUNE
       </div>
