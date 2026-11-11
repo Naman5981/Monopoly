@@ -380,8 +380,10 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_SETTLE_RENT':
     case 'ACTION_BANKRUPTCY':
     case 'ACTION_FESTIVAL_BOOST':
+    case 'ACTION_AUCTION_START':
     case 'ACTION_AUCTION_BID':
     case 'ACTION_AUCTION_PASS':
+    case 'ACTION_AUCTION_CONCLUDE':
     case 'ACTION_TRADE_OFFER':
     case 'ACTION_TRADE_RESPONSE':
     case 'ACTION_WORLD_TOUR':

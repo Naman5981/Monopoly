@@ -37,8 +37,9 @@ export function animateThreeLoop() {
 
   const now = performance.now();
 
-  // 2. 60 FPS Target Frame Limiter: Prevents 120Hz/144Hz/240Hz monitors from wasting 2x-4x CPU cycles
-  const minInterval = 1000 / 60 - 1.5;
+  // 2. High-Refresh Frame Pacing Limiter: Cleanly caps 120Hz/144Hz/240Hz monitors while guaranteeing
+  // zero dropped frames or micro-stutters on standard 60Hz displays (where VSync frame delta fluctuates between 15-17ms).
+  const minInterval = 1000 / 75; // ~13.33ms
   if (now - lastRenderTime < minInterval) return;
   lastRenderTime = now;
 
@@ -56,6 +57,7 @@ export function animateThreeLoop() {
 
   // 4. Motion-Driven Shadow Map Updates:
   // Render shadow maps dynamically when tokens move, buildings pop up, or camera rotates.
+  // Throttled to 30Hz (every 2 frames) during movement to cut shadow draw calls by 50% without visible difference.
   // When the scene is completely static/idle, throttle to ~2Hz (every 30 frames) to save GPU passes.
   if (context.renderer && context.renderer.shadowMap) {
     shadowTick++;
@@ -67,7 +69,9 @@ export function animateThreeLoop() {
     );
 
     if (isMoving || hasPopups || isCameraActive) {
-      context.renderer.shadowMap.needsUpdate = true;
+      if (shadowTick % 2 === 0) {
+        context.renderer.shadowMap.needsUpdate = true;
+      }
     } else if (shadowTick % 30 === 0) {
       context.renderer.shadowMap.needsUpdate = true;
     }
@@ -86,16 +90,16 @@ export function animateThreeLoop() {
     updateAdaptiveMusicTension(evaluateMatchTension());
   }
 
-  // 2. Roadway traffic simulation
-  updateRoadCarsAnimation();
-
-  // 3. Clouds and festival hot-air balloon drifting
-  updateCloudsAndBalloons(t);
+  // 2. Roadway traffic simulation & clouds (Interleaved to balance CPU load)
+  if (shadowTick % 2 === 0) {
+    updateRoadCarsAnimation();
+    updateCloudsAndBalloons(t);
+  }
 
   // 4. Character head tracking, breathing, and blinking
   updateAvatarIdleAnimations(t);
 
-  // 5. Live 3D HUD character portraits
+  // 5. Live 3D HUD character portraits (Throttled internally to eliminate GPU readback stalls)
   renderLive3DHUDPortraits(t);
 
   // 6. Modal 3D property inspector rotating diorama
@@ -112,7 +116,7 @@ export function animateThreeLoop() {
   // 9. Active player turn beacon and monopoly set halos
   updateActivePlayerBeacon(t);
 
-  // 10. Building animations (elastic popups, flag fluttering, chimney smoke, aviation beacons)
+  // 10. Building animations (elastic popups always update; secondary wind & beacons interleaved)
   updateBuildingAnimations(now, t);
 
   // 11. Smooth rolling cash display update
@@ -125,10 +129,6 @@ export function animateThreeLoop() {
           displayedCash[idx] = p.cash;
         } else {
           displayedCash[idx] += Math.sign(diff) * step;
-        }
-        const cashEl = document.getElementById(`hud-cash-val-${idx}`);
-        if (cashEl) {
-          cashEl.textContent = p.bankrupt ? 'OUT' : fmtMoney(displayedCash[idx]);
         }
       }
     });

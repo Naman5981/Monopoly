@@ -17,7 +17,9 @@ let flightHighlightsGroup = null;
 let monopolyRingsGroup = null;
 let festivalHighlightsGroup = null;
 let empireHighlightsGroup = null;
+let empireActivePlayerIdx = null;
 const originalTileMaterials = new Map();
+const originalFrameEmissives = new Map();
 const activeTurnSpriteMap = {};
 
 export function buildTileHighlightRing3D(boardGroup = context.boardGroup) {
@@ -361,50 +363,78 @@ export function setFestivalSelectionHighlights(active, tileIds = [], colorHex = 
 
 /**
  * Activates or deactivates the 3D Empire Spotlight for a given player.
- * Highlights all tiles owned by targetPlayerIdx with glowing rings and gentle elevation pulse,
- * while subtly dimming non-owned tiles so the player's full territory pops out across the board.
+ * Illuminates territory via glowing architectural border frames, ground light pools,
+ * and subtle contrast dimming of non-owned properties without awkward floating rings.
  * Passing null resets the board to standard lighting.
  * @param {number|null} targetPlayerIdx
  */
 export function setEmpireSpotlight(targetPlayerIdx) {
   if (!context.boardGroup) return;
 
-  // 1. Clean up existing spotlight meshes
-  if (empireHighlightsGroup) {
-    while (empireHighlightsGroup.children.length > 0) {
-      const child = empireHighlightsGroup.children[0];
-      disposeHierarchy(child);
-      empireHighlightsGroup.remove(child);
-    }
-    if (empireHighlightsGroup.parent !== context.boardGroup) {
-      context.boardGroup.add(empireHighlightsGroup);
-    }
-  } else {
+  if (!empireHighlightsGroup) {
     empireHighlightsGroup = new THREE.Group();
     empireHighlightsGroup.name = 'empireHighlightsGroup';
     context.boardGroup.add(empireHighlightsGroup);
+  } else if (empireHighlightsGroup.parent !== context.boardGroup) {
+    context.boardGroup.add(empireHighlightsGroup);
   }
 
-  // 2. Restore previous tile materials if stored
-  if (originalTileMaterials.size > 0) {
+  // Clear any legacy child meshes
+  while (empireHighlightsGroup.children.length > 0) {
+    const child = empireHighlightsGroup.children[0];
+    disposeHierarchy(child);
+    empireHighlightsGroup.remove(child);
+  }
+
+  const isNight = (gameState.bulbMode === 'night');
+  const isSunset = (gameState.bulbMode === 'sunset');
+
+  // If null or undefined, restore standard board lighting
+  if (targetPlayerIdx === null || targetPlayerIdx === undefined) {
+    empireActivePlayerIdx = null;
+    empireHighlightsGroup.visible = false;
+
+    // Restore top materials
+    if (originalTileMaterials.size > 0) {
+      BOARD_TILES.forEach(tile => {
+        const mesh = context.tilesMeshMap[tile.id];
+        if (mesh && Array.isArray(mesh.material) && mesh.material[2]) {
+          const topMat = mesh.material[2];
+          const orig = originalTileMaterials.get(tile.id);
+          if (orig) topMat.color.setHex(orig.colorHex);
+        }
+      });
+      originalTileMaterials.clear();
+    }
+
+    // Restore border frames & ground pools
     BOARD_TILES.forEach(tile => {
-      const mesh = context.tilesMeshMap[tile.id];
-      if (mesh && Array.isArray(mesh.material) && mesh.material[2]) {
-        const topMat = mesh.material[2];
-        const orig = originalTileMaterials.get(tile.id);
-        if (orig) {
-          topMat.color.setHex(orig.colorHex);
+      const prop = gameState.properties?.[tile.id];
+      const isOwned = prop && prop.owner !== null && prop.owner !== undefined;
+      const frame = context.tileBorderFrames?.[tile.id];
+      if (frame && frame.userData?.borderMat) {
+        frame.scale.set(1.0, 1.0, 1.0);
+        const isLocalPlayer = (prop?.owner === gameState.localPlayerIdx);
+        if (isOwned) {
+          const baseIntensity = isNight ? 0.85 : (isSunset ? 0.50 : 0.28);
+          frame.userData.borderMat.emissiveIntensity = isLocalPlayer ? baseIntensity * 1.5 : baseIntensity;
+        } else {
+          frame.userData.borderMat.emissiveIntensity = 0;
         }
       }
-    });
-    originalTileMaterials.clear();
-  }
 
-  // If null or undefined, simply hide group and exit
-  if (targetPlayerIdx === null || targetPlayerIdx === undefined) {
-    empireHighlightsGroup.visible = false;
+      const pool = context.tileGroundLightPools?.[tile.id];
+      if (pool && pool.material) {
+        pool.visible = false;
+        pool.material.opacity = 0;
+      }
+    });
+
     return;
   }
+
+  empireActivePlayerIdx = targetPlayerIdx;
+  empireHighlightsGroup.visible = true;
 
   const theme = PLAYER_THEMES[targetPlayerIdx];
   const colorHex = theme?.colorHex || '#3b82f6';
@@ -419,66 +449,48 @@ export function setEmpireSpotlight(targetPlayerIdx) {
     }
   });
 
-  // Store original top material colors and apply focus contrast
+  // Apply focus contrast: brighten owned tiles and ground pools, dim non-owned
   BOARD_TILES.forEach(tile => {
+    const isOwnedByTarget = ownedTileIds.includes(tile.id);
     const mesh = context.tilesMeshMap[tile.id];
     if (mesh && Array.isArray(mesh.material) && mesh.material[2]) {
       const topMat = mesh.material[2];
-      originalTileMaterials.set(tile.id, {
-        colorHex: topMat.color.getHex()
-      });
+      if (!originalTileMaterials.has(tile.id)) {
+        originalTileMaterials.set(tile.id, {
+          colorHex: topMat.color.getHex()
+        });
+      }
 
-      if (!ownedTileIds.includes(tile.id)) {
-        // Subtly dim non-owned tiles so the selected empire stands out
-        topMat.color.setHex(0x85929e);
+      if (!isOwnedByTarget) {
+        topMat.color.setHex(0x7c8ba1);
       } else {
-        // Pristine white for owned tiles
         topMat.color.setHex(0xffffff);
       }
     }
+
+    const frame = context.tileBorderFrames?.[tile.id];
+    if (frame && frame.userData?.borderMat) {
+      if (isOwnedByTarget) {
+        frame.scale.set(1.03, 1.0, 1.03);
+        frame.userData.borderMat.emissiveIntensity = 1.25;
+      } else {
+        frame.scale.set(1.0, 1.0, 1.0);
+        frame.userData.borderMat.emissiveIntensity = 0.08;
+      }
+    }
+
+    const pool = context.tileGroundLightPools?.[tile.id];
+    if (pool && pool.material) {
+      if (isOwnedByTarget) {
+        pool.visible = true;
+        pool.material.color.copy(threeColor);
+        pool.material.opacity = 0.55;
+      } else {
+        pool.visible = false;
+        pool.material.opacity = 0;
+      }
+    }
   });
-
-  // Create radiant empire highlight discs and rings for each owned tile
-  const ringGeo = new THREE.RingGeometry(1.20, 1.48, 32);
-  const ringMat = new THREE.MeshBasicMaterial({
-    color: threeColor,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.92,
-    blending: THREE.AdditiveBlending
-  });
-
-  const discGeo = new THREE.CircleGeometry(1.18, 32);
-  const discMat = new THREE.MeshBasicMaterial({
-    color: threeColor,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.28,
-    blending: THREE.AdditiveBlending
-  });
-
-  ownedTileIds.forEach(tileId => {
-    const pos = getTileWorldPosition(tileId);
-    const tileMesh = context.tilesMeshMap[tileId];
-    const yPos = (tileMesh ? tileMesh.position.y : 0.12) + 0.130;
-
-    const itemGroup = new THREE.Group();
-    itemGroup.position.set(pos.x, yPos, pos.z);
-    itemGroup.userData = { tileId };
-
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    ring.rotation.x = -Math.PI / 2;
-    itemGroup.add(ring);
-
-    const disc = new THREE.Mesh(discGeo, discMat);
-    disc.rotation.x = -Math.PI / 2;
-    disc.position.y = 0.002;
-    itemGroup.add(disc);
-
-    empireHighlightsGroup.add(itemGroup);
-  });
-
-  empireHighlightsGroup.visible = true;
 }
 
 /**
@@ -529,18 +541,17 @@ export function updateActivePlayerBeacon(t) {
     });
   }
 
-  if (empireHighlightsGroup?.visible) {
-    const s = 1 + Math.sin(t * 5.2) * 0.06;
-    const op = 0.70 + Math.sin(t * 5.2) * 0.28;
-    empireHighlightsGroup.children.forEach(group => {
-      const tileId = group.userData?.tileId;
-      const tileMesh = tileId !== undefined ? context.tilesMeshMap[tileId] : null;
-      if (tileMesh) {
-        group.position.y = tileMesh.position.y + 0.130;
+  if (empireActivePlayerIdx !== null) {
+    const s = 1 + Math.sin(t * 4.8) * 0.025;
+    const poolOp = 0.40 + Math.sin(t * 4.8) * 0.20;
+    BOARD_TILES.forEach(tile => {
+      const prop = gameState.properties?.[tile.id];
+      if (prop && prop.owner === empireActivePlayerIdx) {
+        const frame = context.tileBorderFrames?.[tile.id];
+        if (frame) frame.scale.set(s, 1.0, s);
+        const pool = context.tileGroundLightPools?.[tile.id];
+        if (pool?.material) pool.material.opacity = poolOp;
       }
-      group.scale.set(s, 1, s);
-      const ring = group.children[0];
-      if (ring && ring.material) ring.material.opacity = op;
     });
   }
 

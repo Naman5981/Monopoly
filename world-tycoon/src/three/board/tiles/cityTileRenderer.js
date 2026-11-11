@@ -40,23 +40,23 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
   const icon = player?.icon || theme?.icon || THEME_ICONS[ownerIdx % THEME_ICONS.length] || '👑';
   const slotBadge = `P${ownerIdx + 1}`;
 
-  const rx = 24;
-  const ry = 148;
-  const rw = 464;
-  const rh = 56;
-  const radius = 14;
+  const rx = 36;
+  const ry = 146;
+  const rw = 440;
+  const rh = 48;
+  const radius = 12;
 
   ctx.save();
 
-  // 1. Drop Shadow for depth & separation
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetY = 3;
+  // 1. Soft Drop Shadow for separation
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetY = 2;
 
-  // 2. Ribbon Background Pill
+  // 2. Ribbon Background Gradient
   const ribbonGrad = ctx.createLinearGradient(rx, ry, rx, ry + rh);
   ribbonGrad.addColorStop(0, colorHex);
-  ribbonGrad.addColorStop(1, adjustColorBrightness(colorHex, -0.22));
+  ribbonGrad.addColorStop(1, adjustColorBrightness(colorHex, -0.18));
   ctx.fillStyle = ribbonGrad;
 
   ctx.beginPath();
@@ -67,77 +67,64 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
   }
   ctx.fill();
 
-  // 3. Crisp Inner Border & Top Specular Highlight
+  // 3. Crisp Inner Border
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.50)';
-  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+  ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Top highlight line
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-  ctx.beginPath();
-  if (ctx.roundRect) {
-    ctx.roundRect(rx + 2, ry + 2, rw - 4, 6, [radius - 2, radius - 2, 0, 0]);
-  } else {
-    ctx.rect(rx + 2, ry + 2, rw - 4, 6);
-  }
-  ctx.fill();
-
-  // 4. Left Avatar Circle
-  const avatarCenterX = rx + 32;
-  const avatarCenterY = ry + rh / 2;
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-  ctx.beginPath();
-  ctx.arc(avatarCenterX, avatarCenterY, 20, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Avatar Icon / Emoji
-  ctx.font = '22px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(icon, avatarCenterX, avatarCenterY + 1);
-
-  // 5. Right Player Slot Badge (e.g. P1, P2)
-  const pillW = 54;
-  const pillH = 30;
-  const pillX = rx + rw - pillW - 10;
-  const pillY = ry + (rh - pillH) / 2;
+  // 4. Left Slot Badge (P1, P2...)
+  const slotW = 50;
+  const slotH = 30;
+  const slotX = rx + 10;
+  const slotY = ry + (rh - slotH) / 2;
 
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
   if (ctx.roundRect) {
-    ctx.roundRect(pillX, pillY, pillW, pillH, 15);
+    ctx.roundRect(slotX, slotY, slotW, slotH, 15);
   } else {
-    ctx.rect(pillX, pillY, pillW, pillH);
+    ctx.rect(slotX, slotY, slotW, slotH);
   }
   ctx.fill();
 
   ctx.fillStyle = colorHex;
-  ctx.font = '900 19px Rubik, system-ui, sans-serif';
+  ctx.font = '900 18px Rubik, system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(slotBadge, pillX + pillW / 2, pillY + pillH / 2);
+  ctx.fillText(slotBadge, slotX + slotW / 2, slotY + slotH / 2);
 
-  // 6. Owner Name (Centered between Avatar and Slot Pill)
-  const textX = (avatarCenterX + 22 + pillX) / 2;
+  // 5. Right Avatar Circle
+  const avatarCenterX = rx + rw - 26;
+  const avatarCenterY = ry + rh / 2;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+  ctx.beginPath();
+  ctx.arc(avatarCenterX, avatarCenterY, 17, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.font = '20px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(icon, avatarCenterX, avatarCenterY + 1);
+
+  // 6. Owner Name (Crisp white text with subtle shadow, NO thick muddy black stroke)
+  const textX = (slotX + slotW + avatarCenterX - 17) / 2;
   const textY = ry + rh / 2;
-  const maxTextW = pillX - (avatarCenterX + 28);
+  const maxTextW = (avatarCenterX - 24) - (slotX + slotW + 10);
 
   ctx.font = '900 24px Rubik, system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
 
-  // Crisp text stroke for 100% contrast against bright backgrounds
-  ctx.strokeStyle = 'rgba(15, 23, 42, 0.75)';
-  ctx.lineWidth = 5;
-  ctx.strokeText(ownerName, textX, textY, maxTextW);
-
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.60)';
+  ctx.shadowBlur = 4;
+  ctx.shadowOffsetY = 1;
   ctx.fillStyle = '#ffffff';
   ctx.fillText(ownerName, textX, textY, maxTextW);
 
@@ -145,38 +132,13 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
 }
 
 /**
- * Draws an elegant, muted "FOR SALE" pill when a property is unowned.
+ * Backwards-compatible export for tests.
  */
 export function drawUnownedPill(ctx, isCyber) {
-  const rx = 36;
-  const ry = 150;
-  const rw = 440;
-  const rh = 52;
-  const radius = 12;
-
-  ctx.save();
-  ctx.fillStyle = isCyber ? 'rgba(30, 41, 59, 0.65)' : 'rgba(241, 245, 249, 0.85)';
-  ctx.beginPath();
-  if (ctx.roundRect) {
-    ctx.roundRect(rx, ry, rw, rh, radius);
-  } else {
-    ctx.rect(rx, ry, rw, rh);
-  }
-  ctx.fill();
-
-  ctx.strokeStyle = isCyber ? 'rgba(56, 189, 248, 0.35)' : 'rgba(148, 163, 184, 0.45)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([6, 4]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = '800 21px Rubik, system-ui, sans-serif';
-  ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
-  ctx.fillText('🏷️ FOR SALE', 256, ry + rh / 2);
-
-  ctx.restore();
+  // Kept unowned tiles clean and pristine without cluttering placeholder stickers
+  if (!ctx) return;
+  ctx.save?.();
+  ctx.restore?.();
 }
 
 export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber) {
@@ -192,11 +154,9 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(16, 74, 480, 4);
 
-  // High-contrast Owner Ribbon (if owned) or For Sale badge (if unowned)
+  // High-contrast Owner Ribbon (if owned)
   if (isOwned && propState) {
     drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber);
-  } else {
-    drawUnownedPill(ctx, isCyber);
   }
 
   const nameLen = tile.name.length;
@@ -287,11 +247,9 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
   ctx.textBaseline = 'middle';
   ctx.fillText('RESORT', 256, 45);
 
-  // High-contrast Owner Ribbon (if owned) or For Sale badge (if unowned)
+  // High-contrast Owner Ribbon (if owned)
   if (isOwned && propState) {
     drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber);
-  } else {
-    drawUnownedPill(ctx, isCyber);
   }
 
   const nameLen = tile.name.length;

@@ -187,7 +187,11 @@ export function updateAvatarIdleAnimations(t) {
 export function renderLive3DHUDPortraits(t) {
   if (!portraitRenderer || portraitScenes.length === 0) return;
   const now = performance.now();
-  if (now - lastPortraitRenderTime < 70) return;
+  // Throttle 3D portrait rendering passes to ~180ms (~5.5 FPS) during normal play,
+  // and 90ms during damage/hurt recoil to eliminate GPU texture readback pipeline stalls.
+  const isAnyHurt = portraitScenes.some(e => e.hurtUntil && e.hurtUntil > now);
+  const minInterval = isAnyHurt ? 90 : 180;
+  if (now - lastPortraitRenderTime < minInterval) return;
   lastPortraitRenderTime = now;
 
   gameState.players.forEach((_, idx) => {
@@ -198,7 +202,7 @@ export function renderLive3DHUDPortraits(t) {
     const isTurn = (idx === gameState.currentPlayerIdx);
     const isHurt = Boolean(entry.hurtUntil && entry.hurtUntil > now);
 
-    // If drawn once and not active turn and not currently hurt, skip render for efficiency
+    // If already rendered static portrait and not active turn and not hurt, skip render entirely
     if (targetCanvas._drawnOnce && !isTurn && !isHurt) return;
 
     const avatar = entry.avatar;

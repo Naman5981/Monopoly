@@ -67,6 +67,9 @@ import {
   syncAuctionModalUI,
   placeAuctionBid,
   passAuctionBid,
+  applyAuctionStartFromHost,
+  applyAuctionBidFromHost,
+  applyAuctionConcludeFromHost,
   openSellCitiesModal
 } from '../ui/modals.js';
 
@@ -260,38 +263,15 @@ export function initEngine() {
     },
     onAuctionAction: (msg) => {
       if (!msg) return;
-      if (msg.type === 'ACTION_AUCTION_BID') {
-        if (msg.isNewAuction) {
-          const tile = BOARD_TILES[msg.tileId];
-          if (tile) {
-            gameState.auction = {
-              active: true,
-              tile,
-              sellerIdx: msg.sellerIdx !== undefined ? msg.sellerIdx : null,
-              currentBid: typeof msg.currentBid === 'number' ? msg.currentBid : 0,
-              hasBids: Boolean(msg.hasBids),
-              highBidderIdx: msg.highBidderIdx !== undefined ? msg.highBidderIdx : null,
-              isDoubles: Boolean(msg.isDoubles),
-              increments: calculateAuctionBidIncrements(tile.price),
-              secondsLeft: typeof msg.secondsLeft === 'number' ? msg.secondsLeft : 5.0,
-              passedPlayerIndices: new Set()
-            };
-            syncAuctionModalUI();
-            playSFX('hop');
-          }
-        } else if (typeof msg.bidAmount === 'number') {
-          if (networkState.isHost) {
-            placeAuctionBid(msg.bidAmount, msg.bidderIdx);
-          } else {
-            if (gameState.auction && gameState.auction.active) {
-              gameState.auction.currentBid = msg.bidAmount;
-              gameState.auction.highBidderIdx = msg.bidderIdx;
-              gameState.auction.hasBids = true;
-              gameState.auction.secondsLeft = typeof msg.secondsLeft === 'number' ? msg.secondsLeft : 5.0;
-              playSFX('cash');
-              syncAuctionModalUI();
-            }
-          }
+      if (msg.type === 'ACTION_AUCTION_START' || (msg.type === 'ACTION_AUCTION_BID' && msg.isNewAuction)) {
+        if (!networkState.isHost) {
+          applyAuctionStartFromHost(msg);
+        }
+      } else if (msg.type === 'ACTION_AUCTION_BID') {
+        if (networkState.isHost) {
+          placeAuctionBid(msg.bidAmount, msg.bidderIdx);
+        } else {
+          applyAuctionBidFromHost(msg);
         }
       } else if (msg.type === 'ACTION_AUCTION_PASS') {
         if (networkState.isHost) {
@@ -301,6 +281,10 @@ export function initEngine() {
             gameState.auction.passedPlayerIndices.add(msg.playerIdx);
             syncAuctionModalUI();
           }
+        }
+      } else if (msg.type === 'ACTION_AUCTION_CONCLUDE') {
+        if (!networkState.isHost) {
+          applyAuctionConcludeFromHost(msg);
         }
       }
     },

@@ -9,6 +9,7 @@ import { gameState } from '../../game/state.js';
 import { BASE_TILE_Y, BASE_BUILDING_Y } from './coords.js';
 
 export let movingHopDestTileId = null;
+const activePressTileIds = new Set();
 
 export function setMovingHopDestTileId(id) {
   movingHopDestTileId = id;
@@ -30,6 +31,8 @@ export function triggerTileButtonPress(tileId, depth = -0.11, duration = 220) {
   // NEVER sink below the rim or get occluded by the baseboard slab.
   const safeDepth = Math.max(-0.11, depth);
   st.targetOffset = safeDepth;
+  activePressTileIds.add(tileId);
+
   if (st._timer) clearTimeout(st._timer);
   st._timer = setTimeout(() => {
     st.targetOffset = 0;
@@ -41,12 +44,17 @@ export function triggerTileButtonPress(tileId, depth = -0.11, duration = 220) {
  * @param {Function} updatePlayerTokensPosCb
  */
 export function updateTileDepressionsAnimation(updatePlayerTokensPosCb) {
-  BOARD_TILES.forEach(tile => {
-    const state = context.activeTileDepressions[tile.id];
-    const mesh = context.tilesMeshMap[tile.id];
-    const bGroup = context.tileBuildingGroups[tile.id];
-    const landmark = context.cornerLandmarkGroups[tile.id];
-    if (!state || !mesh) return;
+  if (activePressTileIds.size === 0) return;
+
+  activePressTileIds.forEach(tileId => {
+    const state = context.activeTileDepressions[tileId];
+    const mesh = context.tilesMeshMap[tileId];
+    const bGroup = context.tileBuildingGroups[tileId];
+    const landmark = context.cornerLandmarkGroups[tileId];
+    if (!state || !mesh) {
+      activePressTileIds.delete(tileId);
+      return;
+    }
 
     if (Math.abs(state.targetOffset - state.currentOffset) > 0.001) {
       // Snappy down-press (0.36) and bouncy spring release (0.24)
@@ -58,16 +66,19 @@ export function updateTileDepressionsAnimation(updatePlayerTokensPosCb) {
 
       // Only reposition tokens if a player is physically situated on this specific depressed tile
       if (gameState.phase !== 'MOVING' && updatePlayerTokensPosCb) {
-        const hasPlayerOnTile = gameState.players?.some(p => p.position === tile.id && !p.bankrupt);
+        const hasPlayerOnTile = gameState.players?.some(p => p.position === tileId && !p.bankrupt);
         if (hasPlayerOnTile) {
           updatePlayerTokensPosCb();
         }
       }
-    } else if (state.currentOffset !== state.targetOffset) {
+    } else {
       state.currentOffset = state.targetOffset;
       mesh.position.y = BASE_TILE_Y + state.currentOffset;
       if (bGroup) bGroup.position.y = BASE_BUILDING_Y + state.currentOffset;
       if (landmark) landmark.position.y = BASE_BUILDING_Y + state.currentOffset;
+      if (state.targetOffset === 0) {
+        activePressTileIds.delete(tileId);
+      }
     }
   });
 }

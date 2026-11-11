@@ -241,7 +241,9 @@ export async function settlePendingRentAndCloseModal() {
     broadcastAction('ACTION_SETTLE_RENT', {
       debtorIdx: pIdx,
       creditorIdx: hasCreditor ? debt.creditorIdx : null,
-      rentOwed: debt.rentOwed
+      rentOwed: debt.rentOwed,
+      soldTileIds: soldTiles.map(t => t.id),
+      isDoubles
     });
     if (networkState.isHost) {
       broadcastFullGameState();
@@ -249,7 +251,9 @@ export async function settlePendingRentAndCloseModal() {
   }
 
   if (soldTiles.length > 0) {
-    startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+    if (!networkState.isMultiplayer || networkState.isHost) {
+      startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+    }
     return;
   }
 
@@ -313,7 +317,9 @@ export function settleDebtDeficitWithoutProperties() {
     broadcastAction('ACTION_BANKRUPTCY', {
       bankruptIdx: pIdx,
       creditorIdx: hasCreditor ? debt.creditorIdx : null,
-      paidCash: paid
+      paidCash: paid,
+      soldTileIds: soldTiles.map(t => t.id),
+      isDoubles
     });
     if (networkState.isHost) {
       broadcastFullGameState();
@@ -321,7 +327,9 @@ export function settleDebtDeficitWithoutProperties() {
   }
 
   if (soldTiles.length > 0) {
-    startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+    if (!networkState.isMultiplayer || networkState.isHost) {
+      startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+    }
     return;
   }
 

@@ -13,6 +13,7 @@ import { refreshTileTextureAndBuildings, showSpeechBubble, spawnShatterDebris, t
 import { checkVictoryConditions } from '../game/rules.js';
 import { showVictoryModal } from '../ui/modals.js';
 import { animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../ui/anim.js';
+import { startSoldPropertiesAuctionSequence } from '../game/engine/auction.js';
 import { networkState, networkCallbacks } from './p2pState.js';
 import { broadcastToAll, broadcastFullGameState } from './p2pHost.js';
 
@@ -181,6 +182,10 @@ export function executeIncomingNetworkAction(msg) {
       }
       if (networkState.isHost) {
         broadcastFullGameState();
+        if (msg.soldTileIds && Array.isArray(msg.soldTileIds) && msg.soldTileIds.length > 0) {
+          const soldTiles = msg.soldTileIds.map(id => BOARD_TILES[id]).filter(Boolean);
+          startSoldPropertiesAuctionSequence(soldTiles, msg.debtorIdx, Boolean(msg.isDoubles));
+        }
       }
       break;
     }
@@ -229,12 +234,18 @@ export function executeIncomingNetworkAction(msg) {
       }
       if (networkState.isHost) {
         broadcastFullGameState();
+        if (msg.soldTileIds && Array.isArray(msg.soldTileIds) && msg.soldTileIds.length > 0) {
+          const soldTiles = msg.soldTileIds.map(id => BOARD_TILES[id]).filter(Boolean);
+          startSoldPropertiesAuctionSequence(soldTiles, msg.bankruptIdx, Boolean(msg.isDoubles));
+        }
       }
       break;
     }
 
+    case 'ACTION_AUCTION_START':
     case 'ACTION_AUCTION_BID':
     case 'ACTION_AUCTION_PASS':
+    case 'ACTION_AUCTION_CONCLUDE':
       if (networkCallbacks.onAuctionAction) {
         networkCallbacks.onAuctionAction(msg);
       }

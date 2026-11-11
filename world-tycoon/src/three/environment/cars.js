@@ -45,13 +45,11 @@ export function createDetailed3DVehicleMesh(variantIdx) {
 
     const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.14, 0.44), chassisMat);
     chassis.position.set(0, 0.18, 0);
-    chassis.castShadow = true;
     chassis.receiveShadow = true;
     suspensionGroup.add(chassis);
 
     const cab = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.46, 0.50), cabMat);
     cab.position.set(0.44, 0.40, 0);
-    cab.castShadow = true;
     cab.receiveShadow = true;
     suspensionGroup.add(cab);
 
@@ -61,17 +59,14 @@ export function createDetailed3DVehicleMesh(variantIdx) {
 
     const bumper = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.16, 0.52), chromeMat);
     bumper.position.set(0.70, 0.18, 0);
-    bumper.castShadow = true;
     suspensionGroup.add(bumper);
 
     const deflector = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.46), cabMat);
     deflector.position.set(0.40, 0.68, 0);
-    deflector.castShadow = true;
     suspensionGroup.add(deflector);
 
     const cargoBox = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.58, 0.52), boxMat);
     cargoBox.position.set(-0.25, 0.48, 0);
-    cargoBox.castShadow = true;
     cargoBox.receiveShadow = true;
     const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.925, 0.08, 0.525), new THREE.MeshLambertMaterial({ color: 0xef4444 }));
     stripe.position.set(-0.25, 0.48, 0);
@@ -79,7 +74,6 @@ export function createDetailed3DVehicleMesh(variantIdx) {
 
     const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.52, 8), chromeMat);
     exhaust.position.set(0.18, 0.52, 0.23);
-    exhaust.castShadow = true;
     suspensionGroup.add(exhaust);
 
     [-0.18, 0.18].forEach(zOff => {
@@ -99,7 +93,6 @@ export function createDetailed3DVehicleMesh(variantIdx) {
       wPivot.position.set(wc.x, 0.14, wc.z);
       const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.10, 12), wheelMat);
       tire.rotation.x = Math.PI / 2;
-      tire.castShadow = true;
       const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.11, 6), rimMat);
       hub.rotation.x = Math.PI / 2;
       wPivot.add(tire, hub);
@@ -128,7 +121,6 @@ export function createDetailed3DVehicleMesh(variantIdx) {
 
     const frame = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.12, 0.12), frameMat);
     frame.position.set(0, 0.18, 0);
-    frame.castShadow = true;
     suspensionGroup.add(frame);
 
     const engine = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.15, 8), chromeMat);
@@ -143,7 +135,6 @@ export function createDetailed3DVehicleMesh(variantIdx) {
 
     const tank = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.13, 0.16), bikeMat);
     tank.position.set(0.10, 0.28, 0);
-    tank.castShadow = true;
     suspensionGroup.add(tank);
 
     const seat = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.06, 0.14), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
@@ -170,10 +161,8 @@ export function createDetailed3DVehicleMesh(variantIdx) {
     const torso = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.24, 0.20), riderSuitMat);
     torso.rotation.z = -0.22;
     torso.position.set(-0.06, 0.42, 0);
-    torso.castShadow = true;
     const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.10, 10, 8), helmetMat);
     helmet.position.set(0.04, 0.58, 0);
-    helmet.castShadow = true;
     const visor = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, 0.12), glassMat);
     visor.position.set(0.11, 0.58, 0);
     suspensionGroup.add(torso, helmet, visor);
@@ -183,7 +172,6 @@ export function createDetailed3DVehicleMesh(variantIdx) {
       wPivot.position.set(wc.x, 0.14, wc.z);
       const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, wc.w, 12), wheelMat);
       tire.rotation.x = Math.PI / 2;
-      tire.castShadow = true;
       const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, wc.w + 0.01, 6), rimMat);
       hub.rotation.x = Math.PI / 2;
       wPivot.add(tire, hub);
@@ -218,36 +206,30 @@ export function createDetailed3DVehicleMesh(variantIdx) {
 
   const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.22, 0.50), paintMat);
   chassis.position.y = 0.20;
-  chassis.castShadow = true;
   chassis.receiveShadow = true;
   suspensionGroup.add(chassis);
 
   const bumperF = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.48), new THREE.MeshLambertMaterial({ color: 0x334155 }));
   bumperF.position.set(0.46, 0.15, 0);
-  bumperF.castShadow = true;
   suspensionGroup.add(bumperF);
 
   const cabinLength = isSUV ? 0.62 : 0.48;
   const cabinHeight = isSUV ? 0.24 : 0.20;
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(cabinLength, cabinHeight, 0.42), glassMat);
   cabin.position.set(isSUV ? -0.04 : -0.02, 0.38, 0);
-  cabin.castShadow = true;
   suspensionGroup.add(cabin);
 
   const roofCap = new THREE.Mesh(new THREE.BoxGeometry(cabinLength - 0.08, 0.05, 0.38), paintMat);
   roofCap.position.set(isSUV ? -0.04 : -0.02, 0.38 + cabinHeight * 0.5, 0);
-  roofCap.castShadow = true;
   suspensionGroup.add(roofCap);
 
   if (isSports) {
     const spoiler = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.48), paintMat);
     spoiler.position.set(-0.42, 0.38, 0);
-    spoiler.castShadow = true;
     suspensionGroup.add(spoiler);
   } else if (isTaxi) {
     const taxiSign = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.09, 0.22), headlightMat);
     taxiSign.position.set(0, 0.54, 0);
-    taxiSign.castShadow = true;
     suspensionGroup.add(taxiSign);
   } else if (isSUV) {
     [-0.14, 0.14].forEach(rz => {
@@ -270,7 +252,6 @@ export function createDetailed3DVehicleMesh(variantIdx) {
     wPivot.position.set(wc.x, 0.13, wc.z);
     const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.10, 12), wheelMat);
     tire.rotation.x = Math.PI / 2;
-    tire.castShadow = true;
     const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.11, 6), rimMat);
     hub.rotation.x = Math.PI / 2;
     wPivot.add(tire, hub);

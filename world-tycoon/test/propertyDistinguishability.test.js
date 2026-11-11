@@ -1,10 +1,9 @@
 /**
  * test/propertyDistinguishability.test.js
  * Unit test suite verifying:
- * 1. Direct On-Tile Owner Ribbon & Unowned Pill 2D Canvas rendering (/web-games /game-art /better-ui).
- * 2. 3D Building Base Pedestals & Slabs (Flag Plinth, House Foundation Slab, Skyscraper Champion Pedestal).
- * 3. 3D Empire Spotlight Service (Territory illumination & non-owned dimming).
- * 4. Svelte PlayerCards hover & focus spotlight integration.
+ * 1. Direct On-Tile Owner Ribbon 2D Canvas rendering (/web-games /game-art /better-ui).
+ * 2. Uncluttered tile face without double text ghosting or bulky slabs.
+ * 3. 3D Empire Spotlight Service (Architectural border frame & ground pool illumination with contrast dimming).
  */
 
 import { describe, it, beforeEach } from 'node:test';
@@ -54,7 +53,7 @@ describe('Property Ownership Visual Distinguishability Suite (/web-games /game-a
     });
   });
 
-  describe('Direct On-Tile Owner Ribbon & Unowned Pill', () => {
+  describe('Direct On-Tile Owner Ribbon & Clean Unowned Cards', () => {
     it('draws a vibrant Owner Ribbon with player icon, name, and slot pill when owned', () => {
       const propState = { owner: 0, level: 1 };
       drawOwnerRibbon(mockCtx, propState, false, false, false);
@@ -65,17 +64,14 @@ describe('Property Ownership Visual Distinguishability Suite (/web-games /game-a
       assert.ok(fillTexts.includes('P1'), 'Owner ribbon must render player slot badge pill');
     });
 
-    it('draws elegant muted FOR SALE pill when unowned', () => {
+    it('safely handles drawUnownedPill as a backwards-compatible clean no-op', () => {
       drawUnownedPill(mockCtx, false);
-
       const fillTexts = drawCalls.filter(c => c.type === 'fillText').map(c => c.text);
-      assert.ok(fillTexts.some(t => t.includes('FOR SALE')), 'Must render FOR SALE label');
-      const dashes = drawCalls.filter(c => c.type === 'setLineDash');
-      assert.ok(dashes.length > 0, 'Must use dashed border for unowned badge');
+      assert.equal(fillTexts.length, 0, 'Unowned tiles must remain clean without placeholder clutter');
     });
   });
 
-  describe('3D Building Base Pedestals & Slabs', () => {
+  describe('3D Architectural Building Assembly', () => {
     beforeEach(() => {
       context.boardGroup = new THREE.Group();
       context.tilesMeshMap = {};
@@ -108,33 +104,30 @@ describe('Property Ownership Visual Distinguishability Suite (/web-games /game-a
       });
     });
 
-    it('adds circular plinth under flagpole when level is 0', () => {
+    it('places flag mesh cleanly on upper rim without blocking tile graphics for level 0', () => {
       gameState.properties[1] = { owner: 0, level: 0 };
       refreshTileTextureAndBuildings(1);
 
       const bGroup = context.tileBuildingGroups[1];
-      assert.ok(bGroup.children.length >= 2, 'Must contain plinth and flag mesh');
-      const hasCylinderPlinth = bGroup.children.some(c => c.geometry instanceof THREE.CylinderGeometry);
-      assert.ok(hasCylinderPlinth, 'Level 0 must include circular plinth cylinder');
+      assert.ok(bGroup.children.length >= 1, 'Must contain flag mesh');
+      const frame = context.tileBorderFrames[1];
+      assert.ok(frame.visible, 'Border frame must be visible when owned');
     });
 
-    it('adds foundation slab plinth and slate deck under houses for levels 1-3', () => {
+    it('places house mesh cleanly on upper rim for levels 1-3', () => {
       gameState.properties[3] = { owner: 1, level: 2 };
       refreshTileTextureAndBuildings(3);
 
       const bGroup = context.tileBuildingGroups[3];
-      assert.ok(bGroup.children.length >= 3, 'Must contain foundation slab, slate deck, and house mesh');
-      const boxMeshes = bGroup.children.filter(c => c.geometry instanceof THREE.BoxGeometry);
-      assert.ok(boxMeshes.length >= 2, 'Must include base slab and deck boxes');
+      assert.ok(bGroup.children.length >= 1, 'Must contain house group');
     });
 
-    it('adds grand champion pedestal slab with gold corner clamps for level 4 skyscraper', () => {
+    it('places skyscraper mesh cleanly on upper rim for level 4', () => {
       gameState.properties[4] = { owner: 0, level: 4 };
       refreshTileTextureAndBuildings(4);
 
       const bGroup = context.tileBuildingGroups[4];
-      // 1 champion slab + 4 gold corner clips + 1 skyscraper group = 6 children
-      assert.ok(bGroup.children.length >= 6, 'Must contain champion pedestal and 4 corner clamps');
+      assert.ok(bGroup.children.length >= 1, 'Must contain skyscraper group');
     });
   });
 
@@ -142,12 +135,22 @@ describe('Property Ownership Visual Distinguishability Suite (/web-games /game-a
     beforeEach(() => {
       context.boardGroup = new THREE.Group();
       context.tilesMeshMap = {};
+      context.tileBorderFrames = {};
+      context.tileGroundLightPools = {};
 
       BOARD_TILES.forEach(t => {
         const topMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), [null, null, topMat]);
         mesh.userData = { tileId: t.id };
         context.tilesMeshMap[t.id] = mesh;
+
+        const frame = new THREE.Group();
+        frame.userData = { borderMat: new THREE.MeshStandardMaterial({ color: 0x3b82f6 }) };
+        context.tileBorderFrames[t.id] = frame;
+
+        const poolMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6 });
+        const pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), poolMat);
+        context.tileGroundLightPools[t.id] = pool;
       });
 
       gameState.properties[1] = { owner: 0, level: 1 };
@@ -155,7 +158,7 @@ describe('Property Ownership Visual Distinguishability Suite (/web-games /game-a
       gameState.properties[4] = { owner: 1, level: 1 };
     });
 
-    it('illuminates owned tiles and dims non-owned tiles when targetPlayerIdx is specified', () => {
+    it('illuminates owned tiles via border frame and ground pool while dimming non-owned tiles', () => {
       setEmpireSpotlight(0);
 
       // Owned tiles (1 and 3) should be bright white (0xffffff)
@@ -164,15 +167,22 @@ describe('Property Ownership Visual Distinguishability Suite (/web-games /game-a
       assert.equal(ownedMesh1.material[2].color.getHex(), 0xffffff);
       assert.equal(ownedMesh3.material[2].color.getHex(), 0xffffff);
 
-      // Non-owned or opponent tiles (4) should be dimmed (0x85929e)
+      // Non-owned or opponent tiles (4) should be dimmed (0x7c8ba1)
       const otherMesh = context.tilesMeshMap[4];
-      assert.equal(otherMesh.material[2].color.getHex(), 0x85929e);
+      assert.equal(otherMesh.material[2].color.getHex(), 0x7c8ba1);
 
-      // Spotlight group should exist and be visible
+      // Owned border frames should have boosted emissive intensity
+      assert.equal(context.tileBorderFrames[1].userData.borderMat.emissiveIntensity, 1.25);
+      assert.equal(context.tileBorderFrames[4].userData.borderMat.emissiveIntensity, 0.08);
+
+      // Ground light pool should be active on owned tiles
+      assert.equal(context.tileGroundLightPools[1].visible, true);
+      assert.equal(context.tileGroundLightPools[4].visible, false);
+
+      // Spotlight group exists cleanly
       const spotlightGroup = context.boardGroup.getObjectByName('empireHighlightsGroup');
       assert.ok(spotlightGroup);
       assert.equal(spotlightGroup.visible, true);
-      assert.equal(spotlightGroup.children.length, 2, 'Should create spotlight markers for 2 owned tiles');
     });
 
     it('resets board lighting and restores original tile materials when passed null', () => {
@@ -187,6 +197,7 @@ describe('Property Ownership Visual Distinguishability Suite (/web-games /game-a
       BOARD_TILES.forEach(t => {
         const mesh = context.tilesMeshMap[t.id];
         assert.equal(mesh.material[2].color.getHex(), 0xffffff);
+        assert.equal(context.tileGroundLightPools[t.id].visible, false);
       });
     });
   });

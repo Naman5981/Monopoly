@@ -65,27 +65,27 @@ export function buildStreetLampsAndBulbs3D(boardGroup) {
   const brassTrimMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.22, metalness: 0.88 });
 
   const lampPositions = [
-    // 2 Elegant Garden Promenade Gateway Lanterns
+    // 2 Elegant Garden Promenade Gateway Lanterns (Primary warm accent point lights)
     { x: -5.6, z: 0, rot: Math.PI / 2, isGarden: true, hasPointLight: true },
     { x: 5.6, z: 0, rot: -Math.PI / 2, isGarden: true, hasPointLight: true },
 
-    // 4 Inner Street Corners (Lighting the inner road & tiles)
+    // 4 Inner Street Corners (2 have accent point lights, 2 use ground light pools)
     { x: -8.5, z: -8.5, rot: Math.PI / 4, hasPointLight: true },
-    { x: 8.5, z: -8.5, rot: -Math.PI / 4, hasPointLight: true },
-    { x: -8.5, z: 8.5, rot: 3 * Math.PI / 4, hasPointLight: true },
+    { x: 8.5, z: -8.5, rot: -Math.PI / 4, hasPointLight: false },
+    { x: -8.5, z: 8.5, rot: 3 * Math.PI / 4, hasPointLight: false },
     { x: 8.5, z: 8.5, rot: -3 * Math.PI / 4, hasPointLight: true },
 
-    // 4 Road Sidewalk Street Lamps (One along each board side road)
-    { x: 0, z: -10.8, rot: 0, hasPointLight: true },
-    { x: 0, z: 10.8, rot: Math.PI, hasPointLight: true },
-    { x: -10.8, z: 0, rot: Math.PI / 2, hasPointLight: true },
-    { x: 10.8, z: 0, rot: -Math.PI / 2, hasPointLight: true },
+    // 4 Road Sidewalk Street Lamps (Illuminated via glowing filaments, sprites, & ground pools)
+    { x: 0, z: -10.8, rot: 0, hasPointLight: false },
+    { x: 0, z: 10.8, rot: Math.PI, hasPointLight: false },
+    { x: -10.8, z: 0, rot: Math.PI / 2, hasPointLight: false },
+    { x: 10.8, z: 0, rot: -Math.PI / 2, hasPointLight: false },
 
-    // 4 Outer Board Corners (Beside START, ISLAND, FESTIVAL, AIRPORT)
-    { x: -13.5, z: -13.5, rot: Math.PI / 4, hasPointLight: true },
-    { x: 13.5, z: -13.5, rot: -Math.PI / 4, hasPointLight: true },
-    { x: -13.5, z: 13.5, rot: 3 * Math.PI / 4, hasPointLight: true },
-    { x: 13.5, z: 13.5, rot: -3 * Math.PI / 4, hasPointLight: true }
+    // 4 Outer Board Corners (Illuminated via glowing filaments, sprites, & ground pools)
+    { x: -13.5, z: -13.5, rot: Math.PI / 4, hasPointLight: false },
+    { x: 13.5, z: -13.5, rot: -Math.PI / 4, hasPointLight: false },
+    { x: -13.5, z: 13.5, rot: 3 * Math.PI / 4, hasPointLight: false },
+    { x: 13.5, z: 13.5, rot: -3 * Math.PI / 4, hasPointLight: false }
   ];
 
   lampPositions.forEach((pos) => {

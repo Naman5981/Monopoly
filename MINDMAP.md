@@ -126,7 +126,7 @@ flowchart LR
 
 - [`world-tycoon/src/game/engine.js`](world-tycoon/src/game/engine.js): Coordinates turn transitions and state validation.
 - [`world-tycoon/src/game/engine/turnCycle.js`](world-tycoon/src/game/engine/turnCycle.js): Turn timer watchdog, double rolls, turn advance, and game-over checks.
-- [`world-tycoon/src/game/engine/auction.js`](world-tycoon/src/game/engine/auction.js): Sold property public auction engine with dynamic 3-option bidding increments, 5-second countdown timer reset on bid, sequential queue management for liquidated properties, AI bot valuation, and P2P synchronization.
+- [`world-tycoon/src/game/engine/auction.js`](world-tycoon/src/game/engine/auction.js): Sold property public auction engine with dynamic 3-option bidding increments, 5-second countdown timer reset on bid, sequential queue management for liquidated properties, AI bot valuation, host-authoritative multiplayer orchestration (`applyAuctionStartFromHost`, `applyAuctionBidFromHost`, `applyAuctionConcludeFromHost`), and P2P synchronization.
 - [`world-tycoon/src/game/engine/landings.js`](world-tycoon/src/game/engine/landings.js): High-level landing dispatcher.
 - [`world-tycoon/src/game/engine/strategies/ITileLandingStrategy.js`](world-tycoon/src/game/engine/strategies/ITileLandingStrategy.js): Base strategy interface.
 - [`world-tycoon/src/game/engine/strategies/PropertyLandingStrategy.js`](world-tycoon/src/game/engine/strategies/PropertyLandingStrategy.js): Handles buy, buyout, upgrade, rent transfers, and multiplayer rent debt liquidation synchronization (`ACTION_RENT_DEBT`) with host AFK safety fallback.
@@ -190,10 +190,10 @@ flowchart TD
 ```
 
 - [`world-tycoon/src/three/scene.js`](world-tycoon/src/three/scene.js): Scene management, renderer initialization, shadow map configuration, and unified facade re-exporting `setEmpireSpotlight`.
-- [`world-tycoon/src/three/board/tiles/cityTileRenderer.js`](world-tycoon/src/three/board/tiles/cityTileRenderer.js): 2D Canvas tile texture rendering for cities and resorts, featuring high-contrast direct on-tile Owner Ribbons (avatar emoji, bold capitalized name, P1-P4 slot pill badge) and elegant muted "FOR SALE" pills when unowned.
-- [`world-tycoon/src/three/board/tileCanvas.js`](world-tycoon/src/three/board/tileCanvas.js): Texture and emissive map generator for board tiles, including night and sunset emissive passes for owner ribbons.
-- [`world-tycoon/src/three/board/tiles.js`](world-tycoon/src/three/board/tiles.js): 3D board tile blocks with dynamic building placement, enhanced owner base pedestals (level 0 flagpole plinth, level 1-3 foundation slab & deck, level 4 grand champion slab with 4 gold corner clips), and local player signature rim glow.
-- [`world-tycoon/src/three/board/highlights.js`](world-tycoon/src/three/board/highlights.js): Highlight rings, runway targeting beacons, monopoly set halos, and the 3D Empire Spotlight service (`setEmpireSpotlight`) for territory illumination and non-owned dimming.
+- [`world-tycoon/src/three/board/tiles/cityTileRenderer.js`](world-tycoon/src/three/board/tiles/cityTileRenderer.js): 2D Canvas tile texture rendering for cities and resorts, featuring high-contrast direct on-tile Owner Ribbons (avatar emoji, crisp white capitalized name with soft shadow, P1-P4 slot pill badge) and clean uncluttered unowned deeds.
+- [`world-tycoon/src/three/board/tileCanvas.js`](world-tycoon/src/three/board/tileCanvas.js): Single-source-of-truth 2D tile canvas texture generator, eliminating dual-map emissive font offsets and text doubling glitches.
+- [`world-tycoon/src/three/board/tiles.js`](world-tycoon/src/three/board/tiles.js): 3D board tile blocks with architectural building placement, clean proportional footprint, luxury owner-tinted 3D border frames, and local player signature rim glow.
+- [`world-tycoon/src/three/board/highlights.js`](world-tycoon/src/three/board/highlights.js): Highlight rings, runway targeting beacons, monopoly set halos, and the 3D Empire Spotlight service (`setEmpireSpotlight`) illuminating territories via glowing border frames and floor ground light pools without intrusive floating rings.
 - [`world-tycoon/src/three/core/camera.js`](world-tycoon/src/three/core/camera.js): Dynamic camera modes (isometric overview, pawn chase, modal zoom).
 - [`world-tycoon/src/three/core/lighting/themes.js`](world-tycoon/src/three/core/lighting/themes.js): Lighting presets for Day, Sunset, and Cyberpunk/Night.
 - [`world-tycoon/src/three/pawns/movement.js`](world-tycoon/src/three/pawns/movement.js): Hop and walk animations around board corners.
@@ -224,7 +224,7 @@ sequenceDiagram
 ```
 
 - [`world-tycoon/src/network/p2p.js`](world-tycoon/src/network/p2p.js): Unified multiplayer API facade.
-- [`world-tycoon/src/network/protocol.js`](world-tycoon/src/network/protocol.js): Packet schemas and action constants (`ACTION_RENT_DEBT`, `ACTION_SELL_CITY_FOR_RENT`, `ACTION_SETTLE_RENT`, `ACTION_BANKRUPTCY`, `ACTION_BUYOUT_CITY`).
+- [`world-tycoon/src/network/protocol.js`](world-tycoon/src/network/protocol.js): Packet schemas and action constants (`ACTION_RENT_DEBT`, `ACTION_SELL_CITY_FOR_RENT`, `ACTION_SETTLE_RENT`, `ACTION_BANKRUPTCY`, `ACTION_BUYOUT_CITY`, `ACTION_AUCTION_START`, `ACTION_AUCTION_BID`, `ACTION_AUCTION_PASS`, `ACTION_AUCTION_CONCLUDE`).
 - [`world-tycoon/src/network/p2pHost.js`](world-tycoon/src/network/p2pHost.js): Authoritative host room server, validates turns, broadcasts snapshots, maintains signaling heartbeats (`startHostHeartbeat`), auto-reconnects on tab sleep, and handles room ID collisions.
 - [`world-tycoon/src/network/p2pGuest.js`](world-tycoon/src/network/p2pGuest.js): Client synchronization, remote action queuing, 14-second watchdog connection timeout, progressive handshake status, and fast WebRTC ICE failure detection.
 - [`world-tycoon/src/network/p2pState.js`](world-tycoon/src/network/p2pState.js): Connection status, peer references, room metadata, Anycast STUN servers list, Metered enterprise TURN relays (`ICE_SERVERS` with UDP, TCP, and TLS TURNS on ports 80/443), and heartbeat timers.
@@ -300,6 +300,13 @@ sequenceDiagram
 ---
 
 ### 2.9 Visual Polish & Performance Standards (v1.0.7 - v1.0.8)
+- **Constant 60 FPS Performance Architecture (`fixing-motion-performance`, `web-games`)**:
+  - **VSync-Safe High-Refresh Frame Pacing**: Adjusted frame limiter threshold from 15.16ms to 13.33ms (`1000 / 75`), eliminating dropped VSync frames and micro-stutters on standard 60Hz displays while keeping 120Hz/144Hz monitors cleanly capped.
+  - **Motion-Driven Shadow Map Throttling**: Throttled shadow map passes to 30Hz during token movement, cutting shadow render passes by 50% without perceptual quality loss.
+  - **GPU Texture Readback Elimination**: Throttled offscreen WebGL 3D avatar portrait passes from 14 FPS to ~5.5 FPS (180ms idle / 90ms hurt), eliminating synchronous GPU-to-CPU `ctx2d.drawImage` pipeline flushes.
+  - **Forward Lighting Optimization**: Reduced dynamic `PointLight` instances from 14 down to 4 (relying on additive bloom sprites, volumetric beams, and ground light pools for ambient streetlamps), slashing WebGL fragment shader lighting calculations by >70%.
+  - **Decorative Shadow Caster Culling**: Removed `castShadow = true` from ~50 sub-meshes on ambient road vehicles, relying on crisp planar contact shadows (`underShadow`).
+  - **Zero-Allocation Physics & Tile Checks**: Added early-exit sets for tile spring depressions (`activePressTileIds`), skipping 32-tile iteration loops when board tiles are at rest.
 - **Atmospheric Sky & Horizon (`src/three/effects.js`, `src/three/environment/clouds.js`)**: Softened radial horizon gradient (`#ffffff` through `#dbeafe` to `#cbd5e1`) and 75% cloud opacity, allowing the 3D diorama board to pop with high contrast.
 - **Semantic Single-Hue UI Gradients (`better-colors`)**: Normalized all modal headers, banners, and HUD pills into single-hue ramps: Emerald (`from-emerald-600 to-teal-700`) for empire/cash/festivals, Warm Amber (`from-amber-500 to-amber-700`) for auctions/stars, Deep Sky (`from-sky-600 to-indigo-700`) for rules/world tour, and Rose (`from-rose-600 to-rose-800`) for hostile buyouts/disconnections.
 - **Performance-First Solid Glass Surfaces (`fixing-motion-performance`)**: Completely eliminated heavy `backdrop-filter: blur(...)` across all persistent HUD chips, player cards, status pills, and tooltips in [`src/style.css`](world-tycoon/src/style.css) in favor of high-performance solid surfaces (`rgba(255, 255, 255, 0.96-0.98)` and `rgba(15, 23, 42, 0.96)`) with optical borders, preventing GPU fill-rate throttling over the WebGL canvas.

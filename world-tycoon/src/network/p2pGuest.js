@@ -458,8 +458,10 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
     case 'ACTION_SELL_CITY_FOR_RENT':
+    case 'ACTION_AUCTION_START':
     case 'ACTION_AUCTION_BID':
     case 'ACTION_AUCTION_PASS':
+    case 'ACTION_AUCTION_CONCLUDE':
     case 'ACTION_TRADE_OFFER':
     case 'ACTION_TRADE_RESPONSE':
     case 'ACTION_SETTLE_RENT':

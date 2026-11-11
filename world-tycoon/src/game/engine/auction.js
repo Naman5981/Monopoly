@@ -99,6 +99,13 @@ export function startNextAuctionFromQueue() {
     gameState.auction = null;
     gameState.auctionQueueMeta = null;
 
+    if (networkState.isMultiplayer && networkState.isHost) {
+      broadcastAction('ACTION_AUCTION_CONCLUDE', {
+        queueFinished: true
+      });
+      broadcastFullGameState();
+    }
+
     if (engineCallbacks.concludeActionPhase && meta) {
       engineCallbacks.concludeActionPhase(meta.isDoubles);
     }
@@ -130,14 +137,15 @@ export function startNextAuctionFromQueue() {
   startAuctionCountdownTimer();
 
   if (networkState.isMultiplayer && networkState.isHost) {
-    broadcastAction('ACTION_AUCTION_BID', {
+    broadcastAction('ACTION_AUCTION_START', {
       tileId: tile.id,
-      currentBid: reservePrice,
-      highBidderIdx: null,
-      secondsLeft: 5.0,
       sellerIdx: meta.sellerIdx,
-      isDoubles: meta.isDoubles,
-      isNewAuction: true
+      currentBid: reservePrice,
+      increments,
+      secondsLeft: 5.0,
+      totalCount: meta.totalCount,
+      queueRemaining: gameState.pendingAuctions.length,
+      isDoubles: meta.isDoubles
     });
   }
 
@@ -216,7 +224,7 @@ export function syncAuctionModalUI() {
 /**
  * Runs the 5-second countdown timer.
  */
-function startAuctionCountdownTimer() {
+export function startAuctionCountdownTimer() {
   clearAuctionTimers();
 
   const TICK_MS = 100;
@@ -232,7 +240,10 @@ function startAuctionCountdownTimer() {
       gameState.auction.secondsLeft = 0;
       clearAuctionTimers();
       syncAuctionModalUI();
-      concludeCurrentAuction();
+      // In multiplayer, ONLY Host concludes the auction authoritatively
+      if (!networkState.isMultiplayer || networkState.isHost) {
+        concludeCurrentAuction();
+      }
       return;
     }
 
@@ -243,12 +254,14 @@ function startAuctionCountdownTimer() {
 /**
  * Resets the 5-second countdown on a new bid increase.
  */
-function resetAuctionTimer() {
+export function resetAuctionTimer() {
   if (gameState.auction) {
     gameState.auction.secondsLeft = 5.0;
   }
   startAuctionCountdownTimer();
-  scheduleBotAuctionBids();
+  if (!networkState.isMultiplayer || networkState.isHost) {
+    scheduleBotAuctionBids();
+  }
 }
 
 /**
@@ -273,6 +286,16 @@ export function placeAuctionBid(bidAmount, playerIdx = null) {
   if (bidAmount <= a.currentBid) return false;
   if (bidder.cash < bidAmount) return false;
 
+  // In multiplayer, if guest peer, forward bid to Host for authoritative validation
+  if (networkState.isMultiplayer && !networkState.isHost) {
+    broadcastAction('ACTION_AUCTION_BID', {
+      tileId: a.tile.id,
+      bidAmount,
+      bidderIdx
+    });
+    return true;
+  }
+
   a.currentBid = bidAmount;
   a.highBidderIdx = bidderIdx;
   a.hasBids = true;
@@ -284,16 +307,14 @@ export function placeAuctionBid(bidAmount, playerIdx = null) {
   resetAuctionTimer();
   syncAuctionModalUI();
 
-  if (networkState.isMultiplayer) {
+  if (networkState.isMultiplayer && networkState.isHost) {
     broadcastAction('ACTION_AUCTION_BID', {
       tileId: a.tile.id,
       bidAmount,
       bidderIdx,
       secondsLeft: 5.0
     });
-    if (networkState.isHost) {
-      broadcastFullGameState();
-    }
+    broadcastFullGameState();
   }
 
   return true;
@@ -311,9 +332,20 @@ export function passAuctionBid(playerIdx = null) {
     ? playerIdx
     : (networkState.isMultiplayer ? networkState.localPlayerIdx : (typeof localPlayerIdx === 'number' ? localPlayerIdx : 0));
 
-  a.passedPlayerIndices.add(pIdx);
+  if (networkState.isMultiplayer && !networkState.isHost) {
+    broadcastAction('ACTION_AUCTION_PASS', {
+      tileId: a.tile.id,
+      playerIdx: pIdx
+    });
+    a.passedPlayerIndices.add(pIdx);
+    syncAuctionModalUI();
+    return;
+  }
 
-  if (networkState.isMultiplayer) {
+  a.passedPlayerIndices.add(pIdx);
+  syncAuctionModalUI();
+
+  if (networkState.isMultiplayer && networkState.isHost) {
     broadcastAction('ACTION_AUCTION_PASS', {
       tileId: a.tile.id,
       playerIdx: pIdx
@@ -425,6 +457,9 @@ export function concludeCurrentAuction() {
   const a = gameState.auction;
   if (!a || !a.active || !a.tile) return;
 
+  // In multiplayer, ONLY Host concludes the auction authoritatively
+  if (networkState.isMultiplayer && !networkState.isHost) return;
+
   a.active = false;
   const tile = a.tile;
   const propState = gameState.properties[tile.id];
@@ -459,11 +494,14 @@ export function concludeCurrentAuction() {
     logEvent(`🔨 No bids were placed for <strong>${tile.name}</strong>. It returns to the Bank.`);
   }
 
+  syncAuctionModalUI();
+
   if (networkState.isMultiplayer && networkState.isHost) {
-    broadcastAction('ACTION_AUCTION_PASS', {
+    broadcastAction('ACTION_AUCTION_CONCLUDE', {
       tileId: tile.id,
       winnerIdx: a.highBidderIdx,
-      winningBid: a.hasBids ? a.currentBid : 0
+      winningBid: a.hasBids ? a.currentBid : 0,
+      hasBids: a.hasBids
     });
     broadcastFullGameState();
   }
@@ -472,6 +510,129 @@ export function concludeCurrentAuction() {
   setTimeout(() => {
     startNextAuctionFromQueue();
   }, 1100);
+}
+
+/**
+ * Handles incoming ACTION_AUCTION_START on non-host peers.
+ * @param {Object} msg
+ */
+export function applyAuctionStartFromHost(msg) {
+  if (!msg || msg.tileId === undefined) return;
+  const tile = BOARD_TILES[msg.tileId];
+  if (!tile) return;
+
+  clearAuctionTimers();
+
+  const reservePrice = typeof msg.currentBid === 'number' ? msg.currentBid : calculateAuctionReservePrice(tile.price);
+  const increments = msg.increments || calculateAuctionBidIncrements(tile.price);
+
+  gameState.auctionQueueMeta = {
+    sellerIdx: msg.sellerIdx !== undefined ? msg.sellerIdx : -1,
+    isDoubles: Boolean(msg.isDoubles),
+    totalCount: msg.totalCount || 1
+  };
+  gameState.pendingAuctions = new Array(msg.queueRemaining || 0);
+
+  gameState.auction = {
+    active: true,
+    tile,
+    sellerIdx: msg.sellerIdx !== undefined ? msg.sellerIdx : null,
+    currentBid: reservePrice,
+    hasBids: false,
+    highBidderIdx: null,
+    isDoubles: Boolean(msg.isDoubles),
+    increments,
+    secondsLeft: typeof msg.secondsLeft === 'number' ? msg.secondsLeft : 5.0,
+    passedPlayerIndices: new Set()
+  };
+
+  syncAuctionModalUI();
+  playSFX('hop');
+  startAuctionCountdownTimer();
+}
+
+/**
+ * Handles incoming ACTION_AUCTION_BID on non-host peers.
+ * @param {Object} msg
+ */
+export function applyAuctionBidFromHost(msg) {
+  const a = gameState.auction;
+  if (!a || !a.active) return;
+  if (typeof msg.bidAmount !== 'number') return;
+
+  a.currentBid = msg.bidAmount;
+  a.highBidderIdx = typeof msg.bidderIdx === 'number' ? msg.bidderIdx : a.highBidderIdx;
+  a.hasBids = true;
+  if (typeof msg.bidderIdx === 'number') {
+    a.passedPlayerIndices.delete(msg.bidderIdx);
+  }
+
+  const bidder = gameState.players ? gameState.players[a.highBidderIdx] : null;
+  if (bidder) {
+    logEvent(`🔨 <strong>${bidder.name}</strong> raised bid to <strong>${fmtMoney(msg.bidAmount)}</strong> on <strong>${a.tile.name}</strong>! Timer reset to 5s.`);
+  }
+
+  playSFX('cash');
+  resetAuctionTimer();
+  syncAuctionModalUI();
+}
+
+/**
+ * Handles incoming ACTION_AUCTION_CONCLUDE on non-host peers.
+ * @param {Object} msg
+ */
+export function applyAuctionConcludeFromHost(msg) {
+  clearAuctionTimers();
+
+  if (msg.queueFinished) {
+    updateModalSlice('auction', { visible: false });
+    gameState.auction = null;
+    gameState.auctionQueueMeta = null;
+    return;
+  }
+
+  const a = gameState.auction;
+  const tileId = msg.tileId !== undefined ? msg.tileId : (a && a.tile ? a.tile.id : null);
+  const tile = tileId !== null ? BOARD_TILES[tileId] : (a ? a.tile : null);
+  const propState = tile ? gameState.properties[tile.id] : null;
+
+  if (a) {
+    a.active = false;
+    a.hasBids = Boolean(msg.hasBids);
+    a.highBidderIdx = msg.winnerIdx !== undefined ? msg.winnerIdx : null;
+    a.currentBid = typeof msg.winningBid === 'number' ? msg.winningBid : a.currentBid;
+  }
+
+  if (msg.hasBids && typeof msg.winnerIdx === 'number' && msg.winnerIdx !== null) {
+    const winner = gameState.players ? gameState.players[msg.winnerIdx] : null;
+    if (winner && propState) {
+      propState.owner = msg.winnerIdx;
+      propState.level = 0;
+      propState.mortgaged = false;
+      winner.cash -= (msg.winningBid || 0);
+
+      playSFX('win');
+      logEvent(`🏆 <strong>${winner.name}</strong> won the auction for <strong>${tile ? tile.name : 'Property'}</strong> at <strong>${fmtMoney(msg.winningBid || 0)}</strong>!`);
+
+      if (engineCallbacks.spawnFloatingCash) {
+        engineCallbacks.spawnFloatingCash(msg.winnerIdx, `-${fmtMoney(msg.winningBid || 0)}`, false);
+      }
+
+      refreshTileTextureAndBuildings(tile.id);
+      renderCornerHUDs();
+      checkAndTriggerMonopoly(msg.winnerIdx, tile.group);
+    }
+  } else {
+    if (propState) {
+      propState.owner = null;
+      propState.level = 0;
+      propState.mortgaged = false;
+      if (tile) refreshTileTextureAndBuildings(tile.id);
+    }
+    logEvent(`🔨 No bids were placed for <strong>${tile ? tile.name : 'Property'}</strong>. It returns to the Bank.`);
+  }
+
+  syncAuctionModalUI();
 }
 
 // Window self-registration for inline event handlers and global accessibility

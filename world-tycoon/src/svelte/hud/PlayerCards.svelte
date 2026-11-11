@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import { hudStore } from '../stores/hudStore.js';
   import { setEmpireSpotlight } from '../../three/scene.js';
 
@@ -41,6 +42,23 @@
       }
     }
   }
+
+  onMount(() => {
+    function onDocClick(e) {
+      if (activeSpotlightPlayerId !== null && !e.target.closest?.('.player-hud-card')) {
+        activeSpotlightPlayerId = null;
+        if (typeof setEmpireSpotlight === 'function') {
+          setEmpireSpotlight(null);
+        } else if (typeof window !== 'undefined' && window.setEmpireSpotlight) {
+          window.setEmpireSpotlight(null);
+        }
+      }
+    }
+    window.addEventListener('click', onDocClick);
+    return () => {
+      window.removeEventListener('click', onDocClick);
+    };
+  });
 </script>
 
 <!-- Left Players Column -->
