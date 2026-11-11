@@ -14,7 +14,8 @@ export const networkState = {
   hostConn: null,         // For guest: conn to host
   connectedPeersCount: 0,
   status: 'offline',      // 'offline' | 'connecting' | 'hosting' | 'connected' | 'error'
-  statusText: ''
+  statusText: '',
+  isReconnecting: false
 };
 
 export let networkCallbacks = {

@@ -361,43 +361,46 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
     }
   }
 
+  const arch = ARCHETYPES ? ARCHETYPES[p.hatStyle || 0] : null;
+  const avatarIcon = arch?.icon || '🎩';
+  const avatarInitial = p.name || 'YOU';
+
   if (!canvasDrawn && fallbackDiv) {
     if (targetCanvas) targetCanvas.classList.add('hidden');
     fallbackDiv.classList.remove('hidden');
     const iconEl = document.getElementById('monopoly-avatar-icon');
     const initialEl = document.getElementById('monopoly-avatar-initial');
     if (iconEl) {
-      const arch = ARCHETYPES ? ARCHETYPES[p.hatStyle || 0] : null;
-      iconEl.textContent = arch?.icon || '🎩';
+      iconEl.textContent = avatarIcon;
     }
-    if (initialEl) initialEl.textContent = p.name || 'YOU';
+    if (initialEl) initialEl.textContent = avatarInitial;
   }
 
-  // 2. Render Side-by-Side Tangible Property Deed Cards
+  // 2. Deed Cards Data for Svelte 5 MonopolyCelebrationModal
   const groupTiles = BOARD_TILES.filter(t => t.type === 'city' && t.group === groupKey);
-  const cardsContainer = document.getElementById('monopoly-cards-row');
-
-  if (cardsContainer) {
-    cardsContainer.innerHTML = groupTiles.map(t => {
-      const baseRent = t.rent ? (Array.isArray(t.rent) ? t.rent[0] : t.rent) : (t.price ? Math.round(t.price * 0.1) : 50000);
-      const boostedRent = (baseRent || 50000) * 2;
-      return `
-        <div class="monopoly-deed-card">
-          <div class="monopoly-deed-header" style="background-color: ${group.hex}">
-            <div class="monopoly-deed-check" style="background-color: ${p.colorHex || '#ef4444'}">
-              <svg class="ui-icon w-3 h-3 text-white" aria-hidden="true"><use href="#icon-check"></use></svg>
-            </div>
-          </div>
-          <div class="monopoly-deed-name" title="${t.name}">${t.name}</div>
-          <div class="monopoly-deed-rent">${fmtMoney(boostedRent)} / visit</div>
-        </div>
-      `;
-    }).join('');
-  }
+  const deedCards = groupTiles.map(t => {
+    const baseRent = t.rent ? (Array.isArray(t.rent) ? t.rent[0] : t.rent) : (t.price ? Math.round(t.price * 0.1) : 50000);
+    const boostedRent = (baseRent || 50000) * 2;
+    return {
+      name: t.name,
+      rentFormatted: `${fmtMoney(boostedRent)} / visit`,
+      colorHex: group.hex
+    };
+  });
 
   // 3. Update Ribbon Subtitle
   const winnerEl = document.getElementById('monopoly-winner-name');
   if (winnerEl) winnerEl.textContent = p.name;
+
+  updateModalSlice('monopolyCelebration', {
+    visible: true,
+    winnerName: p.name,
+    groupName: group.name,
+    groupColor: group.hex,
+    avatarInitial,
+    avatarIcon,
+    deedCards
+  });
 
   playSFX('win');
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.45, 120);
@@ -438,6 +441,7 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
 }
 
 export function closeMonopolyModal() {
+  updateModalSlice('monopolyCelebration', { visible: false });
   const m = document.getElementById('modal-monopoly-celebration');
   const card = document.getElementById('modal-monopoly-card');
   if (m && m._autoCloseTimer) {

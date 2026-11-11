@@ -50,6 +50,7 @@ import {
 } from '../network/p2p.js';
 import {
   closeAllGameModals,
+  closeTurnActionModals,
   registerEngineCallbacks,
   openMonopolyCelebrationModal,
   checkAndTriggerMonopoly,
@@ -328,6 +329,14 @@ export function initEngine() {
     },
     onSyncState: (incomingState, stateSeq = null) => {
       if (!incomingState) return;
+      if (networkState && networkState.isReconnecting) {
+        networkState.isReconnecting = false;
+        if (typeof window !== 'undefined') {
+          if (typeof window.cancelGuestReconnectGracePeriod === 'function') window.cancelGuestReconnectGracePeriod();
+          if (typeof window.closeReconnectGraceModal === 'function') window.closeReconnectGraceModal();
+        }
+        closeTurnActionModals();
+      }
       if (typeof stateSeq === 'number') {
         if (stateSeq < lastProcessedStateSeq) return;
         lastProcessedStateSeq = stateSeq;

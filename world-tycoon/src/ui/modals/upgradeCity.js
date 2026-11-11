@@ -10,7 +10,6 @@ import { playSFX } from '../../game/audio.js';
 import { calculateTileRent, getPropertyLevelMetadata } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import {
-  populateCityPreview3DScene,
   clearCityPreview,
   setTileHighlightRing,
   spawnGoldCoinShower,
@@ -21,8 +20,8 @@ import {
 import { setStatusPill, showTurnLockToast } from '../hud.js';
 import { fireConfettiBurst, spawnAnimatedReaction } from '../../three/effects.js';
 import { upgradeCityLevel } from './inspector.js';
-import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML } from './common.js';
-import { animateBuildingUpgradeBounce, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { engineCallbacks, isLobbyScreenActive } from './common.js';
+import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { playLandmarkCinematicReveal } from '../../three/theatre.js';
 import { setPlayerPortraitMood } from '../portraitRenderer.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
@@ -95,6 +94,7 @@ export function renderUpgradeModalContent(tile) {
 }
 
 export function confirmUpgradeFromModal() {
+  if (networkState && networkState.isReconnecting) return;
   const tile = gameState.pendingUpgradeTile;
   if (!tile) return;
   const st = gameState.properties[tile.id];
@@ -129,6 +129,7 @@ export function confirmUpgradeFromModal() {
 }
 
 export function confirmUpgradeTwoLevelsFromModal() {
+  if (networkState && networkState.isReconnecting) return;
   const tile = gameState.pendingUpgradeTile;
   if (!tile) return;
   const st = gameState.properties[tile.id];

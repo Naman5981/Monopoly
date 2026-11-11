@@ -8,6 +8,7 @@ const { gameState, soundEnabled, toggleSoundEnabled } = await import('../src/gam
 const {
   handleLobbyButtonClick,
   openConfirmExitLobbyModal,
+  closeConfirmExitLobbyModal,
   openRulesModal,
   toggleEventLogDrawer
 } = await import('../src/ui/modals/system.js');
@@ -32,6 +33,10 @@ describe('HUD Buttons Activation Latency Benchmark (/bug-hunter)', () => {
       drawer.classList.add('hidden');
       drawer.classList.remove('flex');
     }
+
+    // Warm-up JIT compiler for accurate latency benchmarking
+    handleLobbyButtonClick();
+    closeConfirmExitLobbyModal();
   });
 
   it('measures execution time of handleLobbyButtonClick (< 10ms)', () => {

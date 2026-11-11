@@ -108,6 +108,7 @@ export function openBuyoutCityModal(tile, isDoubles) {
 }
 
 export function confirmBuyoutCity() {
+  if (networkState && networkState.isReconnecting) return;
   clearBuyoutTimers();
   updateModalSlice('buyout', { visible: false });
   const tile = gameState.pendingBuyoutTile;

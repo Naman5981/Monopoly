@@ -11,19 +11,14 @@ import { calculatePlayerNetWorth, countCompletedColorGroups, checkLineMonopoly }
 import { networkState } from '../../network/p2p.js';
 import { isLobbyScreenActive, closeOtherInformationalModals } from './common.js';
 import { animateLeaderboardGauges, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
+import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    LIVE LEADERBOARD & NET WORTH STANDINGS MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function renderLeaderboardModal() {
-  const container = document.getElementById('leaderboard-players-list');
-  if (!container) return;
-
   const players = gameState.players || [];
-  if (!players.length) {
-    container.innerHTML = `<div class="text-center py-8 text-slate-500 font-bold">No active match in progress.</div>`;
-    return;
-  }
+  if (!players.length) return;
 
   // Calculate detailed stats for each player
   const standings = players.map((p, idx) => {
@@ -77,23 +72,27 @@ export function renderLeaderboardModal() {
   const totalNetWorth = standings.reduce((sum, s) => sum + Math.max(0, s.netWorth), 0) || 1;
 
   // Update match timer pill in modal header
+  const durationMins = matchSettings.matchDurationMinutes || 15;
+  const elapsedSecs = gameState.matchSeconds || 0;
+  const remainingSecs = Math.max(0, (durationMins * 60) - elapsedSecs);
+  const remM = Math.floor(remainingSecs / 60);
+  const remS = remainingSecs % 60;
+  const timeStr = `${String(remM).padStart(2, '0')}:${String(remS).padStart(2, '0')}`;
+  const matchTimerText = `⏱️ ${timeStr} left (${durationMins}m cap)`;
+
   const timerBadge = document.getElementById('leaderboard-match-timer');
   if (timerBadge) {
-    const durationMins = matchSettings.matchDurationMinutes || 15;
-    const elapsedSecs = gameState.matchSeconds || 0;
-    const remainingSecs = Math.max(0, (durationMins * 60) - elapsedSecs);
-    const remM = Math.floor(remainingSecs / 60);
-    const remS = remainingSecs % 60;
-    const timeStr = `${String(remM).padStart(2, '0')}:${String(remS).padStart(2, '0')}`;
-    timerBadge.textContent = `⏱️ ${timeStr} left (${durationMins}m cap)`;
+    timerBadge.textContent = matchTimerText;
   }
 
   // Summary banner (who leads net worth & who is closest to Triple Monopoly)
+  const leader = standings[0];
+  const topSetsPlayer = [...standings].sort((a, b) => b.sets - a.sets)[0];
+  const targetSets = matchSettings.monopolySetsToWin || 3;
+  const summaryText = `👑 Wealth Leader: ${leader?.player.name || 'None'} (${fmtMoney(leader?.netWorth || 0)}) • 🏰 Sets Leader: ${topSetsPlayer?.player.name || 'None'} (${topSetsPlayer?.sets || 0}/${targetSets})`;
+
   const summaryBanner = document.getElementById('leaderboard-summary-banner');
   if (summaryBanner) {
-    const leader = standings[0];
-    const topSetsPlayer = [...standings].sort((a, b) => b.sets - a.sets)[0];
-    const targetSets = matchSettings.monopolySetsToWin || 3;
     summaryBanner.innerHTML = `
       <div class="flex items-center gap-2">
         <span class="text-base">👑</span>
@@ -106,77 +105,24 @@ export function renderLeaderboardModal() {
     `;
   }
 
-  // Render player cards
-  const medals = ['🥇', '🥈', '🥉'];
-  container.innerHTML = standings.map((st, rankIdx) => {
-    const rank = rankIdx + 1;
-    const medal = rank <= 3 ? medals[rank - 1] : `#${rank}`;
-    const sharePercent = Math.min(100, Math.max(0, Math.round((st.netWorth / totalNetWorth) * 100)));
-    const isLeader = rank === 1 && !st.bankrupt;
+  const formattedStandings = standings.map((s, rankIdx) => ({
+    rank: rankIdx + 1,
+    name: s.player.name,
+    colorHex: s.theme.colorHex,
+    isLocal: s.isLocal,
+    isAI: s.player.isAI,
+    netWorthFormatted: fmtMoney(s.netWorth),
+    cashFormatted: fmtMoney(s.cash),
+    citiesCount: s.ownedPropsCount,
+    setsCount: s.sets
+  }));
 
-    const rankBorder = isLeader
-      ? 'border-2 border-amber-400 bg-gradient-to-r from-amber-50/90 via-white to-amber-50/50 shadow-md ring-2 ring-amber-300/40'
-      : (st.bankrupt ? 'border border-slate-200 bg-slate-100/70 opacity-60' : 'border border-slate-200 bg-white hover:border-sky-300 shadow-xs');
-
-    return `
-      <div class="rounded-2xl p-3.5 sm:p-4 transition ${rankBorder}">
-        <div class="flex items-center justify-between gap-3">
-          
-          <!-- Left: Rank & Avatar & Name -->
-          <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="w-8 h-8 rounded-full ${isLeader ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-100 text-slate-700 font-bold'} flex items-center justify-center text-sm shadow-xs flex-shrink-0">
-              ${medal}
-            </div>
-            
-            <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm flex items-center justify-center font-black text-white text-sm flex-shrink-0" style="background:${st.theme.colorHex}">
-              ${(st.player.name || 'P')[0].toUpperCase()}
-            </div>
-
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-black text-sm sm:text-base text-slate-900 truncate uppercase">${st.player.name}</span>
-                ${st.isLocal ? '<span class="text-[10px] font-black bg-sky-500 text-white px-2 py-0.5 rounded-full shadow-2xs">YOU</span>' : ''}
-                ${st.player.isAI ? '<span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md border border-slate-200">BOT</span>' : ''}
-                ${st.inIsland ? '<span class="text-[10px] font-black bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md border border-amber-300">🏝️ ISLAND</span>' : ''}
-                ${st.bankrupt ? '<span class="text-[10px] font-black bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-md border border-rose-300">BANKRUPT</span>' : ''}
-                ${st.lineMonopoly > 0 ? '<span class="text-[10px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md border border-emerald-300">👑 EDGE WIN</span>' : ''}
-              </div>
-              <div class="text-xs text-slate-500 font-semibold flex items-center gap-2 mt-0.5 flex-wrap">
-                <span>💵 Cash: <strong class="text-slate-800 font-bold">${st.bankrupt ? '$0' : fmtMoney(st.cash)}</strong></span>
-                <span>•</span>
-                <span>🏙️ Properties: <strong class="text-slate-800 font-bold">${st.ownedPropsCount} (${st.houseCount} 🏠)</strong></span>
-                <span>•</span>
-                <span>🏰 Monopolies: <strong class="text-indigo-700 font-bold">${st.sets}/3</strong></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: Total Net Worth Badge -->
-          <div class="text-right flex-shrink-0">
-            <div class="text-[10px] font-black uppercase text-slate-400 tracking-wider">NET WORTH</div>
-            <div class="font-display font-black text-base sm:text-lg ${isLeader ? 'text-amber-600' : 'text-slate-900'} leading-tight">
-              ${st.bankrupt ? '<span class="text-rose-500 font-bold text-sm">ELIMINATED</span>' : fmtMoney(st.netWorth)}
-            </div>
-            <div class="text-[10px] font-extrabold text-slate-500 mt-0.5">
-              ${st.bankrupt ? '0% share' : `${sharePercent}% wealth share`}
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Wealth Market Share Bar -->
-        ${!st.bankrupt ? `
-        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center gap-2">
-          <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div class="net-worth-bar-fill origin-left h-full rounded-full transition-[width] duration-500" style="width: ${sharePercent}%; background:${st.theme.colorHex}"></div>
-          </div>
-          <span class="text-[10px] font-bold text-slate-400 tabular-nums">${sharePercent}%</span>
-        </div>
-        ` : ''}
-
-      </div>
-    `;
-  }).join('');
+  updateModalSlice('leaderboard', {
+    visible: true,
+    matchTimerText,
+    summaryText,
+    standings: formattedStandings
+  });
 
   // Render post-match / in-match net worth timeline chart
   renderNetWorthTimelineChart('leaderboard-timeline-chart');
@@ -186,12 +132,14 @@ export function renderLeaderboardModal() {
 export function openLeaderboardModal() {
   if (isLobbyScreenActive()) return;
   closeOtherInformationalModals('modal-leaderboard');
+  updateModalSlice('leaderboard', { visible: true });
   renderLeaderboardModal();
   animateModalSpringOpen('#modal-leaderboard');
   playSFX('hop');
 }
 
 export function closeLeaderboardModal() {
+  updateModalSlice('leaderboard', { visible: false });
   animateModalSpringClose('#modal-leaderboard');
 }
 

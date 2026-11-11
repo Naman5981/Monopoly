@@ -5,6 +5,7 @@
  */
 
 import { BUILD_CONFIG } from './buildConfig.js';
+import { updateModalSlice } from '../svelte/stores/modalStore.js';
 
 let previousActiveElement = null;
 let keydownListenerAttached = false;
@@ -227,13 +228,20 @@ function handleModalKeydown(e) {
  * @param {Object} [info]
  */
 export function showUpdateAlertModal(info = null) {
-  if (typeof document === 'undefined') return;
-
   const versionInfo = info || cachedVersionCheckResult || {
     clientVersion: BUILD_CONFIG.VERSION,
     remoteVersion: 'Latest',
     releaseUrl: BUILD_CONFIG.RELEASE_URL,
   };
+
+  updateModalSlice('updateAlert', {
+    visible: true,
+    clientVersion: `v${versionInfo.clientVersion}`.replace(/^vv/, 'v'),
+    remoteVersion: `v${versionInfo.remoteVersion || 'Latest'}`.replace(/^vv/, 'v'),
+    downloadUrl: versionInfo.releaseUrl || BUILD_CONFIG.RELEASE_URL
+  });
+
+  if (typeof document === 'undefined') return;
 
   const modal = document.getElementById('modal-update-alert');
   if (!modal) return;
@@ -270,6 +278,8 @@ export function showUpdateAlertModal(info = null) {
  * Closes and hides the Update Alert Modal smoothly.
  */
 export function closeUpdateAlertModal() {
+  updateModalSlice('updateAlert', { visible: false });
+
   if (typeof document === 'undefined') return;
 
   const modal = document.getElementById('modal-update-alert');

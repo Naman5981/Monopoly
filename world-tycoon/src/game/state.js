@@ -166,6 +166,7 @@ export function setLocalPlayerIdx(idx) { localPlayerIdx = idx; }
  * and the game is in an actionable phase.
  */
 export function isHumanTurnActionable() {
+  if (networkState && networkState.isReconnecting) return false;
   const p = gameState.players[gameState.currentPlayerIdx];
   if (!p || p.isAI || gameState.currentPlayerIdx !== localPlayerIdx) return false;
   return (gameState.phase === 'ROLL' || gameState.phase === 'END');

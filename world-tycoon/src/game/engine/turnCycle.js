@@ -83,6 +83,7 @@ export function recordNetWorthSnapshot() {
 }
 
 export async function handleRollButtonClick() {
+  if (networkState && networkState.isReconnecting) return;
   const p = gameState.players[gameState.currentPlayerIdx];
   if (!p || p.isAI) return;
 
@@ -105,6 +106,7 @@ export async function handleRollButtonClick() {
 }
 
 export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
+  if (networkState && networkState.isReconnecting) return;
   if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
   hideDiceSumBadge();
   const pIdx = gameState.currentPlayerIdx;

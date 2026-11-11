@@ -10,6 +10,9 @@ import { joinRoom } from './p2pGuest.js';
 import { updateMultiplayerUI, handleMatchDisconnectReturnToLobby } from './p2pUI.js';
 import { renderCornerHUDs, updateRollButtonsUI, logEvent } from '../ui/hud.js';
 import { resumeActiveTurn } from '../game/engine.js';
+import { cancelAllGameTimers } from '../game/engine/turnCycle.js';
+import { closeTurnActionModals } from '../ui/modals/common.js';
+import { updateModalSlice } from '../svelte/stores/modalStore.js';
 import { playSFX } from '../game/audio.js';
 
 let reconnectIntervalId = null;
@@ -20,6 +23,7 @@ let activeReconnectRoomCode = null;
  * Converts all remote human players into autonomous AI bots so the match can continue seamlessly offline.
  */
 export function convertRemotePlayersToBots() {
+  networkState.isReconnecting = false;
   cancelGuestReconnectGracePeriod();
   closeReconnectGraceModal();
 
@@ -52,34 +56,25 @@ export function convertRemotePlayersToBots() {
 }
 
 export function showReconnectGraceModal(roomCode, secondsRemaining) {
-  const modal = document.getElementById('modal-reconnect-grace');
-  if (!modal) return;
+  const statusDesc = secondsRemaining > 0 
+    ? `Host refreshed or disconnected. Attempting to re-link to Room ${roomCode}...` 
+    : 'Host did not reconnect in time.';
 
-  const timerEl = document.getElementById('reconnect-timer-text');
-  const codeEl = document.getElementById('reconnect-room-code');
-  const statusEl = document.getElementById('reconnect-status-desc');
-
-  if (codeEl) codeEl.textContent = roomCode || 'ROOM';
-  if (timerEl) timerEl.textContent = `${secondsRemaining}s`;
-  if (statusEl) {
-    statusEl.textContent = secondsRemaining > 0 
-      ? `Host refreshed or disconnected. Attempting to re-link to Room ${roomCode}...` 
-      : 'Host did not reconnect in time.';
-  }
-
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+  updateModalSlice('reconnectGrace', {
+    visible: true,
+    roomCode: roomCode || 'ROOM',
+    secondsRemaining: Math.max(0, secondsRemaining),
+    statusDesc
+  });
 }
 
 export function closeReconnectGraceModal() {
-  const modal = document.getElementById('modal-reconnect-grace');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
+  networkState.isReconnecting = false;
+  updateModalSlice('reconnectGrace', { visible: false });
 }
 
 export function cancelGuestReconnectGracePeriod() {
+  networkState.isReconnecting = false;
   if (reconnectIntervalId) {
     clearInterval(reconnectIntervalId);
     reconnectIntervalId = null;
@@ -95,6 +90,10 @@ export function startGuestReconnectGracePeriod(roomCode, timeoutSeconds = 30) {
   }
 
   cancelGuestReconnectGracePeriod();
+  networkState.isReconnecting = true;
+  cancelAllGameTimers();
+  closeTurnActionModals();
+
   activeReconnectRoomCode = roomCode;
   reconnectCountdownSeconds = timeoutSeconds;
 

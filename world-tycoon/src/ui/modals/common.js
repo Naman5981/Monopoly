@@ -6,6 +6,7 @@
 import { gameState } from '../../game/state.js';
 import { clearCityPreview } from '../../three/stages/cityPreview.js';
 import { getPropertyLevelMetadata } from '../../game/rules.js';
+import { closeAllModalsInStore, updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 export const engineCallbacks = {};
 
@@ -221,6 +222,11 @@ if (typeof window !== 'undefined') {
  */
 export function closeTurnActionModals() {
   clearCityPreview();
+  updateModalSlice('buyCity', { visible: false });
+  updateModalSlice('upgradeCity', { visible: false });
+  updateModalSlice('buyout', { visible: false });
+  updateModalSlice('chanceWheel', { visible: false, resultVisible: false });
+  updateModalSlice('festivalBoost', { visible: false, noPropertiesVisible: false });
   TURN_ACTION_MODAL_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -250,6 +256,7 @@ if (typeof window !== 'undefined') {
 export function closeAllGameModals() {
   releaseFocus();
   clearCityPreview();
+  closeAllModalsInStore();
   const modalIds = [
     'modal-victory',
     'modal-monopoly-celebration',

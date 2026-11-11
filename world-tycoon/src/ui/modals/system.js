@@ -169,24 +169,27 @@ export function toggleEventLogDrawer() {
    EXIT TO LOBBY CONFIRMATION MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function openConfirmExitLobbyModal() {
+  let title = 'EXIT TO LOBBY?';
+  let description = 'End current game session and return to lobby? Unsaved match progress will be lost.';
+
+  if (networkState && networkState.isMultiplayer) {
+    if (networkState.isHost) {
+      title = 'RETURN TO LOBBY?';
+      description = 'End the online match for everyone and return all table players to the room lobby?';
+    } else {
+      title = 'LEAVE MATCH?';
+      description = 'Exit current match back to the lobby? An autonomous AI bot will take over your empire.';
+    }
+  }
+
+  updateModalSlice('confirmExitLobby', {
+    visible: true,
+    title,
+    description
+  });
+
   const m = document.getElementById('modal-confirm-exit-lobby');
   if (m) {
-    const titleEl = document.getElementById('confirm-exit-lobby-title');
-    const descEl = document.getElementById('confirm-exit-lobby-desc');
-
-    if (networkState.isMultiplayer) {
-      if (networkState.isHost) {
-        if (titleEl) titleEl.textContent = 'RETURN TO LOBBY?';
-        if (descEl) descEl.textContent = 'End the online match for everyone and return all table players to the room lobby?';
-      } else {
-        if (titleEl) titleEl.textContent = 'LEAVE MATCH?';
-        if (descEl) descEl.textContent = 'Exit current match back to the lobby? An autonomous AI bot will take over your empire.';
-      }
-    } else {
-      if (titleEl) titleEl.textContent = 'EXIT TO LOBBY?';
-      if (descEl) descEl.textContent = 'End current game session and return to lobby? Unsaved match progress will be lost.';
-    }
-
     m.style.removeProperty('display');
     m.style.removeProperty('pointer-events');
     animateModalSpringOpen(m, '#modal-confirm-exit-lobby .game-modal-shell');
@@ -195,6 +198,7 @@ export function openConfirmExitLobbyModal() {
 }
 
 export function closeConfirmExitLobbyModal() {
+  updateModalSlice('confirmExitLobby', { visible: false });
   const m = document.getElementById('modal-confirm-exit-lobby');
   if (m) {
     animateModalSpringClose(m, '#modal-confirm-exit-lobby .game-modal-shell', () => {

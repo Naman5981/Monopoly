@@ -8,6 +8,7 @@ import { BOARD_TILES, applyBoardEdition } from './data.js';
 import { fmtMoney } from './utils.js';
 import { refreshTileTextureAndBuildings, spawnAllPlayerTokens3D, updatePlayerTokenPositions3D, showSpeechBubble, applyBoardStyle } from '../three/scene.js';
 import { renderCornerHUDs, updateRollButtonsUI, logEvent } from '../ui/hud.js';
+import { updateModalSlice } from '../svelte/stores/modalStore.js';
 import { playSFX, startAdaptiveMusic } from './audio.js';
 import { resumeActiveTurn } from './engine.js';
 import { closeAllGameModals } from '../ui/modals/common.js';
@@ -202,69 +203,37 @@ export function checkAndPromptResumeMatch() {
   const data = getSavedMatchData();
   if (!data) return false;
 
-  const m = document.getElementById('modal-resume-match');
-  if (!m) return false;
-
-  // Populate preview card
   const curP = data.gameState.players[data.gameState.currentPlayerIdx] || data.gameState.players[0];
   const mins = String(Math.floor((data.matchSeconds || 0) / 60)).padStart(2, '0');
   const secs = String((data.matchSeconds || 0) % 60).padStart(2, '0');
 
-  const metaEl = document.getElementById('resume-match-meta');
-  if (metaEl) {
-    const multiTag = data.isMultiplayer ? `
-      <div class="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-xs text-amber-300">
-        <span class="flex items-center gap-1.5"><i class="fa-solid fa-tower-broadcast"></i> Multiplayer Session (${data.isHost ? 'Host' : 'Guest'})</span>
-        <span class="font-mono font-black bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">Room ${data.roomCode || 'CODE'}</span>
-      </div>
-    ` : '';
+  const players = (data.gameState.players || []).map((p, idx) => {
+    const ownedCount = Object.values(data.gameState.properties || {}).filter(pr => pr && pr.owner === idx).length;
+    return {
+      name: p.name,
+      colorHex: p.colorHex || '#6366f1',
+      isAI: Boolean(p.isAI),
+      cashFormatted: fmtMoney(p.cash),
+      ownedCount
+    };
+  });
 
-    metaEl.innerHTML = `
-      <div class="flex items-center justify-between text-xs font-bold text-slate-300">
-        <span class="flex items-center gap-1.5">
-          <i class="fa-solid fa-stopwatch text-emerald-400"></i>
-          <span>Match Time:</span>
-          <strong class="font-mono text-emerald-300 font-black">${mins}:${secs}</strong>
-        </span>
-        <span class="flex items-center gap-1.5">
-          <i class="fa-solid fa-dice text-amber-400"></i>
-          <span>Turn:</span>
-          <span class="inline-flex items-center gap-1.5 font-display font-black text-white px-2 py-0.5 rounded-full bg-white/10 border border-white/10">
-            <span class="w-2 h-2 rounded-full inline-block shrink-0 shadow-xs" style="background:${curP?.colorHex || '#10b981'}"></span>
-            <span>${curP?.name || 'Player'}</span>
-          </span>
-        </span>
-      </div>
-      ${multiTag}
-    `;
-  }
+  updateModalSlice('resumeMatch', {
+    visible: true,
+    matchTimeFormatted: `${mins}:${secs}`,
+    currentPlayerName: curP?.name || 'Player',
+    currentPlayerColor: curP?.colorHex || '#10b981',
+    isMultiplayer: Boolean(data.isMultiplayer),
+    isHost: Boolean(data.isHost),
+    roomCode: data.roomCode || '',
+    players
+  });
 
-  const rosterEl = document.getElementById('resume-player-roster');
-  if (rosterEl) {
-    rosterEl.innerHTML = data.gameState.players.map((p, idx) => {
-      const ownedCount = Object.values(data.gameState.properties).filter(pr => pr && pr.owner === idx).length;
-      return `
-        <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 text-xs transition-colors">
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full shrink-0 shadow-xs" style="background:${p.colorHex || '#6366f1'}"></span>
-            <span class="font-display font-black text-white text-xs sm:text-sm tracking-wide">${p.name}</span>
-            ${p.isAI ? '<span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-md bg-white/10 text-slate-400 border border-white/10">AI</span>' : ''}
-          </div>
-          <div class="text-right flex items-center gap-1.5">
-            <span class="font-mono font-black text-emerald-400 text-xs sm:text-sm">${fmtMoney(p.cash)}</span>
-            <span class="text-[11px] text-slate-400 font-semibold font-mono">(${ownedCount} ${ownedCount === 1 ? 'city' : 'cities'})</span>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  m.classList.remove('hidden');
-  m.classList.add('flex');
   return true;
 }
 
 export function closeResumeModal() {
+  updateModalSlice('resumeMatch', { visible: false });
   const m = document.getElementById('modal-resume-match');
   if (m) {
     if (typeof anime !== 'undefined') anime.remove(m);

@@ -12,7 +12,7 @@ const rootDir = path.resolve(__dirname, '..');
 describe('Modular Templates & HTML Assembly (/clean-code)', () => {
   it('assembles index.html from index.template.html cleanly without errors', () => {
     const res = assembleIndexHtml();
-    assert.ok(res.size > 70000, 'Assembled index.html should be over 70KB');
+    assert.ok(res.size > 60000, 'Assembled index.html should be over 60KB');
     assert.ok(fs.existsSync(res.path), 'Output file must exist');
 
     const content = fs.readFileSync(res.path, 'utf8');

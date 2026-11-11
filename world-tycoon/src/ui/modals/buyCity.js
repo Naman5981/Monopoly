@@ -9,7 +9,6 @@ import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import {
-  populateCityPreview3DScene,
   clearCityPreview,
   setTileHighlightRing,
   refreshTileTextureAndBuildings,
@@ -68,6 +67,7 @@ export function openBuyCityModal(tile, isDoubles) {
 }
 
 export function confirmBuyCity() {
+  if (networkState && networkState.isReconnecting) return;
   const tile = gameState.pendingBuyTile;
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
@@ -108,6 +108,7 @@ export function confirmBuyCity() {
 }
 
 export function passBuyCity() {
+  if (networkState && networkState.isReconnecting) return;
   const tile = gameState.pendingBuyTile;
   const isDoubles = gameState.pendingDoubles;
   if (tile) {

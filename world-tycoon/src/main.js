@@ -110,9 +110,6 @@ import {
   closeUpgradeCityModal,
   confirmUpgradeFromModal,
   confirmUpgradeTwoLevelsFromModal,
-  startCityAuction,
-  placeAuctionBid,
-  passAuctionBid,
   spinChanceWheel,
   showChanceAwardPopup,
   openInspectorModal,
@@ -337,9 +334,9 @@ window.openUpgradeCityModal = openUpgradeCityModal;
 window.closeUpgradeCityModal = closeUpgradeCityModal;
 window.confirmUpgradeFromModal = confirmUpgradeFromModal;
 window.confirmUpgradeTwoLevelsFromModal = confirmUpgradeTwoLevelsFromModal;
-window.startCityAuction = startCityAuction;
-window.placeAuctionBid = placeAuctionBid;
-window.passAuctionBid = passAuctionBid;
+window.startCityAuction = () => {};
+window.placeAuctionBid = () => {};
+window.passAuctionBid = () => {};
 window.spinChanceWheel = spinChanceWheel;
 window.showChanceAwardPopup = showChanceAwardPopup;
 window.executeWorldTourFlight = executeWorldTourFlight;
@@ -545,7 +542,7 @@ function initApp() {
   let phaseEndStallSeconds = 0;
   let hostRemoteRollGraceSeconds = 0;
   setInterval(() => {
-    if (!gameState.gameStarted || gameState.phase === 'VICTORY' || gameState.phase === 'SETUP') return;
+    if (!gameState.gameStarted || gameState.phase === 'VICTORY' || gameState.phase === 'SETUP' || (networkState && networkState.isReconnecting)) return;
     incrementMatchSeconds();
     const mins = String(Math.floor(matchSeconds / 60)).padStart(2, '0');
     const secs = String(matchSeconds % 60).padStart(2, '0');

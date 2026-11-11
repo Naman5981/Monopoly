@@ -139,6 +139,53 @@ const initialModalState = {
     visible: false,
     activeCategory: 'hat',
     starsBalance: 500
+  },
+  resumeMatch: {
+    visible: false,
+    matchTimeFormatted: '00:00',
+    currentPlayerName: 'Player',
+    currentPlayerColor: '#10b981',
+    isMultiplayer: false,
+    isHost: false,
+    roomCode: '',
+    players: []
+  },
+  disconnectNotice: {
+    visible: false,
+    message: 'Player disconnected. Returning to lobby.'
+  },
+  confirmExitLobby: {
+    visible: false,
+    title: 'EXIT TO LOBBY?',
+    description: 'End current game session and return to lobby? Unsaved progress will be lost.'
+  },
+  reconnectGrace: {
+    visible: false,
+    roomCode: 'ROOM',
+    secondsRemaining: 30,
+    statusDesc: 'Host refreshed or disconnected. Attempting to re-link to room...'
+  },
+  leaderboard: {
+    visible: false,
+    matchTimerText: '15m match',
+    summaryText: '',
+    standings: [],
+    history: []
+  },
+  monopolyCelebration: {
+    visible: false,
+    winnerName: 'Player',
+    groupName: 'ORANGE',
+    groupColor: '#f97316',
+    avatarInitial: 'P',
+    avatarIcon: '🎩',
+    deedCards: []
+  },
+  updateAlert: {
+    visible: false,
+    clientVersion: 'v1.0.8',
+    remoteVersion: 'v1.0.8',
+    downloadUrl: 'https://github.com/Naman5981/Monopoly/releases/latest'
   }
 };
 
@@ -178,7 +225,14 @@ export function closeAllModalsInStore() {
       portfolio: { ...state.portfolio, visible: false },
       rules: { ...state.rules, visible: false },
       victory: { ...state.victory, visible: false },
-      wardrobe: { ...state.wardrobe, visible: false }
+      wardrobe: { ...state.wardrobe, visible: false },
+      resumeMatch: { ...state.resumeMatch, visible: false },
+      disconnectNotice: { ...state.disconnectNotice, visible: false },
+      confirmExitLobby: { ...state.confirmExitLobby, visible: false },
+      reconnectGrace: { ...state.reconnectGrace, visible: false },
+      leaderboard: { ...state.leaderboard, visible: false },
+      monopolyCelebration: { ...state.monopolyCelebration, visible: false },
+      updateAlert: { ...state.updateAlert, visible: false }
     };
     for (const key of Object.keys(nextState)) {
       syncModalDom(key, nextState[key]);
@@ -284,6 +338,34 @@ function syncModalDom(modalKey, slice) {
           el.classList.remove('flex');
         }
       }
+      break;
+    }
+    case 'resumeMatch': {
+      toggleElementVisibility('modal-resume-match', slice.visible);
+      break;
+    }
+    case 'disconnectNotice': {
+      toggleElementVisibility('modal-disconnect-notice', slice.visible);
+      break;
+    }
+    case 'confirmExitLobby': {
+      toggleElementVisibility('modal-confirm-exit-lobby', slice.visible);
+      break;
+    }
+    case 'reconnectGrace': {
+      toggleElementVisibility('modal-reconnect-grace', slice.visible);
+      break;
+    }
+    case 'leaderboard': {
+      toggleElementVisibility('modal-leaderboard', slice.visible);
+      break;
+    }
+    case 'monopolyCelebration': {
+      toggleElementVisibility('modal-monopoly-celebration', slice.visible);
+      break;
+    }
+    case 'updateAlert': {
+      toggleElementVisibility('modal-update-alert', slice.visible);
       break;
     }
   }

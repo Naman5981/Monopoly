@@ -8,6 +8,7 @@ import { logEvent } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { networkState, networkCallbacks, stopHostHeartbeat } from './p2pState.js';
 import { updateHudState } from '../svelte/stores/hudStore.js';
+import { updateModalSlice } from '../svelte/stores/modalStore.js';
 
 export function leaveMultiplayerRoom() {
   stopHostHeartbeat();
@@ -45,27 +46,19 @@ export function leaveMultiplayerRoom() {
 
 export function handleMatchDisconnectReturnToLobby(reason = 'A player disconnected from the match.') {
   gameState.gameStarted = false;
+  const fullMsg = `${reason} The current match has been terminated and all participants have been returned to the lobby.`;
 
-  const noticeModal = document.getElementById('modal-disconnect-notice');
-  const textEl = document.getElementById('disconnect-notice-text');
-  if (textEl) {
-    textEl.textContent = `${reason} The current match has been terminated and all participants have been returned to the lobby.`;
-  }
-  if (noticeModal) {
-    noticeModal.classList.remove('hidden');
-    noticeModal.classList.add('flex');
-  }
+  updateModalSlice('disconnectNotice', {
+    visible: true,
+    message: fullMsg
+  });
 
   playSFX('hop');
   logEvent(`⚠️ Match ended: ${reason}`);
 }
 
 export function returnToLobbyFromDisconnect() {
-  const noticeModal = document.getElementById('modal-disconnect-notice');
-  if (noticeModal) {
-    noticeModal.classList.add('hidden');
-    noticeModal.classList.remove('flex');
-  }
+  updateModalSlice('disconnectNotice', { visible: false });
 
   if (window.openLandingSetupScreen) {
     window.openLandingSetupScreen();

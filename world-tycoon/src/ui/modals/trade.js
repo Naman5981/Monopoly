@@ -88,38 +88,43 @@ export function openTradeModal() {
 export function populateTradePartnerProps() {
   const selectEl = document.getElementById('trade-partner-select');
   const reqPropsEl = document.getElementById('trade-req-props');
-  if (!selectEl || !reqPropsEl) return;
+  if (!selectEl) return;
   const pIdx = parseInt(selectEl.value, 10);
   const myIdx = (networkState && networkState.isMultiplayer) ? networkState.localPlayerIdx : (localPlayerIdx || 0);
   const me = gameState.players ? gameState.players[myIdx] : null;
   const partner = gameState.players ? gameState.players[pIdx] : null;
 
-  // Update wallet badges & cash hints
   const myWalletEl = document.getElementById('trade-my-wallet');
   const partnerWalletEl = document.getElementById('trade-partner-wallet');
-  const myHintEl = document.getElementById('trade-my-cash-hint');
-  const partnerHintEl = document.getElementById('trade-partner-cash-hint');
-  const offerCashEl = document.getElementById('trade-offer-cash');
-  const reqCashEl = document.getElementById('trade-req-cash');
 
   if (myWalletEl && me) myWalletEl.textContent = `Wallet: ${fmtMoney(me.cash)}`;
   if (partnerWalletEl && partner) partnerWalletEl.textContent = `Wallet: ${fmtMoney(partner.cash)}`;
-  if (myHintEl && me) myHintEl.textContent = `Max: ${Math.floor(Math.max(0, me.cash) / 1000)}K`;
-  if (partnerHintEl && partner) partnerHintEl.textContent = `Max: ${Math.floor(Math.max(0, partner.cash) / 1000)}K`;
-  if (offerCashEl && me) offerCashEl.max = Math.floor(Math.max(0, me.cash) / 1000);
-  if (reqCashEl && partner) reqCashEl.max = Math.floor(Math.max(0, partner.cash) / 1000);
 
   if (isNaN(pIdx)) {
-    reqPropsEl.innerHTML = '<div class="text-xs font-bold text-slate-500 py-2 text-center">No partner selected</div>';
+    if (reqPropsEl) reqPropsEl.innerHTML = '<div class="text-xs font-bold text-slate-500 py-2 text-center">No partner selected</div>';
     return;
   }
   const props = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === pIdx);
-  reqPropsEl.innerHTML = props.map(t => `
-    <label class="flex items-center justify-between text-xs font-black bg-white px-3 py-2 rounded-xl border-2 border-slate-200 text-slate-800 cursor-pointer hover:border-slate-300">
-      <span class="flex items-center gap-1.5"><input type="checkbox" value="${t.id}" class="trade-their-prop mr-1 w-3.5 h-3.5">${t.name}</span>
-      <span class="font-black text-emerald-700">${fmtMoney(t.price)}</span>
-    </label>
-  `).join('') || '<div class="text-xs font-bold text-slate-500 py-2 text-center">No cities owned</div>';
+
+  updateModalSlice('trade', {
+    partnerIdx: pIdx,
+    partnerWallet: fmtMoney(partner?.cash || 0),
+    partnerProperties: props.map(t => ({
+      id: t.id,
+      name: t.name,
+      color: t.colorHex || '#3b82f6',
+      rentFormatted: fmtMoney(t.price || 0)
+    }))
+  });
+
+  if (reqPropsEl) {
+    reqPropsEl.innerHTML = props.map(t => `
+      <label class="flex items-center justify-between text-xs font-black bg-white px-3 py-2 rounded-xl border-2 border-slate-200 text-slate-800 cursor-pointer hover:border-slate-300">
+        <span class="flex items-center gap-1.5"><input type="checkbox" value="${t.id}" class="trade-their-prop mr-1 w-3.5 h-3.5">${t.name}</span>
+        <span class="font-black text-emerald-700">${fmtMoney(t.price)}</span>
+      </label>
+    `).join('') || '<div class="text-xs font-bold text-slate-500 py-2 text-center">No cities owned</div>';
+  }
 }
 
 export function completeTradeTransfer(giverIdx, receiverIdx, offerCash = 0, reqCash = 0, offerTileIds = [], reqTileIds = []) {
