@@ -52,6 +52,42 @@ export function generateRoomCode() {
   return res;
 }
 
+export const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'stun:stun.services.mozilla.com' },
+  { urls: 'stun:global.stun.twilio.com:3478' }
+];
+
+let hostHeartbeatTimer = null;
+
+export function startHostHeartbeat() {
+  stopHostHeartbeat();
+  hostHeartbeatTimer = setInterval(() => {
+    if (networkState.isHost && networkState.peer && !networkState.peer.destroyed) {
+      if (networkState.peer.disconnected) {
+        console.warn('[P2P Signaling] Host peer was disconnected from signaling server, reconnecting...');
+        try {
+          networkState.peer.reconnect();
+        } catch (err) {
+          console.warn('[P2P Signaling] Reconnect attempt failed:', err);
+        }
+      }
+    }
+  }, 12000);
+}
+
+export function stopHostHeartbeat() {
+  if (hostHeartbeatTimer) {
+    clearInterval(hostHeartbeatTimer);
+    hostHeartbeatTimer = null;
+  }
+}
+
 export function formatPeerRoomId(code) {
   return `worldtycoon-v1-${code.toUpperCase().trim()}`;
 }

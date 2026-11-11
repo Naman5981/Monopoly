@@ -104,11 +104,21 @@ export function initLandingSetup() {
     const roomParam = params.get('room');
     if (roomParam) {
       showMultiplayerSetup();
-      const code = roomParam.toUpperCase().trim();
+      const code = roomParam.toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
       const portalInput = document.getElementById('input-p2p-room-code-portal');
       if (portalInput) portalInput.value = code;
       const input = document.getElementById('input-p2p-room-code');
       if (input) input.value = code;
+
+      const portalStatusEl = document.getElementById('portal-p2p-status-text');
+      if (portalStatusEl) {
+        portalStatusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-emerald-500 mr-1"></i> Invite link for Room <strong>${code}</strong> detected. Connecting...`;
+      }
+
+      // Auto-trigger join after DOM elements and PeerJS scripts finish readying
+      setTimeout(() => {
+        joinP2PRoomFromPortal();
+      }, 700);
     }
   }
 }
@@ -138,14 +148,19 @@ export async function joinP2PRoomFromPortal() {
 
 export async function hostP2PRoom() {
   const statusEl = document.getElementById('setup-p2p-status-text');
+  const portalStatusEl = document.getElementById('portal-p2p-status-text');
   try {
-    if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sky-500 mr-1"></i> Creating room...';
+    const loadingHtml = '<i class="fa-solid fa-spinner fa-spin text-sky-500 mr-1"></i> Creating room...';
+    if (statusEl) statusEl.innerHTML = loadingHtml;
+    if (portalStatusEl) portalStatusEl.innerHTML = loadingHtml;
     await hostRoom();
     setLobbyView('multiplayer-room');
     updateMultiplayerUI();
     renderPlayerCards();
   } catch (err) {
-    if (statusEl) statusEl.innerHTML = `<span class="text-rose-600 font-bold">❌ Error: ${err.message || 'Room creation failed'}</span>`;
+    const errHtml = `<span class="text-rose-600 font-bold">❌ Error: ${err.message || 'Room creation failed'}</span>`;
+    if (statusEl) statusEl.innerHTML = errHtml;
+    if (portalStatusEl) portalStatusEl.innerHTML = errHtml;
   }
 }
 

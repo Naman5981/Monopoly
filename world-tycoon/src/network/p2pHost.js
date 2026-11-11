@@ -7,7 +7,7 @@ import { gameState, setupPlayers, matchSettings, lobbyPlayerCount, setLobbyPlaye
 import { logEvent, renderCornerHUDs } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { PLAYER_THEMES } from '../game/data.js';
-import { networkState, networkCallbacks, generateRoomCode, formatPeerRoomId } from './p2pState.js';
+import { networkState, networkCallbacks, generateRoomCode, formatPeerRoomId, ICE_SERVERS, startHostHeartbeat } from './p2pState.js';
 import { updateMultiplayerUI } from './p2pUI.js';
 import { executeIncomingNetworkAction } from './p2pActions.js';
 import { isValidPacket, sanitizeProfileUpdate, createSafeLobbyStatePacket } from './protocol.js';
@@ -39,11 +39,7 @@ export function hostRoom(customCode = null) {
     const peer = new Peer(peerId, {
       debug: 1,
       config: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' }
-        ]
+        iceServers: ICE_SERVERS
       }
     });
 
@@ -61,9 +57,21 @@ export function hostRoom(customCode = null) {
       setupPlayers[0].isOnlinePeer = false;
       setupPlayers[0].peerId = id;
 
+      startHostHeartbeat();
       updateMultiplayerUI();
       logEvent(`👑 Room <strong>${code}</strong> created! Share this code with friends.`);
       resolve(code);
+    });
+
+    peer.on('disconnected', () => {
+      console.warn(`[P2P Host] Signaling connection disconnected for room ${code}. Reconnecting...`);
+      if (networkState.isHost && networkState.peer && !networkState.peer.destroyed) {
+        try {
+          networkState.peer.reconnect();
+        } catch (err) {
+          console.warn('[P2P Host] Reconnect error:', err);
+        }
+      }
     });
 
     peer.on('connection', (conn) => {
@@ -72,8 +80,15 @@ export function hostRoom(customCode = null) {
 
     peer.on('error', (err) => {
       console.warn('[P2P Host Error]', err);
+      if (err.type === 'unavailable-id' && !customCode) {
+        console.warn(`[P2P Host] Room code ${code} was already occupied. Retrying with a new code...`);
+        hostRoom(null).then(resolve).catch(reject);
+        return;
+      }
       networkState.status = 'error';
-      networkState.statusText = 'Room creation failed.';
+      networkState.statusText = err.type === 'unavailable-id'
+        ? `Room code ${code} is currently in use. Please try again.`
+        : 'Room creation failed.';
       updateMultiplayerUI();
       reject(err);
     });

@@ -6,9 +6,10 @@
 import { gameState, setupPlayers, setLocalPlayerIdx } from '../game/state.js';
 import { logEvent } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
-import { networkState, networkCallbacks } from './p2pState.js';
+import { networkState, networkCallbacks, stopHostHeartbeat } from './p2pState.js';
 
 export function leaveMultiplayerRoom() {
+  stopHostHeartbeat();
   if (networkState.peer) {
     try { networkState.peer.destroy(); } catch (_) {}
   }

@@ -8,7 +8,7 @@ import { PLAYER_THEMES, applyBoardEdition } from '../game/data.js';
 import { getSceneLighting, applyBoardStyle, refreshAllTileTexturesAndMaterials, updateLobbyHeroAvatar } from '../three/scene.js';
 import { applyLightingMode, stopVictoryCelebration } from '../three/effects.js';
 import { logEvent, renderCornerHUDs } from '../ui/hud.js';
-import { networkState, networkCallbacks, formatPeerRoomId } from './p2pState.js';
+import { networkState, networkCallbacks, formatPeerRoomId, ICE_SERVERS } from './p2pState.js';
 import { updateMultiplayerUI, leaveMultiplayerRoom, handleMatchDisconnectReturnToLobby } from './p2pUI.js';
 import { executeIncomingNetworkAction } from './p2pActions.js';
 
@@ -32,14 +32,49 @@ export function joinRoom(roomCode, playerProfile = {}) {
     networkState.isHost = false;
     networkState.isMultiplayer = true;
 
+    let isSettled = false;
+    let stepTimer1 = null;
+    let stepTimer2 = null;
+
+    const cleanupTimers = () => {
+      if (joinTimeoutTimer) clearTimeout(joinTimeoutTimer);
+      if (stepTimer1) clearTimeout(stepTimer1);
+      if (stepTimer2) clearTimeout(stepTimer2);
+    };
+
+    // Watchdog timer (14s max before failing gracefully instead of hanging indefinitely)
+    const joinTimeoutTimer = setTimeout(() => {
+      if (!isSettled) {
+        isSettled = true;
+        cleanupTimers();
+        console.warn(`[P2P Guest] Connection to room ${code} timed out.`);
+        networkState.status = 'error';
+        const timeoutMsg = `Could not connect to Room "${code}". Verify the room code and ensure the host is online in the room lobby.`;
+        networkState.statusText = timeoutMsg;
+        try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
+        updateMultiplayerUI();
+        reject(new Error(timeoutMsg));
+      }
+    }, 14000);
+
+    stepTimer1 = setTimeout(() => {
+      if (!isSettled && networkState.status === 'connecting') {
+        networkState.statusText = `Locating host for Room ${code}...`;
+        updateMultiplayerUI();
+      }
+    }, 3000);
+
+    stepTimer2 = setTimeout(() => {
+      if (!isSettled && networkState.status === 'connecting') {
+        networkState.statusText = `Negotiating P2P connection...`;
+        updateMultiplayerUI();
+      }
+    }, 7000);
+
     const peer = new Peer(null, {
       debug: 1,
       config: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' }
-        ]
+        iceServers: ICE_SERVERS
       }
     });
 
@@ -47,10 +82,14 @@ export function joinRoom(roomCode, playerProfile = {}) {
 
     peer.on('open', (id) => {
       networkState.peerId = id;
-      const conn = peer.connect(targetPeerId, { reliable: true });
+      const conn = peer.connect(targetPeerId);
       networkState.hostConn = conn;
 
       conn.on('open', () => {
+        if (isSettled) return;
+        isSettled = true;
+        cleanupTimers();
+
         networkState.status = 'connected';
         networkState.statusText = `Joined Room: ${code}`;
         conn.send({
@@ -61,11 +100,47 @@ export function joinRoom(roomCode, playerProfile = {}) {
         resolve(code);
       });
 
+      // Monitor underlying WebRTC ICE connection for fast failure detection
+      const monitorIce = () => {
+        try {
+          const pc = conn.peerConnection;
+          if (pc) {
+            pc.addEventListener('iceconnectionstatechange', () => {
+              if (pc.iceConnectionState === 'failed') {
+                if (!isSettled) {
+                  isSettled = true;
+                  cleanupTimers();
+                  networkState.status = 'error';
+                  const iceMsg = `P2P connection blocked by network NAT/firewall. Try disabling VPN or using mobile hotspot.`;
+                  networkState.statusText = iceMsg;
+                  try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
+                  updateMultiplayerUI();
+                  reject(new Error(iceMsg));
+                }
+              }
+            });
+          }
+        } catch (_) {}
+      };
+      setTimeout(monitorIce, 400);
+
       conn.on('data', (data) => {
         handleGuestReceivedMessage(data);
       });
 
       conn.on('close', () => {
+        if (!isSettled) {
+          isSettled = true;
+          cleanupTimers();
+          networkState.status = 'error';
+          const closeMsg = `Connection to Room "${code}" was closed by host.`;
+          networkState.statusText = closeMsg;
+          try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
+          updateMultiplayerUI();
+          reject(new Error(closeMsg));
+          return;
+        }
+
         networkState.status = 'offline';
         networkState.statusText = 'Disconnected from host.';
         updateMultiplayerUI();
@@ -78,19 +153,46 @@ export function joinRoom(roomCode, playerProfile = {}) {
 
       conn.on('error', (err) => {
         console.warn('[P2P Guest Conn Error]', err);
-        networkState.status = 'error';
-        networkState.statusText = 'Failed to connect to room.';
-        updateMultiplayerUI();
-        reject(err);
+        if (!isSettled) {
+          isSettled = true;
+          cleanupTimers();
+          networkState.status = 'error';
+          networkState.statusText = 'Failed to connect to room.';
+          try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
+          updateMultiplayerUI();
+          reject(err);
+        }
       });
+    });
+
+    peer.on('disconnected', () => {
+      console.warn(`[P2P Guest] Signaling connection lost, attempting reconnect...`);
+      if (networkState.peer && !networkState.peer.destroyed) {
+        try {
+          networkState.peer.reconnect();
+        } catch (e) {
+          console.warn('[P2P Guest] Reconnect error:', e);
+        }
+      }
     });
 
     peer.on('error', (err) => {
       console.warn('[P2P Guest Peer Error]', err);
-      networkState.status = 'error';
-      networkState.statusText = 'Peer network error.';
-      updateMultiplayerUI();
-      reject(err);
+      if (!isSettled) {
+        isSettled = true;
+        cleanupTimers();
+        networkState.status = 'error';
+        let friendly = err.message || 'Peer network error.';
+        if (err.type === 'peer-unavailable') {
+          friendly = `Room "${code}" was not found. Verify the code with your friend and make sure they are waiting in the room.`;
+        } else if (err.type === 'network' || err.type === 'server-error') {
+          friendly = 'Signaling server connection error. Check your internet connection and try again.';
+        }
+        networkState.statusText = friendly;
+        try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
+        updateMultiplayerUI();
+        reject(new Error(friendly));
+      }
     });
   });
 }
