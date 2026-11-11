@@ -101,6 +101,12 @@ function initHostPeerConnection(conn) {
     networkState.connections.set(conn.peer, conn);
     networkState.connectedPeersCount = networkState.connections.size;
     updateMultiplayerUI();
+    if (gameState.gameStarted) {
+      setTimeout(() => {
+        broadcastFullGameState();
+        logEvent('🎉 <strong>Guest reconnected!</strong> Synchronized match state.');
+      }, 300);
+    }
   };
 
   if (conn.open) {

@@ -146,7 +146,11 @@ export function joinRoom(roomCode, playerProfile = {}) {
         networkState.statusText = 'Disconnected from host.';
         updateMultiplayerUI();
         if (gameState.gameStarted) {
-          handleMatchDisconnectReturnToLobby('Room host disconnected or refreshed their browser.');
+          if (typeof window !== 'undefined' && typeof window.startGuestReconnectGracePeriod === 'function' && code) {
+            window.startGuestReconnectGracePeriod(code, 30);
+          } else {
+            handleMatchDisconnectReturnToLobby('Room host disconnected or refreshed their browser.');
+          }
         } else {
           logEvent('⚠️ Disconnected from host room.');
         }

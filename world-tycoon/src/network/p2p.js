@@ -15,6 +15,7 @@ export * from './p2pHost.js';
 export * from './p2pGuest.js';
 export * from './p2pActions.js';
 export * from './p2pUI.js';
+export * from './p2pReconnect.js';
 
 import {
   copyRoomInviteLink,
@@ -25,6 +26,7 @@ import {
 
 import { hostRoom } from './p2pHost.js';
 import { joinRoom } from './p2pGuest.js';
+import { convertRemotePlayersToBots, startGuestReconnectGracePeriod, reconnectHostRoom } from './p2pReconnect.js';
 
 if (typeof window !== 'undefined') {
   window.copyRoomInviteLink = copyRoomInviteLink;
@@ -33,4 +35,7 @@ if (typeof window !== 'undefined') {
   window.returnToLobbyFromDisconnect = returnToLobbyFromDisconnect;
   window.hostRoom = hostRoom;
   window.joinRoom = joinRoom;
+  window.convertRemotePlayersToBots = convertRemotePlayersToBots;
+  window.startGuestReconnectGracePeriod = startGuestReconnectGracePeriod;
+  window.reconnectHostRoom = reconnectHostRoom;
 }

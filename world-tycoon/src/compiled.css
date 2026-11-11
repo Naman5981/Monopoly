@@ -942,8 +942,8 @@ video {
 .max-h-28{
   max-height: 7rem;
 }
-.max-h-36{
-  max-height: 9rem;
+.max-h-48{
+  max-height: 12rem;
 }
 .max-h-56{
   max-height: 14rem;
@@ -1431,10 +1431,6 @@ video {
   --tw-border-opacity: 1 !important;
   border-color: rgb(52 211 153 / var(--tw-border-opacity, 1)) !important;
 }
-.\!border-rose-400{
-  --tw-border-opacity: 1 !important;
-  border-color: rgb(251 113 133 / var(--tw-border-opacity, 1)) !important;
-}
 .border-amber-100{
   --tw-border-opacity: 1;
   border-color: rgb(254 243 199 / var(--tw-border-opacity, 1));
@@ -1510,6 +1506,9 @@ video {
   --tw-border-opacity: 1;
   border-color: rgb(52 211 153 / var(--tw-border-opacity, 1));
 }
+.border-emerald-400\/30{
+  border-color: rgb(52 211 153 / 0.3);
+}
 .border-emerald-400\/40{
   border-color: rgb(52 211 153 / 0.4);
 }
@@ -1581,6 +1580,12 @@ video {
 }
 .border-rose-300\/40{
   border-color: rgb(253 164 175 / 0.4);
+}
+.border-rose-400\/30{
+  border-color: rgb(251 113 133 / 0.3);
+}
+.border-rose-400\/40{
+  border-color: rgb(251 113 133 / 0.4);
 }
 .border-rose-500\/40{
   border-color: rgb(244 63 94 / 0.4);
@@ -1871,6 +1876,9 @@ video {
   --tw-bg-opacity: 1;
   background-color: rgb(244 63 94 / var(--tw-bg-opacity, 1));
 }
+.bg-rose-500\/15{
+  background-color: rgb(244 63 94 / 0.15);
+}
 .bg-rose-500\/20{
   background-color: rgb(244 63 94 / 0.2);
 }
@@ -2025,6 +2033,9 @@ video {
 }
 .bg-white\/95{
   background-color: rgb(255 255 255 / 0.95);
+}
+.bg-white\/\[0\.04\]{
+  background-color: rgb(255 255 255 / 0.04);
 }
 .bg-gradient-to-b{
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
@@ -2532,6 +2543,9 @@ video {
 .font-medium{
   font-weight: 500;
 }
+.font-normal{
+  font-weight: 400;
+}
 .font-semibold{
   font-weight: 600;
 }
@@ -2637,6 +2651,9 @@ video {
 .text-emerald-200{
   --tw-text-opacity: 1;
   color: rgb(167 243 208 / var(--tw-text-opacity, 1));
+}
+.text-emerald-200\/90{
+  color: rgb(167 243 208 / 0.9);
 }
 .text-emerald-300{
   --tw-text-opacity: 1;
@@ -3008,6 +3025,18 @@ video {
   --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+.shadow-emerald-950\/50{
+  --tw-shadow-color: rgb(2 44 34 / 0.5);
+  --tw-shadow: var(--tw-shadow-colored);
+}
+.shadow-rose-950\/50{
+  --tw-shadow-color: rgb(76 5 25 / 0.5);
+  --tw-shadow: var(--tw-shadow-colored);
+}
+.shadow-sky-950\/50{
+  --tw-shadow-color: rgb(8 47 73 / 0.5);
+  --tw-shadow: var(--tw-shadow-colored);
 }
 .outline-none{
   outline: 2px solid transparent;
@@ -6153,6 +6182,10 @@ html, body {
 
 .hover\:bg-white\/30:hover{
   background-color: rgb(255 255 255 / 0.3);
+}
+
+.hover\:bg-white\/\[0\.08\]:hover{
+  background-color: rgb(255 255 255 / 0.08);
 }
 
 .hover\:from-amber-400:hover{

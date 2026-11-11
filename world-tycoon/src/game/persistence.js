@@ -3,7 +3,7 @@
  * Match state persistence in localStorage and resume management.
  */
 
-import { gameState, matchSettings, displayedCash, matchSeconds, setMatchSeconds, isHumanTurnActionable } from './state.js';
+import { gameState, matchSettings, displayedCash, matchSeconds, setMatchSeconds, isHumanTurnActionable, localPlayerIdx } from './state.js';
 import { BOARD_TILES, applyBoardEdition } from './data.js';
 import { fmtMoney } from './utils.js';
 import { refreshTileTextureAndBuildings, spawnAllPlayerTokens3D, updatePlayerTokenPositions3D, showSpeechBubble, applyBoardStyle } from '../three/scene.js';
@@ -11,6 +11,7 @@ import { renderCornerHUDs, updateRollButtonsUI, logEvent } from '../ui/hud.js';
 import { playSFX, startAdaptiveMusic } from './audio.js';
 import { resumeActiveTurn } from './engine.js';
 import { closeAllGameModals } from '../ui/modals/common.js';
+import { networkState } from '../network/p2pState.js';
 
 const STORAGE_KEY = 'WORLD_TYCOON_SAVED_MATCH_V1';
 
@@ -48,7 +49,11 @@ export function saveCurrentMatchToStorage() {
         players: gameState.players.map(p => ({ ...p })),
         properties: JSON.parse(JSON.stringify(gameState.properties))
       },
-      displayedCash: [...displayedCash]
+      displayedCash: [...displayedCash],
+      isMultiplayer: Boolean(networkState.isMultiplayer),
+      isHost: Boolean(networkState.isHost),
+      roomCode: networkState.roomCode || null,
+      localPlayerIdx: typeof localPlayerIdx === 'number' ? localPlayerIdx : (networkState.localPlayerIdx || 0)
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -158,7 +163,28 @@ export function resumeSavedMatch() {
     showSpeechBubble('🎮 Match resumed! Welcome back!', 3000);
     logEvent(`💾 <strong>Unfinished match resumed</strong> from previous session.`);
 
-    // 7. Kick off the active turn immediately (starts AI dice roll timer or enables human roll)
+    // 7. If this was a multiplayer match, attempt resilient P2P session resurrection
+    if (data.isMultiplayer && data.roomCode) {
+      if (data.isHost) {
+        if (typeof window !== 'undefined' && typeof window.reconnectHostRoom === 'function') {
+          window.reconnectHostRoom(data.roomCode);
+        }
+      } else {
+        if (typeof window !== 'undefined' && typeof window.startGuestReconnectGracePeriod === 'function') {
+          window.startGuestReconnectGracePeriod(data.roomCode, 30);
+        }
+      }
+    } else {
+      // Offline local continuation: ensure no phantom human players stall turn rotation
+      const myIdx = (typeof localPlayerIdx === 'number' ? localPlayerIdx : 0);
+      gameState.players.forEach((p, idx) => {
+        if (idx !== myIdx && !p.isAI && data.isMultiplayer) {
+          p.isAI = true;
+        }
+      });
+    }
+
+    // 8. Kick off the active turn immediately (starts AI dice roll timer or enables human roll)
     resumeActiveTurn();
 
     return true;
@@ -186,11 +212,30 @@ export function checkAndPromptResumeMatch() {
 
   const metaEl = document.getElementById('resume-match-meta');
   if (metaEl) {
-    metaEl.innerHTML = `
-      <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-        <span>⏱️ Match Time: <strong class="text-indigo-600">${mins}:${secs}</strong></span>
-        <span>🎲 Turn: <strong class="text-amber-600">${curP?.name}</strong></span>
+    const multiTag = data.isMultiplayer ? `
+      <div class="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-xs text-amber-300">
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-tower-broadcast"></i> Multiplayer Session (${data.isHost ? 'Host' : 'Guest'})</span>
+        <span class="font-mono font-black bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">Room ${data.roomCode || 'CODE'}</span>
       </div>
+    ` : '';
+
+    metaEl.innerHTML = `
+      <div class="flex items-center justify-between text-xs font-bold text-slate-300">
+        <span class="flex items-center gap-1.5">
+          <i class="fa-solid fa-stopwatch text-emerald-400"></i>
+          <span>Match Time:</span>
+          <strong class="font-mono text-emerald-300 font-black">${mins}:${secs}</strong>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <i class="fa-solid fa-dice text-amber-400"></i>
+          <span>Turn:</span>
+          <span class="inline-flex items-center gap-1.5 font-display font-black text-white px-2 py-0.5 rounded-full bg-white/10 border border-white/10">
+            <span class="w-2 h-2 rounded-full inline-block shrink-0 shadow-xs" style="background:${curP?.colorHex || '#10b981'}"></span>
+            <span>${curP?.name || 'Player'}</span>
+          </span>
+        </span>
+      </div>
+      ${multiTag}
     `;
   }
 
@@ -199,14 +244,15 @@ export function checkAndPromptResumeMatch() {
     rosterEl.innerHTML = data.gameState.players.map((p, idx) => {
       const ownedCount = Object.values(data.gameState.properties).filter(pr => pr && pr.owner === idx).length;
       return `
-        <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 text-xs">
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 text-xs transition-colors">
           <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" style="background:${p.colorHex || '#6366f1'}"></span>
-            <span class="font-black text-slate-800">${p.name} ${p.isAI ? '(AI)' : ''}</span>
+            <span class="w-3 h-3 rounded-full shrink-0 shadow-xs" style="background:${p.colorHex || '#6366f1'}"></span>
+            <span class="font-display font-black text-white text-xs sm:text-sm tracking-wide">${p.name}</span>
+            ${p.isAI ? '<span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-md bg-white/10 text-slate-400 border border-white/10">AI</span>' : ''}
           </div>
-          <div class="text-right">
-            <span class="font-extrabold text-emerald-600">${fmtMoney(p.cash)}</span>
-            <span class="text-xs text-slate-500 font-semibold ml-1">(${ownedCount} cities)</span>
+          <div class="text-right flex items-center gap-1.5">
+            <span class="font-mono font-black text-emerald-400 text-xs sm:text-sm">${fmtMoney(p.cash)}</span>
+            <span class="text-[11px] text-slate-400 font-semibold font-mono">(${ownedCount} ${ownedCount === 1 ? 'city' : 'cities'})</span>
           </div>
         </div>
       `;
