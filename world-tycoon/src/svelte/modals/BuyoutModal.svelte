@@ -16,7 +16,7 @@
 <div id="modal-buyout-city" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}" onclick={(e) => { if (e.target.id === 'modal-buyout-city') onPass(); }}>
   <div id="modal-buyout-city-card" class="game-modal-shell modal-shell-amber max-w-md w-full shadow-2xl">
     <!-- Header -->
-    <div id="buyout-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600">
+    <div id="buyout-modal-header" class="game-modal-header h-36 p-4 flex flex-col justify-between items-center text-center text-white relative shadow-md bg-gradient-to-r from-rose-600 to-rose-800">
       <button onclick={onPass} class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition z-20" title="Pass Buyout">
         ✕
       </button>
@@ -43,7 +43,7 @@
         </div>
       </div>
 
-      <div class="p-3 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-2xl border-2 border-amber-400 flex items-center justify-between">
+      <div class="p-3 bg-gradient-to-r from-rose-500/10 to-rose-600/10 rounded-2xl border-2 border-rose-400 flex items-center justify-between">
         <div>
           <div class="text-[10px] font-black uppercase text-amber-800 tracking-wider">TOTAL BUYOUT COST</div>
           <div id="buyout-modal-total-cost" class="text-xl font-black text-amber-950">{state.buyoutCostFormatted || '$0'}</div>

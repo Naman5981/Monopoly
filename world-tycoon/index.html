@@ -244,7 +244,7 @@
           </div>
           <button id="btn-version-pill" onclick="window.checkGameUpdateManually()" class="logo-edition-pill !bg-slate-800/80 hover:!bg-slate-700/90 text-sky-300 border border-sky-400/30 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-mono cursor-pointer transition-all flex items-center gap-1 active:scale-95" title="Game Version — Click to check for updates" aria-label="Game Version and Update Status">
             <span id="version-pill-dot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-            <span id="version-pill-text">v1.0.6</span>
+            <span id="version-pill-text">v1.0.7</span>
           </button>
         </div>
       </div>
@@ -755,13 +755,13 @@
   </div>
 
   <!-- 3. WORLD TOUR DESTINATION SELECTION BANNER -->
-  <div id="world-tour-banner" class="world-tour-banner fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-5 py-2 rounded-full font-extrabold text-xs shadow-xl border-2 border-white items-center gap-2">
+  <div id="world-tour-banner" class="world-tour-banner fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-sky-600 to-indigo-700 text-white px-5 py-2 rounded-full font-extrabold text-xs shadow-xl border-2 border-white items-center gap-2">
     <i class="fa-solid fa-plane-departure animate-bounce"></i>
     <span>WORLD TOUR! Click any tile to fly.</span>
   </div>
 
   <!-- 3B. WORLD FESTIVAL SELECTION BANNER -->
-  <div id="festival-select-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-amber-600 text-white px-5 py-2.5 rounded-full font-black text-xs shadow-2xl border-2 border-white/90 items-center gap-2.5 animate-pulse select-none">
+  <div id="festival-select-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-5 py-2.5 rounded-full font-black text-xs shadow-2xl border-2 border-white/90 items-center gap-2.5 animate-pulse select-none">
     <i class="fa-solid fa-champagne-glasses text-amber-300 text-sm animate-bounce"></i>
     <span>🎪 <strong>WORLD FESTIVAL!</strong> Click any flashing owned city on the board to double rent (2×)!</span>
     <button onclick="window.openFestivalBoostModalFromBanner()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-[11px] font-black underline cursor-pointer ml-1 transition" title="Open Property List">📋 View List</button>
@@ -807,7 +807,7 @@
     <div id="modal-setup" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div class="game-modal-shell modal-shell-indigo max-w-md w-full overflow-hidden shadow-2xl flex flex-col">
       <!-- Grand Banner Header (Victory Style) -->
-      <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+      <div class="game-modal-header bg-gradient-to-r from-sky-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
         <!-- Floating Watermark Icons -->
         <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-globe"></use></svg>
         <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-dice"></use></svg>
@@ -902,7 +902,7 @@
     <div id="modal-resume-match" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain">
     <div class="game-modal-shell modal-shell-emerald relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl">
       <!-- Grand Banner Header (Victory Style) -->
-      <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+      <div class="game-modal-header bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
         <!-- Floating Watermark Icons -->
         <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-save"></use></svg>
         <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-dice"></use></svg>
@@ -946,7 +946,7 @@
   <!-- 11. MATCH DISCONNECTED NOTICE MODAL (Victory-Inspired) -->
   <div id="modal-disconnect-notice" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain">
     <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400">
-      <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
+      <div class="game-modal-header bg-gradient-to-r from-rose-600 to-rose-800 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
         <!-- Floating Watermark Icon -->
         <svg class="ui-watermark -right-2 -top-2 w-24 h-24 text-white/10" aria-hidden="true"><use href="#icon-warning"></use></svg>
         <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl mb-2 text-white shadow-inner relative z-10">
@@ -974,7 +974,7 @@
   <!-- 12. CONFIRM EXIT TO LOBBY MODAL (Victory-Inspired) -->
   <div id="modal-confirm-exit-lobby" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain overflow-y-auto" onclick="window.handleModalBackdropClick(event, window.closeConfirmExitLobbyModal)">
     <div class="game-modal-shell relative w-full max-w-xs overflow-hidden flex flex-col text-center shadow-2xl border-4 !border-rose-400 pointer-events-auto my-auto">
-      <div class="game-modal-header bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
+      <div class="game-modal-header bg-gradient-to-r from-rose-600 to-rose-800 p-5 text-white relative overflow-hidden flex flex-col items-center shadow-md">
         <!-- Floating Watermark Icon -->
         <svg class="ui-watermark -right-2 -top-2 w-24 h-24 text-white/10" aria-hidden="true"><use href="#icon-door"></use></svg>
         <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl mb-2 text-white shadow-inner relative z-10">
@@ -1006,7 +1006,7 @@
     <div class="game-modal-shell modal-shell-amber relative w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       
       <!-- Leaderboard Header with Grand Gradient & Trophy Icon -->
-      <div class="game-modal-header bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-700 px-5 py-4 text-white flex items-center justify-between shadow-md relative overflow-hidden">
+      <div class="game-modal-header bg-gradient-to-r from-amber-500 to-amber-700 px-5 py-4 text-white flex items-center justify-between shadow-md relative overflow-hidden">
         <!-- Floating Watermark Icons -->
         <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-trophy"></use></svg>
         <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
@@ -1072,7 +1072,7 @@
     <div id="modal-update-alert" role="alertdialog" aria-modal="true" aria-labelledby="update-modal-title" aria-describedby="update-modal-desc" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overscroll-contain" onclick="window.handleModalBackdropClick(event, window.closeUpdateAlertModal)">
     <div id="modal-update-card" class="game-modal-shell modal-shell-emerald relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border-4 !border-emerald-400 focus:outline-hidden" tabindex="-1">
       <!-- Modal Header -->
-      <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+      <div class="game-modal-header bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
         <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-lightning"></use></svg>
         <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-star"></use></svg>
 
@@ -1096,7 +1096,7 @@
         <div class="bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 shadow-xs flex items-center justify-between gap-2">
           <div class="flex flex-col">
             <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Your Version</span>
-            <span id="update-client-version" class="font-mono font-black text-sm text-slate-700">v1.0.6</span>
+            <span id="update-client-version" class="font-mono font-black text-sm text-slate-700">v1.0.7</span>
           </div>
           <div class="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 shadow-xs">
             <i class="fa-solid fa-arrow-right text-xs"></i>

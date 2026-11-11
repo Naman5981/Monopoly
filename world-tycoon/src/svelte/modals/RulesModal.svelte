@@ -16,7 +16,7 @@
 <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}" onclick={onBackdropClick}>
   <div class="game-modal-shell modal-shell-sky max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
     <!-- Grand Banner Header (Victory Style) -->
-    <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
+    <div class="game-modal-header bg-gradient-to-r from-sky-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
       <!-- Floating Watermark Icons -->
       <svg class="ui-watermark -right-3 -top-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-scroll"></use></svg>
       <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-globe"></use></svg>

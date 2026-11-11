@@ -466,7 +466,7 @@ export function spawnAnimatedReaction(type = 'money', startX, startY) {
 const THEME_COMBINATIONS = {
   // ── 🪵 WOOD BOARD STYLE ───────────────────────────────────────────────────
   'wood:day': {
-    bg: 'radial-gradient(circle at 50% 28%, #f0f9ff 0%, #e0f2fe 32%, #bae6fd 65%, #7dd3fc 100%)',
+    bg: 'radial-gradient(circle at 50% 28%, #ffffff 0%, #f0f9ff 25%, #e0f2fe 55%, #dbeafe 85%, #cbd5e1 100%)',
     ambientColor: 0xfffbf5,
     ambientIntensity: 0.50,
     sunColor: 0xfffaee,
@@ -534,9 +534,9 @@ const THEME_COMBINATIONS = {
 const LOBBY_THEMES = {
   // 🪵 WOOD / DEFAULT
   'wood:day': {
-    bg: 'linear-gradient(180deg, #38b6ff 0%, #2fa5f5 35%, #60a5fa 70%, #93c5fd 100%)',
+    bg: 'linear-gradient(180deg, #60a5fa 0%, #93c5fd 40%, #bfdbfe 75%, #dbeafe 100%)',
     skyIcons: ['☁️', '☁️', '☁️'],
-    skyStyle: 'opacity: 0.45; filter: drop-shadow(0 4px 12px rgba(2,132,199,0.3));'
+    skyStyle: 'opacity: 0.35; filter: drop-shadow(0 4px 12px rgba(2,132,199,0.18));'
   },
   'wood:sunset': {
     bg: 'linear-gradient(180deg, #fb923c 0%, #ea580c 25%, #be185d 55%, #581c87 80%, #1e1b4b 100%)',

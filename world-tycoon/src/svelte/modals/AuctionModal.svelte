@@ -15,7 +15,7 @@
 
 <div id="modal-auction" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}">
   <div class="game-modal-shell modal-shell-amber max-w-md w-full">
-    <div class="game-modal-header bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-4 text-white flex items-center justify-between relative shadow-md">
+    <div class="game-modal-header bg-gradient-to-r from-amber-500 to-amber-700 p-4 text-white flex items-center justify-between relative shadow-md">
       <!-- Floating Watermark Icons -->
       <svg class="ui-watermark absolute -right-2 -top-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-scales"></use></svg>
       <svg class="ui-watermark absolute -left-2 -bottom-2 w-20 h-20 text-white opacity-15" aria-hidden="true"><use href="#icon-sparkle"></use></svg>

@@ -382,8 +382,8 @@ export function showRentTransferBanner(fromName, toName, amount, fromIdx = null,
   const toTheme = (toIdx !== null && PLAYER_THEMES[toIdx]) ? PLAYER_THEMES[toIdx] : { colorHex: '#10b981' };
 
   banner.innerHTML = `
-    <!-- Top Header Ribbon with Amber/Orange Gradient -->
-    <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 py-3 px-4 text-white text-center font-rounded font-black text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 border-b-2 border-amber-300 shadow-xs">
+    <!-- Top Header Ribbon with Warm Amber Gradient -->
+    <div class="bg-gradient-to-r from-amber-500 to-amber-700 py-3 px-4 text-white text-center font-rounded font-black text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 border-b-2 border-amber-300 shadow-xs">
       <i class="fa-solid fa-coins text-amber-200"></i>
       <span>RENT SETTLEMENT</span>
       <i class="fa-solid fa-coins text-amber-200"></i>

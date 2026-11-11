@@ -1597,6 +1597,10 @@ video {
 .border-rose-300\/40{
   border-color: rgb(253 164 175 / 0.4);
 }
+.border-rose-400{
+  --tw-border-opacity: 1;
+  border-color: rgb(251 113 133 / var(--tw-border-opacity, 1));
+}
 .border-rose-500\/40{
   border-color: rgb(244 63 94 / 0.4);
 }
@@ -2036,16 +2040,6 @@ video {
   --tw-gradient-to: rgb(245 158 11 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
-.from-amber-500\/10{
-  --tw-gradient-from: rgb(245 158 11 / 0.1) var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(245 158 11 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-.from-amber-600{
-  --tw-gradient-from: #d97706 var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(217 119 6 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
 .from-emerald-100{
   --tw-gradient-from: #d1fae5 var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(209 250 229 / 0) var(--tw-gradient-to-position);
@@ -2066,13 +2060,8 @@ video {
   --tw-gradient-to: rgb(238 242 255 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
-.from-indigo-600{
-  --tw-gradient-from: #4f46e5 var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(79 70 229 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-.from-rose-500{
-  --tw-gradient-from: #f43f5e var(--tw-gradient-from-position);
+.from-rose-500\/10{
+  --tw-gradient-from: rgb(244 63 94 / 0.1) var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(244 63 94 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
@@ -2126,10 +2115,6 @@ video {
   --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
-.via-amber-600{
-  --tw-gradient-to: rgb(217 119 6 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #d97706 var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
 .via-indigo-600{
   --tw-gradient-to: rgb(79 70 229 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), #4f46e5 var(--tw-gradient-via-position), var(--tw-gradient-to);
@@ -2137,22 +2122,6 @@ video {
 .via-indigo-950{
   --tw-gradient-to: rgb(30 27 75 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), #1e1b4b var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-.via-orange-500{
-  --tw-gradient-to: rgb(249 115 22 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #f97316 var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-.via-orange-500\/10{
-  --tw-gradient-to: rgb(249 115 22 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), rgb(249 115 22 / 0.1) var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-.via-orange-600{
-  --tw-gradient-to: rgb(234 88 12 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #ea580c var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-.via-red-600{
-  --tw-gradient-to: rgb(220 38 38 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #dc2626 var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 .via-rose-600{
   --tw-gradient-to: rgb(225 29 72 / 0)  var(--tw-gradient-to-position);
@@ -2162,10 +2131,6 @@ video {
   --tw-gradient-to: rgb(241 245 249 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), #f1f5f9 var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
-.via-teal-500{
-  --tw-gradient-to: rgb(20 184 166 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #14b8a6 var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
 .via-teal-600{
   --tw-gradient-to: rgb(13 148 136 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), #0d9488 var(--tw-gradient-via-position), var(--tw-gradient-to);
@@ -2173,10 +2138,6 @@ video {
 .via-white{
   --tw-gradient-to: rgb(255 255 255 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), #fff var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-.via-yellow-300{
-  --tw-gradient-to: rgb(253 224 71 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #fde047 var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 .via-yellow-400{
   --tw-gradient-to: rgb(250 204 21 / 0)  var(--tw-gradient-to-position);
@@ -2211,14 +2172,8 @@ video {
 .to-amber-600{
   --tw-gradient-to: #d97706 var(--tw-gradient-to-position);
 }
-.to-blue-700{
-  --tw-gradient-to: #1d4ed8 var(--tw-gradient-to-position);
-}
-.to-cyan-600{
-  --tw-gradient-to: #0891b2 var(--tw-gradient-to-position);
-}
-.to-emerald-600{
-  --tw-gradient-to: #059669 var(--tw-gradient-to-position);
+.to-amber-700{
+  --tw-gradient-to: #b45309 var(--tw-gradient-to-position);
 }
 .to-indigo-50{
   --tw-gradient-to: #eef2ff var(--tw-gradient-to-position);
@@ -2232,20 +2187,14 @@ video {
 .to-indigo-700{
   --tw-gradient-to: #4338ca var(--tw-gradient-to-position);
 }
-.to-rose-500\/10{
-  --tw-gradient-to: rgb(244 63 94 / 0.1) var(--tw-gradient-to-position);
+.to-rose-600\/10{
+  --tw-gradient-to: rgb(225 29 72 / 0.1) var(--tw-gradient-to-position);
 }
-.to-rose-600{
-  --tw-gradient-to: #e11d48 var(--tw-gradient-to-position);
-}
-.to-rose-700{
-  --tw-gradient-to: #be123c var(--tw-gradient-to-position);
+.to-rose-800{
+  --tw-gradient-to: #9f1239 var(--tw-gradient-to-position);
 }
 .to-sky-100{
   --tw-gradient-to: #e0f2fe var(--tw-gradient-to-position);
-}
-.to-sky-700{
-  --tw-gradient-to: #0369a1 var(--tw-gradient-to-position);
 }
 .to-slate-200{
   --tw-gradient-to: #e2e8f0 var(--tw-gradient-to-position);
@@ -2265,8 +2214,8 @@ video {
 .to-teal-600{
   --tw-gradient-to: #0d9488 var(--tw-gradient-to-position);
 }
-.to-violet-600{
-  --tw-gradient-to: #7c3aed var(--tw-gradient-to-position);
+.to-teal-700{
+  --tw-gradient-to: #0f766e var(--tw-gradient-to-position);
 }
 .to-white{
   --tw-gradient-to: #fff var(--tw-gradient-to-position);
@@ -3463,9 +3412,7 @@ body {
 .hud-pill,
 .top-pill {
   touch-action: manipulation;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.96);
   color: #0f172a;
   border-radius: 9999px;
   height: 36px;
@@ -3482,7 +3429,7 @@ body {
   gap: 6px;
   transition: transform 100ms ease-out, box-shadow 100ms ease-out, background-color 100ms ease-out, border-color 100ms ease-out;
   cursor: pointer;
-  border: 1.5px solid rgba(255, 255, 255, 0.88);
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
   white-space: nowrap;
 }
 
@@ -3515,10 +3462,9 @@ body {
 
 .hud-pill.pill-locked,
 .top-pill.pill-locked {
-  background: rgba(241, 245, 249, 0.75);
-  backdrop-filter: blur(8px);
+  background: #f1f5f9;
   color: #94a3b8;
-  border-color: rgba(203, 213, 225, 0.6);
+  border-color: #cbd5e1;
   opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
@@ -3608,10 +3554,8 @@ body {
   width: 34px;
   height: 34px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1.5px solid rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
   box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
   display: inline-flex;
   align-items: center;
@@ -3646,10 +3590,8 @@ body {
 
 /* Floating Glass Match Status Capsule */
 .hud-glass-capsule {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
   border-radius: 9999px;
   height: 36px;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -3707,10 +3649,8 @@ body {
   align-items: center;
   gap: 10px;
   padding: 6px 12px 6px 8px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 2px solid rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
+  border: 2px solid #e2e8f0;
   border-bottom: 3.5px solid #cbd5e1;
   border-radius: 20px;
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
@@ -4053,17 +3993,16 @@ body {
 .tile-hover-tooltip {
   position: fixed;
   transform: translate(-50%, calc(-100% - 16px));
-  background: rgba(15, 23, 42, 0.96);
+  background: #0f172a;
   color: #ffffff;
   font-family: var(--font-ui);
   padding: 12px 16px;
   border-radius: 16px;
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.4);
-  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
   pointer-events: none;
   z-index: 45;
   min-width: 195px;
-  backdrop-filter: blur(8px);
   transition: opacity 0.12s ease;
 }
 
@@ -4415,13 +4354,11 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.96);
   color: #ffffff;
   padding: 9px 20px;
   border-radius: 9999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.38), 0 0 20px rgba(14, 165, 233, 0.22);
   font-family: var(--game-font);
   font-size: 14px;
@@ -5275,10 +5212,8 @@ body.production-build #debug-modal {
   margin-top: 18px;
   padding: 8px 22px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(15, 23, 42, 0.92);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   color: #ffffff;
   font-family: var(--font-ui);
   font-size: 12px;
@@ -5291,7 +5226,7 @@ body.production-build #debug-modal {
 
 @media (hover: hover) {
   .monopoly-dismiss-pill:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(15, 23, 42, 0.98);
     transform: translateY(-1.5px);
   }
 }

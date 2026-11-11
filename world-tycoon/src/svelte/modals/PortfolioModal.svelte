@@ -16,7 +16,7 @@
 <div id="modal-portfolio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}" onclick={onBackdropClick}>
   <div class="game-modal-shell modal-shell-emerald max-w-3xl w-full max-h-[86vh] flex flex-col overflow-hidden shadow-2xl">
     <!-- Grand Banner Header (Victory Style) -->
-    <div class="game-modal-header bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
+    <div class="game-modal-header bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
       <!-- Floating Watermark Icons -->
       <svg class="ui-watermark absolute -right-3 -top-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-city"></use></svg>
       <svg class="ui-watermark absolute -left-3 -bottom-3 w-24 h-24 text-white opacity-15" aria-hidden="true"><use href="#icon-crown"></use></svg>

@@ -18,7 +18,7 @@ export function buildLowPolyFloatingClouds3D(boardGroup) {
     color: 0xffffff,
     flatShading: true,
     transparent: true,
-    opacity: 0.92
+    opacity: 0.75
   });
 
   const configs = [

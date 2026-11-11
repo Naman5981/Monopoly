@@ -21,7 +21,7 @@ export function animateDoublesBurstBanner(playerName = '') {
   }
 
   banner.innerHTML = `
-    <div class="doubles-comic-badge relative px-8 py-3.5 rounded-3xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 border-4 border-white shadow-[0_14px_40px_rgba(245,158,11,0.6)] flex flex-col items-center transform">
+    <div class="doubles-comic-badge relative px-8 py-3.5 rounded-3xl bg-gradient-to-r from-amber-400 to-amber-600 border-4 border-white shadow-[0_14px_40px_rgba(245,158,11,0.6)] flex flex-col items-center transform">
       <div class="flex items-center gap-2.5">
         <span class="text-3xl filter drop-shadow">🎲</span>
         <span class="font-display font-black text-3xl sm:text-4xl text-slate-950 tracking-wider drop-shadow-sm uppercase">DOUBLES!</span>
@@ -76,7 +76,7 @@ export function animateBoardingPassZoom(destinationName = 'AIRPORT') {
   }
 
   pass.innerHTML = `
-    <div class="boarding-pass-card relative bg-gradient-to-r from-sky-600 via-indigo-600 to-sky-700 text-white rounded-3xl p-5 shadow-[0_16px_48px_rgba(2,132,199,0.55)] border-2 border-white/60 flex items-center gap-5 min-w-[320px] max-w-sm">
+    <div class="boarding-pass-card relative bg-gradient-to-r from-sky-600 to-indigo-700 text-white rounded-3xl p-5 shadow-[0_16px_48px_rgba(2,132,199,0.55)] border-2 border-white/60 flex items-center gap-5 min-w-[320px] max-w-sm">
       <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl shadow-inner border border-white/30">
         ✈️
       </div>
@@ -188,7 +188,7 @@ export function animateBuyoutHostileStamp(cityName = 'PROPERTY') {
   }
 
   stamp.innerHTML = `
-    <div class="buyout-stamp-badge relative px-8 py-3.5 rounded-3xl bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 border-4 border-white shadow-[0_16px_50px_rgba(225,29,72,0.7)] flex flex-col items-center transform -rotate-6">
+    <div class="buyout-stamp-badge relative px-8 py-3.5 rounded-3xl bg-gradient-to-r from-rose-600 to-rose-800 border-4 border-white shadow-[0_16px_50px_rgba(225,29,72,0.7)] flex flex-col items-center transform -rotate-6">
       <div class="flex items-center gap-2">
         <span class="text-3xl">⚔️</span>
         <span class="font-display font-black text-2xl sm:text-3xl text-white tracking-widest uppercase drop-shadow">HOSTILE TAKEOVER!</span>

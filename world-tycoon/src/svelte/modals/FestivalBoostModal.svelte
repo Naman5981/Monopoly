@@ -21,7 +21,7 @@
 <div id="modal-festival-boost" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}">
   <div id="modal-festival-boost-card" class="game-modal-shell modal-shell-emerald max-w-lg w-full flex flex-col overflow-hidden shadow-2xl max-h-[90vh]">
     <!-- Header -->
-    <div class="game-modal-header h-28 p-3 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">
+    <div class="game-modal-header h-28 p-3 flex flex-col justify-between items-center text-center text-white relative shadow-md shrink-0 bg-gradient-to-r from-emerald-600 to-teal-700">
       <span class="modal-badge-pill bg-black/25 border border-white/30 text-emerald-100 flex items-center gap-1.5">
         WORLD FESTIVAL CELEBRATION
       </span>
@@ -74,7 +74,7 @@
 <!-- 2. World Festival No Properties Alert Modal -->
 <div id="modal-festival-no-properties" role="alertdialog" aria-modal="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.noPropertiesVisible ? 'flex' : 'hidden'}">
   <div id="modal-festival-no-properties-card" class="game-modal-shell modal-shell-amber relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border-4 !border-amber-400" tabindex="-1">
-    <div class="game-modal-header bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
+    <div class="game-modal-header bg-gradient-to-r from-amber-500 to-amber-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
       <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10 shrink-0">
         🎪
       </div>
