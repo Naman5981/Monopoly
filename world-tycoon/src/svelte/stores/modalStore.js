@@ -262,6 +262,8 @@ function syncModalDom(modalKey, slice) {
     const el = document.getElementById(id);
     if (!el) return;
     if (isVisible) {
+      el.style.removeProperty('display');
+      el.style.removeProperty('pointer-events');
       el.classList.remove('hidden');
       el.classList.add('flex');
     } else {
@@ -342,11 +344,13 @@ function syncModalDom(modalKey, slice) {
       const el = document.getElementById('modal-wardrobe');
       if (el) {
         if (slice.visible) {
+          el.style.removeProperty('display');
+          el.style.removeProperty('pointer-events');
           el.classList.remove('hidden', 'wardrobe-panel-hidden');
-          el.classList.add('flex');
+          el.classList.add('flex', 'wardrobe-panel-visible');
         } else {
           el.classList.add('hidden', 'wardrobe-panel-hidden');
-          el.classList.remove('flex');
+          el.classList.remove('flex', 'wardrobe-panel-visible');
         }
       }
       break;

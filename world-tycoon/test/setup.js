@@ -66,11 +66,16 @@ export function setupBrowserMocks() {
             classes.add(c); return true;
           }
         },
-        style: {
-          setProperty: () => {},
-          removeProperty: () => {},
-          getPropertyValue: () => ''
-        },
+        style: (() => {
+          const styles = new Map();
+          return {
+            setProperty: (prop, val) => styles.set(prop, String(val)),
+            removeProperty: (prop) => styles.delete(prop),
+            getPropertyValue: (prop) => styles.get(prop) || '',
+            get display() { return styles.get('display') || ''; },
+            set display(val) { if (val) styles.set('display', String(val)); else styles.delete('display'); }
+          };
+        })(),
         getBoundingClientRect: () => ({ top: 0, left: 0, width: 100, height: 100, bottom: 100, right: 100 }),
         setAttribute: (k, v) => attributes.set(k, String(v)),
         getAttribute: (k) => attributes.has(k) ? attributes.get(k) : null,

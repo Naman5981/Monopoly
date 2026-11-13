@@ -395,6 +395,13 @@ export function openWardrobeModal() {
     pedestal: profile.equipped.pedestal
   };
 
+  // Remove any lingering display: none or pointer-events block from prior modal closes
+  const modalEl = document.getElementById('modal-wardrobe');
+  if (modalEl) {
+    modalEl.style.removeProperty('display');
+    modalEl.style.removeProperty('pointer-events');
+  }
+
   // 1. Unhide modal and trigger hardware-accelerated drawer slide
   updateModalSlice('wardrobe', {
     visible: true,
@@ -445,6 +452,12 @@ export function closeWardrobeModal() {
   wardrobeCloseTimer = setTimeout(() => {
     if (!landingScreen?.classList.contains('wardrobe-mode-active')) {
       updateModalSlice('wardrobe', { visible: false, isClosing: false });
+      const modalEl = document.getElementById('modal-wardrobe');
+      if (modalEl) {
+        modalEl.classList.add('hidden', 'wardrobe-panel-hidden');
+        modalEl.classList.remove('flex', 'wardrobe-panel-visible');
+        modalEl.style.setProperty('display', 'none', 'important');
+      }
     }
     wardrobeCloseTimer = null;
   }, 360);

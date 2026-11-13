@@ -272,7 +272,7 @@ sequenceDiagram
   - [`world-tycoon/src/ui/setup/setupRoom.js`](world-tycoon/src/ui/setup/setupRoom.js): Lobby staging, room actions, and P2P connection flow; sends connection text to `lobbyStore`.
   - [`world-tycoon/src/ui/setup/matchSettingsUI.js`](world-tycoon/src/ui/setup/matchSettingsUI.js): Match customization panel and human-only color collision locking.
   - [`world-tycoon/src/ui/setup/playerCustomization.js`](world-tycoon/src/ui/setup/playerCustomization.js): Player color/archetype configuration and `ensureBotsHaveUniqueColors()` dynamic bot re-rolling.
-  - [`world-tycoon/src/ui/wardrobe.js`](world-tycoon/src/ui/wardrobe.js): Cosmetic inventory, unlock/equip rules, profile persistence, and 3D previews; `WardrobeModal.svelte` renders the item cards, categories, and balance declaratively.
+  - [`world-tycoon/src/ui/wardrobe.js`](world-tycoon/src/ui/wardrobe.js): Cosmetic inventory, unlock/equip rules, profile persistence, and 3D previews; `WardrobeModal.svelte` renders the item cards, categories, and balance declaratively with reactive drawer visibility synchronization and inline display property safety.
 - **Animation Engine (`src/ui/anim/`)**:
   - [`world-tycoon/src/ui/anim/events.js`](world-tycoon/src/ui/anim/events.js): Animation facade routing events to specialized submodules.
   - [`world-tycoon/src/ui/anim/banners.js`](world-tycoon/src/ui/anim/banners.js): Doubles comic banners, boarding pass zooms, monopoly ribbons, hostile takeover stamps, and high-impact multi-peer player elimination banners (`animatePlayerEliminatedBanner`).

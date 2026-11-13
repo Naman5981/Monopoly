@@ -14,6 +14,7 @@ import { setupBrowserMocks } from '../setup.js';
 setupBrowserMocks();
 
 import { modalStore, updateModalSlice, closeAllModalsInStore } from '../../src/svelte/stores/modalStore.js';
+import { closeAllGameModals } from '../../src/ui/modals/common.js';
 import { WARDROBE_ITEMS, openWardrobeModal, closeWardrobeModal, previewWardrobeItem, setWardrobeCategory } from '../../src/ui/wardrobe.js';
 import { matchSettings, lobbyPlayerCount, setLobbyPlayerCount } from '../../src/game/state.js';
 import { CANDY_PALETTE, setPlayerColor, setLocalPlayerColor, ensureBotsHaveUniqueColors, setSelectedSetupPlayerIdx } from '../../src/ui/setup/playerCustomization.js';
@@ -68,6 +69,17 @@ describe('Wardrobe & HUD Layout Verification (/better-interface /game-art /bug-h
       svelteSrc.includes("state.visible ? 'flex wardrobe-panel-visible pointer-events-auto' : 'hidden wardrobe-panel-hidden pointer-events-none'"),
       'WardrobeModal.svelte must bind wardrobe-panel-visible and pointer-events-auto reactively'
     );
+  });
+
+  it('removes inline display: none and restores wardrobe drawer visibility when opening wardrobe modal after closeAllGameModals (/bug-hunter)', () => {
+    closeAllGameModals();
+    const modalEl = document.getElementById('modal-wardrobe');
+    assert.equal(modalEl.style.display, 'none', 'Modal wardrobe must have display: none after closeAllGameModals');
+
+    openWardrobeModal();
+    assert.equal(modalEl.style.display, '', 'Modal wardrobe must have display property removed on open');
+    assert.ok(modalEl.classList.contains('wardrobe-panel-visible'), 'Modal wardrobe must have wardrobe-panel-visible class');
+    assert.ok(!modalEl.classList.contains('hidden'), 'Modal wardrobe must not have hidden class');
   });
 
   it('verifies style.css contains defensive layout for main-game-hud-bar and hud-bottom-status-wrap', () => {
