@@ -2244,22 +2244,27 @@ body.production-build #debug-modal {
 /* Hidden elements per lobby view */
 .lobby-view-title #lobby-roster-column,
 .lobby-view-title #lobby-settings-column,
+.lobby-view-title #lobby-settings-mount,
 .lobby-view-title #lobby-multiplayer-portal,
+.lobby-view-title #lobby-portal-mount,
 .lobby-view-title #lobby-setup-actions,
 .lobby-view-title #btn-lobby-back-to-title,
 .lobby-view-local #title-menu-actions,
 .lobby-view-local #lobby-multiplayer-portal,
+.lobby-view-local #lobby-portal-mount,
 .lobby-view-local #mp-room-capsule,
 .lobby-view-local #setup-match-mode-selector,
 .lobby-view-local #setup-p2p-panel,
 .lobby-view-multiplayer-portal #lobby-roster-column,
 .lobby-view-multiplayer-portal #lobby-settings-column,
+.lobby-view-multiplayer-portal #lobby-settings-mount,
 .lobby-view-multiplayer-portal #lobby-hero-column,
 .lobby-view-multiplayer-portal #title-menu-actions,
 .lobby-view-multiplayer-portal #lobby-setup-actions,
 .lobby-view-multiplayer-portal #setup-color-swatches-container,
 .lobby-view-multiplayer-room #title-menu-actions,
 .lobby-view-multiplayer-room #lobby-multiplayer-portal,
+.lobby-view-multiplayer-room #lobby-portal-mount,
 .lobby-view-multiplayer-room #lobby-local-mode-header,
 .lobby-view-multiplayer-room #setup-match-mode-selector {
   display: none !important;
@@ -2269,12 +2274,15 @@ body.production-build #debug-modal {
 .lobby-view-local #lobby-local-mode-header,
 .lobby-view-local #lobby-roster-column,
 .lobby-view-local #lobby-settings-column,
+.lobby-view-local #lobby-settings-mount,
 .lobby-view-local #lobby-setup-actions,
 .lobby-view-multiplayer-room #lobby-roster-column,
 .lobby-view-multiplayer-room #lobby-settings-column,
+.lobby-view-multiplayer-room #lobby-settings-mount,
 .lobby-view-multiplayer-room #mp-room-capsule,
 .lobby-view-multiplayer-room #lobby-setup-actions,
-.lobby-view-multiplayer-portal #lobby-multiplayer-portal {
+.lobby-view-multiplayer-portal #lobby-multiplayer-portal,
+.lobby-view-multiplayer-portal #lobby-portal-mount {
   display: flex !important;
 }
 
