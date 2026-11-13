@@ -11,6 +11,14 @@ export const initialLobbyState = {
   currentView: 'title', // 'title' | 'local' | 'multiplayer-portal' | 'multiplayer-room'
   activeDisplayName: 'TYCOON',
   canEditCurrent: true,
+  isRoomActive: false,
+  isMultiplayer: false,
+  isHost: false,
+  roomCode: '',
+  networkStatus: 'Ready',
+  networkStatusKind: 'neutral',
+  portalStatus: '',
+  portalStatusKind: 'neutral',
   players: [
     { idx: 0, name: 'TYCOON', isAI: false, isOnlinePeer: false, colorHex: '#10b981', hatStyle: 0, isSelected: true, isSelf: true, isHost: true, canEditName: true, canEditSlot: true, isConnectedPeer: false },
     { idx: 1, name: 'WARREN', isAI: true, isOnlinePeer: false, colorHex: '#3b82f6', hatStyle: 1, isSelected: false, isSelf: false, isHost: false, canEditName: false, canEditSlot: true, isConnectedPeer: false },

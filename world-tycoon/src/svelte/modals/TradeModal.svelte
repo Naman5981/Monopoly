@@ -13,11 +13,7 @@
   }
 
   function onPartnerChange(e) {
-    const sel = document.getElementById('trade-partner-select');
-    if (sel) {
-      sel.value = e.target.value;
-      window.populateTradePartnerProps?.();
-    }
+    window.populateTradePartnerProps?.(e.currentTarget.value);
   }
 
   function onAcceptIncoming() {
@@ -78,13 +74,14 @@
           {#each state.myProperties || [] as prop}
             <label class="flex items-center justify-between p-2 rounded-xl border border-slate-200 bg-white hover:bg-sky-50 cursor-pointer transition">
               <div class="flex items-center gap-2">
-                <input type="checkbox" class="trade-my-prop" value={prop.id} checked={state.selectedMyProps?.includes(prop.id)} />
+                <input type="checkbox" class="trade-my-prop" value={prop.id} />
                 <span class="w-3 h-3 rounded-full" style="background-color: {prop.color};"></span>
                 <span class="font-bold text-xs text-slate-800">{prop.name}</span>
               </div>
               <span class="text-[11px] font-black text-slate-500">{prop.rentFormatted}</span>
             </label>
           {/each}
+          {#if !state.myProperties?.length}<div class="text-xs font-bold text-slate-500 py-2 text-center">No cities owned</div>{/if}
         </div>
       </div>
 
@@ -97,8 +94,9 @@
           <div class="flex items-center gap-1.5">
             <span id="trade-partner-wallet" class="text-[10px] font-black uppercase text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">Wallet: {state.partnerWallet || '$0'}</span>
             <select id="trade-partner-select" onchange={onPartnerChange} class="text-xs font-black bg-white border-2 border-amber-300 rounded-lg px-2 py-0.5 text-slate-800 cursor-pointer shadow-2xs">
+              {#if !state.partners?.length}<option value="">No partners available</option>{/if}
               {#each state.partners || [] as p}
-                <option value={p.id}>{p.name}</option>
+                <option value={p.id} selected={state.selectedPartnerIdx === p.id}>{p.name}</option>
               {/each}
             </select>
           </div>
@@ -108,13 +106,14 @@
           {#each state.partnerProperties || [] as prop}
             <label class="flex items-center justify-between p-2 rounded-xl border border-slate-200 bg-white hover:bg-amber-50 cursor-pointer transition">
               <div class="flex items-center gap-2">
-                <input type="checkbox" class="trade-their-prop" value={prop.id} checked={state.selectedPartnerProps?.includes(prop.id)} />
+                <input type="checkbox" class="trade-their-prop" value={prop.id} />
                 <span class="w-3 h-3 rounded-full" style="background-color: {prop.color};"></span>
                 <span class="font-bold text-xs text-slate-800">{prop.name}</span>
               </div>
               <span class="text-[11px] font-black text-slate-500">{prop.rentFormatted}</span>
             </label>
           {/each}
+          {#if !state.partnerProperties?.length}<div class="text-xs font-bold text-slate-500 py-2 text-center">No cities owned</div>{/if}
         </div>
       </div>
     </div>
@@ -187,8 +186,9 @@
           </span>
           <div id="incoming-they-offer-props" class="w-full space-y-1 pt-1 font-bold text-slate-800">
             {#each state.incomingTrade?.theyOfferProps || [] as prop}
-              <div class="text-xs font-black text-emerald-800">{prop.name}</div>
+              <div class="text-xs font-black text-emerald-800">{prop.name} <span class="text-emerald-700">{prop.priceFormatted}</span></div>
             {/each}
+            {#if !state.incomingTrade?.theyOfferProps?.length}<span class="text-xs text-slate-400 italic">No properties</span>{/if}
           </div>
         </div>
 
@@ -198,8 +198,9 @@
           </span>
           <div id="incoming-they-req-props" class="w-full space-y-1 pt-1 font-bold text-slate-800">
             {#each state.incomingTrade?.theyReqProps || [] as prop}
-              <div class="text-xs font-black text-sky-800">{prop.name}</div>
+              <div class="text-xs font-black text-sky-800">{prop.name} <span class="text-amber-700">{prop.priceFormatted}</span></div>
             {/each}
+            {#if !state.incomingTrade?.theyReqProps?.length}<span class="text-xs text-slate-400 italic">No properties</span>{/if}
           </div>
         </div>
       </div>

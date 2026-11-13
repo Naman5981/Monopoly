@@ -54,15 +54,16 @@ describe('UI Visual Refinement Suite (/better-colors /game-art /fixing-motion-pe
   });
 
   it('verifies single-hue semantic gradient ramps in templates and Svelte modal components', () => {
+    const svelteOverlaysPath = path.join(ROOT, 'src/svelte/hud/FloatingOverlays.svelte');
     const hudPath = path.join(ROOT, 'src/templates/game-hud.html');
-    const hudContent = fs.readFileSync(hudPath, 'utf8');
+    const hudContent = fs.existsSync(svelteOverlaysPath) ? fs.readFileSync(svelteOverlaysPath, 'utf8') : fs.readFileSync(hudPath, 'utf8');
     assert.ok(
       hudContent.includes('from-emerald-600 to-teal-700'),
-      '#festival-select-banner in game-hud.html must use unified single-hue emerald ramp'
+      '#festival-select-banner must use unified single-hue emerald ramp'
     );
     assert.ok(
       hudContent.includes('from-sky-600 to-indigo-700'),
-      '#world-tour-banner in game-hud.html must use unified single-hue sky/indigo ramp'
+      '#world-tour-banner must use unified single-hue sky/indigo ramp'
     );
 
     const festivalModalPath = path.join(ROOT, 'src/svelte/modals/FestivalBoostModal.svelte');

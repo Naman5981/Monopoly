@@ -19,6 +19,7 @@
   import LeaderboardModal from './LeaderboardModal.svelte';
   import MonopolyCelebrationModal from './MonopolyCelebrationModal.svelte';
   import UpdateAlertModal from './UpdateAlertModal.svelte';
+  import SetupDialogModal from './SetupDialogModal.svelte';
 </script>
 
 <div class="game-modals-svelte-root">
@@ -42,4 +43,5 @@
   <LeaderboardModal />
   <MonopolyCelebrationModal />
   <UpdateAlertModal />
+  <SetupDialogModal />
 </div>

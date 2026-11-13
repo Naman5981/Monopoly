@@ -12,6 +12,8 @@ import { hideDiceSumBadge } from './statusPill.js';
 import { updateMasterVolume, playSFX, startAdaptiveMusic, stopAdaptiveMusic } from '../../game/audio.js';
 import { updateHudState } from '../../svelte/stores/hudStore.js';
 
+let turnLockToastTimer = null;
+
 export function updateGameSpeedUI() {
   const speed = matchSettings.gameSpeed || 1;
   updateHudState({ gameSpeed: speed });
@@ -35,17 +37,11 @@ export function updateGameSpeedUI() {
 export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') {
   updateHudState({ toast: { visible: true, text: msg } });
   const toast = document.getElementById('turn-lock-toast');
-  const textEl = document.getElementById('turn-lock-toast-text');
-  if (!toast || !textEl) return;
-  textEl.textContent = msg;
-  toast.classList.remove('hidden');
-  toast.style.display = 'flex';
-  animateToastAccordionPush(toast);
+  if (toast) animateToastAccordionPush(toast);
   showSpeechBubble(msg, 2000);
-  if (toast._timer) clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => {
-    toast.classList.add('hidden');
-    toast.style.display = 'none';
+  if (turnLockToastTimer) clearTimeout(turnLockToastTimer);
+  turnLockToastTimer = setTimeout(() => {
+    turnLockToastTimer = null;
     updateHudState({ toast: { visible: false, text: '' } });
   }, 2200);
 }

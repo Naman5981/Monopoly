@@ -21,6 +21,7 @@ import {
 import { closeAllGameModals } from '../modals/common.js';
 import { updateAllPointsBadges } from '../wardrobe.js';
 import { animateLobbyEntrance } from '../anim.js';
+import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
 
 import { setLobbyView, showTitleScreen, showMultiplayerSetup } from './lobbyNavigation.js';
 import { renderPlayerCards } from './playerCards.js';
@@ -110,10 +111,7 @@ export function initLandingSetup() {
       const input = document.getElementById('input-p2p-room-code');
       if (input) input.value = code;
 
-      const portalStatusEl = document.getElementById('portal-p2p-status-text');
-      if (portalStatusEl) {
-        portalStatusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-emerald-500 mr-1"></i> Invite link for Room <strong>${code}</strong> detected. Connecting...`;
-      }
+      updateLobbyStore({ portalStatus: `Invite link for Room ${code} detected. Connecting...`, portalStatusKind: 'loading' });
 
       // Auto-trigger join after DOM elements and PeerJS scripts finish readying
       setTimeout(() => {
@@ -126,7 +124,6 @@ export function initLandingSetup() {
 export async function joinP2PRoomFromPortal() {
   const portalInput = document.getElementById('input-p2p-room-code-portal');
   const legacyInput = document.getElementById('input-p2p-room-code');
-  const statusPortalEl = document.getElementById('portal-p2p-status-text');
 
   let raw = (portalInput?.value || legacyInput?.value || '').trim();
   const urlMatch = raw.match(/[?&]room=([a-z0-9]+)/i);
@@ -134,41 +131,34 @@ export async function joinP2PRoomFromPortal() {
   code = code.replace(/[^A-Z0-9]/g, '');
 
   if (!code) {
-    if (statusPortalEl) statusPortalEl.innerHTML = '<span class="text-rose-500 font-bold">⚠️ Enter a 4-letter room code</span>';
+    updateLobbyStore({ portalStatus: '⚠️ Enter a 4-letter room code', portalStatusKind: 'error' });
     portalInput?.focus();
     return;
   }
 
   if (legacyInput) legacyInput.value = code;
   if (portalInput) portalInput.value = code;
-  if (statusPortalEl) statusPortalEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-emerald-600 mr-1"></i> Joining Room ${code}...`;
+  updateLobbyStore({ portalStatus: `Joining Room ${code}...`, portalStatusKind: 'loading' });
 
   await joinP2PRoom();
 }
 
 export async function hostP2PRoom() {
-  const statusEl = document.getElementById('setup-p2p-status-text');
-  const portalStatusEl = document.getElementById('portal-p2p-status-text');
   try {
-    const loadingHtml = '<i class="fa-solid fa-spinner fa-spin text-sky-500 mr-1"></i> Creating room...';
-    if (statusEl) statusEl.innerHTML = loadingHtml;
-    if (portalStatusEl) portalStatusEl.innerHTML = loadingHtml;
+    updateLobbyStore({ networkStatus: 'Creating room...', portalStatus: 'Creating room...', portalStatusKind: 'loading' });
     await hostRoom();
     setLobbyView('multiplayer-room');
     updateMultiplayerUI();
     renderPlayerCards();
   } catch (err) {
-    const errHtml = `<span class="text-rose-600 font-bold">❌ Error: ${err.message || 'Room creation failed'}</span>`;
-    if (statusEl) statusEl.innerHTML = errHtml;
-    if (portalStatusEl) portalStatusEl.innerHTML = errHtml;
+    const message = `❌ Error: ${err.message || 'Room creation failed'}`;
+    updateLobbyStore({ networkStatus: message, networkStatusKind: 'error', portalStatus: message, portalStatusKind: 'error' });
   }
 }
 
 export async function joinP2PRoom() {
   const portalInput = document.getElementById('input-p2p-room-code-portal');
   const input = document.getElementById('input-p2p-room-code');
-  const statusEl = document.getElementById('setup-p2p-status-text');
-  const portalStatusEl = document.getElementById('portal-p2p-status-text');
 
   let raw = (portalInput?.value || input?.value || '').trim();
   const urlMatch = raw.match(/[?&]room=([a-z0-9]+)/i);
@@ -176,16 +166,12 @@ export async function joinP2PRoom() {
   code = code.replace(/[^A-Z0-9]/g, '');
 
   if (!code) {
-    const errorHtml = '<span class="text-rose-500 font-bold">⚠️ Enter a 4-letter room code</span>';
-    if (statusEl) statusEl.innerHTML = errorHtml;
-    if (portalStatusEl) portalStatusEl.innerHTML = errorHtml;
+    updateLobbyStore({ networkStatus: '⚠️ Enter a 4-letter room code', networkStatusKind: 'error', portalStatus: '⚠️ Enter a 4-letter room code', portalStatusKind: 'error' });
     return;
   }
 
   try {
-    const loadingHtml = `<i class="fa-solid fa-spinner fa-spin text-emerald-500 mr-1"></i> Joining Room ${code}...`;
-    if (statusEl) statusEl.innerHTML = loadingHtml;
-    if (portalStatusEl) portalStatusEl.innerHTML = loadingHtml;
+    updateLobbyStore({ networkStatus: `Joining Room ${code}...`, portalStatus: `Joining Room ${code}...`, portalStatusKind: 'loading' });
 
     const savedName = getSavedPlayerName();
     const myInfo = matchSettings.customPlayers[0] || {};
@@ -201,23 +187,20 @@ export async function joinP2PRoom() {
       pedestal: myInfo.pedestal
     });
 
-    const successHtml = `🟢 <strong>Joined Room ${code}!</strong> Waiting for Host to start match...`;
-    if (portalStatusEl) portalStatusEl.innerHTML = successHtml;
+    updateLobbyStore({ portalStatus: `🟢 Joined Room ${code}! Waiting for Host to start match...`, portalStatusKind: 'neutral' });
 
     setLobbyView('multiplayer-room');
     updateMultiplayerUI();
     renderPlayerCards();
   } catch (err) {
-    const errHtml = `<span class="text-rose-600 font-bold">❌ Error: ${err.message || 'Failed to connect'}</span>`;
-    if (statusEl) statusEl.innerHTML = errHtml;
-    if (portalStatusEl) portalStatusEl.innerHTML = errHtml;
+    const message = `❌ Error: ${err.message || 'Failed to connect'}`;
+    updateLobbyStore({ networkStatus: message, networkStatusKind: 'error', portalStatus: message, portalStatusKind: 'error' });
   }
 }
 
 export function leaveP2PRoom() {
   leaveMultiplayerRoom();
-  const portalStatusEl = document.getElementById('portal-p2p-status-text');
-  if (portalStatusEl) portalStatusEl.innerHTML = '<span class="text-slate-400">Enter a 4-letter code or paste an invite link</span>';
+  updateLobbyStore({ portalStatus: 'Enter a 4-letter code or paste an invite link', portalStatusKind: 'neutral' });
   setLobbyView('multiplayer-portal');
   updateMultiplayerUI();
   renderPlayerCards();

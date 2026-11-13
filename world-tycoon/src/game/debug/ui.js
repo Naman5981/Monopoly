@@ -8,7 +8,7 @@ import { gameState, debugState } from '../state.js';
 import { fmtMoney } from '../utils.js';
 import { calculateTileRent } from '../rules.js';
 import { openBuyCityModal, openTradeModal } from '../../ui/modals.js';
-import { getDebugPanelHTML } from './debugPanelTemplate.js';
+import { toggleDebugStoreVisible, setDebugStoreTab } from '../../svelte/stores/debugStore.js';
 import {
   ensureGameStarted,
   debugRoll,
@@ -80,13 +80,16 @@ export function bindDebugKeyboardShortcuts() {
 
 export function toggleDebugPanel(forceOpen = null) {
   const panel = document.getElementById('debug-suite-panel');
-  if (!panel) return;
 
   if (forceOpen !== null) {
     panelVisible = forceOpen;
   } else {
     panelVisible = !panelVisible;
   }
+
+  toggleDebugStoreVisible(panelVisible);
+
+  if (!panel) return;
 
   if (panelVisible) {
     panel.classList.remove('hidden');
@@ -118,13 +121,10 @@ export function setForcedDiceInputs(d1, d2) {
 export function injectDebugUI() {
   if (document.getElementById('debug-suite-panel')) return;
 
-  // 1. Main Debug Suite Panel Drawer
+  // Fallback container when Svelte DebugDrawer is not yet mounted
   const panel = document.createElement('div');
   panel.id = 'debug-suite-panel';
   panel.className = 'fixed top-12 right-3 z-[1000] w-[440px] max-w-[96vw] max-h-[88vh] bg-slate-950/95 backdrop-blur-xl border-2 border-slate-700/80 rounded-3xl shadow-2xl text-slate-100 hidden flex-col overflow-hidden select-none font-sans text-xs';
-
-  panel.innerHTML = getDebugPanelHTML();
-
   document.body.appendChild(panel);
 
   // Set default tab
@@ -137,6 +137,7 @@ export function injectDebugUI() {
 
 export function setDebugTab(tabName) {
   activeTab = tabName;
+  setDebugStoreTab(tabName);
   const tabs = ['dice', 'props', 'players', 'events', 'scenarios'];
 
   tabs.forEach(t => {

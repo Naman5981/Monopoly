@@ -12,6 +12,10 @@ import { mount } from 'svelte';
 import ModalsRoot from './svelte/modals/ModalsRoot.svelte';
 import GameHud from './svelte/hud/GameHud.svelte';
 import PlayerSetupCards from './svelte/lobby/PlayerSetupCards.svelte';
+import LobbyNetworkStatus from './svelte/lobby/LobbyNetworkStatus.svelte';
+import MatchSettingsPanel from './svelte/lobby/MatchSettingsPanel.svelte';
+import MultiplayerPortal from './svelte/lobby/MultiplayerPortal.svelte';
+import DebugDrawer from './svelte/debug/DebugDrawer.svelte';
 import { initThreeScene, initTheatreSuite, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
 import { context } from './three/core/context.js';
 import { checkVictoryConditions } from './game/rules.js';
@@ -135,7 +139,6 @@ import {
   counterIncomingTrade,
   declineIncomingTrade,
   closeIncomingTradeModal,
-  renderNetWorthTimelineChart,
   openRulesModal,
   closeRulesModal,
   toggleEmotePopover,
@@ -312,7 +315,6 @@ window.acceptIncomingTrade = acceptIncomingTrade;
 window.counterIncomingTrade = counterIncomingTrade;
 window.declineIncomingTrade = declineIncomingTrade;
 window.closeIncomingTradeModal = closeIncomingTradeModal;
-window.renderNetWorthTimelineChart = renderNetWorthTimelineChart;
 window.cycleGameSpeed = cycleGameSpeed;
 window.updateGameSpeedUI = updateGameSpeedUI;
 window.resetCameraView = resetCameraView;
@@ -685,6 +687,32 @@ function initApp() {
       }
     }
 
+    mountLobbyNetworkStatus('lobby-room-status-mount', 'room');
+    mountLobbyNetworkStatus('lobby-network-badge-mount', 'badge');
+    mountLobbyNetworkStatus('lobby-network-status-mount', 'status');
+    mountLobbyNetworkStatus('lobby-portal-status-mount', 'portal');
+    mountLobbyNetworkStatus('lobby-play-button-mount', 'play');
+
+    const settingsMount = document.getElementById('lobby-settings-mount');
+    if (settingsMount) {
+      try {
+        settingsMount.innerHTML = '';
+        mount(MatchSettingsPanel, { target: settingsMount });
+      } catch (err) {
+        console.warn('[Svelte] MatchSettingsPanel mounting deferred:', err);
+      }
+    }
+
+    const portalMount = document.getElementById('lobby-portal-mount');
+    if (portalMount) {
+      try {
+        portalMount.innerHTML = '';
+        mount(MultiplayerPortal, { target: portalMount });
+      } catch (err) {
+        console.warn('[Svelte] MultiplayerPortal mounting deferred:', err);
+      }
+    }
+
     const hudContainer = document.getElementById('svelte-hud-mount');
     if (hudContainer) {
       try {
@@ -706,6 +734,23 @@ function initApp() {
       mount(ModalsRoot, { target: modalsContainer });
     } catch (err) {
       console.warn('[Svelte] ModalsRoot mounting deferred:', err);
+    }
+
+    const isDebugAllowed = BUILD_CONFIG?.DEBUG_ENABLED !== false &&
+      (typeof __DEBUG_ALLOWED__ === 'undefined' || __DEBUG_ALLOWED__ !== false);
+    if (isDebugAllowed) {
+      let debugMount = document.getElementById('svelte-debug-mount');
+      if (!debugMount) {
+        debugMount = document.createElement('div');
+        debugMount.id = 'svelte-debug-mount';
+        document.body.appendChild(debugMount);
+      }
+      try {
+        debugMount.innerHTML = '';
+        mount(DebugDrawer, { target: debugMount });
+      } catch (err) {
+        console.warn('[Svelte] DebugDrawer mounting deferred:', err);
+      }
     }
   }
 
@@ -745,6 +790,13 @@ function initApp() {
       }
     }
   });
+}
+
+function mountLobbyNetworkStatus(mountId, variant) {
+  const mountTarget = document.getElementById(mountId);
+  if (!mountTarget) return;
+  mountTarget.innerHTML = '';
+  mount(LobbyNetworkStatus, { target: mountTarget, props: { variant } });
 }
 
 if (document.readyState === 'loading') {

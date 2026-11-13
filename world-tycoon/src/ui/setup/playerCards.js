@@ -159,11 +159,17 @@ export function renderPlayerCards() {
       isConnectedPeer
     });
   }
+  const curPlayerForStore = matchSettings.customPlayers[selectedSetupPlayerIdx] || p0;
+  const curArchForStore = ARCHETYPES[curPlayerForStore?.hatStyle || 0] || ARCHETYPES[0];
   updateLobbyStore({
     playerCount: lobbyPlayerCount,
     selectedPlayerIdx: selectedSetupPlayerIdx,
     activeDisplayName,
     canEditCurrent: canCurrentPlayerEditSlot(selectedSetupPlayerIdx),
+    archetypeId: curArchForStore.id,
+    archetypeName: curArchForStore.name.toUpperCase(),
+    archetypeIcon: curArchForStore.icon,
+    selectedColorHex: curPlayerForStore?.colorHex || '#10b981',
     players: lobbyPlayersList
   });
 

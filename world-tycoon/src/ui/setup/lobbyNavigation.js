@@ -6,11 +6,13 @@
 import { playSFX } from '../../game/audio.js';
 import { networkState, leaveMultiplayerRoom } from '../../network/p2p.js';
 import { animateLobbyViewTransition } from '../anim.js';
+import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
 
 export let currentLobbyView = 'title'; // 'title' | 'local' | 'multiplayer-portal' | 'multiplayer-room'
 
 export function setLobbyView(viewName, triggerSound = true) {
   currentLobbyView = viewName;
+  updateLobbyStore({ currentView: viewName });
   const screen = document.getElementById('landing-setup-screen');
   if (screen) {
     screen.classList.remove('lobby-view-title', 'lobby-view-local', 'lobby-view-multiplayer-portal', 'lobby-view-multiplayer-room');
@@ -88,13 +90,6 @@ export function showLocalSetup(renderPlayerCards, renderMatchSettingButtons) {
     leaveMultiplayerRoom();
   }
   setLobbyView('local');
-  const playBtn = document.getElementById('landing-play-btn');
-  if (playBtn) {
-    playBtn.disabled = false;
-    playBtn.innerHTML = '<i class="fa-solid fa-play text-xl mr-2"></i> START MATCH';
-    playBtn.classList.remove('game-btn-blue', 'opacity-85', 'opacity-75', 'cursor-not-allowed', 'bg-slate-500');
-    playBtn.classList.add('game-btn-green');
-  }
   if (typeof renderPlayerCards === 'function') renderPlayerCards();
   else if (window.renderPlayerCards) window.renderPlayerCards();
   if (typeof renderMatchSettingButtons === 'function') renderMatchSettingButtons();

@@ -11,10 +11,9 @@ const initialModalState = {
     visible: false,
     partnerIdx: null,
     partners: [],
+    selectedPartnerIdx: null,
     myProperties: [],
     partnerProperties: [],
-    selectedMyProps: [],
-    selectedPartnerProps: [],
     statusMessage: '',
     isWaiting: false,
     incomingTrade: {
@@ -133,12 +132,18 @@ const initialModalState = {
     empireCitiesCount: 0,
     starsEarned: '+0 ⭐',
     totalBalanceStars: '500 ⭐',
-    multiplayerStatus: ''
+    multiplayerStatus: '',
+    rewardBreakdown: [],
+    playAgainText: 'PLAY AGAIN',
+    playAgainDisabled: false,
+    historyChart: { empty: true, gridLines: [], series: [] }
   },
   wardrobe: {
     visible: false,
+    isClosing: false,
     activeCategory: 'hat',
-    starsBalance: 500
+    starsBalance: 500,
+    items: []
   },
   resumeMatch: {
     visible: false,
@@ -170,13 +175,15 @@ const initialModalState = {
     matchTimerText: '15m match',
     summaryText: '',
     standings: [],
-    history: []
+    history: [],
+    historyChart: { empty: true, gridLines: [], series: [] }
   },
   monopolyCelebration: {
     visible: false,
     winnerName: 'Player',
     groupName: 'ORANGE',
     groupColor: '#f97316',
+    playerColor: '#ef4444',
     avatarInitial: 'P',
     avatarIcon: '🎩',
     deedCards: []
@@ -186,6 +193,9 @@ const initialModalState = {
     clientVersion: 'v1.0.8',
     remoteVersion: 'v1.0.8',
     downloadUrl: 'https://github.com/Naman5981/Monopoly/releases/latest'
+  },
+  setup: {
+    visible: false
   }
 };
 
@@ -232,7 +242,8 @@ export function closeAllModalsInStore() {
       reconnectGrace: { ...state.reconnectGrace, visible: false },
       leaderboard: { ...state.leaderboard, visible: false },
       monopolyCelebration: { ...state.monopolyCelebration, visible: false },
-      updateAlert: { ...state.updateAlert, visible: false }
+      updateAlert: { ...state.updateAlert, visible: false },
+      setup: { ...state.setup, visible: false }
     };
     for (const key of Object.keys(nextState)) {
       syncModalDom(key, nextState[key]);

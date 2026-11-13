@@ -4,6 +4,14 @@
   let state = $state({});
   modalStore.subscribe(val => { state = val.wardrobe || {}; });
 
+  const rarityClasses = {
+    common: 'bg-slate-100 text-slate-700 border-slate-200',
+    rare: 'bg-sky-100 text-sky-800 border-sky-300',
+    epic: 'bg-purple-100 text-purple-800 border-purple-300',
+    legendary: 'bg-amber-100 text-amber-900 border-amber-300',
+    mythic: 'bg-rose-100 text-rose-900 border-rose-300'
+  };
+
   function onClose() {
     window.closeWardrobeModal?.();
   }
@@ -17,9 +25,31 @@
       window.resetTycoonProfile?.();
     }
   }
+
+  function onPreview(event, item) {
+    if (event.target.closest('button')) return;
+    window.previewWardrobeItem?.(item.category, item.id);
+  }
+
+  function onPreviewKeydown(event, item) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      window.previewWardrobeItem?.(item.category, item.id);
+    }
+  }
+
+  function onEquip(event, item) {
+    event.stopPropagation();
+    window.equipWardrobeItem?.(item.category, item.id);
+  }
+
+  function onUnlock(event, item) {
+    event.stopPropagation();
+    window.unlockWardrobeItem?.(item.id);
+  }
 </script>
 
-<div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 items-stretch justify-end {state.visible ? 'flex wardrobe-panel-visible pointer-events-auto' : 'hidden wardrobe-panel-hidden pointer-events-none'}">
+<div id="modal-wardrobe" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title" class="fixed inset-0 z-50 items-stretch justify-end {state.visible ? 'flex wardrobe-panel-visible pointer-events-auto' : 'hidden wardrobe-panel-hidden pointer-events-none'}{state.isClosing ? ' wardrobe-panel-hidden !pointer-events-none' : ''}">
   <!-- Clickable backdrop on left side (clean transparent, zero blur on 3D character) -->
   <div id="wardrobe-backdrop" onclick={onClose} class="absolute inset-0 bg-transparent pointer-events-none transition-opacity duration-300 {state.visible ? 'opacity-100 pointer-events-auto' : 'opacity-0'}" title="Click to return to lobby"></div>
 
@@ -78,7 +108,51 @@
     <!-- Item Grid Arena with contain overscroll -->
     <div class="p-5 sm:p-6 overflow-y-auto flex-1 bg-slate-50/70 overscroll-contain">
       <div id="wardrobe-items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5">
-        <!-- Dynamically populated via wardrobe.js -->
+        {#each state.items || [] as item (item.id)}
+          {@const borderClass = item.isPreviewing
+            ? 'border-sky-500 ring-2 ring-sky-400 shadow-md bg-sky-50/50 scale-[1.01]'
+            : item.isEquipped
+              ? 'border-emerald-400 ring-1 ring-emerald-200 shadow-sm'
+              : 'border-slate-200 hover:border-sky-300 shadow-xs'}
+          <div
+            onclick={(event) => onPreview(event, item)}
+            onkeydown={(event) => onPreviewKeydown(event, item)}
+            role="button"
+            tabindex="0"
+            class="relative bg-white border-2 {borderClass} rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer transition-all duration-150 ease-out"
+            title="Click to preview on avatar"
+          >
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <span class="text-3xl select-none filter drop-shadow-xs">{item.icon}</span>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border {rarityClasses[item.rarity] || rarityClasses.common}">{item.rarity}</span>
+                  {#if item.isPreviewing}
+                    <span class="px-2 py-0.5 rounded-full bg-sky-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs">👁 PREVIEW</span>
+                  {/if}
+                  {#if item.isEquipped}
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider">✓ ACTIVE</span>
+                  {:else if item.isUnlocked}
+                    <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider">UNLOCKED</span>
+                  {:else}
+                    <span class="px-2 py-0.5 rounded-full {item.canAfford ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'} text-[10px] font-black tracking-wider">🔒 {item.cost.toLocaleString()} ⭐</span>
+                  {/if}
+                </div>
+              </div>
+              <h4 class="font-rounded font-black text-xs sm:text-sm text-slate-900 leading-tight">{item.name}</h4>
+              <p class="text-[11px] text-slate-500 font-medium leading-normal mt-1 mb-3">{item.desc}</p>
+            </div>
+            <div class="mt-auto pt-1">
+              {#if item.isEquipped}
+                <button disabled class="w-full py-2 px-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 font-black text-xs">✓ Equipped</button>
+              {:else if item.isUnlocked}
+                <button onclick={(event) => onEquip(event, item)} class="w-full py-2 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-[0.96] text-white font-black text-xs cursor-pointer" aria-label="Equip {item.name}">Equip</button>
+              {:else}
+                <button onclick={(event) => onUnlock(event, item)} disabled={!item.canAfford} class="w-full py-2 px-3 rounded-xl {item.canAfford ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 cursor-pointer' : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'} font-black text-xs" aria-label="Unlock {item.name} for {item.cost.toLocaleString()} Tycoon Stars">🔒 {item.cost.toLocaleString()} ⭐</button>
+              {/if}
+            </div>
+          </div>
+        {/each}
       </div>
     </div>
 

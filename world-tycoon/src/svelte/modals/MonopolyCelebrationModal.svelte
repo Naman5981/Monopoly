@@ -29,7 +29,7 @@
     onclick={(e) => e.stopPropagation()}
   >
     <!-- Player Avatar Hero Disc -->
-    <div id="monopoly-avatar-disc" class="monopoly-avatar-disc shadow-2xl">
+    <div id="monopoly-avatar-disc" class="monopoly-avatar-disc shadow-2xl" style="box-shadow: 0 0 0 4px #fff, 0 0 0 8px {state.playerColor || '#ef4444'}55, 0 16px 36px rgba(0,0,0,.45)">
       <div id="monopoly-avatar-fallback" class="w-full h-full flex flex-col items-center justify-center text-white">
         <span id="monopoly-avatar-icon" class="text-3xl sm:text-4xl drop-shadow">{state.avatarIcon || '🎩'}</span>
         <span id="monopoly-avatar-initial" class="text-xs sm:text-sm font-black uppercase tracking-wider drop-shadow-sm mt-0.5">{state.avatarInitial || 'YOU'}</span>

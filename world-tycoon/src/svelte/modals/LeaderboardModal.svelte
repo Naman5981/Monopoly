@@ -1,5 +1,6 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import NetWorthChart from '../components/NetWorthChart.svelte';
 
   let state = $state({});
   modalStore.subscribe(val => { state = val.leaderboard || {}; });
@@ -119,8 +120,8 @@
           <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-line text-amber-400"></i> Net Worth Trajectory Timeline</span>
           <span class="text-[10px] text-slate-500 font-normal">Turn-by-turn history</span>
         </div>
-        <div id="leaderboard-timeline-chart" class="w-full h-36 bg-slate-900/80 rounded-2xl border border-white/10 p-2 overflow-hidden flex items-center justify-center">
-          <!-- Populated by chart renderer or Svelte SVG -->
+        <div id="leaderboard-timeline-chart" class="w-full min-h-36 bg-slate-900/80 rounded-2xl border border-white/10 p-2 overflow-hidden flex items-center justify-center">
+          <NetWorthChart chart={state.historyChart} />
         </div>
       </div>
     </div>

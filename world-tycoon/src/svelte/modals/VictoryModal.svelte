@@ -1,5 +1,6 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import NetWorthChart from '../components/NetWorthChart.svelte';
 
   let state = $state({});
   modalStore.subscribe(val => { state = val.victory || {}; });
@@ -82,7 +83,9 @@
           <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-line text-sky-600"></i> Net Worth Trajectory</span>
           <span class="text-[10px] text-slate-500 font-bold">Match Timeline</span>
         </div>
-        <div id="victory-timeline-chart" class="w-full h-36 flex items-center justify-center overflow-hidden"></div>
+        <div id="victory-timeline-chart" class="w-full min-h-36 flex items-center justify-center overflow-hidden">
+          <NetWorthChart chart={state.historyChart} />
+        </div>
       </div>
 
       <!-- Match Completion Star Reward Card (better-interface) -->
@@ -96,7 +99,12 @@
           </span>
         </div>
         <div id="victory-reward-breakdown" class="text-[11px] text-amber-900 font-bold flex flex-wrap gap-1.5">
-          <!-- Dynamically populated tags via victory.js -->
+          {#each state.rewardBreakdown || [] as reward (reward.label)}
+            <span class="inline-flex items-center gap-1 bg-amber-100/90 text-amber-950 px-2 py-0.5 rounded-full border border-amber-200 shadow-2xs">
+              <span>{reward.label}:</span>
+              <strong class="tabular-nums">+{reward.pts} ⭐</strong>
+            </span>
+          {/each}
         </div>
         <div class="pt-1.5 flex items-center justify-between border-t border-amber-200/80">
           <span class="text-xs font-extrabold text-slate-600">Total Balance: <strong id="victory-profile-balance" class="text-slate-900 tabular-nums">{state.totalBalanceStars || '500 ⭐'}</strong></span>
@@ -121,9 +129,9 @@
       </button>
 
       <!-- Big Grand Play Again Button -->
-      <button id="btn-victory-play-again" onclick={onPlayAgain} class="game-btn game-btn-green py-3 px-3 text-sm sm:text-base font-black shadow-xl flex items-center justify-center gap-2 group hover:scale-[1.02] enabled:active:scale-[0.96] transition-[transform,box-shadow,filter] duration-150 ease-out" title="Start immediate rematch">
+      <button id="btn-victory-play-again" onclick={onPlayAgain} disabled={state.playAgainDisabled} class="game-btn game-btn-green py-3 px-3 text-sm sm:text-base font-black shadow-xl flex items-center justify-center gap-2 group hover:scale-[1.02] enabled:active:scale-[0.96] transition-[transform,box-shadow,filter] duration-150 ease-out" title="Start immediate rematch">
         <i class="fa-solid fa-rotate-right text-base group-hover:rotate-45 transition-transform"></i>
-        <span id="btn-victory-play-again-text">PLAY AGAIN</span>
+        <span id="btn-victory-play-again-text">{state.playAgainText || 'PLAY AGAIN'}</span>
       </button>
     </div>
   </div>

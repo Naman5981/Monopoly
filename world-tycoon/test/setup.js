@@ -103,6 +103,17 @@ export function setupBrowserMocks() {
           }
         },
         prepend: () => {},
+        replaceChildren: (...newChildren) => {
+          children.length = 0;
+          for (const item of newChildren) {
+            if (typeof item === 'string') {
+              element.textContent = item;
+            } else if (item && typeof item === 'object') {
+              children.push(item);
+              item.parentElement = element;
+            }
+          }
+        },
         getContext: () => mockContext,
         get children() {
           return children;

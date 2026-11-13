@@ -37,164 +37,72 @@ function syncIslandBarsOnCard(card, isDetained) {
   }
 }
 
-/** Render / re-render the 4-corner HUD player cards. */
+function syncFallbackCard(id, player, shownMoney, isLeft, leftContainer, rightContainer) {
+  let card = document.getElementById(`hud-card-${id}`);
+  const isDetained = Boolean(player.inIsland);
+  const islandTurns = player.islandTurns || 1;
+  const islandBadgeHtml = isDetained
+    ? `<span class="hud-detention-badge">JAIL ${islandTurns}/3</span>`
+    : '';
+
+  if (!card && (leftContainer || rightContainer)) {
+    card = document.createElement('div');
+    card.id = `hud-card-${id}`;
+    card.className = 'player-hud-card';
+    card.innerHTML = `
+      <span class="hud-player-name">${player.name}</span>
+      <span class="hud-island-icon">${islandBadgeHtml}</span>
+      <span id="hud-cash-val-${id}">${player.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
+    `;
+    if (isLeft && leftContainer) leftContainer.appendChild(card);
+    else if (rightContainer) rightContainer.appendChild(card);
+  } else if (card) {
+    card.innerHTML = `
+      <span class="hud-player-name">${player.name}</span>
+      <span class="hud-island-icon">${islandBadgeHtml}</span>
+      <span id="hud-cash-val-${id}">${player.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
+    `;
+  }
+  syncIslandBarsOnCard(card, isDetained);
+}
+
+/** Render player HUD data for the Svelte card components. */
 export function renderCornerHUDs() {
   initPortraitRenderLoop();
-  const leftContainer = document.getElementById('hud-left-players');
-  const rightContainer = document.getElementById('hud-right-players');
-  if (!leftContainer || !rightContainer) return;
-
-  const isSvelteMounted = Boolean(document.getElementById('svelte-hud-mount')?.firstElementChild);
-  const totalCards = leftContainer.querySelectorAll('.player-hud-card').length + rightContainer.querySelectorAll('.player-hud-card').length;
-  const needsRebuild = !isSvelteMounted && (totalCards !== gameState.players.length);
-
-  if (needsRebuild) {
-    leftContainer.innerHTML = '';
-    rightContainer.innerHTML = '';
-  }
-
+  const isSvelteMounted = typeof document !== 'undefined' && Boolean(document.getElementById('svelte-hud-mount')?.firstElementChild);
+  const leftContainer = typeof document !== 'undefined' ? document.getElementById('hud-left-players') : null;
+  const rightContainer = typeof document !== 'undefined' ? document.getElementById('hud-right-players') : null;
   const leftPlayers = [];
   const rightPlayers = [];
 
-  gameState.players.forEach((p, idx) => {
-    const isTurn = (idx === gameState.currentPlayerIdx);
-    const isLeft = (idx % 2 === 0);
-    const shownMoney = displayedCash[idx] !== undefined ? displayedCash[idx] : p.cash;
-    const theme = PLAYER_THEMES[idx] || { colorHex: '#3b82f6', charColor: 0x3b82f6 };
-    const isDetained = Boolean(p.inIsland);
-    const islandTurns = p.islandTurns || 0;
-    const isSelf = networkState.isMultiplayer
-      ? (idx === networkState.localPlayerIdx)
-      : (idx === 0);
-    const isHost = networkState.isMultiplayer && (idx === 0);
-
+  gameState.players.forEach((player, id) => {
+    const theme = PLAYER_THEMES[id] || { colorHex: '#3b82f6' };
+    const shownMoney = displayedCash[id] ?? player.cash;
+    const isLeft = id % 2 === 0;
     const playerRecord = {
-      id: idx,
-      name: p.name,
-      isAI: Boolean(p.isAI),
-      isSelf,
-      isHost,
-      isCurrent: isTurn,
+      id,
+      name: player.name,
+      isAI: Boolean(player.isAI),
+      isSelf: id === (networkState.isMultiplayer ? networkState.localPlayerIdx : 0),
+      isHost: networkState.isMultiplayer && id === 0,
+      isCurrent: id === gameState.currentPlayerIdx,
       colorHex: theme.colorHex,
-      cashFormatted: p.bankrupt ? 'OUT' : fmtMoney(shownMoney),
-      inIsland: isDetained,
-      islandTurns,
-      bankrupt: Boolean(p.bankrupt)
+      cashFormatted: player.bankrupt ? 'OUT' : fmtMoney(shownMoney),
+      inIsland: Boolean(player.inIsland),
+      islandTurns: player.islandTurns || 0,
+      bankrupt: Boolean(player.bankrupt)
     };
-    if (isLeft) {
-      leftPlayers.push(playerRecord);
-    } else {
-      rightPlayers.push(playerRecord);
-    }
 
-    const turnBadgeHtml = isTurn
-      ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[10px] tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>`
-      : (p.isAI
-          ? `<span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">BOT</span>`
-          : (idx === (networkState.isMultiplayer ? networkState.localPlayerIdx : 0)
-              ? `<span class="text-[9px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200">YOU</span>`
-              : (networkState.isMultiplayer && idx === 0
-                  ? `<span class="text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">HOST</span>`
-                  : `<span class="text-[9px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">P${idx + 1}</span>`
-                )
-            )
-        );
+    (isLeft ? leftPlayers : rightPlayers).push(playerRecord);
 
-    const islandBadgeHtml = isDetained
-      ? `<span class="hud-detention-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/50 text-amber-900 font-black text-[9px] tracking-wider shadow-2xs" title="In Island Detention (Turn ${islandTurns}/3)"><i class="fa-solid fa-lock text-[8px] text-amber-700"></i> JAIL ${islandTurns}/3</span>`
-      : '';
-
-    if (needsRebuild) {
-      const wrapper = document.createElement('div');
-      wrapper.className = `player-hud-wrapper flex items-center ${p.bankrupt ? 'opacity-35 grayscale' : (isTurn ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150`;
-
-      const card = document.createElement('div');
-      card.id = `hud-card-${idx}`;
-      card.className = `player-hud-card ${isTurn ? 'active-turn-hud' : ''} ${isDetained ? 'in-island-detention' : ''}`;
-
-      if (isLeft) {
-        card.innerHTML = `
-          <div class="avatar-circle" style="box-shadow: 0 0 0 2.5px ${theme.colorHex}, 0 4px 10px rgba(0,0,0,0.12);">
-            <canvas id="hud-avatar-canvas-${idx}" width="104" height="104" class="w-full h-full block"></canvas>
-          </div>
-          <div class="hud-info-col">
-            <div class="hud-header-row">
-              <span class="hud-player-name">${p.name}</span>
-              <span class="hud-island-icon">${islandBadgeHtml}</span>
-              <span class="hud-turn-badge">${turnBadgeHtml}</span>
-            </div>
-            <div class="hud-cash-row">
-              <span id="hud-cash-val-${idx}" class="hud-cash-amount">${p.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
-              <span class="hud-cash-icon" title="Cash">💵</span>
-            </div>
-          </div>
-        `;
-        wrapper.appendChild(card);
-        leftContainer.appendChild(wrapper);
-      } else {
-        card.innerHTML = `
-          <div class="hud-info-col items-end text-right">
-            <div class="hud-header-row justify-end">
-              <span class="hud-turn-badge">${turnBadgeHtml}</span>
-              <span class="hud-island-icon">${islandBadgeHtml}</span>
-              <span class="hud-player-name">${p.name}</span>
-            </div>
-            <div class="hud-cash-row justify-end">
-              <span class="hud-cash-icon" title="Cash">💵</span>
-              <span id="hud-cash-val-${idx}" class="hud-cash-amount">${p.bankrupt ? 'OUT' : fmtMoney(shownMoney)}</span>
-            </div>
-          </div>
-          <div class="avatar-circle" style="box-shadow: 0 0 0 2.5px ${theme.colorHex}, 0 4px 10px rgba(0,0,0,0.12);">
-            <canvas id="hud-avatar-canvas-${idx}" width="104" height="104" class="w-full h-full block"></canvas>
-          </div>
-        `;
-        wrapper.appendChild(card);
-        rightContainer.appendChild(wrapper);
-      }
-
-      syncIslandBarsOnCard(card, isDetained);
-
-      // Draw initial frame immediately onto newly mounted canvas
-      const canvas = document.getElementById(`hud-avatar-canvas-${idx}`);
-      if (canvas) {
-        drawPortraitFrame(canvas, idx, performance.now());
-      }
-    } else {
-      // In-place update preserving DOM & canvas context
-      const card = document.getElementById(`hud-card-${idx}`);
-      if (card) {
-        card.classList.toggle('active-turn-hud', isTurn);
-        syncIslandBarsOnCard(card, isDetained);
-
-        const wrapper = card.closest('.player-hud-wrapper') || card.parentElement;
-        if (wrapper) {
-          wrapper.className = `player-hud-wrapper flex items-center ${p.bankrupt ? 'opacity-35 grayscale' : (isTurn ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150`;
-        }
-        const nameEl = card.querySelector('.hud-player-name');
-        if (nameEl && nameEl.textContent !== p.name) nameEl.textContent = p.name;
-
-        const islandEl = card.querySelector('.hud-island-icon');
-        if (islandEl) islandEl.innerHTML = islandBadgeHtml;
-
-        const badgeEl = card.querySelector('.hud-turn-badge');
-        if (badgeEl) badgeEl.innerHTML = turnBadgeHtml;
-
-        const cashVal = document.getElementById(`hud-cash-val-${idx}`);
-        if (cashVal && !cashVal.classList.contains('text-rose-600') && !cashVal.classList.contains('text-emerald-600')) {
-          cashVal.textContent = p.bankrupt ? 'OUT' : fmtMoney(shownMoney);
-        }
-      }
+    if (!isSvelteMounted) {
+      syncFallbackCard(id, player, shownMoney, isLeft, leftContainer, rightContainer);
     }
   });
 
-  const aliveCount = gameState.players.filter(p => !p.bankrupt).length;
-  const countEl = document.getElementById('hud-player-count');
-  if (countEl) countEl.textContent = `${aliveCount}/${gameState.players.length}`;
-
-  const mySets = Object.keys(GROUP_META).filter(g => ownsFullColorGroup(0, g)).length;
+  const aliveCount = gameState.players.filter(player => !player.bankrupt).length;
+  const mySets = Object.keys(GROUP_META).filter(group => ownsFullColorGroup(0, group)).length;
   const targetSets = matchSettings.monopolySetsToWin || 3;
-  const bonusEl = document.getElementById('hud-bonus-counter');
-  if (bonusEl) bonusEl.textContent = `${mySets}/${targetSets} Sets`;
 
   updateHudState({
     playerCount: `${aliveCount}/${gameState.players.length}`,
@@ -203,13 +111,11 @@ export function renderCornerHUDs() {
     rightPlayers
   });
 
-  // Auto-refresh leaderboard modal if open
-  const lbModal = document.getElementById('modal-leaderboard');
-  if (lbModal && !lbModal.classList.contains('hidden') && window.renderLeaderboardModal) {
+  const leaderboard = document.getElementById('modal-leaderboard');
+  if (leaderboard && !leaderboard.classList.contains('hidden') && window.renderLeaderboardModal) {
     window.renderLeaderboardModal();
   }
 }
-
 /** Show a floating cash label next to a player's HUD card. */
 export function spawnFloatingCashOnHUD(playerIdx, text, isGain = true) {
   const card = document.getElementById(`hud-card-${playerIdx}`);

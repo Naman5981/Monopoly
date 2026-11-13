@@ -1,57 +1,7 @@
   <!-- 1. THREE.JS FULL-SCREEN ISOMETRIC 3D DIORAMA CANVAS -->
   <div id="three-canvas-container" class="fixed inset-0 z-0"></div>
 
-  <!-- 2. FLOATING SPEECH BUBBLE OVER ACTIVE PLAYER TOKEN -->
-  <div id="token-speech-bubble" class="token-speech-bubble hidden">Rolling dice...</div>
-
-  <!-- 2B. HIGH-CONTRAST 3D TILE HOVER TOOLTIP -->
-  <div id="tile-hover-tooltip" class="tile-hover-tooltip hidden"></div>
-
-  <!-- 2C. TURN LOCK NOTIFICATION TOAST -->
-  <div id="turn-lock-toast" class="turn-lock-toast hidden" style="display: none;">
-    <i class="fa-solid fa-lock text-amber-400"></i>
-    <span id="turn-lock-toast-text">Wait for your turn!</span>
-  </div>
-
-  <!-- 3. WORLD TOUR DESTINATION SELECTION BANNER -->
-  <div id="world-tour-banner" class="world-tour-banner fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-sky-600 to-indigo-700 text-white px-5 py-2 rounded-full font-extrabold text-xs shadow-xl border-2 border-white items-center gap-2">
-    <i class="fa-solid fa-plane-departure animate-bounce"></i>
-    <span>WORLD TOUR! Click any tile to fly.</span>
-  </div>
-
-  <!-- 3B. WORLD FESTIVAL SELECTION BANNER -->
-  <div id="festival-select-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-5 py-2.5 rounded-full font-black text-xs shadow-2xl border-2 border-white/90 items-center gap-2.5 animate-pulse select-none">
-    <i class="fa-solid fa-champagne-glasses text-amber-300 text-sm animate-bounce"></i>
-    <span>🎪 <strong>WORLD FESTIVAL!</strong> Click any flashing owned city on the board to double rent (2×)!</span>
-    <button onclick="window.openFestivalBoostModalFromBanner()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-[11px] font-black underline cursor-pointer ml-1 transition" title="Open Property List">📋 View List</button>
-  </div>
-
-  <!-- 4. SVELTE 5 REACTIVE HUD MOUNT POINT (TopBar, PlayerCards, StatusPill & Roll Station) -->
+  <!-- 2. SVELTE 5 REACTIVE HUD MOUNT POINT (TopBar, PlayerCards, StatusPill, Banners, Emotes, Overlays) -->
   <div id="svelte-hud-mount"></div>
 
-  <!-- 10. RIGHT-SIDE FLOATING CHAT / EMOTE BUTTON -->
-  <div class="fixed right-0 top-1/2 -translate-y-1/2 z-30 flex items-center">
-    <div id="emote-popover" class="hidden mr-2 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl shadow-xl p-2 flex-col gap-1.5">
-      <button onclick="window.triggerReaction('tomato')" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-2 whitespace-nowrap">
-        <span>🍅</span> Throw Tomato
-      </button>
-      <button onclick="window.triggerReaction('money')" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-2 whitespace-nowrap">
-        <span>💸</span> Money Shower
-      </button>
-      <button onclick="window.triggerReaction('fire')" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-2 whitespace-nowrap">
-        <span>🔥</span> On Fire!
-      </button>
-      <button onclick="window.triggerReaction('sunglasses')" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-2 whitespace-nowrap">
-        <span>😎</span> Too Easy!
-      </button>
-      <button onclick="window.sendQuickEmote('🤝 Want to Trade?')" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-2 whitespace-nowrap">
-        <span>🤝</span> Deal?
-      </button>
-      <button onclick="window.triggerReaction('cry')" class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-2 whitespace-nowrap">
-        <span>😭</span> Unlucky!
-      </button>
-    </div>
-    <button onclick="window.toggleEmotePopover()" class="w-12 h-12 bg-slate-800/90 hover:bg-slate-900 text-white rounded-l-2xl shadow-lg flex items-center justify-center cursor-pointer transition">
-      <i class="fa-regular fa-comment-dots text-base"></i>
-    </button>
-  </div>
+

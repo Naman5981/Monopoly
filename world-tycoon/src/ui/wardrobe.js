@@ -10,21 +10,12 @@ import { context } from '../three/core/context.js';
 import { spawnAllPlayerTokens3D } from '../three/pawns/tokens.js';
 import { updateLobbyHeroAvatar, updateLobbyHeroDiceSkin } from '../three/stages/lobbyStage.js';
 import { applyEquippedDiceSkin } from '../three/assets/dice.js';
-import { animateWardrobeGridCascade, animateNumberCounter } from './anim.js';
 import { networkState, sendClientProfileUpdate, broadcastLobbySettings } from '../network/p2p.js';
 import { currentLobbyView } from './setup/lobbyNavigation.js';
 import { showTurnLockToast } from './hud.js';
 import { updateModalSlice } from '../svelte/stores/modalStore.js';
 
 const WARDROBE_STORAGE_KEY = 'WORLD_TYCOON_PROFILE_V3';
-
-const RARITY_STYLES = {
-  common: 'bg-slate-100 text-slate-700 border-slate-200',
-  rare: 'bg-sky-100 text-sky-800 border-sky-300',
-  epic: 'bg-purple-100 text-purple-800 border-purple-300',
-  legendary: 'bg-amber-100 text-amber-900 border-amber-300',
-  mythic: 'bg-rose-100 text-rose-900 border-rose-300'
-};
 
 export const WARDROBE_ITEMS = {
   hat: [
@@ -114,7 +105,7 @@ export function resetTycoonProfile() {
   const profile = getDefaultProfile();
   saveTycoonProfile(profile);
   applyEquippedCosmeticsToPlayer();
-  renderWardrobeGrid();
+  updateWardrobeItems();
   renderWardrobeHeader();
   updateAllPointsBadges();
   playSFX('bankrupt');
@@ -209,7 +200,7 @@ export function unlockItem(itemId) {
 
   playSFX('cash');
   applyEquippedCosmeticsToPlayer();
-  renderWardrobeGrid();
+  updateWardrobeItems();
   renderWardrobeHeader();
 }
 
@@ -231,7 +222,7 @@ export function equipItem(category, itemId) {
 
   playSFX('hop');
   applyEquippedCosmeticsToPlayer();
-  renderWardrobeGrid();
+  updateWardrobeItems();
 }
 
 /**
@@ -265,7 +256,7 @@ export function previewWardrobeItem(category, itemId) {
   }
 
   playSFX('hop');
-  renderWardrobeGrid();
+  updateWardrobeItems();
 }
 
 /**
@@ -334,124 +325,26 @@ export function setWardrobeCategory(cat) {
   if (!['hat', 'dice', 'pedestal'].includes(cat)) return;
   activeCategory = cat;
   playSFX('click');
-  updateModalSlice('wardrobe', { activeCategory: cat });
-
-  // Update tab button active states
-  const tabs = document.querySelectorAll('.wardrobe-tab-btn');
-  tabs.forEach(tab => {
-    const isCurrent = tab.dataset.category === cat;
-    if (isCurrent) {
-      tab.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
-      tab.classList.add('bg-amber-400', 'text-slate-950', 'shadow-sm', 'font-black');
-      tab.setAttribute('aria-selected', 'true');
-    } else {
-      tab.classList.remove('bg-amber-400', 'text-slate-950', 'shadow-sm', 'font-black');
-      tab.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200', 'font-extrabold');
-      tab.setAttribute('aria-selected', 'false');
-    }
+  updateModalSlice('wardrobe', {
+    activeCategory: cat,
+    items: getWardrobeItemsForView(cat)
   });
-
-  renderWardrobeGrid();
 }
 
-/**
- * Renders the items grid for the active category.
- */
-/**
- * Renders the items grid for the active category with interactive preview support.
- */
-function renderWardrobeGrid() {
-  const container = document.getElementById('wardrobe-items-grid');
-  if (!container) return;
-
+function getWardrobeItemsForView(category = activeCategory) {
   const profile = getTycoonProfile();
-  const items = WARDROBE_ITEMS[activeCategory] || [];
-  const equippedId = profile.equipped[activeCategory];
-  const previewingId = previewState[activeCategory] || equippedId;
-
-  container.innerHTML = items.map(item => {
+  const equippedId = profile.equipped[category];
+  const previewingId = previewState[category] || equippedId;
+  return (WARDROBE_ITEMS[category] || []).map(item => {
     const isUnlocked = profile.unlockedItems.includes(item.id);
     const isEquipped = equippedId === item.id;
     const isPreviewing = previewingId === item.id;
-    const canAfford = profile.tycoonStars >= item.cost;
-    const rarityClass = RARITY_STYLES[item.rarity] || RARITY_STYLES.common;
+    return { ...item, category, isUnlocked, isEquipped, isPreviewing, canAfford: profile.tycoonStars >= item.cost };
+  });
+}
 
-    let actionButton = '';
-    if (isEquipped) {
-      actionButton = `
-        <button disabled class="w-full py-2 px-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 font-black text-xs flex items-center justify-center gap-1.5 cursor-default select-none shadow-2xs">
-          <i class="fa-solid fa-circle-check text-emerald-600"></i> Equipped
-        </button>
-      `;
-    } else if (isUnlocked) {
-      actionButton = `
-        <button onclick="event.stopPropagation(); window.equipWardrobeItem('${activeCategory}', '${item.id}')" class="w-full py-2 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-[0.96] text-white font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-[transform,background-color] duration-150 ease-out" aria-label="Equip ${item.name}">
-          <span>Equip</span>
-        </button>
-      `;
-    } else {
-      actionButton = `
-        <button onclick="event.stopPropagation(); window.unlockWardrobeItem('${item.id}')" class="w-full py-2 px-3 rounded-xl ${canAfford ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 active:scale-[0.96] cursor-pointer' : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'} font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition-[transform,background-color] duration-150 ease-out" aria-label="Unlock ${item.name} for ${item.cost.toLocaleString()} Tycoon Stars" ${!canAfford ? 'disabled' : ''}>
-          <i class="fa-solid fa-lock text-[10px]"></i>
-          <span class="tabular-nums">${item.cost.toLocaleString()} ⭐</span>
-        </button>
-      `;
-    }
-
-    // Dynamic border and ring classes for preview state
-    let stateBorderClass = 'border-slate-200 hover:border-sky-300 shadow-xs';
-    if (isPreviewing) {
-      stateBorderClass = 'border-sky-500 ring-2 ring-sky-400 shadow-md bg-sky-50/50 scale-[1.01]';
-    } else if (isEquipped) {
-      stateBorderClass = 'border-emerald-400 ring-1 ring-emerald-200 shadow-sm';
-    }
-
-    return `
-      <div onclick="window.previewWardrobeItem('${activeCategory}', '${item.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.previewWardrobeItem('${activeCategory}', '${item.id}');}" class="relative bg-white border-2 ${stateBorderClass} rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer transition-all duration-150 ease-out" title="Click to preview on avatar">
-        <div>
-          <!-- Item Card Top Header -->
-          <div class="flex items-start justify-between gap-2 mb-2">
-            <span class="text-3xl select-none filter drop-shadow-xs">${item.icon}</span>
-            <div class="flex flex-col items-end gap-1">
-              <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${rarityClass}">
-                ${item.rarity}
-              </span>
-              ${isPreviewing 
-                ? `<span class="px-2 py-0.5 rounded-full bg-sky-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs">
-                     <i class="fa-solid fa-eye text-[9px]"></i> PREVIEW
-                   </span>`
-                : ''
-              }
-              ${isEquipped 
-                ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                     <i class="fa-solid fa-check text-[9px]"></i> ACTIVE
-                   </span>`
-                : isUnlocked 
-                  ? `<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider">UNLOCKED</span>`
-                  : `<span class="px-2 py-0.5 rounded-full ${canAfford ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'} text-[10px] font-black tracking-wider flex items-center gap-1 tabular-nums">
-                      <i class="fa-solid fa-lock text-[9px]"></i> ${item.cost.toLocaleString()} ⭐
-                     </span>`
-              }
-            </div>
-          </div>
-
-          <!-- Item Title & Description -->
-          <h4 class="font-rounded font-black text-xs sm:text-sm text-slate-900 leading-tight flex items-center gap-1.5">
-            ${item.name}
-          </h4>
-          <p class="text-[11px] text-slate-500 font-medium leading-normal mt-1 mb-3">${item.desc}</p>
-        </div>
-
-        <!-- Action Button -->
-        <div class="mt-auto pt-1">
-          ${actionButton}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Anime.js kinetic card cascade
-  animateWardrobeGridCascade('#wardrobe-items-grid > div');
+function updateWardrobeItems() {
+  updateModalSlice('wardrobe', { items: getWardrobeItemsForView() });
 }
 
 /**
@@ -460,11 +353,6 @@ function renderWardrobeGrid() {
 function renderWardrobeHeader() {
   const profile = getTycoonProfile();
   updateModalSlice('wardrobe', { starsBalance: profile.tycoonStars });
-  const balEl = document.getElementById('wardrobe-stars-balance');
-  if (balEl) {
-    const curVal = parseInt(balEl.textContent.replace(/\D/g, ''), 10) || 0;
-    animateNumberCounter(balEl, curVal, profile.tycoonStars);
-  }
 }
 
 /**
@@ -472,28 +360,13 @@ function renderWardrobeHeader() {
  */
 export function updateAllPointsBadges() {
   const profile = getTycoonProfile();
-  const fmt = profile.tycoonStars.toLocaleString();
-
+  const balance = profile.tycoonStars.toLocaleString();
+  updateModalSlice('wardrobe', { starsBalance: profile.tycoonStars });
+  updateModalSlice('victory', { totalBalanceStars: `${balance} ⭐` });
   const lobbyStarsEl = document.getElementById('setup-profile-stars');
-  if (lobbyStarsEl) {
-    const curVal = parseInt(lobbyStarsEl.textContent.replace(/\D/g, ''), 10) || 0;
-    animateNumberCounter(lobbyStarsEl, curVal, profile.tycoonStars);
-  }
-
+  if (lobbyStarsEl) lobbyStarsEl.textContent = balance;
   const btnStarsBadge = document.getElementById('wardrobe-button-stars-badge');
-  if (btnStarsBadge) {
-    const curVal = parseInt(btnStarsBadge.textContent.replace(/\D/g, ''), 10) || 0;
-    animateNumberCounter(btnStarsBadge, curVal, profile.tycoonStars);
-  }
-
-  const modalStarsEl = document.getElementById('wardrobe-stars-balance');
-  if (modalStarsEl) {
-    const curVal = parseInt(modalStarsEl.textContent.replace(/\D/g, ''), 10) || 0;
-    animateNumberCounter(modalStarsEl, curVal, profile.tycoonStars);
-  }
-
-  const victoryBalEl = document.getElementById('victory-profile-balance');
-  if (victoryBalEl) victoryBalEl.innerHTML = `${fmt} <svg class="ui-icon w-3.5 h-3.5 text-amber-400 inline ml-1" aria-hidden="true"><use href="#icon-star"></use></svg>`;
+  if (btnStarsBadge) btnStarsBadge.textContent = balance;
 }
 
 /**
@@ -510,9 +383,6 @@ export function openWardrobeModal() {
   }
   previousActiveElement = document.activeElement;
   const landingScreen = document.getElementById('landing-setup-screen');
-  const modal = document.getElementById('modal-wardrobe');
-  if (!modal) return;
-
   if (wardrobeCloseTimer) {
     clearTimeout(wardrobeCloseTimer);
     wardrobeCloseTimer = null;
@@ -528,20 +398,16 @@ export function openWardrobeModal() {
   // 1. Unhide modal and trigger hardware-accelerated drawer slide
   updateModalSlice('wardrobe', {
     visible: true,
+    isClosing: false,
     activeCategory,
-    starsBalance: profile.tycoonStars
+    starsBalance: profile.tycoonStars,
+    items: getWardrobeItemsForView()
   });
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-  void modal.offsetWidth; // Force reflow for smooth entry transition
 
   // 2. Animate landing columns: slide avatar left, slide roster/settings offscreen
   if (landingScreen) {
     landingScreen.classList.add('wardrobe-mode-active');
   }
-  modal.classList.remove('wardrobe-panel-hidden');
-  modal.classList.add('wardrobe-panel-visible');
-
   renderWardrobeHeader();
   setWardrobeCategory(activeCategory);
   updateAllPointsBadges();
@@ -563,28 +429,22 @@ export function openWardrobeModal() {
  */
 export function closeWardrobeModal() {
   const landingScreen = document.getElementById('landing-setup-screen');
-  const modal = document.getElementById('modal-wardrobe');
-  if (!modal) return;
-
   window.removeEventListener('keydown', handleWardrobeKeyDown);
   playSFX('hop');
 
-  // 1. Trigger slide-out animations
-  modal.classList.remove('wardrobe-panel-visible');
-  modal.classList.add('wardrobe-panel-hidden');
+  // Svelte owns drawer visibility. Restore the lobby view alongside it.
   if (landingScreen) {
     landingScreen.classList.remove('wardrobe-mode-active');
   }
+  updateModalSlice('wardrobe', { isClosing: true });
 
   // 2. Revert any unequipped preview back to equipped loadout
   applyEquippedCosmeticsToPlayer();
 
-  // 3. Clean up modal display after transition ends (360ms)
+  // Wait for the Svelte drawer transition before changing modal state.
   wardrobeCloseTimer = setTimeout(() => {
     if (!landingScreen?.classList.contains('wardrobe-mode-active')) {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      updateModalSlice('wardrobe', { visible: false });
+      updateModalSlice('wardrobe', { visible: false, isClosing: false });
     }
     wardrobeCloseTimer = null;
   }, 360);

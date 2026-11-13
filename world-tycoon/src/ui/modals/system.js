@@ -22,10 +22,20 @@ export function openSetupModal() {
   document.getElementById('modal-victory')?.classList.add('hidden');
   document.getElementById('modal-victory')?.classList.remove('flex');
   renderLobbyControls();
+  updateModalSlice('setup', { visible: true });
   const m = document.getElementById('modal-setup');
   if (m) {
     m.classList.remove('hidden');
     m.classList.add('flex');
+  }
+}
+
+export function closeSetupModal() {
+  updateModalSlice('setup', { visible: false });
+  const m = document.getElementById('modal-setup');
+  if (m) {
+    m.classList.add('hidden');
+    m.classList.remove('flex');
   }
 }
 

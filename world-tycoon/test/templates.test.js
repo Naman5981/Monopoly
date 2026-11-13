@@ -12,7 +12,7 @@ const rootDir = path.resolve(__dirname, '..');
 describe('Modular Templates & HTML Assembly (/clean-code)', () => {
   it('assembles index.html from index.template.html cleanly without errors', () => {
     const res = assembleIndexHtml();
-    assert.ok(res.size > 60000, 'Assembled index.html should be over 60KB');
+    assert.ok(res.size > 30000, 'Assembled index.html should be valid and non-empty');
     assert.ok(fs.existsSync(res.path), 'Output file must exist');
 
     const content = fs.readFileSync(res.path, 'utf8');
@@ -32,13 +32,8 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
     assert.ok(content.includes('id="svelte-hud-mount"'));
     assert.ok(content.includes('id="svelte-modals-mount"'));
 
-    // Essential traditional modals in assembled index.html
-    const expectedModalIds = [
-      'modal-setup',
-      'modal-monopoly-celebration',
-      'modal-leaderboard',
-      'modal-update-alert'
-    ];
+    // The setup dialog remains an HTML template; migrated dialogs mount from Svelte.
+    const expectedModalIds = ['modal-setup'];
 
     for (const modalId of expectedModalIds) {
       assert.ok(content.includes(`id="${modalId}"`), `index.html must include modal id "${modalId}"`);
@@ -58,7 +53,14 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
       'TradeModal.svelte',
       'ChanceWheelModal.svelte',
       'InspectorModal.svelte',
-      'FestivalBoostModal.svelte'
+      'FestivalBoostModal.svelte',
+      'LeaderboardModal.svelte',
+      'MonopolyCelebrationModal.svelte',
+      'UpdateAlertModal.svelte',
+      'ResumeMatchModal.svelte',
+      'DisconnectNoticeModal.svelte',
+      'ConfirmExitLobbyModal.svelte',
+      'ReconnectGraceModal.svelte'
     ];
     const svelteModalsDir = path.join(rootDir, 'src', 'svelte', 'modals');
     for (const svelteModal of svelteModals) {
@@ -72,7 +74,7 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
     const modalFiles = fs.readdirSync(path.join(templatesDir, 'modals')).filter(f => f.endsWith('.html'));
 
     assert.ok(files.length >= 3, 'Top-level templates must exist');
-    assert.ok(modalFiles.length >= 5, 'Modal templates must exist');
+    assert.ok(modalFiles.length >= 1, 'The remaining setup template must exist');
 
     for (const f of files) {
       const stat = fs.statSync(path.join(templatesDir, f));
@@ -97,18 +99,12 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
     }
   });
 
-  it('ensures modal containers in assembled HTML are sibling dialogs and never illegally nested', () => {
-    const indexPath = path.join(rootDir, 'index.html');
-    const content = fs.readFileSync(indexPath, 'utf8');
-
-    // Ensure #modal-monopoly-celebration is not inside #modal-setup
-    const setupIndex = content.indexOf('id="modal-setup"');
-    const celebrationIndex = content.indexOf('id="modal-monopoly-celebration"');
-    assert.ok(setupIndex !== -1 && celebrationIndex !== -1, 'Both modals must exist');
-
-    // Verify closing tag between them
-    const sliceBetween = content.slice(setupIndex, celebrationIndex);
-    assert.ok(sliceBetween.includes('</div>'), 'There must be closing tags between modal declarations');
+  it('keeps the remaining setup dialog separate from the Svelte modal tree', () => {
+    const setupTemplate = fs.readFileSync(path.join(rootDir, 'src', 'templates', 'modals', 'setup-dialog.html'), 'utf8');
+    const modalRoot = fs.readFileSync(path.join(rootDir, 'src', 'svelte', 'modals', 'ModalsRoot.svelte'), 'utf8');
+    assert.ok(setupTemplate.includes('id="modal-setup"'));
+    assert.ok(modalRoot.includes('<LeaderboardModal />'));
+    assert.ok(modalRoot.includes('<MonopolyCelebrationModal />'));
   });
 });
 
