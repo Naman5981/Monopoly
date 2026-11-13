@@ -301,7 +301,7 @@ sequenceDiagram
 
 ---
 
-### 2.9 Visual Polish & Performance Standards (v1.0.7 - v1.0.8)
+### 2.9 Visual Polish, Performance Standards & Svelte 5 Architecture (v2.0.0)
 - **Constant 60 FPS Performance Architecture (`fixing-motion-performance`, `web-games`)**:
   - **VSync-Safe High-Refresh Frame Pacing**: Adjusted frame limiter threshold from 15.16ms to 13.33ms (`1000 / 75`), eliminating dropped VSync frames and micro-stutters on standard 60Hz displays while keeping 120Hz/144Hz monitors cleanly capped.
   - **Motion-Driven Shadow Map Throttling**: Throttled shadow map passes to 30Hz during token movement, cutting shadow render passes by 50% without perceptual quality loss.

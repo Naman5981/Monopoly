@@ -137,7 +137,7 @@
       <div>
         <div class="font-black text-sm text-amber-300 tracking-wide flex items-center gap-2">
           DEV & QA SUITE
-          <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono">v1.0.8</span>
+          <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono">v2.0.0</span>
         </div>
         <div id="debug-header-subtitle" class="text-[10px] text-slate-400 font-medium">
           <span>Turn: <strong>P{gameState?.currentPlayerIdx ?? 0} ({currPlayer.name})</strong></span> •

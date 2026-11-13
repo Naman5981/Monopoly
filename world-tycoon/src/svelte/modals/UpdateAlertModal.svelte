@@ -69,7 +69,7 @@
       <div class="bg-slate-900/80 p-3.5 rounded-2xl border border-white/10 shadow-xs flex items-center justify-between gap-2">
         <div class="flex flex-col">
           <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Your Version</span>
-          <span id="update-client-version" class="font-mono font-black text-sm text-slate-200">{state.clientVersion || 'v1.0.8'}</span>
+          <span id="update-client-version" class="font-mono font-black text-sm text-slate-200">{state.clientVersion || 'v2.0.0'}</span>
         </div>
         <div class="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 shadow-xs">
           <i class="fa-solid fa-arrow-right text-xs"></i>

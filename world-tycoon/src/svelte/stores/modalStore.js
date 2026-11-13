@@ -190,8 +190,8 @@ const initialModalState = {
   },
   updateAlert: {
     visible: false,
-    clientVersion: 'v1.0.8',
-    remoteVersion: 'v1.0.8',
+    clientVersion: 'v2.0.0',
+    remoteVersion: 'v2.0.0',
     downloadUrl: 'https://github.com/Naman5981/Monopoly/releases/latest'
   },
   setup: {
