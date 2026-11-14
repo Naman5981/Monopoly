@@ -165,4 +165,18 @@ describe('Diplomatic Trade Modal & Property-Only Rules (/bug-hunter)', () => {
     assert.equal(gameState.players[0].cash, initialNamanCash - 50000);
     assert.equal(gameState.players[1].cash, initialBaronCash + 50000);
   });
+
+  it('pre-populates counter-offer selections when opened with an active proposal', () => {
+    const proposal = {
+      proposerIdx: 1, // Baron
+      targetIdx: 0,   // Naman
+      offerTileIds: [mumbaiTile.id],
+      reqTileIds: [cairoTile.id]
+    };
+
+    openTradeModal(proposal);
+
+    const partnerSelect = document.getElementById('trade-partner-select');
+    assert.equal(partnerSelect.value, '1');
+  });
 });

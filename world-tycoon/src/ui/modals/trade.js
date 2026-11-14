@@ -24,10 +24,10 @@ import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 let pendingTradeCounter = null;
 let activeIncomingTradeProposal = null;
 
-export function openTradeModal() {
+export function openTradeModal(counterProposal = null) {
   if (isLobbyScreenActive()) return;
   const m = document.getElementById('modal-trade');
-  if (m && m.classList.contains('flex') && !m.classList.contains('hidden')) {
+  if (m && m.classList.contains('flex') && !m.classList.contains('hidden') && !counterProposal) {
     closeTradeModal();
     return;
   }
@@ -36,22 +36,51 @@ export function openTradeModal() {
   const partners = gameState.players
     .map((player, id) => ({ id, name: player.name }))
     .filter(({ id }) => id !== myIdx && !gameState.players[id].bankrupt);
+
+  const targetPartnerIdx = counterProposal ? counterProposal.proposerIdx : (partners[0]?.id ?? null);
+  const partner = targetPartnerIdx !== null ? gameState.players[targetPartnerIdx] : null;
   const myProps = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === myIdx);
+  const partnerProps = targetPartnerIdx !== null
+    ? BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === targetPartnerIdx)
+    : [];
+
+  const initialOfferIds = counterProposal?.reqTileIds || [];
+  const initialReqIds = counterProposal?.offerTileIds || [];
+
   updateModalSlice('trade', {
     visible: true,
     statusMessage: '',
     isWaiting: false,
+    counterMode: Boolean(counterProposal),
+    counterPartnerName: partner?.name || '',
     partners,
-    selectedPartnerIdx: partners[0]?.id ?? null,
+    selectedPartnerIdx: targetPartnerIdx,
+    partnerIdx: targetPartnerIdx,
+    selectedOfferIds: initialOfferIds,
+    selectedReqIds: initialReqIds,
+    partnerWallet: fmtMoney(partner?.cash || 0),
     myWallet: fmtMoney(gameState.players[myIdx]?.cash || 0),
     myProperties: myProps.map(t => ({
       id: t.id,
       name: t.name,
       color: t.colorHex || '#3b82f6',
+      price: t.price || 0,
+      rentFormatted: fmtMoney(t.price || 0)
+    })),
+    partnerProperties: partnerProps.map(t => ({
+      id: t.id,
+      name: t.name,
+      color: t.colorHex || '#3b82f6',
+      price: t.price || 0,
       rentFormatted: fmtMoney(t.price || 0)
     }))
   });
-  populateTradePartnerProps(partners[0]?.id);
+
+  const partnerSelect = document.getElementById('trade-partner-select');
+  if (partnerSelect && targetPartnerIdx !== null) {
+    partnerSelect.value = String(targetPartnerIdx);
+  }
+
   const statusMsg = document.getElementById('trade-status-msg');
   if (statusMsg) {
     statusMsg.classList.add('hidden');
@@ -63,7 +92,7 @@ export function openTradeModal() {
     sendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
   }
 
-  animateModalSpringOpen('#modal-trade', '#modal-trade .game-modal-shell');
+  animateModalSpringOpen('#modal-trade', '#modal-trade-card');
   playSFX('hop');
 }
 
@@ -73,7 +102,7 @@ export function populateTradePartnerProps(selectedPartnerId) {
   const partner = gameState.players ? gameState.players[pIdx] : null;
 
   if (isNaN(pIdx)) {
-    updateModalSlice('trade', { partnerIdx: null, selectedPartnerIdx: null, partnerWallet: fmtMoney(0), partnerProperties: [] });
+    updateModalSlice('trade', { partnerIdx: null, selectedPartnerIdx: null, partnerWallet: fmtMoney(0), partnerProperties: [], selectedReqIds: [] });
     return;
   }
   const props = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === pIdx);
@@ -82,10 +111,12 @@ export function populateTradePartnerProps(selectedPartnerId) {
     partnerIdx: pIdx,
     selectedPartnerIdx: pIdx,
     partnerWallet: fmtMoney(partner?.cash || 0),
+    selectedReqIds: [],
     partnerProperties: props.map(t => ({
       id: t.id,
       name: t.name,
       color: t.colorHex || '#3b82f6',
+      price: t.price || 0,
       rentFormatted: fmtMoney(t.price || 0)
     }))
   });
@@ -334,7 +365,7 @@ function safelyResumeBotTurn() {
 
 export function closeTradeModal() {
   updateModalSlice('trade', { visible: false });
-  animateModalSpringClose('#modal-trade');
+  animateModalSpringClose('#modal-trade', '#modal-trade-card');
   const banner = document.getElementById('trade-counter-banner');
   if (banner) banner.classList.add('hidden');
   const statusMsg = document.getElementById('trade-status-msg');
@@ -431,12 +462,7 @@ export function counterIncomingTrade() {
   activeIncomingTradeProposal = null;
   animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade-card');
   hideIncomingTradeOffer();
-  openTradeModal();
-  const sel = document.getElementById('trade-partner-select');
-  if (sel) {
-    sel.value = p.proposerIdx;
-    populateTradePartnerProps(p.proposerIdx);
-  }
+  openTradeModal(p);
 }
 
 export function getActiveIncomingTradeProposal() {
