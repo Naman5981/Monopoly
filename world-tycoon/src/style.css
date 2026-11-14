@@ -245,13 +245,12 @@ body {
 .lobby-podium-halo {
   position: absolute;
   left: 50%;
-  top: 48%;
+  top: 46%;
   transform: translate(-50%, -50%);
-  width: 440px;
-  height: 440px;
+  width: clamp(260px, 36vh, 420px);
+  height: clamp(260px, 36vh, 420px);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(254, 243, 199, 0.45) 35%, rgba(217, 119, 6, 0.12) 60%, transparent 75%);
-  filter: drop-shadow(0 0 45px rgba(245, 158, 11, 0.25));
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.65) 30%, rgba(186, 230, 253, 0.25) 55%, transparent 72%);
   pointer-events: none;
   z-index: 1;
 }
@@ -494,11 +493,14 @@ body {
   align-items: center;
   gap: 10px;
   padding: 6px 12px 6px 8px;
-  background: rgba(255, 255, 255, 0.98);
-  border: 2px solid #e2e8f0;
-  border-bottom: 3.5px solid #cbd5e1;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--player-accent, #3b82f6) 20%, #ffffff 80%) 0%,
+    color-mix(in srgb, var(--player-accent, #3b82f6) 32%, #ffffff 68%) 100%
+  );
+  border: 2.5px solid color-mix(in srgb, var(--player-accent, #3b82f6) 55%, #64748b);
+  border-bottom: 4px solid color-mix(in srgb, var(--player-accent, #3b82f6) 85%, #1e293b);
   border-radius: 20px;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--player-accent, #3b82f6) 24%, transparent), 0 2px 6px rgba(15, 23, 42, 0.06);
   transition: transform 150ms ease-out, box-shadow 150ms ease-out, border-color 150ms ease-out, opacity 150ms ease-out;
   pointer-events: auto;
   user-select: none;
@@ -547,10 +549,14 @@ body {
 }
 
 .player-hud-card.active-turn-hud {
-  border-color: #f59e0b !important;
-  border-bottom-color: #d97706 !important;
-  background: linear-gradient(135deg, rgba(255, 251, 235, 0.98) 0%, rgba(255, 255, 255, 0.98) 100%) !important;
-  box-shadow: 0 8px 26px rgba(245, 158, 11, 0.35), 0 0 0 2.5px rgba(251, 191, 36, 0.55) !important;
+  border-color: var(--player-accent, #f59e0b) !important;
+  border-bottom-color: color-mix(in srgb, var(--player-accent, #f59e0b) 85%, #000) !important;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--player-accent, #3b82f6) 30%, #ffffff 70%) 0%,
+    color-mix(in srgb, var(--player-accent, #3b82f6) 46%, #ffffff 54%) 100%
+  ) !important;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--player-accent, #f59e0b) 45%, transparent),
+              0 0 0 3px color-mix(in srgb, var(--player-accent, #f59e0b) 70%, #ffffff) !important;
   transform: scale(1.05);
   z-index: 60;
 }
@@ -2402,22 +2408,28 @@ body.production-build #debug-modal {
 
 .lobby-view-local #lobby-avatar-3d-canvas-wrapper,
 .lobby-view-multiplayer-room #lobby-avatar-3d-canvas-wrapper {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lobby-view-local #lobby-hero-stage-group,
+.lobby-view-multiplayer-room #lobby-hero-stage-group {
   margin-top: auto;
   margin-bottom: auto;
 }
 
 .lobby-view-local #lobby-avatar-3d-canvas,
 .lobby-view-multiplayer-room #lobby-avatar-3d-canvas {
-  width: clamp(120px, 18vh, 220px) !important;
-  height: clamp(120px, 18vh, 220px) !important;
-  max-height: 24vh !important;
+  width: clamp(160px, 24vh, 260px) !important;
+  height: clamp(160px, 24vh, 260px) !important;
+  max-height: 30vh !important;
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lobby-view-local .lobby-podium-halo,
 .lobby-view-multiplayer-room .lobby-podium-halo {
-  width: clamp(150px, 22vh, 280px) !important;
-  height: clamp(150px, 22vh, 280px) !important;
+  width: clamp(220px, 32vh, 360px) !important;
+  height: clamp(220px, 32vh, 360px) !important;
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 

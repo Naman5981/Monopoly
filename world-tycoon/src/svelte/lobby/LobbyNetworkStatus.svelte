@@ -34,8 +34,18 @@
 {:else if variant === 'portal'}
   <p id="portal-p2p-status-text" class="text-xs font-bold text-center min-h-[18px] {$lobbyStore.portalStatusKind === 'error' ? 'text-rose-500' : ($lobbyStore.portalStatusKind === 'loading' ? 'text-emerald-600' : 'text-slate-500')}">{$lobbyStore.portalStatus}</p>
 {:else if variant === 'play'}
-  <button id="landing-play-btn" onclick={startMatch} disabled={$lobbyStore.isMultiplayer && !$lobbyStore.isHost} class="w-full py-4 sm:py-4.5 rounded-full font-rounded font-black text-2xl sm:text-3xl text-white tracking-widest uppercase game-btn shadow-2xl {$lobbyStore.isMultiplayer && !$lobbyStore.isHost ? 'bg-slate-500 opacity-75 cursor-not-allowed' : 'game-btn-green'}">
-    <i class="fa-solid {$lobbyStore.isMultiplayer && !$lobbyStore.isHost ? 'fa-hourglass-half fa-spin text-lg' : 'fa-play text-xl'} mr-2"></i>
-    {$lobbyStore.isMultiplayer && !$lobbyStore.isHost ? 'WAITING FOR HOST...' : 'PLAY'}
+  {#if $lobbyStore.isTeamMode && !$lobbyStore.isTeamBalanceValid}
+    <div class="team-balance-warning-pill w-full px-3 py-2 rounded-2xl bg-rose-50/95 border-2 border-rose-300 text-rose-800 text-xs font-black shadow-md flex items-center justify-center gap-1.5 animate-pulse text-center leading-tight">
+      <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm flex-shrink-0"></i>
+      <span>{$lobbyStore.teamBalanceError || 'Teams must be balanced to start!'}</span>
+    </div>
+  {/if}
+  <button id="landing-play-btn" onclick={startMatch} disabled={$lobbyStore.isMultiplayer && !$lobbyStore.isHost} class="w-full py-4 sm:py-4.5 rounded-full font-rounded font-black text-2xl sm:text-3xl text-white tracking-widest uppercase game-btn shadow-2xl {$lobbyStore.isMultiplayer && !$lobbyStore.isHost ? 'bg-slate-500 opacity-75 cursor-not-allowed' : ($lobbyStore.isTeamMode && !$lobbyStore.isTeamBalanceValid ? 'bg-rose-500 hover:bg-rose-600 ring-4 ring-rose-300/60' : 'game-btn-green')}">
+    <i class="fa-solid {$lobbyStore.isMultiplayer && !$lobbyStore.isHost ? 'fa-hourglass-half fa-spin text-lg' : ($lobbyStore.isTeamMode && !$lobbyStore.isTeamBalanceValid ? 'fa-triangle-exclamation text-xl' : 'fa-play text-xl')} mr-2"></i>
+    {$lobbyStore.isMultiplayer && !$lobbyStore.isHost
+      ? 'WAITING FOR HOST...'
+      : ($lobbyStore.isTeamMode
+          ? ($lobbyStore.isTeamBalanceValid ? ($lobbyStore.playerCount === 6 ? 'START 3v3 CLASH' : 'START 2v2 CLASH') : 'BALANCE TEAMS')
+          : 'PLAY')}
   </button>
 {/if}

@@ -230,7 +230,25 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
 export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber) {
   const resortColor = '#0ea5e9';
 
-  drawCadastralGrid(ctx, isCyber);
+  if (!isCyber) {
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, 512);
+    bgGrad.addColorStop(0, '#f0fdfa');
+    bgGrad.addColorStop(0.35, '#f8fafc');
+    bgGrad.addColorStop(1, '#fefce8');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Subtle tropical wave contours along upper margin
+    ctx.strokeStyle = 'rgba(14, 165, 233, 0.22)';
+    ctx.lineWidth = 3;
+    for (let w = 0; w < 3; w++) {
+      ctx.beginPath();
+      ctx.arc(100 + w * 156, 120, 56, 0.2, Math.PI - 0.2);
+      ctx.stroke();
+    }
+  } else {
+    drawCadastralGrid(ctx, isCyber);
+  }
 
   // Top Resort Header Strip
   ctx.fillStyle = resortColor;

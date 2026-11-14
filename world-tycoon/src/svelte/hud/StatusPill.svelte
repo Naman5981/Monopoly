@@ -12,7 +12,19 @@
   let timerOffset = $derived(
     113 - ((state.turnTimeLeft || 15) / (state.turnMax || 15)) * 113
   );
+
+  function handleWindowKeydown(e) {
+    if (e.target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable)) return;
+    if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32) {
+      if (state.rollButton?.visible && state.rollButton?.enabled) {
+        e.preventDefault();
+        onRoll();
+      }
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <!-- Turn Lock Notification Toast -->
 {#if state.toast?.visible}

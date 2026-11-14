@@ -58,6 +58,7 @@ import {
   registerEngineCallbacks,
   openMonopolyCelebrationModal,
   checkAndTriggerMonopoly,
+  triggerMonopolyThreatAlert,
   showIncomingTradeOfferModal,
   completeTradeTransfer,
   closeIncomingTradeModal,
@@ -177,6 +178,9 @@ export function initEngine() {
     },
     onMonopoly: (playerIdx, groupKey) => {
       openMonopolyCelebrationModal(playerIdx, groupKey);
+    },
+    onMonopolyThreat: (playerIdx, groupKey, missingTileId) => {
+      triggerMonopolyThreatAlert(playerIdx, groupKey, missingTileId);
     },
     onUpgradeCity: (playerIdx, tileId, count = 1) => {
       const st = gameState.properties[tileId];

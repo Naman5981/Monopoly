@@ -252,6 +252,7 @@ export {
   setFlightModeHighlights,
   setFestivalSelectionHighlights,
   setMonopolyTileHighlights,
+  setMonopolyThreatBeacon,
   setEmpireSpotlight
 } from './board/highlights.js';
 
@@ -323,7 +324,8 @@ export {
   playIntroCinematicFlyIn,
   playLandmarkCinematicReveal,
   playVictoryCinematicOrbit,
-  playBuyoutCinematicFocus
+  playBuyoutCinematicFocus,
+  playMonopolyThreatCinematic
 } from './theatre.js';
 
 

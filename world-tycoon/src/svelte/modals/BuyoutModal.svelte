@@ -39,6 +39,18 @@
   <span id="buyout-modal-houses-cost" class="hidden">{state.housesCostFormatted || '$0'}</span>
   <span id="buyout-modal-balance" class="hidden">{state.buyerBalanceFormatted || '$0'}</span>
 
+  {#if state.isMonopolyFinisher}
+    <div class="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 border border-amber-400/50 flex items-center justify-between text-xs shadow-inner">
+      <span class="font-black text-amber-300 flex items-center gap-1.5">
+        <span class="text-sm">👑</span>
+        <span>MONOPOLY FINISHER!</span>
+      </span>
+      <span class="text-[11px] font-extrabold text-amber-200">
+        Doubles all district rent (2×)!
+      </span>
+    </div>
+  {/if}
+
   <!-- Action Buttons Row -->
   <div class="flex items-center gap-2 pt-0.5">
     <button id="btn-confirm-buyout" onclick={onConfirm} disabled={!state.canAfford} class="game-btn game-btn-orange flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md {!state.canAfford ? 'opacity-50 cursor-not-allowed' : ''}">

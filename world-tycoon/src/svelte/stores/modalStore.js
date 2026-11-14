@@ -201,6 +201,29 @@ const initialModalState = {
 
 export const modalStore = writable(initialModalState);
 
+let currentModalState = initialModalState;
+modalStore.subscribe(val => { currentModalState = val; });
+
+/**
+ * Returns true if any game modal, confirmation dialog, or action chip is actively open.
+ * @returns {boolean}
+ */
+export function isAnyModalOpen() {
+  if (!currentModalState) return false;
+  for (const key of Object.keys(currentModalState)) {
+    const slice = currentModalState[key];
+    if (!slice) continue;
+    if (slice.visible || slice.resultVisible || slice.noPropertiesVisible || slice.incomingTrade?.visible) {
+      return true;
+    }
+  }
+  return false;
+}
+
+if (typeof window !== 'undefined') {
+  window.isAnyModalOpen = isAnyModalOpen;
+}
+
 /**
  * Updates a specific modal slice in modalStore.
  * @param {'trade' | 'buyout' | 'inspector' | 'chanceWheel' | 'festivalBoost' | 'buyCity' | 'upgradeCity' | 'sellCities' | 'auction' | 'portfolio' | 'rules' | 'victory' | 'wardrobe'} modalKey

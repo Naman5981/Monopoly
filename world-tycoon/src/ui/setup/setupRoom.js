@@ -27,6 +27,8 @@ import { setLobbyView, showTitleScreen, showMultiplayerSetup } from './lobbyNavi
 import { renderPlayerCards } from './playerCards.js';
 import { renderMatchSettingButtons } from './matchSettingsUI.js';
 import { addBotOrSlot, selectedSetupPlayerIdx, FIXED_AI_NAMES, ARCHETYPES, generateRandomBotAppearance } from './playerCustomization.js';
+import { showTurnLockToast } from '../hud.js';
+import { validateTeamModeBalance } from '../../game/rules.js';
 
 export function initLandingSetup() {
   setLobbyView('title', false);
@@ -215,6 +217,21 @@ export function startGameFromLandingPage() {
       setTimeout(() => playBtn.classList.remove('animate-shake'), 600);
     }
     return;
+  }
+
+  // Validate Team Mode team balance before starting
+  if (matchSettings.teamMode) {
+    const teamCheck = validateTeamModeBalance(lobbyPlayerCount, matchSettings.customPlayers);
+    if (!teamCheck.valid) {
+      playSFX('flinch');
+      showTurnLockToast(teamCheck.error || 'Teams must be balanced to start!');
+      const playBtn = document.getElementById('landing-play-btn');
+      if (playBtn) {
+        playBtn.classList.add('animate-shake');
+        setTimeout(() => playBtn.classList.remove('animate-shake'), 600);
+      }
+      return;
+    }
   }
 
   // Ensure match has at least 2 players

@@ -6,10 +6,20 @@
    */
   import { bannerStore } from '../stores/bannerStore.js';
   import { fly, scale, fade } from 'svelte/transition';
-  import { backOut } from 'svelte/easing';
+  import { backOut, cubicOut } from 'svelte/easing';
+  import { animateMonopolyThreatBannerEntrance } from '../../ui/anim/banners.js';
 
   let banner = $state({ activeBanner: null, data: {} });
   bannerStore.subscribe(val => { banner = val; });
+
+  function threatBannerEntrance(node) {
+    animateMonopolyThreatBannerEntrance(node);
+    return {
+      destroy() {
+        if (typeof anime !== 'undefined') anime.remove(node);
+      }
+    };
+  }
 </script>
 
 {#if banner.activeBanner}
@@ -121,6 +131,36 @@
         </div>
         <div class="mt-1 px-4 py-0.5 rounded-full bg-slate-950 text-amber-300 font-extrabold text-xs uppercase tracking-widest text-center shadow-inner">
           CONQUERED ALL {banner.data.groupName || ''} DISTRICTS!
+        </div>
+      </div>
+
+    <!-- 6. Monopoly Threat Alert Banner (sleek, high-stakes, anti-ui-slop) -->
+    {:else if banner.activeBanner === 'monopolyThreat'}
+      <div
+        id="monopoly-threat-banner"
+        style="display: flex;"
+        class="relative px-6 sm:px-8 py-3 rounded-2xl bg-slate-950/95 backdrop-blur-md border-2 border-amber-400 text-white shadow-[0_16px_50px_rgba(245,158,11,0.55),0_0_24px_rgba(245,158,11,0.25)] flex items-center gap-4 transform -translate-y-12 will-change-transform"
+        use:threatBannerEntrance
+        transition:fly={{ y: -40, duration: 650, easing: cubicOut }}
+      >
+        <div class="threat-stagger-item flex items-center justify-center w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-400/50 text-2xl flex-shrink-0">
+          ⚠️
+        </div>
+        <div class="threat-stagger-item flex flex-col justify-center">
+          <div class="flex items-center gap-2">
+            <span class="font-display font-black text-lg sm:text-xl text-amber-400 tracking-wider uppercase leading-none">
+              MONOPOLY THREAT
+            </span>
+            <span class="px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-black uppercase tracking-wider">
+              2× RENT
+            </span>
+          </div>
+          <div class="mt-1 text-xs sm:text-sm text-slate-200 font-semibold tracking-wide">
+            <strong class="text-white font-black" style="color: {banner.data.playerColor || '#facc15'}">{banner.data.playerName || 'Player'}</strong>
+            needs
+            <strong class="text-amber-300 font-black">{banner.data.missingCityName || 'City'}</strong>
+            for <strong class="text-white font-extrabold uppercase">{banner.data.groupName || 'Color'}</strong> set!
+          </div>
         </div>
       </div>
     {/if}

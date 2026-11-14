@@ -121,6 +121,7 @@ export function handleCanvasHover(event) {
 
   const tileId = findIntersectedTileId();
   if (tileId !== undefined) {
+    const isNewHover = (context.hoveredTileId !== tileId);
     context.hoveredTileId = tileId;
     const tile = BOARD_TILES[tileId];
     if (tile) {
@@ -139,7 +140,7 @@ export function handleCanvasHover(event) {
       });
 
       if (gameState.phase === 'WORLD_TOUR') {
-        tooltip.innerHTML = `
+        if (isNewHover) tooltip.innerHTML = `
           <div class="flex items-center gap-2 border-b border-indigo-400 pb-1.5">
             <span class="text-base">✈️</span>
             <span class="font-extrabold text-xs tracking-wide text-white">WORLD TOUR DESTINATION</span>
@@ -160,7 +161,7 @@ export function handleCanvasHover(event) {
         if (isOwnedByMe) {
           const curRent = fmtMoney(calculateTileRent(tileId));
           const boostRent = fmtMoney(calculateTileRent(tileId) * (gameState.properties[tileId]?.festivalBoost ? 1 : 2));
-          tooltip.innerHTML = `
+          if (isNewHover) tooltip.innerHTML = `
             <div class="flex items-center gap-2 border-b border-emerald-400 pb-1.5">
               <span class="text-base">🎪</span>
               <span class="font-extrabold text-xs tracking-wide text-white">WORLD FESTIVAL HOST</span>
@@ -193,7 +194,9 @@ export function handleCanvasHover(event) {
         detailsHtml = `<div class="text-xs text-slate-200 mt-1.5 font-medium">${tile.subtitle || 'Special Board Tile'}</div>`;
       }
 
-      tooltip.innerHTML = `<div class="flex items-center gap-2 border-b border-slate-700 pb-1.5"><span class="w-3.5 h-3.5 rounded-full flex-shrink-0" style="background:${groupColor}"></span><span class="font-extrabold text-sm tracking-wide text-white">${tile.name}</span></div>${detailsHtml}`;
+      if (isNewHover) {
+        tooltip.innerHTML = `<div class="flex items-center gap-2 border-b border-slate-700 pb-1.5"><span class="w-3.5 h-3.5 rounded-full flex-shrink-0" style="background:${groupColor}"></span><span class="font-extrabold text-sm tracking-wide text-white">${tile.name}</span></div>${detailsHtml}`;
+      }
       tooltip.style.left = `${event.clientX}px`;
       tooltip.style.top = `${event.clientY}px`;
       tooltip.classList.remove('hidden');

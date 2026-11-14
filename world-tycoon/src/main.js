@@ -4,10 +4,12 @@
  */
 
 import { applyBoardEdition } from './game/data.js';
+import { BUILD_CONFIG } from './game/buildConfig.js';
 import { gameState, debugState, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed, getSavedPlayerName } from './game/state.js';
 import { updateMasterVolume, playSFX, initAudioUnlock, startAdaptiveMusic, stopAdaptiveMusic } from './game/audio.js';
 import { updateGameSpeedUI, showTurnLockToast, initFastHUDButtonInteractions, updateSoundUI, handleSetGameVolume, handleToggleSound } from './ui/hud.js';
 import { updateHudState } from './svelte/stores/hudStore.js';
+import { isAnyModalOpen } from './svelte/stores/modalStore.js';
 import { mount } from 'svelte';
 import ModalsRoot from './svelte/modals/ModalsRoot.svelte';
 import GameHud from './svelte/hud/GameHud.svelte';
@@ -118,6 +120,7 @@ import {
   passAuctionBid,
   startSoldPropertiesAuctionSequence,
   spinChanceWheel,
+  drawChanceWheelCanvas,
   showChanceAwardPopup,
   openInspectorModal,
   closeInspectorModal,
@@ -343,6 +346,7 @@ window.placeAuctionBid = placeAuctionBid;
 window.passAuctionBid = passAuctionBid;
 window.startSoldPropertiesAuctionSequence = startSoldPropertiesAuctionSequence;
 window.spinChanceWheel = spinChanceWheel;
+window.drawChanceWheelCanvas = drawChanceWheelCanvas;
 window.showChanceAwardPopup = showChanceAwardPopup;
 window.executeWorldTourFlight = executeWorldTourFlight;
 window.triggerTileButtonPress = triggerTileButtonPress;
@@ -756,10 +760,10 @@ function initApp() {
 
   // Keyboard hotkeys for Leaderboard (Tab or L), Space to Roll, and Esc
   window.addEventListener('keydown', (e) => {
-    if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
-    if (e.code === 'Space' || e.key === ' ') {
-      const hasActiveModal = document.querySelector('.game-modal-shell:not(.hidden), #modal-chance-result:not(.hidden), #modal-portfolio:not(.hidden), #modal-trade:not(.hidden), #modal-rules:not(.hidden), #modal-leaderboard:not(.hidden), #modal-wardrobe:not(.hidden), #modal-festival-boost:not(.hidden)');
-      if (!hasActiveModal && gameState.gameStarted && (gameState.phase === 'ROLL' || gameState.phase === 'END') && isHumanTurnActionable()) {
+    if (e.target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable)) return;
+    if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32) {
+      const rollBtn = document.getElementById('btn-bottom-roll') || document.getElementById('btn-center-roll');
+      if (rollBtn && !rollBtn.classList.contains('hidden') && rollBtn.style.display !== 'none' && !rollBtn.disabled) {
         e.preventDefault();
         handleRollButtonClick();
         return;

@@ -185,7 +185,7 @@ export function animateBuildingUpgradeBounce(target = '#upgrade-city-3d-canvas')
  * Bot Trade Proposal Handshake Pop
  * @param {string|HTMLElement} target - Trade modal card
  */
-export function animateBotTradeHandshake(target = '#modal-incoming-trade .game-modal-shell, #modal-trade-offer .game-modal-shell') {
+export function animateBotTradeHandshake(target = '#modal-incoming-trade-card, #modal-incoming-trade .game-modal-shell, #modal-trade-offer .game-modal-shell') {
   if (typeof anime === 'undefined' || isReducedMotion()) return;
   const el = typeof target === 'string' ? document.querySelector(target) : target;
   if (!el) return;

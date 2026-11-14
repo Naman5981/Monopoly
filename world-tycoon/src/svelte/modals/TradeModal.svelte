@@ -1,5 +1,6 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import ActionChipShell from '../components/ActionChipShell.svelte';
 
   let state = $state({});
   modalStore.subscribe(val => { state = val.trade || {}; });
@@ -151,75 +152,93 @@
   </div>
 </div>
 
-<!-- Incoming Proactive Bot Trade Proposal Modal -->
-<div id="modal-incoming-trade" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.incomingTrade?.visible ? 'flex' : 'hidden'}">
-  <div class="game-modal-shell modal-shell-indigo max-w-lg w-full flex flex-col overflow-hidden shadow-2xl">
-    <div class="game-modal-header bg-gradient-to-r from-sky-600 via-indigo-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
-      <div class="relative z-10 flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
-          🤝
-        </div>
-        <div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-indigo-100 shadow-xs mb-1 border border-white/20">
-            DIPLOMATIC PROPOSAL
-          </div>
-          <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md flex items-center gap-2">
-            <span id="incoming-trade-bot-name">{state.incomingTrade?.botName || 'OPPONENT'}</span>
-            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs">OFFER</span>
-          </h3>
-          <p class="text-xs font-bold text-sky-100 drop-shadow mt-0.5">
-            Strategic real estate exchange proposal
-          </p>
-        </div>
+<!-- Incoming Proactive Trade Proposal Dock (/anti-ui-slop /better-interface) -->
+<ActionChipShell modalId="modal-incoming-trade" cardId="modal-incoming-trade-card" visible={state.incomingTrade?.visible} borderColor="border-indigo-500/80">
+  <!-- Top Summary Line -->
+  <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+    <div class="flex items-center gap-2 truncate min-w-0">
+      <span class="text-xs px-2.5 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-800 text-white font-black shadow-sm shrink-0">
+        🤝 TRADE OFFER
+      </span>
+      <div class="flex items-center gap-1.5 truncate">
+        <span class="w-2.5 h-2.5 rounded-full border border-white/40 shrink-0" style="background-color: {state.incomingTrade?.botColor || '#6366f1'};"></span>
+        <h3 id="incoming-trade-bot-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate">
+          {state.incomingTrade?.botName || 'OPPONENT'}
+        </h3>
       </div>
+    </div>
+    <button onclick={onDeclineIncoming} class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-xs transition cursor-pointer shrink-0" title="Decline trade">
+      ✕
+    </button>
+  </div>
 
-      <button onclick={onDeclineIncoming} class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Decline trade">
-        ✕
-      </button>
+  <!-- 2-Column Exchange Comparison Strip -->
+  <div class="grid grid-cols-2 gap-2 sm:gap-3 items-stretch relative">
+    <!-- Left: YOU RECEIVE -->
+    <div class="bg-gradient-to-b from-emerald-950/70 to-emerald-900/40 border border-emerald-400/50 rounded-2xl p-2.5 flex flex-col justify-between shadow-xs">
+      <div class="flex items-center justify-between pb-1 mb-1 border-b border-emerald-400/20 text-[10px] font-black uppercase tracking-wider text-emerald-400">
+        <span>YOU RECEIVE</span>
+        <span>🎁</span>
+      </div>
+      <div id="incoming-they-offer-props" class="space-y-1 py-0.5">
+        {#each state.incomingTrade?.theyOfferProps || [] as prop}
+          <div class="flex items-center justify-between text-xs font-black">
+            <div class="flex items-center gap-1.5 truncate min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0 border border-white/40" style="background-color: {prop.color || '#10b981'};"></span>
+              <span class="text-white truncate">{prop.name}</span>
+            </div>
+            <span class="text-emerald-300 font-extrabold tabular-nums shrink-0 ml-1">{prop.priceFormatted}</span>
+          </div>
+        {/each}
+        {#if !state.incomingTrade?.theyOfferProps?.length}
+          <span class="text-xs text-slate-400 italic">No properties</span>
+        {/if}
+      </div>
     </div>
 
-    <div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50/70 flex-1 overflow-y-auto">
-      <div class="grid grid-cols-2 gap-3 text-xs">
-        <div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 flex-col items-start text-left">
-          <span class="text-[10px] font-black tracking-wider uppercase text-emerald-950 flex items-center gap-1.5">
-            THEY OFFER
-          </span>
-          <div id="incoming-they-offer-props" class="w-full space-y-1 pt-1 font-bold text-slate-800">
-            {#each state.incomingTrade?.theyOfferProps || [] as prop}
-              <div class="text-xs font-black text-emerald-800">{prop.name} <span class="text-emerald-700">{prop.priceFormatted}</span></div>
-            {/each}
-            {#if !state.incomingTrade?.theyOfferProps?.length}<span class="text-xs text-slate-400 italic">No properties</span>{/if}
-          </div>
-        </div>
+    <!-- Center Floating Swap Badge -->
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-slate-900 border-2 border-indigo-400 flex items-center justify-center text-xs text-indigo-300 shadow-md pointer-events-none">
+      ⇄
+    </div>
 
-        <div class="p-3.5 rounded-2xl bg-sky-50 border-2 border-sky-300 flex-col items-start text-left">
-          <span class="text-[10px] font-black tracking-wider uppercase text-sky-950 flex items-center gap-1.5">
-            THEY REQUEST
-          </span>
-          <div id="incoming-they-req-props" class="w-full space-y-1 pt-1 font-bold text-slate-800">
-            {#each state.incomingTrade?.theyReqProps || [] as prop}
-              <div class="text-xs font-black text-sky-800">{prop.name} <span class="text-amber-700">{prop.priceFormatted}</span></div>
-            {/each}
-            {#if !state.incomingTrade?.theyReqProps?.length}<span class="text-xs text-slate-400 italic">No properties</span>{/if}
-          </div>
-        </div>
+    <!-- Right: YOU GIVE -->
+    <div class="bg-gradient-to-b from-sky-950/70 to-indigo-950/40 border border-sky-400/50 rounded-2xl p-2.5 flex flex-col justify-between shadow-xs">
+      <div class="flex items-center justify-between pb-1 mb-1 border-b border-sky-400/20 text-[10px] font-black uppercase tracking-wider text-sky-400">
+        <span>YOU GIVE</span>
+        <span>🤝</span>
       </div>
-
-      <div id="incoming-trade-rationale" class="text-xs text-slate-700 font-semibold bg-white p-3.5 rounded-2xl border-2 border-slate-200/80 shadow-xs text-center">
-        {state.incomingTrade?.rationale || 'Fair economic property exchange proposed based on current board positions.'}
-      </div>
-
-      <div class="flex gap-2.5 pt-1">
-        <button onclick={onAcceptIncoming} class="game-btn game-btn-green flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
-          Accept Deal
-        </button>
-        <button onclick={onCounterIncoming} class="game-btn game-btn-orange flex-1 py-3 text-xs sm:text-sm font-black shadow-xs">
-          Counter-Offer
-        </button>
-        <button onclick={onDeclineIncoming} class="game-btn game-btn-slate px-4 py-3 text-xs sm:text-sm font-black">
-          Decline
-        </button>
+      <div id="incoming-they-req-props" class="space-y-1 py-0.5">
+        {#each state.incomingTrade?.theyReqProps || [] as prop}
+          <div class="flex items-center justify-between text-xs font-black">
+            <div class="flex items-center gap-1.5 truncate min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0 border border-white/40" style="background-color: {prop.color || '#38bdf8'};"></span>
+              <span class="text-white truncate">{prop.name}</span>
+            </div>
+            <span class="text-amber-300 font-extrabold tabular-nums shrink-0 ml-1">{prop.priceFormatted}</span>
+          </div>
+        {/each}
+        {#if !state.incomingTrade?.theyReqProps?.length}
+          <span class="text-xs text-slate-400 italic">No properties</span>
+        {/if}
       </div>
     </div>
   </div>
-</div>
+
+  <!-- Hidden compatibility element for legacy scripts -->
+  <span id="incoming-trade-rationale" class="hidden">{state.incomingTrade?.rationale || ''}</span>
+
+  <!-- Action Buttons Row -->
+  <div class="flex items-center gap-2 pt-0.5">
+    <button id="btn-accept-trade" onclick={onAcceptIncoming} class="game-btn game-btn-green flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md">
+      <i class="fa-solid fa-check text-sm"></i>
+      <span>ACCEPT DEAL</span>
+    </button>
+    <button id="btn-counter-trade" onclick={onCounterIncoming} class="game-btn game-btn-orange py-2.5 px-3 text-xs font-black flex items-center justify-center gap-1 shadow-md shrink-0">
+      <i class="fa-solid fa-arrows-rotate text-xs"></i>
+      <span>COUNTER</span>
+    </button>
+    <button id="btn-decline-trade" onclick={onDeclineIncoming} class="game-btn game-btn-slate py-2.5 px-3 text-xs font-black shrink-0">
+      DECLINE ✕
+    </button>
+  </div>
+</ActionChipShell>

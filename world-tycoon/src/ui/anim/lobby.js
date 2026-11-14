@@ -94,6 +94,89 @@ export function animatePlayerJoinRadarPing(slotIndex = 0) {
 }
 
 /**
+ * Tactile spring bounce on team pill toggle (Red <-> Blue).
+ * @param {HTMLElement|string} targetEl
+ */
+export function animateTeamPillToggle(targetEl) {
+  if (typeof anime === 'undefined' || isReducedMotion() || !targetEl) return;
+  anime.remove(targetEl);
+  anime({
+    targets: targetEl,
+    scale: [0.82, 1.15, 1],
+    duration: 340,
+    easing: 'spring(1, 80, 10, 0)'
+  });
+}
+
+/**
+ * Phase 3: Alliance Clash bracket animation when entering or switching to Team Mode.
+ * Staggers Red bracket from left, Blue bracket from right, and pops the VS divider.
+ */
+export function animateTeamClashEntrance() {
+  if (typeof anime === 'undefined' || isReducedMotion()) return;
+
+  const redBracket = document.querySelector('.team-bracket-red');
+  const blueBracket = document.querySelector('.team-bracket-blue');
+  const vsDivider = document.querySelector('.team-clash-divider');
+
+  if (!redBracket && !blueBracket) return;
+
+  anime.remove(['.team-bracket-red', '.team-bracket-blue', '.team-clash-divider']);
+
+  const tl = anime.timeline({
+    easing: 'easeOutBack'
+  });
+
+  if (redBracket) {
+    tl.add({
+      targets: redBracket,
+      translateX: [-24, 0],
+      opacity: [0, 1],
+      duration: 360,
+      easing: 'spring(1, 85, 12, 0)'
+    });
+  }
+
+  if (vsDivider) {
+    tl.add({
+      targets: vsDivider,
+      scale: [0.7, 1.1, 1],
+      opacity: [0, 1],
+      duration: 320,
+      easing: 'spring(1, 80, 10, 0)'
+    }, '-=200');
+  }
+
+  if (blueBracket) {
+    tl.add({
+      targets: blueBracket,
+      translateX: [24, 0],
+      opacity: [0, 1],
+      duration: 360,
+      easing: 'spring(1, 85, 12, 0)'
+    }, '-=250');
+  }
+}
+
+/**
+ * Phase 3: Telemetry badge pulse / spring pop on balance state change.
+ * @param {HTMLElement|string} targetEl
+ */
+export function animateTelemetryBadgePop(targetEl = '#roster-telemetry-badge') {
+  if (typeof anime === 'undefined' || isReducedMotion()) return;
+  const el = typeof targetEl === 'string' ? document.querySelector(targetEl) : targetEl;
+  if (!el) return;
+
+  anime.remove(el);
+  anime({
+    targets: el,
+    scale: [0.85, 1.12, 1],
+    duration: 320,
+    easing: 'spring(1, 85, 10, 0)'
+  });
+}
+
+/**
  * Smooth spring choreography when switching between Title, Local, and Multiplayer views.
  * @param {string} viewName - 'title' | 'local' | 'multiplayer-portal' | 'multiplayer-room'
  */

@@ -16,10 +16,11 @@ let activePlayerBeaconGroup = null;
 let flightHighlightsGroup = null;
 let monopolyRingsGroup = null;
 let festivalHighlightsGroup = null;
+let threatHighlightGroup = null;
 let empireHighlightsGroup = null;
 let empireActivePlayerIdx = null;
 const originalTileMaterials = new Map();
-const originalFrameEmissives = new Map();
+const originalFrameColors = new Map();
 const activeTurnSpriteMap = {};
 
 export function buildTileHighlightRing3D(boardGroup = context.boardGroup) {
@@ -270,6 +271,62 @@ export function setMonopolyTileHighlights(tileIds, colorHex = '#facc15', boardGr
 }
 
 /**
+ * Renders a glowing golden warning beacon and pulse ring over a property that threatens a monopoly.
+ * @param {number} tileId
+ * @param {boolean} active
+ * @param {string} [colorHex='#f59e0b']
+ * @param {THREE.Group} [boardGroup=context.boardGroup]
+ */
+export function setMonopolyThreatBeacon(tileId, active, colorHex = '#f59e0b', boardGroup = context.boardGroup) {
+  if (!threatHighlightGroup && boardGroup) {
+    threatHighlightGroup = new THREE.Group();
+    boardGroup.add(threatHighlightGroup);
+  }
+  if (!threatHighlightGroup) return;
+
+  while (threatHighlightGroup.children.length > 0) {
+    const child = threatHighlightGroup.children[0];
+    threatHighlightGroup.remove(child);
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) child.material.dispose();
+  }
+
+  threatHighlightGroup.visible = Boolean(active);
+  if (!active || tileId === null || tileId === undefined) return;
+
+  const pos = getTileWorldPosition(tileId);
+  const color = new THREE.Color(colorHex);
+
+  // 1. Dual glowing pulse rings on the tile
+  const ringGeo = new THREE.RingGeometry(1.10, 1.50, 32);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.95
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(pos.x, 0.48, pos.z);
+  threatHighlightGroup.add(ring);
+
+  // 2. Floating golden warning diamond above tile
+  const diamondGeo = new THREE.OctahedronGeometry(0.38, 0);
+  const diamondMat = new THREE.MeshStandardMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: 0.85,
+    roughness: 0.2,
+    metalness: 0.5
+  });
+  const diamond = new THREE.Mesh(diamondGeo, diamondMat);
+  diamond.position.set(pos.x, 2.6, pos.z);
+  threatHighlightGroup.add(diamond);
+
+  threatHighlightGroup.userData = { ring, diamond };
+}
+
+/**
  * Renders glowing breathing rings over properties eligible for World Festival 2x rent boost.
  * @param {boolean} active
  * @param {Array<number>} [tileIds=[]]
@@ -415,10 +472,21 @@ export function setEmpireSpotlight(targetPlayerIdx) {
       if (frame && frame.userData?.borderMat) {
         frame.scale.set(1.0, 1.0, 1.0);
         const isLocalPlayer = (prop?.owner === gameState.localPlayerIdx);
+
+        // Restore saved original border frame colors and opacity
+        const savedFrame = originalFrameColors.get(tile.id);
+        if (savedFrame) {
+          frame.userData.borderMat.color.setHex(savedFrame.colorHex);
+          frame.userData.borderMat.emissive.setHex(savedFrame.emissiveHex);
+          frame.userData.borderMat.opacity = savedFrame.opacity;
+        }
+
         if (isOwned) {
+          frame.visible = true;
           const baseIntensity = isNight ? 0.85 : (isSunset ? 0.50 : 0.28);
           frame.userData.borderMat.emissiveIntensity = isLocalPlayer ? baseIntensity * 1.5 : baseIntensity;
         } else {
+          frame.visible = false;
           frame.userData.borderMat.emissiveIntensity = 0;
         }
       }
@@ -429,6 +497,7 @@ export function setEmpireSpotlight(targetPlayerIdx) {
         pool.material.opacity = 0;
       }
     });
+    originalFrameColors.clear();
 
     return;
   }
@@ -449,9 +518,12 @@ export function setEmpireSpotlight(targetPlayerIdx) {
     }
   });
 
-  // Apply focus contrast: brighten owned tiles and ground pools, dim non-owned
+  // Apply focus contrast: brighten owned tiles and ground pools, suppress other players' border colors
   BOARD_TILES.forEach(tile => {
     const isOwnedByTarget = ownedTileIds.includes(tile.id);
+    const prop = gameState.properties?.[tile.id];
+    const isOwnedByOther = prop && prop.owner !== null && prop.owner !== undefined && prop.owner !== targetPlayerIdx;
+
     const mesh = context.tilesMeshMap[tile.id];
     if (mesh && Array.isArray(mesh.material) && mesh.material[2]) {
       const topMat = mesh.material[2];
@@ -470,12 +542,33 @@ export function setEmpireSpotlight(targetPlayerIdx) {
 
     const frame = context.tileBorderFrames?.[tile.id];
     if (frame && frame.userData?.borderMat) {
+      if (!originalFrameColors.has(tile.id)) {
+        originalFrameColors.set(tile.id, {
+          colorHex: frame.userData.borderMat.color.getHex(),
+          emissiveHex: frame.userData.borderMat.emissive.getHex(),
+          opacity: frame.userData.borderMat.opacity
+        });
+      }
+
       if (isOwnedByTarget) {
-        frame.scale.set(1.03, 1.0, 1.03);
-        frame.userData.borderMat.emissiveIntensity = 1.25;
-      } else {
+        frame.visible = true;
+        frame.scale.set(1.04, 1.0, 1.04);
+        frame.userData.borderMat.color.copy(threeColor);
+        frame.userData.borderMat.emissive.copy(threeColor);
+        frame.userData.borderMat.emissiveIntensity = 1.35;
+        frame.userData.borderMat.opacity = 1.0;
+      } else if (isOwnedByOther) {
+        // Suppress other players' property borders into muted translucent grey
+        frame.visible = true;
         frame.scale.set(1.0, 1.0, 1.0);
-        frame.userData.borderMat.emissiveIntensity = 0.08;
+        frame.userData.borderMat.color.setHex(0x64748b);
+        frame.userData.borderMat.emissive.setHex(0x1e293b);
+        frame.userData.borderMat.emissiveIntensity = 0.05;
+        frame.userData.borderMat.opacity = 0.25;
+      } else {
+        frame.visible = false;
+        frame.scale.set(1.0, 1.0, 1.0);
+        frame.userData.borderMat.emissiveIntensity = 0;
       }
     }
 
@@ -558,6 +651,19 @@ export function updateActivePlayerBeacon(t) {
   if (monopolyRingsGroup && monopolyRingsGroup.children.length > 0) {
     const s = 1 + Math.sin(t * 6.0) * 0.12;
     monopolyRingsGroup.children.forEach(ring => ring.scale.set(s, s, 1));
+  }
+
+  if (threatHighlightGroup?.visible) {
+    const s = 1 + Math.sin(t * 5.5) * 0.10;
+    const { ring, diamond } = threatHighlightGroup.userData || {};
+    if (ring) {
+      ring.scale.set(s, s, 1);
+      ring.material.opacity = 0.70 + Math.sin(t * 5.5) * 0.28;
+    }
+    if (diamond) {
+      diamond.rotation.y = t * 3.2;
+      diamond.position.y = 2.6 + Math.sin(t * 4.0) * 0.18;
+    }
   }
 
   if (activePlayerBeaconGroup && gameState.gameStarted) {

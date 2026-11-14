@@ -390,6 +390,7 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_CHANCE_PRIZE':
     case 'ACTION_CHANCE_SPIN':
     case 'ACTION_MONOPOLY':
+    case 'ACTION_MONOPOLY_THREAT':
     case 'ACTION_END_TURN':
     case 'ACTION_REACTION':
     case 'ACTION_CHAT_EMOTE':

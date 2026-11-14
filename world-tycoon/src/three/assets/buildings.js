@@ -412,3 +412,103 @@ export function updateBuildingAnimations(now, t) {
     }
   }
 }
+
+/**
+ * Procedural low-profile luxury beach cabana & palm oasis for resort tiles.
+ * Designed to fit cleanly along the rear rim of the tile without encroaching on text or pawn zones.
+ * @param {number|null} ownerColor - Hex color of the owner or null if unowned
+ * @param {boolean} isOwned - Ownership status
+ * @returns {THREE.Group}
+ */
+export function createDetailedResortMesh(ownerColor, isOwned) {
+  const g = new THREE.Group();
+
+  // 1. Teak wood sun deck boardwalk base
+  const teakMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.75, flatShading: true });
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.04, 0.52), teakMat);
+  deck.position.y = 0.02;
+  deck.receiveShadow = true;
+  g.add(deck);
+
+  // 2. Beach Cabana (left side)
+  const bambooMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.65 });
+  const thatchMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.85, flatShading: true });
+  const cabanaGroup = new THREE.Group();
+  cabanaGroup.position.set(-0.32, 0.04, 0);
+
+  [-0.14, 0.14].forEach(bx => {
+    [-0.14, 0.14].forEach(bz => {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.36, 6), bambooMat);
+      post.position.set(bx, 0.18, bz);
+      post.castShadow = true;
+      cabanaGroup.add(post);
+    });
+  });
+
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.20, 4), thatchMat);
+  roof.rotation.y = Math.PI / 4;
+  roof.position.y = 0.46;
+  roof.castShadow = true;
+  cabanaGroup.add(roof);
+
+  if (isOwned && ownerColor !== null) {
+    const pennantMat = new THREE.MeshStandardMaterial({ color: ownerColor, roughness: 0.35 });
+    const pennant = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.16, 3), pennantMat);
+    pennant.rotation.z = -Math.PI / 2;
+    pennant.rotation.y = Math.PI / 4;
+    pennant.position.set(0.06, 0.58, 0);
+    cabanaGroup.add(pennant);
+  }
+  g.add(cabanaGroup);
+
+  // 3. Mini Coconut Palm (center rear)
+  const palmGroup = new THREE.Group();
+  palmGroup.position.set(0.05, 0.04, -0.12);
+  const barkMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.8, flatShading: true });
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.6, flatShading: true });
+
+  let pY = 0;
+  for (let i = 0; i < 3; i++) {
+    const segH = 0.18;
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.045 - i * 0.006, 0.060 - i * 0.006, segH, 6), barkMat);
+    seg.position.set(i * 0.025, pY + segH / 2, 0);
+    seg.rotation.z = -0.16;
+    seg.castShadow = true;
+    palmGroup.add(seg);
+    pY += segH * 0.90;
+  }
+  const crown = new THREE.Group();
+  crown.position.set(0.08, pY, 0);
+  for (let f = 0; f < 5; f++) {
+    const ang = (f * Math.PI * 2) / 5;
+    const frond = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.48, 4), leafMat);
+    frond.rotation.z = Math.PI / 2 - 0.28;
+    frond.rotation.y = ang;
+    frond.position.set(Math.cos(ang) * 0.22, -0.03, Math.sin(ang) * 0.22);
+    frond.scale.set(0.60, 1.0, 0.20);
+    crown.add(frond);
+  }
+  palmGroup.add(crown);
+  g.add(palmGroup);
+
+  // 4. Resort Sun Parasol & Lounger (right side)
+  const parasolColor = (isOwned && ownerColor !== null) ? ownerColor : 0x0284c7;
+  const parasolMat = new THREE.MeshStandardMaterial({ color: parasolColor, roughness: 0.35 });
+  const parasolPole = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.42, 6), staticMatCache.pole);
+  parasolPole.position.set(0.38, 0.23, 0.06);
+  parasolPole.rotation.z = 0.08;
+  const parasolTop = new THREE.Mesh(new THREE.ConeGeometry(0.20, 0.08, 8), parasolMat);
+  parasolTop.position.set(0.40, 0.44, 0.06);
+  parasolTop.rotation.z = 0.08;
+  parasolTop.castShadow = true;
+
+  const loungerMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
+  const lounger = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.03, 0.24), loungerMat);
+  lounger.position.set(0.36, 0.055, -0.12);
+  lounger.rotation.y = 0.15;
+  lounger.castShadow = true;
+
+  g.add(parasolPole, parasolTop, lounger);
+
+  return g;
+}

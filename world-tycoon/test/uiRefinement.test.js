@@ -44,7 +44,7 @@ describe('UI Visual Refinement Suite (/better-colors /game-art /fixing-motion-pe
       '.hud-pill should use solid 0.96 white surface'
     );
     assert.ok(
-      styleContent.includes('.player-hud-card {') && styleContent.includes('background: rgba(255, 255, 255, 0.98);'),
+      styleContent.includes('.player-hud-card {') && (styleContent.includes('background: rgba(255, 255, 255, 0.98);') || styleContent.includes('color-mix(in srgb, var(--player-accent')),
       '.player-hud-card should use crisp solid surface'
     );
     assert.ok(

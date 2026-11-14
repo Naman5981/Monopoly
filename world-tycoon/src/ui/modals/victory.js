@@ -3,11 +3,11 @@
  * Victory screen celebration, play again rematch logic, return to lobby, and color-group monopoly celebrations.
  */
 
-import { BOARD_TILES, GROUP_META } from '../../game/data.js';
+import { BOARD_TILES, GROUP_META, PLAYER_THEMES } from '../../game/data.js';
 import { gameState, localPlayerIdx, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX, stopAdaptiveMusic } from '../../game/audio.js';
-import { ownsFullColorGroup } from '../../game/rules.js';
+import { ownsFullColorGroup, checkNearMonopolyGroup, calculatePlayerNetWorth } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastReturnToLobby, broadcastStartOnlineMatch } from '../../network/p2p.js';
 import { setMonopolyTileHighlights } from '../../three/scene.js';
 import { fireConfettiBurst, spawnAnimatedReaction, startVictoryCelebration, stopVictoryCelebration } from '../../three/effects.js';
@@ -17,10 +17,13 @@ import { engineCallbacks, closeAllGameModals, isLobbyScreenActive } from './comm
 import { ARCHETYPES } from '../setup.js';
 import { awardMatchPoints } from '../wardrobe.js';
 import { animateModalPunchIn, animateMonopolyRibbonUnfurl } from '../anim.js';
-import { playVictoryCinematicOrbit, playIntroCinematicFlyIn } from '../../three/theatre.js';
+import { playVictoryCinematicOrbit, playIntroCinematicFlyIn, playMonopolyThreatCinematic } from '../../three/theatre.js';
+import { getTileWorldPosition } from '../../three/board/coords.js';
+import { context } from '../../three/core/context.js';
 import { setPlayerPortraitMood } from '../portraitRenderer.js';
 import { get } from 'svelte/store';
 import { modalStore, updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { triggerBanner } from '../../svelte/stores/bannerStore.js';
 
 let monopolyCloseTimer = null;
 
@@ -67,7 +70,47 @@ export function showVictoryModal(winner, victoryDetails = null) {
     net_worth_time: isLocalHuman ? 'RICHEST TYCOON!' : `${winnerObj.name || 'Player'} WON!`
   };
   const winnerPropertyCount = BOARD_TILES.filter(tile => gameState.properties[tile.id]?.owner === winnerIndex).length;
+  const winnerNetWorth = calculatePlayerNetWorth(winnerIndex);
   const accoladeIcons = { triple_monopoly: '🏙️', line_monopoly: '🌎', net_worth_time: '💰' };
+
+  // Calculate ranked standings for leaderboard list
+  const players = gameState.players || [];
+  const standings = players.map((p, idx) => {
+    const netWorth = calculatePlayerNetWorth(idx);
+    let ownedPropsCount = 0;
+    if (gameState.properties) {
+      for (const t of BOARD_TILES) {
+        if (gameState.properties[t.id]?.owner === idx) ownedPropsCount++;
+      }
+    }
+    const theme = PLAYER_THEMES[idx] || { colorHex: p.colorHex || '#6c5ce7' };
+    return {
+      id: idx,
+      name: p.name,
+      colorHex: p.colorHex || theme.colorHex,
+      netWorth,
+      netWorthFormatted: fmtMoney(netWorth),
+      cashFormatted: fmtMoney(p.cash || 0),
+      citiesCount: ownedPropsCount,
+      bankrupt: Boolean(p.bankrupt),
+      isWinner: idx === winnerIndex
+    };
+  });
+
+  standings.sort((a, b) => {
+    if (a.isWinner) return -1;
+    if (b.isWinner) return 1;
+    if (a.bankrupt && !b.bankrupt) return 1;
+    if (!a.bankrupt && b.bankrupt) return -1;
+    return b.netWorth - a.netWorth;
+  });
+
+  const rankedStandings = standings.map((s, i) => ({
+    ...s,
+    rank: i + 1,
+    medal: i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : `#${i + 1}`))
+  }));
+
   updateModalSlice('victory', {
     visible: true,
     title: titleByVictoryType[victoryDetails?.type] || (isLocalHuman ? 'YOU WON!' : `${winnerObj.name || 'Player'} WON!`),
@@ -75,8 +118,10 @@ export function showVictoryModal(winner, victoryDetails = null) {
     accoladeTitle: victoryDetails?.title || 'GLOBAL TYCOON SUPREMACY!',
     accoladeDesc: victoryDetails?.desc || 'All rival tycoons bankrupted. You rule the entire global real estate empire!',
     accoladeIcon: accoladeIcons[victoryDetails?.type] || '👑',
+    winnerNetWorthFormatted: fmtMoney(winnerNetWorth),
     finalCashFormatted: fmtMoney(winnerObj.cash || 0),
     empireCitiesCount: `${winnerPropertyCount} Cities`,
+    standings: rankedStandings,
     multiplayerStatus: '',
     playAgainText: 'PLAY AGAIN',
     playAgainDisabled: false
@@ -259,6 +304,57 @@ export function closeMonopolyModal() {
   updateModalSlice('monopolyCelebration', { visible: false });
 }
 
+export async function triggerMonopolyThreatAlert(playerIdx, groupKey, missingTileId) {
+  if (isLobbyScreenActive()) return;
+  const player = (gameState.players && gameState.players[playerIdx]) || { name: 'Player', colorHex: '#ef4444' };
+  const missingTile = BOARD_TILES[missingTileId];
+  const group = GROUP_META[groupKey];
+  if (!missingTile || !group) return;
+
+  // 1. Play procedural tension sting
+  playSFX('monopolyThreat', 1.0, getTileWorldPosition(missingTileId));
+
+  // 2. Trigger declarative Svelte banner overlay (high-contrast, Anime.js orchestrated)
+  triggerBanner('monopolyThreat', {
+    playerName: player.name,
+    playerColor: player.colorHex || '#ef4444',
+    missingCityName: missingTile.name,
+    groupName: group.name,
+    groupColor: group.hex,
+    missingTileId
+  }, 5200);
+
+  // 3. Log event in HUD
+  logEvent(`⚠️ <strong>MONOPOLY THREAT!</strong> <strong>${player.name}</strong> needs <strong>${missingTile.name}</strong> to conquer the <strong>${group.name}</strong> district! Rent will DOUBLE (2×)!`);
+
+  // 4. Smooth 4.2-second 3D camera pan & golden beacon focus
+  if (context.camera) {
+    await playMonopolyThreatCinematic(missingTileId, 4200);
+  }
+}
+
+export function checkAndTriggerMonopolyThreat(playerIdx, groupKey) {
+  if (!groupKey || isLobbyScreenActive()) return;
+  if (!gameState.triggeredMonopolyThreats) gameState.triggeredMonopolyThreats = {};
+
+  const threatKey = `${playerIdx}_${groupKey}`;
+  if (gameState.triggeredMonopolyThreats[threatKey]) return;
+
+  const status = checkNearMonopolyGroup(playerIdx, groupKey);
+  if (status.isNear && status.missingTile) {
+    gameState.triggeredMonopolyThreats[threatKey] = true;
+    triggerMonopolyThreatAlert(playerIdx, groupKey, status.missingTile.id);
+
+    if (networkState.isMultiplayer) {
+      broadcastAction('ACTION_MONOPOLY_THREAT', {
+        playerIdx,
+        groupKey,
+        missingTileId: status.missingTile.id
+      });
+    }
+  }
+}
+
 export function checkAndTriggerMonopoly(playerIdx, groupKey) {
   if (!groupKey) return;
   if (!gameState.achievedMonopolies) gameState.achievedMonopolies = {};
@@ -272,6 +368,8 @@ export function checkAndTriggerMonopoly(playerIdx, groupKey) {
     if (networkState.isMultiplayer) {
       broadcastAction('ACTION_MONOPOLY', { playerIdx, groupKey });
     }
+  } else {
+    checkAndTriggerMonopolyThreat(playerIdx, groupKey);
   }
 }
 
@@ -279,4 +377,6 @@ if (typeof window !== 'undefined') {
   window.openMonopolyCelebrationModal = openMonopolyCelebrationModal;
   window.closeMonopolyModal = closeMonopolyModal;
   window.triggerMonopolyCelebration = (group = 'brown', pIdx = 0) => openMonopolyCelebrationModal(pIdx, group);
+  window.triggerMonopolyThreatAlert = triggerMonopolyThreatAlert;
+  window.checkAndTriggerMonopolyThreat = checkAndTriggerMonopolyThreat;
 }

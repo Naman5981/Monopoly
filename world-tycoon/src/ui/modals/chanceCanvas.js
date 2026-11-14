@@ -20,7 +20,7 @@ export const WHEEL_VECTOR_ICONS = {
 };
 
 export function drawChanceWheelCanvas() {
-  const c = document.getElementById('chance-wheel-canvas');
+  const c = document.getElementById('chance-wheel-canvas') || document.getElementById('canvas-chance-wheel');
   if (!c) return;
   const ctx = c.getContext('2d');
   const cx = 320, cy = 320, outerR = 312;

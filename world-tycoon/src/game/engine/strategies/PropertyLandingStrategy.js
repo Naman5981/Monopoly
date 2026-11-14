@@ -11,7 +11,7 @@ import { gameState, matchSettings } from '../../state.js';
 import { fmtMoney } from '../../utils.js';
 import { playSFX } from '../../audio.js';
 import { getTileWorldPosition } from '../../../three/board/coords.js';
-import { calculateTileRent } from '../../rules.js';
+import { calculateTileRent, isTeammate, getTeamMembers } from '../../rules.js';
 import {
   refreshTileTextureAndBuildings,
   showSpeechBubble,
@@ -56,7 +56,7 @@ export function resetBuyoutMemory() {
 export function shouldAIBuyoutTile(playerIdx, tile, st, buyoutCost) {
   const player = gameState.players[playerIdx];
   if (!player || !player.isAI || player.bankrupt) return false;
-  if (!tile || !st || st.owner === playerIdx || st.owner === null) return false;
+  if (!tile || !st || st.owner === playerIdx || st.owner === null || isTeammate(st.owner, playerIdx)) return false;
 
   // Protect maxed skyscrapers
   if ((st.level || 0) >= 4) return false;
@@ -105,7 +105,11 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     if (!st || st.owner === null) {
       await this.handleUnownedProperty(playerIdx, player, tile, isDoubles);
     } else if (st.owner !== playerIdx) {
-      await this.handleOpponentProperty(playerIdx, player, tile, st, isDoubles);
+      if (isTeammate(st.owner, playerIdx)) {
+        await this.handleTeammateProperty(playerIdx, player, tile, st, isDoubles);
+      } else {
+        await this.handleOpponentProperty(playerIdx, player, tile, st, isDoubles);
+      }
     } else {
       await this.handleSelfOwnedProperty(playerIdx, player, tile, st, isDoubles);
     }
@@ -130,9 +134,72 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     openBuyCityModal(tile, isDoubles);
   }
 
+  async handleTeammateProperty(playerIdx, player, tile, st, isDoubles) {
+    const owner = gameState.players[st.owner];
+    const partnerName = owner ? owner.name : 'Partner';
+
+    logEvent(`🤝 <strong>${player.name}</strong> visited ally <strong>${partnerName}</strong>'s property <strong>${tile.name}</strong> (Alliance visit: <strong>$0 Rent</strong>).`);
+    showSpeechBubble(`Alliance visit! No rent to ${partnerName} 🤝`, 2200);
+
+    if (tile.type === 'city') {
+      if (st.level >= 4) {
+        showSpeechBubble(`Ally's Skyscraper in ${tile.name}! 👑🏆`, 2200);
+        if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
+      } else if (player.isAI) {
+        if (networkState.isMultiplayer && !networkState.isHost) {
+          showSpeechBubble(`${player.name} is visiting ${partnerName}'s city...`, 2500);
+          return;
+        }
+        if (player.cash >= tile.houseCost + 300000) {
+          player.cash -= tile.houseCost;
+          st.level++;
+          playSFX('build', 1.0, getTileWorldPosition(tile.id));
+          spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(tile.houseCost)} (Ally Build)`, false);
+          showSpeechBubble(`Upgraded ally ${partnerName}'s city! 🏗️`, 2200);
+          logEvent(`🏗️ <strong>${player.name}</strong> invested and built a house in teammate <strong>${partnerName}</strong>'s city <strong>${tile.name}</strong> (Now Level ${st.level})!`);
+          refreshTileTextureAndBuildings(tile.id);
+          renderCornerHUDs();
+        }
+        if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
+      } else {
+        if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
+          showSpeechBubble(`${player.name} is visiting ${partnerName}'s city...`, 3000);
+          gameState.phase = 'MODAL';
+          return;
+        }
+        openUpgradeCityModal(tile, isDoubles, true);
+      }
+    } else {
+      showSpeechBubble(`Relaxing at ally's resort in ${tile.name}! 🌴`, 2200);
+      if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
+    }
+  }
+
   async handleOpponentProperty(playerIdx, player, tile, st, isDoubles) {
     const rent = calculateTileRent(tile.id);
     const owner = gameState.players[st.owner];
+
+    // Team Bailout: If player is insolvent, check if teammate can bail them out
+    if (player.cash < rent && matchSettings.teamMode && player.teamId !== undefined) {
+      const deficit = rent - player.cash;
+      const teammates = getTeamMembers(player.teamId).filter(idx => idx !== playerIdx && !gameState.players[idx]?.bankrupt);
+      if (teammates.length > 0) {
+        const partnerIdx = teammates[0];
+        const partner = gameState.players[partnerIdx];
+        if (partner && partner.cash >= deficit) {
+          if (partner.isAI && partner.cash >= deficit + 200000) {
+            partner.cash -= deficit;
+            player.cash += deficit;
+            playSFX('cash');
+            spawnFloatingCashOnHUD(partnerIdx, `-${fmtMoney(deficit)} Bailout`, false);
+            spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(deficit)} Bailed out!`, true);
+            showSpeechBubble(`${partner.name} bailed out ${player.name}! 🤝`, 2400);
+            logEvent(`🤝 <strong>TEAM BAILOUT!</strong> <strong>${partner.name}</strong> transferred <strong>${fmtMoney(deficit)}</strong> to rescue teammate <strong>${player.name}</strong> from rent bankruptcy!`);
+            renderCornerHUDs();
+          }
+        }
+      }
+    }
 
     // Insolvency check: Does player need to liquidate properties to pay rent?
     if (player.cash < rent) {

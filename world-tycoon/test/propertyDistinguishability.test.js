@@ -172,8 +172,8 @@ describe('Property Ownership Visual Distinguishability Suite (/web-games /game-a
       assert.equal(otherMesh.material[2].color.getHex(), 0x7c8ba1);
 
       // Owned border frames should have boosted emissive intensity
-      assert.equal(context.tileBorderFrames[1].userData.borderMat.emissiveIntensity, 1.25);
-      assert.equal(context.tileBorderFrames[4].userData.borderMat.emissiveIntensity, 0.08);
+      assert.equal(context.tileBorderFrames[1].userData.borderMat.emissiveIntensity, 1.35);
+      assert.equal(context.tileBorderFrames[4].userData.borderMat.emissiveIntensity, 0.05);
 
       // Ground light pool should be active on owned tiles
       assert.equal(context.tileGroundLightPools[1].visible, true);

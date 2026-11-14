@@ -199,3 +199,8 @@ export const PLAYER_THEMES = [
   { name: 'PHOENIX', colorHex: '#ef4444', charColor: 0xef4444, hatColor: 0xf97316, isAI: true  },
   { name: 'CYBER',   colorHex: '#06b6d4', charColor: 0x06b6d4, hatColor: 0x38bdf8, isAI: true  },
 ];
+
+export const TEAM_META = [
+  { id: 0, name: 'TEAM RED', shortName: 'RED', colorHex: '#ef4444', badgeClass: 'bg-rose-600', borderClass: 'border-rose-500', textClass: 'text-rose-500', ringClass: 'ring-rose-400', icon: '🔴' },
+  { id: 1, name: 'TEAM BLUE', shortName: 'BLUE', colorHex: '#3b82f6', badgeClass: 'bg-sky-600', borderClass: 'border-sky-500', textClass: 'text-sky-500', ringClass: 'ring-sky-400', icon: '🔵' },
+];

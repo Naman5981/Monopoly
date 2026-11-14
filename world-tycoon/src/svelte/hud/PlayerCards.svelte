@@ -68,6 +68,7 @@
       <div
         id="hud-card-{player.id}"
         class="player-hud-card cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''} {activeSpotlightPlayerId === player.id ? 'ring-2 ring-white scale-105' : 'hover:scale-[1.02]'}"
+        style="--player-accent: {player.colorHex || '#3b82f6'};"
         onmouseenter={() => onEmpireHover(player.id)}
         onmouseleave={onEmpireLeave}
         onfocus={() => onEmpireHover(player.id)}
@@ -90,6 +91,9 @@
               {/if}
             </span>
             <span class="hud-turn-badge">
+              {#if player.isPartner}
+                <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs mr-1">ALLY</span>
+              {/if}
               {#if player.isCurrent}
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[10px] tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>
               {:else if player.isAI}
@@ -120,6 +124,16 @@
       </div>
     </div>
   {/each}
+
+  {#if state.isTeamMode && (state.leftPlayers || []).length > 0}
+    <div class="team-networth-pill mt-0.5 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border-2 border-rose-400/80 shadow-md text-slate-800">
+      <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs flex-shrink-0 animate-pulse"></span>
+      <div class="flex flex-col">
+        <span class="text-[9px] font-black uppercase tracking-wider text-rose-600 leading-tight">{state.leftTeamLabel || 'TEAM RED'}</span>
+        <span class="text-xs font-black font-mono text-slate-900 leading-tight">{state.leftTeamNetWorth || '$0'}</span>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <!-- Right Players Column -->
@@ -129,6 +143,7 @@
       <div
         id="hud-card-{player.id}"
         class="player-hud-card cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''} {activeSpotlightPlayerId === player.id ? 'ring-2 ring-white scale-105' : 'hover:scale-[1.02]'}"
+        style="--player-accent: {player.colorHex || '#3b82f6'};"
         onmouseenter={() => onEmpireHover(player.id)}
         onmouseleave={onEmpireLeave}
         onfocus={() => onEmpireHover(player.id)}
@@ -142,6 +157,9 @@
         <div class="hud-info-col items-end text-right">
           <div class="hud-header-row justify-end">
             <span class="hud-turn-badge">
+              {#if player.isPartner}
+                <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs mr-1">ALLY</span>
+              {/if}
               {#if player.isCurrent}
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[10px] tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>
               {:else if player.isAI}
@@ -181,4 +199,14 @@
       </div>
     </div>
   {/each}
+
+  {#if state.isTeamMode && (state.rightPlayers || []).length > 0}
+    <div class="team-networth-pill mt-0.5 flex items-center justify-end gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border-2 border-sky-400/80 shadow-md text-slate-800">
+      <div class="flex flex-col text-right">
+        <span class="text-[9px] font-black uppercase tracking-wider text-sky-600 leading-tight">{state.rightTeamLabel || 'TEAM BLUE'}</span>
+        <span class="text-xs font-black font-mono text-slate-900 leading-tight">{state.rightTeamNetWorth || '$0'}</span>
+      </div>
+      <span class="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-xs flex-shrink-0 animate-pulse"></span>
+    </div>
+  {/if}
 </div>

@@ -282,6 +282,12 @@ export function executeIncomingNetworkAction(msg) {
       }
       break;
 
+    case 'ACTION_MONOPOLY_THREAT':
+      if (networkCallbacks.onMonopolyThreat) {
+        networkCallbacks.onMonopolyThreat(msg.playerIdx, msg.groupKey, msg.missingTileId);
+      }
+      break;
+
     case 'ACTION_FESTIVAL_BOOST': {
       const p = gameState.players ? gameState.players[msg.playerIdx] : null;
       const t = BOARD_TILES[msg.tileId];

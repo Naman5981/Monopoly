@@ -103,22 +103,10 @@ export function getTargetRotationForDieFace(faceVal) {
   }
 }
 
-export function getCSSDiceRotationForFace(faceVal) {
-  switch (faceVal) {
-    case 1: return { x: 0, y: 0 };
-    case 2: return { x: -90, y: 0 };
-    case 3: return { x: 0, y: -90 };
-    case 4: return { x: 0, y: 90 };
-    case 5: return { x: 90, y: 0 };
-    case 6: return { x: 0, y: 180 };
-    default: return { x: 0, y: 0 };
-  }
-}
-
 import { matchSettings } from '../../game/state.js';
 
 /**
- * Triggers full 3D tumbling physics on the board and screen overlay for a dice roll.
+ * Triggers full 3D tumbling physics on the board for a dice roll.
  * @param {number} d1 - Die 1 result (1 to 6)
  * @param {number} d2 - Die 2 result (1 to 6)
  * @returns {Promise<void>} Resolves when dice animation settles
@@ -130,12 +118,7 @@ export function animate3DDiceTumble(d1, d2) {
     const speed = matchSettings?.gameSpeed || 1;
     const baseDuration = 1150;
     const duration = Math.max(220, Math.round(baseDuration / speed));
-    const startTime = performance.now();
-
-    const rot1 = getTargetRotationForDieFace(d1);
-    const rot2 = getTargetRotationForDieFace(d2);
     const startPos = [{ x: -1.25, z: -0.45 }, { x: 0.95, z: -1.55 }];
-    const endPos = [{ x: -1.45, z: -0.65 }, { x: 0.75, z: -1.75 }];
 
     // Prepare 3D board dice meshes for dynamic bouncing toss
     const dieMesh1 = context.diceMeshes && context.diceMeshes[0];
@@ -150,134 +133,23 @@ export function animate3DDiceTumble(d1, d2) {
       dieMesh2.position.set(startPos[1].x, 4.8, startPos[1].z);
     }
 
-    const overlay = document.getElementById('screen-dice-overlay');
-    const backdrop = document.getElementById('dice-overlay-backdrop');
-    const actor1 = document.getElementById('dice-actor-1');
-    const actor2 = document.getElementById('dice-actor-2');
-    const die1 = document.getElementById('screen-die-1');
-    const die2 = document.getElementById('screen-die-2');
-    const shadow1 = document.getElementById('screen-die-shadow-1');
-    const shadow2 = document.getElementById('screen-die-shadow-2');
-    const resultBadge = document.getElementById('dice-overlay-result');
-    const resultText = document.getElementById('dice-overlay-result-text');
     hideDiceSumBadge();
-
-    if (overlay) {
-      overlay.classList.remove('hidden');
-      overlay.classList.add('flex');
-      overlay.style.opacity = '1';
-      if (backdrop) backdrop.style.opacity = '1';
-      if (resultBadge) resultBadge.style.transform = 'scale(0)';
-    }
-
-    const cssRot1 = getCSSDiceRotationForFace(d1);
-    const cssRot2 = getCSSDiceRotationForFace(d2);
-    const cssSpins1 = { x: cssRot1.x + 360 * 3, y: cssRot1.y + 360 * 4, z: 360 * 2 };
-    const cssSpins2 = { x: cssRot2.x - 360 * 3, y: cssRot2.y - 360 * 4, z: -360 * 2 };
-
-    let bounced1 = false;
+    let bounced = false;
 
     // Simulate 3D rigid-body dice physics with real bounce, angular momentum, and rim ricochets
     simulateDicePhysicsToss(dieMesh1, dieMesh2, d1, d2, duration, (progress) => {
       // Small shockwave pulse when dice hit the board
-      if (progress > 0.45 && !bounced1) {
-        bounced1 = true;
+      if (progress > 0.45 && !bounced) {
+        bounced = true;
         playSFX('diceBounce', 1.0, { x: 0, y: 0.4, z: -1.2 });
         triggerBoardShockwave(0, -1.2, 12, 22);
       }
-    });
-
-    function stepDice(now) {
-      const rawT = Math.min(1, (now - startTime) / duration);
-
-      let bounceY1 = 0, shadowScale1 = 1, shadowOp1 = 0.8;
-      let bounceY2 = 0, shadowScale2 = 1, shadowOp2 = 0.8;
-
-      if (rawT < 0.44) {
-        const p = rawT / 0.44;
-        bounceY1 = -220 * (1 - p * p);
-        shadowScale1 = 0.45 + 0.55 * p;
-        shadowOp1 = 0.25 + 0.55 * p;
-      } else if (rawT < 0.76) {
-        const p = (rawT - 0.44) / 0.32;
-        bounceY1 = -Math.sin(p * Math.PI) * 82;
-        shadowScale1 = 1 - Math.sin(p * Math.PI) * 0.45;
-        shadowOp1 = 0.8 - Math.sin(p * Math.PI) * 0.4;
-      } else if (rawT < 0.93) {
-        const p = (rawT - 0.76) / 0.17;
-        bounceY1 = -Math.sin(p * Math.PI) * 18;
-        shadowScale1 = 1 - Math.sin(p * Math.PI) * 0.2;
-        shadowOp1 = 0.8 - Math.sin(p * Math.PI) * 0.2;
-      } else {
-        bounceY1 = 0; shadowScale1 = 1; shadowOp1 = 0.8;
-      }
-
-      const t2 = Math.max(0, Math.min(1, (now - startTime - 35) / Math.max(1, duration - 35)));
-      if (t2 < 0.44) {
-        const p = t2 / 0.44;
-        bounceY2 = -240 * (1 - p * p);
-        shadowScale2 = 0.45 + 0.55 * p;
-        shadowOp2 = 0.25 + 0.55 * p;
-      } else if (t2 < 0.76) {
-        const p = (t2 - 0.44) / 0.32;
-        bounceY2 = -Math.sin(p * Math.PI) * 90;
-        shadowScale2 = 1 - Math.sin(p * Math.PI) * 0.45;
-        shadowOp2 = 0.8 - Math.sin(p * Math.PI) * 0.4;
-      } else if (t2 < 0.93) {
-        const p = (t2 - 0.76) / 0.17;
-        bounceY2 = -Math.sin(p * Math.PI) * 20;
-        shadowScale2 = 1 - Math.sin(p * Math.PI) * 0.2;
-        shadowOp2 = 0.8 - Math.sin(p * Math.PI) * 0.2;
-      } else {
-        bounceY2 = 0; shadowScale2 = 1; shadowOp2 = 0.8;
-      }
-
-      if (actor1) actor1.style.transform = `translateY(${bounceY1}px)`;
-      if (actor2) actor2.style.transform = `translateY(${bounceY2}px)`;
-      if (shadow1) { shadow1.style.transform = `scale(${shadowScale1})`; shadow1.style.opacity = shadowOp1; }
-      if (shadow2) { shadow2.style.transform = `scale(${shadowScale2})`; shadow2.style.opacity = shadowOp2; }
-
-      const rotProgress = 1 - Math.pow(1 - rawT, 2.8);
-      const curX1 = cssSpins1.x * (1 - rotProgress) + cssRot1.x * rotProgress;
-      const curY1 = cssSpins1.y * (1 - rotProgress) + cssRot1.y * rotProgress;
-      const curZ1 = cssSpins1.z * (1 - rotProgress);
-
-      const curX2 = cssSpins2.x * (1 - rotProgress) + cssRot2.x * rotProgress;
-      const curY2 = cssSpins2.y * (1 - rotProgress) + cssRot2.y * rotProgress;
-      const curZ2 = cssSpins2.z * (1 - rotProgress);
-
-      if (die1) die1.style.transform = `rotateX(${curX1}deg) rotateY(${curY1}deg) rotateZ(${curZ1}deg)`;
-      if (die2) die2.style.transform = `rotateX(${curX2}deg) rotateY(${curY2}deg) rotateZ(${curZ2}deg)`;
-
-      if (rawT < 1) {
-        requestAnimationFrame(stepDice);
-      } else {
-        if (die1) die1.style.transform = `rotateX(${cssRot1.x}deg) rotateY(${cssRot1.y}deg) rotateZ(0deg)`;
-        if (die2) die2.style.transform = `rotateX(${cssRot2.x}deg) rotateY(${cssRot2.y}deg) rotateZ(0deg)`;
-
+      if (progress >= 1) {
         const resultStr = `🎲 ${d1} + ${d2} = ${d1 + d2}${d1 === d2 ? ' (DOUBLES!)' : ''}`;
-        if (resultText) resultText.textContent = resultStr;
-        if (resultBadge) resultBadge.style.transform = 'scale(1)';
         playSFX('hop', 0.8, { x: 0, y: 0.4, z: -1.2 });
-
         showDiceSumBadge(resultStr, 2000);
-
-        const settlePause = Math.max(120, Math.round(550 / speed));
-        setTimeout(() => {
-          if (overlay) {
-            overlay.style.opacity = '0';
-            if (backdrop) backdrop.style.opacity = '0';
-            setTimeout(() => {
-              overlay.classList.add('hidden');
-              overlay.classList.remove('flex');
-              resolve();
-            }, Math.max(80, Math.round(240 / speed)));
-          } else {
-            resolve();
-          }
-        }, settlePause);
+        setTimeout(resolve, Math.max(100, Math.round(260 / speed)));
       }
-    }
-    requestAnimationFrame(stepDice);
+    });
   });
 }

@@ -10,6 +10,8 @@
 import * as THREE from 'three';
 import { playSFX } from '../game/audio.js';
 import { matchSettings } from '../game/state.js';
+import { updateHudState } from '../svelte/stores/hudStore.js';
+import { updateLobbyStore } from '../svelte/stores/lobbyStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    1. FULLSCREEN CONFETTI & FIREWORKS CANNON
@@ -596,23 +598,17 @@ export function applyLightingMode(key, threeSceneObjects) {
     document.body.style.background = cfg.bg;
   }
 
+  // Sync Svelte HUD and Lobby reactive stores
+  const modeLabel = boardStyle === 'cyberpunk' ? 'Day' : (key === 'night' ? 'Night' : (key === 'sunset' ? 'Sunset' : 'Morning'));
+  updateHudState({ lightingMode: modeLabel });
+  updateLobbyStore({ lightingTheme: key });
+
   // Update Main Menu (Lobby) full-screen background & sky elements
   if (typeof document !== 'undefined') {
     const lobbyEl = document.getElementById('landing-setup-screen');
     const lobbyTheme = LOBBY_THEMES[comboKey] || LOBBY_THEMES[`wood:${key}`] || LOBBY_THEMES['wood:day'];
     if (lobbyEl && lobbyTheme) {
       lobbyEl.style.background = lobbyTheme.bg;
-    }
-    const skyEl = document.getElementById('setup-atmosphere-sky-elements');
-    if (skyEl && lobbyTheme && lobbyTheme.skyIcons) {
-      skyEl.innerHTML = `
-        <div class="text-9xl cloud-float-1 transform -translate-y-6 select-none pointer-events-none">${lobbyTheme.skyIcons[0]}</div>
-        <div class="text-8xl cloud-float-2 transform -translate-y-3 select-none pointer-events-none">${lobbyTheme.skyIcons[1]}</div>
-        <div class="text-9xl cloud-float-1 transform -translate-y-8 select-none pointer-events-none">${lobbyTheme.skyIcons[2]}</div>
-      `;
-      if (lobbyTheme.skyStyle) {
-        skyEl.style.cssText = lobbyTheme.skyStyle;
-      }
     }
     const diamonds = document.querySelectorAll('.diamond-watermark');
     diamonds.forEach(d => {
@@ -624,6 +620,12 @@ export function applyLightingMode(key, threeSceneObjects) {
         d.style.borderColor = 'rgba(255, 255, 255, 0.22)';
       }
     });
+
+    // Backwards-compatible text sync for any legacy elements
+    const atmoTextEl = document.getElementById('setup-atmosphere-text') || document.getElementById('setup-match-length-text');
+    if (atmoTextEl) {
+      atmoTextEl.textContent = modeLabel;
+    }
   }
 
   if (threeSceneObjects) {
@@ -643,31 +645,6 @@ export function applyLightingMode(key, threeSceneObjects) {
     if (typeof setBulbLightingTheme === 'function') {
       setBulbLightingTheme(key, boardStyle);
     }
-  }
-
-  // Update theme button icon
-  const btn = document.getElementById('btn-lighting-mode');
-  if (btn) {
-    if (boardStyle === 'cyberpunk') {
-      btn.innerHTML = '<i class="fa-solid fa-sun text-cyan-400"></i><span class="hidden xl:inline text-xs">Day</span>';
-      btn.title = 'Day Mode (Cyber Board)';
-      btn.classList.add('opacity-70', 'cursor-default');
-    } else {
-      btn.classList.remove('opacity-70', 'cursor-default');
-      btn.title = 'Toggle Lighting Theme (Morning, Sunset, Night)';
-      const icons = {
-        day: '<i class="fa-solid fa-sun text-amber-500"></i><span>Morning</span>',
-        sunset: '<i class="fa-solid fa-cloud-sun text-orange-500"></i><span>Sunset</span>',
-        night: '<i class="fa-solid fa-moon text-indigo-400"></i><span>Night</span>'
-      };
-      btn.innerHTML = icons[key] || icons.day;
-    }
-  }
-
-  // Update lobby atmosphere text
-  const atmoTextEl = document.getElementById('setup-atmosphere-text') || document.getElementById('setup-match-length-text');
-  if (atmoTextEl) {
-    atmoTextEl.textContent = boardStyle === 'cyberpunk' ? 'Day' : (key === 'night' ? 'Night' : (key === 'sunset' ? 'Sunset' : 'Morning'));
   }
 }
 

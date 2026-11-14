@@ -1,96 +1,111 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { drawChanceWheelCanvas } from '../../ui/modals/chanceCanvas.js';
 
   let state = $state({});
   modalStore.subscribe(val => { state = val.chanceWheel || {}; });
+
+  $effect(() => {
+    if (state.visible) {
+      requestAnimationFrame(() => {
+        try {
+          drawChanceWheelCanvas();
+        } catch (err) {
+          console.warn('[ChanceWheelModal] Canvas render:', err);
+        }
+      });
+    }
+  });
 
   function onSpin() {
     window.spinChanceWheel?.();
   }
 
-  function onCloseResult() {
-    window.closeChanceResultModal?.();
+  function onClose() {
+    window.closeChanceWheelModal?.();
   }
 </script>
 
-<!-- 1. Chance Wheel Spin Modal -->
+<!-- 1. Chance Wheel Interactive Spinner Modal -->
 <div id="modal-chance-wheel" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}">
   <div id="modal-chance-wheel-card" class="game-modal-shell modal-shell-purple max-w-md w-full relative overflow-hidden shadow-2xl">
-    <!-- Header -->
-    <div class="game-modal-header bg-gradient-to-r from-indigo-700 to-indigo-900 p-4 flex flex-col items-center justify-center text-center text-white relative shadow-md">
-      <div class="modal-badge-pill relative z-10">
+    <!-- Wheel Header -->
+    <div class="game-modal-header bg-gradient-to-r from-purple-700 via-indigo-600 to-amber-500 p-4 sm:p-5 text-white text-center relative overflow-hidden shadow-md">
+      <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/25 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-purple-200 border border-white/20 shadow-xs mb-1">
         GLOBAL FORTUNE
       </div>
-      <h3 class="modal-city-title text-2xl leading-none mt-2 drop-shadow-lg relative z-10">CHANCE WHEEL</h3>
-      <p class="text-xs font-bold text-white/90 drop-shadow mt-1 relative z-10">Spin to unlock empire grants, travel, or surprises</p>
+      <h3 class="font-rounded font-black text-2xl sm:text-3xl tracking-wide drop-shadow-md">
+        CHANCE WHEEL
+      </h3>
+      <p class="text-xs font-bold text-purple-100 drop-shadow mt-0.5">
+        Spin the wheel of destiny for fortunes or penalties!
+      </p>
     </div>
 
-    <!-- Body -->
-    <div class="p-5 space-y-4 bg-gradient-to-b from-slate-50 via-white to-indigo-50/50">
-      <div class="relative w-[310px] h-[310px] mx-auto flex items-center justify-center p-2 rounded-full bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200 border-3 border-white shadow-[inset_0_4px_10px_rgba(0,0,0,0.12),0_8px_20px_rgba(15,23,42,0.15)]">
-        <!-- 3D Golden Pointer / Ticker Pin (Dynamic needle vibrating against pegs) -->
-        <div id="chance-wheel-ticker-pin" class="chance-wheel-ticker-pin">
-          <div class="ticker-pin-head">
-            <div class="ticker-pin-gem"></div>
-          </div>
-          <div class="ticker-pin-needle"></div>
+    <!-- Wheel Canvas Area -->
+    <div class="p-6 flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-indigo-950/90 relative">
+      <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+        <!-- SVG Ticker Pointer Needle at top center pointing down -->
+        <div id="chance-wheel-ticker-pin" class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 w-8 h-8 filter drop-shadow-lg pointer-events-none transform origin-top transition-transform">
+          <svg viewBox="0 0 24 24" class="w-full h-full text-amber-400 fill-current">
+            <path d="M12 22 L3 4 Q12 7 21 4 Z" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round" />
+          </svg>
         </div>
-        <canvas id="chance-wheel-canvas" width="640" height="640" class="w-[290px] h-[290px] rounded-full drop-shadow-xl select-none"></canvas>
+
+        <!-- Canvas where dynamic wheel wedges are drawn (640x640 Retina internal res) -->
+        <canvas id="chance-wheel-canvas" width="640" height="640" class="w-full h-full rounded-full shadow-2xl border-4 border-amber-400/80 bg-slate-900"></canvas>
       </div>
 
-      <div id="chance-result-box" class="game-stat-card stat-card-sky py-2.5 px-3 min-h-[48px] text-center">
-        <span id="chance-result-text" class="text-xs sm:text-sm font-black text-sky-950">
-          {state.cardText || 'Click Spin to test your luck!'}
-        </span>
+      <!-- Action Button -->
+      <div class="w-full mt-6">
+        <button id="btn-spin-wheel" onclick={onSpin} disabled={state.isSpinning || state.isSpectator} class="game-btn game-btn-purple w-full py-3.5 text-base font-black shadow-xl flex items-center justify-center gap-2 group {state.isSpinning || state.isSpectator ? 'opacity-60 cursor-not-allowed' : ''}">
+          <i class="fa-solid fa-arrows-rotate text-lg group-hover:rotate-180 transition-transform duration-500"></i>
+          <span id="btn-spin-wheel-text">{state.isSpectator ? 'SPECTATING SPIN...' : (state.isSpinning ? 'SPINNING...' : 'SPIN THE WHEEL!')}</span>
+        </button>
       </div>
-
-      <button id="btn-spin-wheel" onclick={onSpin} disabled={state.isSpinning || state.isSpectator} class="game-btn game-btn-green w-full py-4 text-base font-black tracking-wide shadow-xl {(state.isSpinning || state.isSpectator) ? 'opacity-50 cursor-not-allowed' : ''}">
-        {state.isSpectator ? 'WAITING FOR PLAYER...' : state.isSpinning ? 'SPINNING...' : 'SPIN WHEEL'}
-      </button>
     </div>
   </div>
 </div>
 
-<!-- 2. Chance Wheel Result Card Toast (Floating Celebratory In-Flow Banner) -->
+<!-- 2. Chance Wheel Result Card Toast (Punchy Option A Arcade Pill) -->
 <div id="modal-chance-result" class="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[1100] items-center justify-center p-2 w-full max-w-sm pointer-events-none {state.resultVisible ? 'flex' : 'hidden'}">
-  <div class="pointer-events-auto w-full p-4 text-center rounded-3xl border-2 border-amber-400 bg-slate-950/95 text-white shadow-2xl flex flex-col gap-2.5 relative overflow-hidden select-none font-ui">
-    <!-- Watermark Icons -->
-    <svg class="ui-watermark absolute -right-3 -top-3 w-20 h-20 text-white opacity-10" aria-hidden="true"><use href="#icon-dice"></use></svg>
-    <svg class="ui-watermark absolute -left-3 -bottom-3 w-20 h-20 text-white opacity-10" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+  <div class="pointer-events-auto w-full px-4 py-3 text-center rounded-2xl border-2 border-amber-400/80 bg-slate-950/95 backdrop-blur-xl text-white shadow-2xl flex flex-col gap-1.5 relative overflow-hidden select-none font-ui">
+    <!-- Watermark Icon -->
+    <svg class="ui-watermark absolute -right-2 -top-2 w-16 h-16 text-white/5 pointer-events-none" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
 
-    <!-- Player Context Strip -->
-    <div id="chance-result-player-row" class="relative z-10 flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 shadow-2xs max-w-[240px] mx-auto text-xs">
-      <span id="chance-result-player-dot" class="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0 bg-sky-500"></span>
-      <span id="chance-result-player-name" class="font-black text-slate-100 truncate">PLAYER 1</span>
-      <span id="chance-result-player-badge" class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-400/20 text-amber-300 border border-amber-400/30">CHANCE</span>
+    <!-- 1. Player Context Header -->
+    <div id="chance-result-player-row" class="relative z-10 flex items-center justify-center gap-2 text-xs">
+      <span id="chance-result-player-dot" class="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0" style="background-color: {state.result?.playerColor || '#f59e0b'};"></span>
+      <span id="chance-result-player-name" class="font-black text-slate-100 truncate">{state.result?.playerName || 'PLAYER'}</span>
+      <span class="text-slate-600 font-bold">•</span>
+      <span id="chance-result-player-badge" class="text-[10px] font-black uppercase tracking-wider text-amber-300">
+        {state.result?.badgeText || 'CHANCE'}
+      </span>
     </div>
 
-    <!-- Icon Badge & Title -->
-    <div class="relative z-10 flex items-center justify-center gap-2.5">
-      <div id="chance-result-icon" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-inner border border-amber-400/40 bg-amber-500/20 text-amber-300 shrink-0">
-        <svg class="ui-icon w-7 h-7" aria-hidden="true"><use href="#icon-money"></use></svg>
+    <!-- 2. Hero Reward Row (Instant Visual Recognition) -->
+    <div class="relative z-10 flex items-center justify-center gap-2.5 my-0.5">
+      <div id="chance-result-icon" class="w-10 h-10 rounded-xl flex items-center justify-center text-2xl shadow-inner border border-amber-400/40 bg-amber-500/20 text-amber-300 shrink-0 {state.result?.iconBg || ''}">
+        <span>{state.result?.icon || '🎁'}</span>
       </div>
-      <div class="text-left">
-        <div id="chance-result-tag" class="inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-          CHANCE REWARD
-        </div>
-        <h3 id="chance-result-title" class="font-display font-black text-lg text-white leading-tight">
-          +400,000 GRANT!
+      <div class="text-left min-w-0">
+        <h3 id="chance-result-title" class="font-display font-black text-lg sm:text-xl text-white leading-tight tracking-wide tabular-nums drop-shadow">
+          {state.result?.title || 'CHANCE REWARD'}
         </h3>
+        <p id="chance-result-desc" class="text-xs font-bold text-slate-300 truncate mt-0.5">
+          {state.result?.flavorText || state.result?.desc || ''}
+        </p>
       </div>
     </div>
 
-    <p id="chance-result-desc" class="relative z-10 text-xs font-bold text-slate-300 leading-snug max-w-xs mx-auto">
-      World Bank Development Grant! Collect 400K!
-    </p>
-
-    <div id="chance-result-action" class="relative z-10 py-1.5 px-3 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1.5 bg-white/10 border border-white/15 text-slate-200 shadow-2xs">
-      <i class="fa-solid fa-bolt text-amber-400"></i>
-      <span id="chance-result-action-text">Applying rewards to your empire...</span>
+    <!-- Hidden compatibility elements for tests & controllers -->
+    <span id="chance-result-tag" class="hidden">{state.result?.tag || ''}</span>
+    <div id="chance-result-action" class="hidden">
+      <span id="chance-result-action-text">{state.result?.actionText || ''}</span>
     </div>
 
-    <!-- 2.2s Timer Bar -->
-    <div class="relative z-10 w-full bg-white/10 h-1.5 rounded-full overflow-hidden border border-white/10">
+    <!-- 3. Slim 2.2s Timer Bar -->
+    <div class="relative z-10 w-full bg-white/10 h-1 rounded-full overflow-hidden mt-0.5">
       <div id="chance-result-timer-bar" class="h-full bg-emerald-400 w-full transition-[width] duration-[2200ms] ease-linear"></div>
     </div>
   </div>

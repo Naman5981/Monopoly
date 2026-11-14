@@ -3,10 +3,10 @@
  * Corner player HUD cards rendering, cash displays, asset property badges, and rent transfer placards.
  */
 
-import { PLAYER_THEMES, GROUP_META } from '../../game/data.js';
+import { PLAYER_THEMES, GROUP_META, TEAM_META } from '../../game/data.js';
 import { gameState, displayedCash, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
-import { ownsFullColorGroup } from '../../game/rules.js';
+import { ownsFullColorGroup, calculateTeamNetWorth, isTeammate } from '../../game/rules.js';
 import { triggerTokenHurtAnimation } from '../../three/scene.js';
 import { networkState } from '../../network/p2p.js';
 import { playSFX } from '../../game/audio.js';
@@ -75,22 +75,34 @@ export function renderCornerHUDs() {
   const leftPlayers = [];
   const rightPlayers = [];
 
+  const isTeamMode = Boolean(matchSettings.teamMode);
+  const localPlayerIdx = networkState.isMultiplayer ? (networkState.localPlayerIdx || 0) : 0;
+  const localPlayer = gameState.players[localPlayerIdx];
+  const localTeamId = localPlayer?.teamId ?? 0;
+  const enemyTeamId = (localTeamId === 0) ? 1 : 0;
+
   gameState.players.forEach((player, id) => {
     const theme = PLAYER_THEMES[id] || { colorHex: '#3b82f6' };
     const shownMoney = displayedCash[id] ?? player.cash;
-    const isLeft = id % 2 === 0;
+    const playerTeam = player.teamId !== undefined ? player.teamId : (id % 2);
+    const isLeft = isTeamMode ? (playerTeam === localTeamId) : (id % 2 === 0);
+    const isPartner = isTeamMode && (playerTeam === localTeamId) && (id !== localPlayerIdx);
+
     const playerRecord = {
       id,
       name: player.name,
       isAI: Boolean(player.isAI),
-      isSelf: id === (networkState.isMultiplayer ? networkState.localPlayerIdx : 0),
+      isSelf: id === localPlayerIdx,
       isHost: networkState.isMultiplayer && id === 0,
       isCurrent: id === gameState.currentPlayerIdx,
       colorHex: theme.colorHex,
       cashFormatted: player.bankrupt ? 'OUT' : fmtMoney(shownMoney),
       inIsland: Boolean(player.inIsland),
       islandTurns: player.islandTurns || 0,
-      bankrupt: Boolean(player.bankrupt)
+      bankrupt: Boolean(player.bankrupt),
+      teamId: playerTeam,
+      isPartner,
+      isTeamMode
     };
 
     (isLeft ? leftPlayers : rightPlayers).push(playerRecord);
@@ -102,13 +114,40 @@ export function renderCornerHUDs() {
 
   const aliveCount = gameState.players.filter(player => !player.bankrupt).length;
   const mySets = Object.keys(GROUP_META).filter(group => ownsFullColorGroup(0, group)).length;
-  const targetSets = matchSettings.monopolySetsToWin || 3;
+  const targetSets = matchSettings.monopolySetsToWin || (isTeamMode ? 4 : 3);
+
+  let leftTeamNetWorth = '$0';
+  let rightTeamNetWorth = '$0';
+  let leftTeamLabel = 'TEAM RED';
+  let rightTeamLabel = 'TEAM BLUE';
+  let leftTeamColor = '#ef4444';
+  let rightTeamColor = '#3b82f6';
+
+  if (isTeamMode) {
+    const leftNw = calculateTeamNetWorth(localTeamId);
+    const rightNw = calculateTeamNetWorth(enemyTeamId);
+    leftTeamNetWorth = fmtMoney(leftNw);
+    rightTeamNetWorth = fmtMoney(rightNw);
+    const leftMeta = TEAM_META[localTeamId] || { name: 'TEAM RED', colorHex: '#ef4444' };
+    const rightMeta = TEAM_META[enemyTeamId] || { name: 'TEAM BLUE', colorHex: '#3b82f6' };
+    leftTeamLabel = leftMeta.name;
+    rightTeamLabel = rightMeta.name;
+    leftTeamColor = leftMeta.colorHex;
+    rightTeamColor = rightMeta.colorHex;
+  }
 
   updateHudState({
     playerCount: `${aliveCount}/${gameState.players.length}`,
     monopolySets: `${mySets}/${targetSets} Sets`,
+    isTeamMode,
     leftPlayers,
-    rightPlayers
+    rightPlayers,
+    leftTeamNetWorth,
+    rightTeamNetWorth,
+    leftTeamLabel,
+    rightTeamLabel,
+    leftTeamColor,
+    rightTeamColor
   });
 
   const leaderboard = document.getElementById('modal-leaderboard');

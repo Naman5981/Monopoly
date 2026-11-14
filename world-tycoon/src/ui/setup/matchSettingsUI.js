@@ -11,6 +11,7 @@ import { getSceneLighting, applyBoardStyle, refreshAllTileTexturesAndMaterials }
 import { networkState, broadcastLobbySettings, broadcastAction } from '../../network/p2p.js';
 import { CANDY_PALETTE, canCurrentPlayerChangeColor, selectedSetupPlayerIdx } from './playerCustomization.js';
 import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
+import { validateTeamModeBalance } from '../../game/rules.js';
 
 const MATCH_DURATION_OPTIONS = [15, 30, 45, 60, 75];
 
@@ -130,6 +131,36 @@ export function cycleBoardEdition() {
   setBoardEdition(nextEdition);
 }
 
+export function setTeamMode(enabled) {
+  if (networkState.isMultiplayer && !networkState.isHost) return;
+  matchSettings.teamMode = Boolean(enabled);
+  if (matchSettings.teamMode) {
+    matchSettings.monopolySetsToWin = 4;
+    matchSettings.customPlayers.forEach((p, idx) => {
+      if (p.teamId === undefined) p.teamId = idx % 2;
+    });
+  } else {
+    matchSettings.monopolySetsToWin = 3;
+  }
+  playSFX('hop');
+  renderMatchSettingButtons();
+  if (typeof window !== 'undefined' && window.renderPlayerCards) {
+    window.renderPlayerCards();
+  }
+  if (networkState.isMultiplayer && networkState.isHost) {
+    broadcastLobbySettings();
+  }
+}
+
+export function toggleTeamMode() {
+  setTeamMode(!matchSettings.teamMode);
+}
+
+if (typeof window !== 'undefined') {
+  window.setTeamMode = setTeamMode;
+  window.toggleTeamMode = toggleTeamMode;
+}
+
 export function renderMatchSettingButtons() {
   const isGuest = networkState.isMultiplayer && !networkState.isHost;
   const isCyber = (matchSettings.boardStyle === 'cyberpunk');
@@ -148,6 +179,11 @@ export function renderMatchSettingButtons() {
   }
 
   // Reactive Svelte 5 Lobby Store synchronization
+  const isTeamMode = Boolean(matchSettings.teamMode);
+  const teamValidation = isTeamMode
+    ? validateTeamModeBalance(lobbyPlayerCount, matchSettings.customPlayers)
+    : { valid: true, error: null };
+
   updateLobbyStore({
     startingCash: matchSettings.startingCash || 2000000,
     decisionTime: matchSettings.turnDuration || 20,
@@ -157,7 +193,11 @@ export function renderMatchSettingButtons() {
     lightingTheme: curAtmo,
     atmosphereDesc: (curAtmo === 'night') ? 'Night' : ((curAtmo === 'sunset') ? 'Sunset' : 'Morning'),
     isMultiplayer: Boolean(networkState.isMultiplayer),
-    isHost: !isGuest
+    isHost: !isGuest,
+    isTeamMode,
+    isTeamBalanceValid: teamValidation.valid,
+    teamBalanceError: teamValidation.error,
+    monopolySetsToWin: matchSettings.monopolySetsToWin || (isTeamMode ? 4 : 3)
   });
 
   // Color Swatches - reflects the player currently selected on the podium

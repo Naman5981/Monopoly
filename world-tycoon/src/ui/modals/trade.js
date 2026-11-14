@@ -3,7 +3,7 @@
  * Diplomatic trade modal, P2P and AI trade proposals, counter-offers, and incoming trade offers.
  */
 
-import { BOARD_TILES } from '../../game/data.js';
+import { BOARD_TILES, GROUP_META, PLAYER_THEMES } from '../../game/data.js';
 import { gameState, localPlayerIdx, isHumanTurnActionable } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
@@ -364,10 +364,12 @@ export function showIncomingTradeOfferModal(proposal) {
 
   const offerProperties = getTradeProperties(proposal.offerTileIds);
   const requestedProperties = getTradeProperties(proposal.reqTileIds);
+  const botColor = bot.colorHex || PLAYER_THEMES[proposal.proposerIdx]?.colorHex || '#6366f1';
   updateModalSlice('trade', {
     incomingTrade: {
       visible: true,
       botName: bot.name,
+      botColor,
       theyOfferProps: offerProperties,
       theyReqProps: requestedProperties,
       rationale: getTradeRationale(bot.name, offerProperties, requestedProperties)
@@ -376,9 +378,9 @@ export function showIncomingTradeOfferModal(proposal) {
 
   const modal = document.getElementById('modal-incoming-trade');
   if (modal) {
-    animateModalSpringOpen(modal, '#modal-incoming-trade .game-modal-shell');
+    animateModalSpringOpen(modal, '#modal-incoming-trade-card');
     playSFX('hop');
-    animateBotTradeHandshake('#modal-incoming-trade .game-modal-shell');
+    animateBotTradeHandshake('#modal-incoming-trade-card');
   }
 
   // Auto-decline fallback after 16 seconds if user is away from keyboard
@@ -393,7 +395,7 @@ export function closeIncomingTradeModal(isDeclined = false) {
     recordDeclinedTrade(activeIncomingTradeProposal.reqTileIds);
   }
   hideIncomingTradeOffer();
-  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
+  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade-card');
   activeIncomingTradeProposal = null;
   safelyResumeBotTurn();
 }
@@ -418,7 +420,7 @@ export function acceptIncomingTrade() {
   activeIncomingTradeProposal = null;
   hideIncomingTradeOffer();
   closeTradeModal();
-  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
+  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade-card');
   safelyResumeBotTurn();
 }
 
@@ -427,7 +429,7 @@ export function counterIncomingTrade() {
   if (!activeIncomingTradeProposal) return;
   const p = activeIncomingTradeProposal;
   activeIncomingTradeProposal = null;
-  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
+  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade-card');
   hideIncomingTradeOffer();
   openTradeModal();
   const sel = document.getElementById('trade-partner-select');
@@ -457,7 +459,7 @@ export function declineIncomingTrade() {
     });
   }
   activeIncomingTradeProposal = null;
-  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade .game-modal-shell');
+  animateModalSpringClose('#modal-incoming-trade', '#modal-incoming-trade-card');
   hideIncomingTradeOffer();
   safelyResumeBotTurn();
 }
@@ -466,7 +468,16 @@ function getTradeProperties(tileIds = []) {
   return tileIds
     .map(id => BOARD_TILES[id])
     .filter(Boolean)
-    .map(tile => ({ name: tile.name, priceFormatted: fmtMoney(tile.price) }));
+    .map(tile => {
+      const groupMeta = GROUP_META[tile.group] || {};
+      return {
+        id: tile.id,
+        name: tile.name,
+        priceFormatted: fmtMoney(tile.price),
+        rentFormatted: fmtMoney(tile.rent ? tile.rent[0] : 0),
+        color: groupMeta.color || '#10b981'
+      };
+    });
 }
 
 function getTradeRationale(botName, offerProperties, requestedProperties) {

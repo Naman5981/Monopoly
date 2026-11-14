@@ -16,6 +16,7 @@ import {
   createDetailedFlagMesh,
   createDetailedHouseMesh,
   createDetailedSkyscraperMesh,
+  createDetailedResortMesh,
   animatedBuildingPopups
 } from '../assets/buildings.js';
 import { disposeHierarchy } from '../core/dispose.js';
@@ -275,13 +276,26 @@ export function refreshTileTextureAndBuildings(tileId) {
     disposeHierarchy(child);
     bGroup.remove(child);
   }
-  if (!propState || propState.owner === null) return;
-
   const pos = getTileWorldPosition(tileId);
   if (pos.side === 1) bGroup.rotation.y = -Math.PI / 2;
   else if (pos.side === 2) bGroup.rotation.y = Math.PI;
   else if (pos.side === 3) bGroup.rotation.y = Math.PI / 2;
   else bGroup.rotation.y = 0;
+
+  // Dedicated Resort Architecture (Beach Cabana & Palm Oasis)
+  if (tile.type === 'resort') {
+    const isOwned = Boolean(propState && propState.owner !== null);
+    const ownerColor = isOwned ? (PLAYER_THEMES[propState.owner]?.charColor ?? 0x6366f1) : null;
+    const resortMesh = createDetailedResortMesh(ownerColor, isOwned);
+    resortMesh.position.set(0, 0, -1.02);
+    bGroup.add(resortMesh);
+    if (isOwned) {
+      animatedBuildingPopups.push({ mesh: resortMesh, startTime: performance.now(), duration: 420, targetScale: 1.0 });
+    }
+    return;
+  }
+
+  if (!propState || propState.owner === null) return;
 
   const ownerColor = PLAYER_THEMES[propState.owner]?.charColor ?? 0x6366f1;
   const lvl = propState.level || 0;

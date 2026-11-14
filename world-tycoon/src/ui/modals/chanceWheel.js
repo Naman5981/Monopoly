@@ -52,7 +52,7 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
 
   // Reset wheel canvas rotation and button
   wheelAngle = 0;
-  const canvas = document.getElementById('chance-wheel-canvas');
+  const canvas = document.getElementById('chance-wheel-canvas') || document.getElementById('canvas-chance-wheel');
   if (canvas) {
     canvas.style.transition = 'none';
     canvas.style.transform = 'rotate(0deg)';
@@ -171,27 +171,14 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
   const playerName = player ? player.name : `Player ${pIdx + 1}`;
   const playerColor = (player && player.colorHex) || (PLAYER_THEMES[pIdx] && PLAYER_THEMES[pIdx].colorHex) || '#f59e0b';
 
-  // Update Player Context Strip
-  const playerRow = document.getElementById('chance-result-player-row');
-  const playerDot = document.getElementById('chance-result-player-dot');
-  const playerNameEl = document.getElementById('chance-result-player-name');
-  const playerBadgeEl = document.getElementById('chance-result-player-badge');
-
-  if (playerRow) {
-    if (playerDot) playerDot.style.backgroundColor = playerColor;
-    if (playerNameEl) playerNameEl.textContent = isLocalUser ? `${playerName} (YOU)` : playerName;
-    if (playerBadgeEl) {
-      if (player?.isAI) {
-        playerBadgeEl.textContent = 'AI BOT';
-        playerBadgeEl.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-indigo-100 text-indigo-800 border border-indigo-200';
-      } else if (isLocalUser) {
-        playerBadgeEl.textContent = 'YOUR CARD';
-        playerBadgeEl.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200';
-      } else {
-        playerBadgeEl.textContent = 'CHANCE CARD';
-        playerBadgeEl.className = 'px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-200';
-      }
-    }
+  let badgeText = 'CHANCE CARD';
+  let badgeClass = 'bg-amber-100 text-amber-800 border border-amber-200';
+  if (player?.isAI) {
+    badgeText = 'AI BOT';
+    badgeClass = 'bg-indigo-100 text-indigo-800 border border-indigo-200';
+  } else if (isLocalUser) {
+    badgeText = 'YOUR CARD';
+    badgeClass = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
   }
 
   let icon = '🎁';
@@ -246,28 +233,32 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
     }
   }
 
-  const iconEl = document.getElementById('chance-result-icon');
-  const titleEl = document.getElementById('chance-result-title');
-  const descEl = document.getElementById('chance-result-desc');
-  const actionEl = document.getElementById('chance-result-action-text');
-  const tagEl = document.getElementById('chance-result-tag');
-  const actionContainer = document.getElementById('chance-result-action');
-  const timerBar = document.getElementById('chance-result-timer-bar');
+  const rawDesc = prize.desc || '';
+  const flavorText = rawDesc
+    .replace(/! Collect.*$/i, '')
+    .replace(/! Pay.*$/i, '')
+    .replace(/! Detained.*$/i, '')
+    .trim()
+    .replace(/!$/, '');
 
-  if (iconEl) {
-    iconEl.textContent = icon;
-    iconEl.className = `w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl shadow-md border-2 border-slate-100 ${iconBg}`;
-  }
-  if (titleEl) titleEl.textContent = title;
-  if (descEl) descEl.textContent = prize.desc;
-  if (actionEl) actionEl.textContent = actionText;
-  if (tagEl) {
-    tagEl.textContent = tag;
-    tagEl.className = `inline-block text-xs font-black uppercase px-3.5 py-1 rounded-full ${tagClass}`;
-  }
-  if (actionContainer) {
-    actionContainer.className = `py-2.5 px-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 ${actionClass}`;
-  }
+  updateModalSlice('chanceWheel', {
+    resultVisible: true,
+    result: {
+      playerName: isLocalUser ? `${playerName} (YOU)` : playerName,
+      playerColor,
+      badgeText,
+      badgeClass,
+      icon,
+      iconBg,
+      title,
+      flavorText,
+      desc: flavorText || prize.desc,
+      actionText,
+      tag,
+      tagClass,
+      actionClass
+    }
+  });
 
   // Synchronized status pill and sound effect
   setStatusPill(`🌈 <strong>${playerName}</strong> drew Chance: <strong>${prize.label}</strong>!`, { isThinking: false, playerIdx: pIdx });
@@ -285,6 +276,7 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
   }
 
   const popupDuration = 2200;
+  const timerBar = document.getElementById('chance-result-timer-bar');
   if (timerBar) {
     timerBar.style.transition = 'none';
     timerBar.style.width = '100%';
@@ -348,7 +340,7 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
     });
   }
 
-  const canvas = document.getElementById('chance-wheel-canvas');
+  const canvas = document.getElementById('chance-wheel-canvas') || document.getElementById('canvas-chance-wheel');
   if (canvas) {
     canvas.style.transition = 'transform 2600ms cubic-bezier(0.12, 0.9, 0.25, 1)';
     canvas.style.transform = `rotate(${wheelAngle}deg)`;
@@ -358,7 +350,7 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
   const totalSpinMs = 2600;
   let tickInterval = 60;
   const startSpinTime = Date.now();
-  const tickerPin = document.getElementById('chance-wheel-ticker-pin');
+  const tickerPin = document.getElementById('chance-wheel-ticker-pin') || document.getElementById('chance-wheel-ticker');
 
   function scheduleNextTick() {
     const elapsed = Date.now() - startSpinTime;

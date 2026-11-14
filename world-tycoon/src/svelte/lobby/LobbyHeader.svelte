@@ -92,7 +92,7 @@
       </div>
       <button id="btn-version-pill" onclick={checkUpdate} class="logo-edition-pill !bg-slate-800/80 hover:!bg-slate-700/90 text-sky-300 border border-sky-400/30 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-mono cursor-pointer transition-all flex items-center gap-1 active:scale-95" title="Game Version — Click to check for updates" aria-label="Game Version and Update Status">
         <span id="version-pill-dot" class="w-1.5 h-1.5 rounded-full {state.hasUpdate ? 'bg-amber-400 animate-ping' : 'bg-slate-400'}"></span>
-        <span id="version-pill-text">{state.gameVersion || 'v2.0.0'}</span>
+        <span id="version-pill-text">{state.gameVersion || 'v2.0.1'}</span>
       </button>
     </div>
   </div>

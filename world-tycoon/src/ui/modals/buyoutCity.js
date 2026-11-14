@@ -21,6 +21,7 @@ import { context } from '../../three/core/context.js';
 import { renderCornerHUDs, logEvent, setStatusPill } from '../hud.js';
 import { fireConfettiBurst, spawnAnimatedReaction } from '../../three/effects.js';
 import { checkAndTriggerMonopoly } from './victory.js';
+import { checkNearMonopolyGroup, isTeammate } from '../../game/rules.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateBuyoutHostileStamp, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
@@ -51,7 +52,8 @@ export function calculateBuyoutCost(tile, propState) {
 export function openBuyoutCityModal(tile, isDoubles) {
   if (isLobbyScreenActive()) return;
   const st = gameState.properties[tile.id];
-  if (calculateBuyoutCost(tile, st) <= 0) {
+  const pIdx = gameState.currentPlayerIdx;
+  if (calculateBuyoutCost(tile, st) <= 0 || isTeammate(st?.owner, pIdx)) {
     if (typeof window !== 'undefined' && window.concludeActionPhase) {
       window.concludeActionPhase(isDoubles);
     }
@@ -65,14 +67,16 @@ export function openBuyoutCityModal(tile, isDoubles) {
   if (engineCallbacks.updateUI) engineCallbacks.updateUI();
 
   setTileHighlightRing(tile.id, true);
-  setStatusPill(`⚔️ Hostile buyout option for <strong>${tile.name}</strong>...`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
+  setStatusPill(`⚔️ Hostile buyout option for <strong>${tile.name}</strong>...`, { isThinking: false, playerIdx: pIdx });
 
-  const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   const prevOwner = gameState.players[st?.owner];
   const basePrice = (tile.price || 0) * 2;
   const housesCost = (st?.level || 0) * (tile.houseCost || 0);
   const totalBuyoutCost = basePrice + housesCost;
+
+  const nearStatus = tile.group ? checkNearMonopolyGroup(pIdx, tile.group) : null;
+  const isMonopolyFinisher = Boolean(nearStatus?.isNear && nearStatus?.missingTile?.id === tile.id);
 
   let secondsLeft = 12;
   updateModalSlice('buyout', {
@@ -85,7 +89,8 @@ export function openBuyoutCityModal(tile, isDoubles) {
     sellerName: prevOwner?.name || 'Opponent',
     buyerBalanceFormatted: fmtMoney(p?.cash || 0),
     canAfford: Boolean(p && p.cash >= totalBuyoutCost),
-    secondsLeft
+    secondsLeft,
+    isMonopolyFinisher
   });
 
   buyoutCountdownInterval = setInterval(() => {

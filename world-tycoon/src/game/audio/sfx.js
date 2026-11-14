@@ -8,7 +8,7 @@ import { getCtx, getAudioDestination, createSpatialPanner } from './context.js';
 
 /**
  * Play a synthesized SFX.
- * @param {'gameStart'|'click'|'dice'|'diceShuffle'|'diceBounce'|'hop'|'cash'|'build'|'monopoly'|'bankrupt'|'gavel'|'win'|'victory'|'flight'|'whoosh'|'hurt'|'flinch'|'wheelTick'|'jail'|'jailDoor'|'pop'|'fireworkLaunch'|'fireworkBoom'|'takeover'|'buyout'} type
+ * @param {'gameStart'|'click'|'dice'|'diceShuffle'|'diceBounce'|'hop'|'cash'|'build'|'monopoly'|'monopolyThreat'|'bankrupt'|'gavel'|'win'|'victory'|'flight'|'whoosh'|'hurt'|'flinch'|'wheelTick'|'jail'|'jailDoor'|'pop'|'fireworkLaunch'|'fireworkBoom'|'takeover'|'buyout'} type
  * @param {number} [volumeMultiplier=1.0]
  * @param {{x: number, y?: number, z: number}|null} [worldPos=null] Optional 3D emitter coordinates for spatial audio
  */
@@ -254,6 +254,60 @@ export function playSFX(type, volumeMultiplier = 1.0, worldPos = null) {
         osc.stop(t + 0.85);
         harm.start(t);
         harm.stop(t + 0.85);
+      });
+
+    // ═══ 8B. MONOPOLY THREAT ALERT (DRAMATIC TENSION SWELL & CHIME) ═══
+    } else if (type === 'monopolyThreat' || type === 'threat') {
+      const threatVol = 0.9 * vol;
+      // 1. Tension low brass swell (dramatic chord: A2, E3, A3)
+      [110.0, 164.81, 220.0].forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const harm = ctx.createOscillator();
+        const g = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now);
+        harm.type = 'sine';
+        harm.frequency.setValueAtTime(freq * 0.5, now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(320, now);
+        filter.frequency.exponentialRampToValueAtTime(1400, now + 0.35);
+        filter.frequency.exponentialRampToValueAtTime(350, now + 1.4);
+        filter.Q.value = 2.0;
+
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.linearRampToValueAtTime(0.12 * threatVol, now + 0.08);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+
+        osc.connect(filter);
+        harm.connect(filter);
+        filter.connect(g);
+        g.connect(soundOutput);
+
+        osc.start(now);
+        osc.stop(now + 1.5);
+        harm.start(now);
+        harm.stop(now + 1.5);
+      });
+
+      // 2. High urgent chime bells (E5 -> A5 staccato ping)
+      [659.25, 880.0].forEach((f, idx) => {
+        const t = now + 0.14 + idx * 0.14;
+        const chime = ctx.createOscillator();
+        const chimeGain = ctx.createGain();
+        chime.type = 'sine';
+        chime.frequency.setValueAtTime(f, t);
+
+        chimeGain.gain.setValueAtTime(0.0001, t);
+        chimeGain.gain.linearRampToValueAtTime(0.16 * threatVol, t + 0.01);
+        chimeGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
+
+        chime.connect(chimeGain);
+        chimeGain.connect(soundOutput);
+        chime.start(t);
+        chime.stop(t + 0.85);
       });
 
     // ═══ 9. BANKRUPT / ELIMINATION MOTIF ═══

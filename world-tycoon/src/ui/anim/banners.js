@@ -107,3 +107,53 @@ export function animatePlayerEliminatedBanner(player, creditor = null) {
     `;
   }
 }
+
+/**
+ * Smooth, dramatic Anime.js orchestration for the Monopoly Threat alert banner.
+ * Uses luxurious cubicBezier deceleration, staggered threat elements, and slow ambient breathing pulse.
+ * Eliminates snappy/rushed animations per /animejs-animation.
+ * @param {HTMLElement} bannerEl
+ */
+export function animateMonopolyThreatBannerEntrance(bannerEl) {
+  if (!bannerEl || typeof anime === 'undefined' || isReducedMotion()) return;
+
+  anime.remove(bannerEl);
+  const items = bannerEl.querySelectorAll('.threat-stagger-item');
+  if (items.length > 0) anime.remove(items);
+
+  const tl = anime.timeline({
+    easing: 'cubicBezier(0.16, 1, 0.3, 1)'
+  });
+
+  // 1. Slow, majestic descent into viewport (smooth, unhurried, not snappy)
+  tl.add({
+    targets: bannerEl,
+    translateY: [-65, 0],
+    scale: [0.90, 1.0],
+    opacity: [0, 1],
+    duration: 850,
+    easing: 'cubicBezier(0.16, 1, 0.3, 1)'
+  })
+  // 2. Staggered reveal of internal threat warning elements
+  .add({
+    targets: items,
+    translateY: [-10, 0],
+    opacity: [0, 1],
+    duration: 650,
+    delay: anime.stagger(100),
+    easing: 'easeOutQuad'
+  }, '-=450');
+
+  // 3. Subtle slow dramatic pulse breathing while banner remains visible
+  anime({
+    targets: bannerEl,
+    boxShadow: [
+      '0 20px 60px rgba(245, 158, 11, 0.55)',
+      '0 28px 80px rgba(245, 158, 11, 0.85), 0 0 35px rgba(251, 191, 36, 0.45)'
+    ],
+    duration: 1800,
+    direction: 'alternate',
+    loop: true,
+    easing: 'easeInOutSine'
+  });
+}

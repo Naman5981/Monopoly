@@ -15,6 +15,8 @@ import * as THREE from 'three';
 import { context } from './core/context.js';
 import { cameraState, updateIsometricCamera } from './core/camera.js';
 import { getTileWorldPosition } from './board/coords.js';
+import { setMonopolyThreatBeacon } from './board/highlights.js';
+import { matchSettings } from '../game/state.js';
 
 let activeCutscene = null;
 let cutsceneCancel = null;
@@ -245,7 +247,86 @@ export function playBuyoutCinematicFocus(tileId, durationMs = 1500) {
   });
 }
 
+/**
+ * 5. Monopoly Threat: Smooth cinematic camera glide and focus on the missing property for ~2.0s.
+ * Shows all players that acquiring this tile will complete the color group and double rent.
+ * Incorporates skip listener, golden tile beacon, and dynamic speed scaling.
+ *
+ * @param {number} tileId
+ * @param {number} [durationMs=2000]
+ * @returns {Promise<void>}
+ */
+export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !context.camera || !cameraState) {
+      resolve();
+      return;
+    }
+
+    const gameSpeed = matchSettings?.gameSpeed || 1;
+    // Scale duration with speed, minimum 2400ms so players have ample time to register the strategic threat
+    const effectiveDuration = Math.max(2400, Math.round(durationMs / Math.min(gameSpeed, 1.4)));
+
+    let cancelled = false;
+    let cleanupSkip = null;
+
+    const origTarget = cameraState.targetCameraTarget.clone();
+    const origZoom = cameraState.targetCameraZoom;
+    const origAzimuth = cameraState.targetCameraAzimuth;
+
+    const finish = () => {
+      if (cancelled) return;
+      cancelled = true;
+      if (cleanupSkip) cleanupSkip();
+      setMonopolyThreatBeacon(tileId, false);
+      cameraState.targetCameraTarget.copy(origTarget);
+      cameraState.targetCameraZoom = origZoom;
+      cameraState.targetCameraAzimuth = origAzimuth;
+
+      setTimeout(() => {
+        cutsceneCancel = null;
+        theatreState.activeCutsceneName = null;
+        resolve();
+      }, 350);
+    };
+
+    cutsceneCancel = finish;
+
+    const tilePos = getTileWorldPosition(tileId);
+    if (!tilePos) {
+      resolve();
+      return;
+    }
+
+    // Turn on glowing beacon on missing tile
+    setMonopolyThreatBeacon(tileId, true, '#f59e0b');
+
+    // Smoothly pan camera directly to the missing tile with dynamic zoom
+    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 0.6, tilePos.z);
+    cameraState.targetCameraZoom = 1.95;
+
+    // Angle to face the city
+    const angleToCenter = Math.atan2(tilePos.z, tilePos.x);
+    cameraState.targetCameraAzimuth = angleToCenter + Math.PI / 6;
+
+    theatreState.activeCutsceneName = 'MonopolyThreatFocus';
+
+    // Click/tap to skip listener for responsive gameplay
+    const onUserSkip = () => finish();
+    window.addEventListener('pointerdown', onUserSkip, { once: true });
+    cleanupSkip = () => {
+      window.removeEventListener('pointerdown', onUserSkip);
+    };
+
+    // Hold dramatic framing on the missing property
+    setTimeout(() => {
+      finish();
+    }, effectiveDuration);
+  });
+}
+
 if (typeof window !== 'undefined') {
   window.playCinematicCutscene = playCinematicCutscene;
   window.playBuyoutCinematicFocus = playBuyoutCinematicFocus;
+  window.playMonopolyThreatCinematic = playMonopolyThreatCinematic;
 }

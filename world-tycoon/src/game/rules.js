@@ -33,14 +33,113 @@ export function getPropertyLevelMetadata(level) {
   }
 }
 
-/** Check whether a player owns every city in a colour group. */
+/**
+ * Check if two players are teammates in Team Mode.
+ * @param {number} pIdx1
+ * @param {number} pIdx2
+ * @returns {boolean}
+ */
+export function isTeammate(pIdx1, pIdx2) {
+  if (!matchSettings.teamMode) return false;
+  if (pIdx1 === null || pIdx2 === null || pIdx1 === undefined || pIdx2 === undefined) return false;
+  if (pIdx1 === pIdx2) return false;
+  const p1 = gameState.players?.[pIdx1];
+  const p2 = gameState.players?.[pIdx2];
+  if (!p1 || !p2) return false;
+  return p1.teamId !== undefined && p2.teamId !== undefined && p1.teamId === p2.teamId;
+}
+
+/**
+ * Get all player indices belonging to a specific team.
+ * @param {number} teamId
+ * @returns {Array<number>}
+ */
+export function getTeamMembers(teamId) {
+  if (!gameState.players) return [];
+  const members = [];
+  gameState.players.forEach((p, idx) => {
+    if (p.teamId === teamId) members.push(idx);
+  });
+  return members;
+}
+
+/** Check whether a player or their team owns every city in a colour group. */
 export function ownsFullColorGroup(playerIdx, groupKey) {
   if (!groupKey) return false;
   const tiles = BOARD_TILES.filter(t => t.type === 'city' && t.group === groupKey);
-  return tiles.length > 0 && tiles.every(t => {
+  if (tiles.length === 0) return false;
+
+  if (matchSettings.teamMode) {
+    const p = gameState.players?.[playerIdx];
+    const teamId = p ? p.teamId : null;
+    if (teamId !== null && teamId !== undefined) {
+      return tiles.every(t => {
+        const st = gameState.properties[t.id];
+        if (!st || st.owner === null) return false;
+        const owner = gameState.players?.[st.owner];
+        return owner && owner.teamId === teamId;
+      });
+    }
+  }
+
+  return tiles.every(t => {
     const st = gameState.properties[t.id];
     return st && st.owner === playerIdx;
   });
+}
+
+/**
+ * Check if a player (or team) owns all but one city in a colour group (1 city away from monopoly).
+ * @param {number} playerIdx
+ * @param {string} groupKey
+ * @returns {{ isNear: boolean, missingTile: object|null, ownedCount: number, totalCount: number }}
+ */
+export function checkNearMonopolyGroup(playerIdx, groupKey) {
+  if (!groupKey || playerIdx === null || playerIdx === undefined) {
+    return { isNear: false, missingTile: null, ownedCount: 0, totalCount: 0 };
+  }
+  const cities = BOARD_TILES.filter(t => t.type === 'city' && t.group === groupKey);
+  if (cities.length <= 1) {
+    return { isNear: false, missingTile: null, ownedCount: 0, totalCount: cities.length };
+  }
+
+  if (matchSettings.teamMode) {
+    const p = gameState.players?.[playerIdx];
+    const teamId = p ? p.teamId : null;
+    if (teamId !== null && teamId !== undefined) {
+      const teamOwned = cities.filter(t => {
+        const st = gameState.properties[t.id];
+        if (!st || st.owner === null) return false;
+        const owner = gameState.players?.[st.owner];
+        return owner && owner.teamId === teamId;
+      });
+      const isNear = teamOwned.length === cities.length - 1;
+      const missingTile = isNear ? cities.find(t => {
+        const st = gameState.properties[t.id];
+        if (!st || st.owner === null) return true;
+        const owner = gameState.players?.[st.owner];
+        return !owner || owner.teamId !== teamId;
+      }) || null : null;
+
+      return {
+        isNear,
+        missingTile,
+        ownedCount: teamOwned.length,
+        totalCount: cities.length
+      };
+    }
+  }
+
+  const owned = cities.filter(t => gameState.properties[t.id]?.owner === playerIdx);
+  const isNear = owned.length === cities.length - 1;
+  const missingTile = isNear ? cities.find(t => gameState.properties[t.id]?.owner !== playerIdx) || null : null;
+
+  return {
+    isNear,
+    missingTile,
+    ownedCount: owned.length,
+    totalCount: cities.length
+  };
 }
 
 /** Calculate standard base rent without festival multiplier. */
@@ -62,9 +161,13 @@ export function calculateBaseTileRent(tileId) {
 }
 
 /** Calculate current rent owed for a tile landing. */
-export function calculateTileRent(tileId) {
-  const base = calculateBaseTileRent(tileId);
+export function calculateTileRent(tileId, landingPlayerIdx = null) {
   const st = gameState.properties[tileId];
+  if (!st || st.owner === null) return 0;
+  if (landingPlayerIdx !== null && isTeammate(st.owner, landingPlayerIdx)) {
+    return 0; // Teammate pays ZERO rent!
+  }
+  const base = calculateBaseTileRent(tileId);
   return (st && st.festivalBoost) ? base * 2 : base;
 }
 
@@ -147,9 +250,12 @@ export function countCompletedColorGroups(playerIdx) {
   return count;
 }
 
-/** Check if player owns all purchasable cities along an entire side of the board (Side 1..4). */
+/** Check if player (or their team) owns all purchasable cities along an entire side of the board (Side 1..4). */
 export function checkLineMonopoly(playerIdx) {
   if (playerIdx === null || playerIdx === undefined || !gameState.players || !gameState.players[playerIdx]) return 0;
+  const p = gameState.players[playerIdx];
+  const teamId = matchSettings.teamMode ? p.teamId : null;
+
   const sides = [
     [1, 3, 4, 5, 6, 7],      // Side 1 (Bottom)
     [9, 10, 11, 13, 14, 15],  // Side 2 (Left)
@@ -160,7 +266,12 @@ export function checkLineMonopoly(playerIdx) {
     const sideTiles = sides[s];
     const ownsAll = sideTiles.every(id => {
       const st = gameState.properties[id];
-      return st && st.owner === playerIdx;
+      if (!st || st.owner === null) return false;
+      if (teamId !== null && teamId !== undefined) {
+        const owner = gameState.players?.[st.owner];
+        return owner && owner.teamId === teamId;
+      }
+      return st.owner === playerIdx;
     });
     if (ownsAll) {
       return s + 1; // Side 1..4
@@ -186,30 +297,136 @@ export function calculatePlayerNetWorth(playerIdx) {
   return netWorth;
 }
 
-/** Comprehensive victory evaluator supporting Bankruptcy, Triple Monopoly, Line Monopoly, and Net Worth Time Cap. */
+/** Calculate combined net worth of an entire team. */
+export function calculateTeamNetWorth(teamId) {
+  if (!gameState.players) return 0;
+  let total = 0;
+  gameState.players.forEach((p, idx) => {
+    if (p.teamId === teamId && !p.bankrupt) {
+      total += calculatePlayerNetWorth(idx);
+    }
+  });
+  return total;
+}
+
+/**
+ * Validate team distribution balance for Team Mode.
+ * Rules:
+ * - Must be exactly 4 players (2 vs 2) or 6 players (3 vs 3).
+ * - Odd counts (5 players, 3 players) are blocked.
+ *
+ * @param {number} playerCount
+ * @param {Array} customPlayers
+ * @returns {{ valid: boolean, error: string|null, t0Count: number, t1Count: number }}
+ */
+export function validateTeamModeBalance(playerCount, customPlayers = []) {
+  if (playerCount < 4) {
+    return {
+      valid: false,
+      error: 'Team Mode requires at least 4 players (2 vs 2)!',
+      t0Count: 0,
+      t1Count: 0
+    };
+  }
+
+  if (playerCount === 5) {
+    return {
+      valid: false,
+      error: 'Team Mode requires 4 players (2 vs 2) or 6 players (3 vs 3)! (Current: 5 players)',
+      t0Count: 0,
+      t1Count: 0
+    };
+  }
+
+  let t0Count = 0;
+  let t1Count = 0;
+  for (let i = 0; i < playerCount; i++) {
+    const cp = customPlayers[i];
+    const teamId = cp?.teamId !== undefined ? cp.teamId : (i % 2);
+    if (teamId === 0) t0Count++;
+    else t1Count++;
+  }
+
+  if (playerCount === 4) {
+    if (t0Count !== 2 || t1Count !== 2) {
+      return {
+        valid: false,
+        error: `Teams must be balanced (2 vs 2)! Current: ${t0Count} Red vs ${t1Count} Blue`,
+        t0Count,
+        t1Count
+      };
+    }
+  } else if (playerCount === 6) {
+    if (t0Count !== 3 || t1Count !== 3) {
+      return {
+        valid: false,
+        error: `Teams must be balanced (3 vs 3)! Current: ${t0Count} Red vs ${t1Count} Blue`,
+        t0Count,
+        t1Count
+      };
+    }
+  }
+
+  return { valid: true, error: null, t0Count, t1Count };
+}
+
+/** Comprehensive victory evaluator supporting Bankruptcy, Monopolies, Line Monopoly, and Net Worth Time Cap. */
 export function checkVictoryConditions() {
   if (!gameState.gameStarted || gameState.phase === 'SETUP' || !gameState.players || gameState.players.length === 0) {
     return null;
   }
 
-  // 1. Bankruptcy Elimination (Last player standing)
-  const alive = gameState.players.filter(pl => !pl.bankrupt);
-  if (alive.length === 1) {
-    return {
-      winner: alive[0],
-      type: 'bankruptcy',
-      title: 'BANKRUPTCY SUPREMACY!',
-      desc: 'All rival tycoons bankrupted. You are the last tycoon standing on the global board!'
-    };
+  // ─── 1. Bankruptcy Elimination ───
+  if (matchSettings.teamMode) {
+    const aliveTeams = new Set(gameState.players.filter(pl => !pl.bankrupt).map(pl => pl.teamId));
+    if (aliveTeams.size === 1) {
+      const winningTeamId = [...aliveTeams][0];
+      const teamName = winningTeamId === 0 ? 'TEAM RED' : 'TEAM BLUE';
+      const winningPlayers = gameState.players.filter(pl => pl.teamId === winningTeamId);
+      return {
+        winner: winningPlayers[0] || gameState.players[0],
+        teamId: winningTeamId,
+        teamName,
+        teamMembers: winningPlayers,
+        isTeamVictory: true,
+        type: 'bankruptcy',
+        title: `${teamName} SUPREMACY!`,
+        desc: `All rival team tycoons eliminated! ${teamName} reigns supreme over the global board!`
+      };
+    }
+  } else {
+    const alive = gameState.players.filter(pl => !pl.bankrupt);
+    if (alive.length === 1) {
+      return {
+        winner: alive[0],
+        type: 'bankruptcy',
+        title: 'BANKRUPTCY SUPREMACY!',
+        desc: 'All rival tycoons bankrupted. You are the last tycoon standing on the global board!'
+      };
+    }
   }
 
-  // 2. Triple Monopoly Victory (First to complete 3 full color groups)
-  const requiredSets = matchSettings.monopolySetsToWin || 3;
+  // ─── 2. Monopoly Victory (3 Sets in Solo, 4 Sets in Team Mode) ───
+  const requiredSets = matchSettings.teamMode ? (matchSettings.monopolySetsToWin || 4) : (matchSettings.monopolySetsToWin || 3);
   for (let i = 0; i < gameState.players.length; i++) {
     const p = gameState.players[i];
     if (p.bankrupt) continue;
     const completedSets = countCompletedColorGroups(i);
     if (completedSets >= requiredSets) {
+      if (matchSettings.teamMode) {
+        const teamName = p.teamId === 0 ? 'TEAM RED' : 'TEAM BLUE';
+        const winningPlayers = gameState.players.filter(pl => pl.teamId === p.teamId);
+        return {
+          winner: p,
+          teamId: p.teamId,
+          teamName,
+          teamMembers: winningPlayers,
+          isTeamVictory: true,
+          type: 'quad_monopoly',
+          title: `${teamName} QUAD MONOPOLY SUPREMACY!`,
+          desc: `Completed ${completedSets} full color districts across the team! Unstoppable real estate dominance!`
+        };
+      }
       return {
         winner: p,
         type: 'triple_monopoly',
@@ -219,7 +436,7 @@ export function checkVictoryConditions() {
     }
   }
 
-  // 3. Line Monopoly Victory (Owns all cities along an entire side of the board)
+  // ─── 3. Line Monopoly Victory ───
   if (matchSettings.lineMonopolyEnabled !== false) {
     for (let i = 0; i < gameState.players.length; i++) {
       const p = gameState.players[i];
@@ -227,6 +444,20 @@ export function checkVictoryConditions() {
       const side = checkLineMonopoly(i);
       if (side > 0) {
         const sideNames = ['Southern Waterfront', 'Western Heritage', 'Northern Capitals', 'Eastern Megacities'];
+        if (matchSettings.teamMode) {
+          const teamName = p.teamId === 0 ? 'TEAM RED' : 'TEAM BLUE';
+          const winningPlayers = gameState.players.filter(pl => pl.teamId === p.teamId);
+          return {
+            winner: p,
+            teamId: p.teamId,
+            teamName,
+            teamMembers: winningPlayers,
+            isTeamVictory: true,
+            type: 'line_monopoly',
+            title: `${teamName} LINE MONOPOLY!`,
+            desc: `${teamName} conquered the entire ${sideNames[side - 1]} edge of the global board!`
+          };
+        }
         return {
           winner: p,
           type: 'line_monopoly',
@@ -237,9 +468,33 @@ export function checkVictoryConditions() {
     }
   }
 
-  // 4. Match Time Limit / Net Worth Cap
+  // ─── 4. Match Time Limit / Net Worth Cap ───
   const maxMinutes = matchSettings.matchDurationMinutes || 0;
   if (maxMinutes > 0 && matchSeconds >= maxMinutes * 60) {
+    if (matchSettings.teamMode) {
+      let bestTeamId = 0;
+      let maxTeamWorth = -1;
+      [0, 1].forEach(tId => {
+        const tWorth = calculateTeamNetWorth(tId);
+        if (tWorth > maxTeamWorth) {
+          maxTeamWorth = tWorth;
+          bestTeamId = tId;
+        }
+      });
+      const teamName = bestTeamId === 0 ? 'TEAM RED' : 'TEAM BLUE';
+      const winningPlayers = gameState.players.filter(pl => pl.teamId === bestTeamId);
+      return {
+        winner: winningPlayers[0] || gameState.players[0],
+        teamId: bestTeamId,
+        teamName,
+        teamMembers: winningPlayers,
+        isTeamVictory: true,
+        type: 'net_worth_time',
+        title: `${teamName} RICHEST ALLIANCE!`,
+        desc: `Match time limit expired (${maxMinutes}m)! ${teamName} crowned champions with combined Net Worth of ${fmtMoney(maxTeamWorth)}!`
+      };
+    }
+
     let bestPlayer = null;
     let maxWorth = -1;
     gameState.players.forEach((p, idx) => {

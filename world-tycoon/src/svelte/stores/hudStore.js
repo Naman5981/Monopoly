@@ -39,6 +39,13 @@ const initialHudState = {
   },
   leftPlayers: [],
   rightPlayers: [],
+  isTeamMode: false,
+  leftTeamNetWorth: '$0',
+  rightTeamNetWorth: '$0',
+  leftTeamLabel: 'TEAM RED',
+  rightTeamLabel: 'TEAM BLUE',
+  leftTeamColor: '#ef4444',
+  rightTeamColor: '#3b82f6',
   toast: {
     visible: false,
     text: ''

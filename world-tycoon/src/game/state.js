@@ -64,17 +64,19 @@ export const matchSettings = {
   lightingTheme: 'day', // 'day' | 'sunset' | 'night'
   boardStyle: 'wood', // 'wood' | 'cyberpunk' | 'elegant'
   boardEdition: 'world', // 'world' | 'rajasthan'
-  monopolySetsToWin: 3, // Complete 3 color groups to win instantly
+  monopolySetsToWin: 3, // Complete 3 color groups to win instantly (4 in Team Mode)
   lineMonopolyEnabled: true, // Conquering an entire side of the board wins instantly
   matchDurationMinutes: 15, // Match time limit (richest player by Net Worth wins, 0 for unlimited)
   gameSpeed: 1, // 1 | 2 | 4 (Fast-forward multiplier for animations and bot actions)
+  teamMode: false, // true | false (2v2 or 3v3 Team Alliance)
+  teamCount: 2,
   customPlayers: [
-    { name: initialPlayerName, isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0 },
-    { name: 'BARON', isAI: true, charColor: 0xf97316, colorHex: '#f97316', hatColor: 0xfde047, hatStyle: 1 },
-    { name: 'ATLAS', isAI: true, charColor: 0x22c55e, colorHex: '#22c55e', hatColor: 0x1e293b, hatStyle: 2 },
-    { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3 },
-    { name: 'PHOENIX', isAI: true, charColor: 0xef4444, colorHex: '#ef4444', hatColor: 0xf97316, hatStyle: 0 },
-    { name: 'CYBER', isAI: true, charColor: 0x06b6d4, colorHex: '#06b6d4', hatColor: 0x38bdf8, hatStyle: 3 }
+    { name: initialPlayerName, isAI: false, charColor: 0x3b82f6, colorHex: '#3b82f6', hatColor: 0x334155, hatStyle: 0, teamId: 0 },
+    { name: 'BARON', isAI: true, charColor: 0xf97316, colorHex: '#f97316', hatColor: 0xfde047, hatStyle: 1, teamId: 1 },
+    { name: 'ATLAS', isAI: true, charColor: 0x22c55e, colorHex: '#22c55e', hatColor: 0x1e293b, hatStyle: 2, teamId: 0 },
+    { name: 'NOVA', isAI: true, charColor: 0xec4899, colorHex: '#ec4899', hatColor: 0xffffff, hatStyle: 3, teamId: 1 },
+    { name: 'PHOENIX', isAI: true, charColor: 0xef4444, colorHex: '#ef4444', hatColor: 0xf97316, hatStyle: 0, teamId: 0 },
+    { name: 'CYBER', isAI: true, charColor: 0x06b6d4, colorHex: '#06b6d4', hatColor: 0x38bdf8, hatStyle: 3, teamId: 1 }
   ]
 };
 
@@ -167,8 +169,11 @@ export function setLocalPlayerIdx(idx) { localPlayerIdx = idx; }
  */
 export function isHumanTurnActionable() {
   if (networkState && networkState.isReconnecting) return false;
-  const p = gameState.players[gameState.currentPlayerIdx];
-  if (!p || p.isAI || gameState.currentPlayerIdx !== localPlayerIdx) return false;
+  const p = gameState.players ? gameState.players[gameState.currentPlayerIdx] : null;
+  const mySlot = (networkState && networkState.isMultiplayer && typeof networkState.localPlayerIdx === 'number')
+    ? networkState.localPlayerIdx
+    : (typeof localPlayerIdx === 'number' ? localPlayerIdx : 0);
+  if (!p || p.isAI || gameState.currentPlayerIdx !== mySlot) return false;
   return (gameState.phase === 'ROLL' || gameState.phase === 'END');
 }
 
@@ -212,6 +217,7 @@ export function resetGameStateForNewMatch(count) {
       isAI,
       isOnlinePeer: isConnectedPeer,
       peerId: cp.peerId || null,
+      teamId: cp.teamId !== undefined ? cp.teamId : (i % 2),
       cash: startCash,
       position: 0,
       inIsland: false,

@@ -18,6 +18,7 @@ import {
 import { renderCornerHUDs, logEvent, setStatusPill } from '../hud.js';
 import { fireConfettiBurst, spawnAnimatedReaction } from '../../three/effects.js';
 import { checkAndTriggerMonopoly } from './victory.js';
+import { checkNearMonopolyGroup } from '../../game/rules.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
@@ -45,6 +46,9 @@ export function openBuyCityModal(tile, isDoubles) {
     ? `<span class="text-amber-700">${fmtMoney(tile.rent[tile.rent.length - 1] || tile.rent[4])}</span> <span class="text-[10px] text-slate-500 font-bold">(Skyscraper)</span>`
     : `<span class="text-sky-700">2× Boosted</span> <span class="text-[10px] text-slate-500 font-bold">(Set of 2)</span>`;
 
+  const nearStatus = tile.group ? checkNearMonopolyGroup(pIdx, tile.group) : null;
+  const isMonopolyFinisher = Boolean(nearStatus?.isNear && nearStatus?.missingTile?.id === tile.id);
+
   updateModalSlice('buyCity', {
     visible: true,
     tile,
@@ -58,7 +62,8 @@ export function openBuyCityModal(tile, isDoubles) {
     buyerColor: theme.colorHex,
     canAfford,
     balancePreview: canAfford ? `${fmtMoney(p.cash)} → ${fmtMoney(p.cash - tile.price)}` : `${fmtMoney(p.cash)} (Need ${fmtMoney(tile.price - p.cash)} more)`,
-    maxRentHtml
+    maxRentHtml,
+    isMonopolyFinisher
   });
 
   const origin = getTileScreenPosition(tile.id);

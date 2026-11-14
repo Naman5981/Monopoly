@@ -19,6 +19,7 @@ import {
 } from './playerCustomization.js';
 import { currentLobbyView } from './lobbyNavigation.js';
 import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
+import { validateTeamModeBalance } from '../../game/rules.js';
 
 export function buildPlayerCardActionControls(i, isGuest, isOnline, isConnectedPeer, isHuman, isSelf) {
   if (!isGuest) {
@@ -151,16 +152,24 @@ export function renderPlayerCards() {
       isOnlinePeer: Boolean(cp?.isOnlinePeer),
       colorHex: cp?.colorHex || '#10b981',
       hatStyle: cp?.hatStyle || 0,
+      archetypeIcon: ARCHETYPES[cp?.hatStyle || 0]?.icon || '🎩',
+      archetypeName: ARCHETYPES[cp?.hatStyle || 0]?.name || 'Banker',
       isSelected: i === selectedSetupPlayerIdx,
       isSelf,
       isHost: i === 0,
       canEditName: isSelf && isHuman,
       canEditSlot: canCurrentPlayerEditSlot(i),
-      isConnectedPeer
+      isConnectedPeer,
+      teamId: cp?.teamId !== undefined ? cp.teamId : (i % 2)
     });
   }
   const curPlayerForStore = matchSettings.customPlayers[selectedSetupPlayerIdx] || p0;
   const curArchForStore = ARCHETYPES[curPlayerForStore?.hatStyle || 0] || ARCHETYPES[0];
+  const isTeamMode = Boolean(matchSettings.teamMode);
+  const teamValidation = isTeamMode
+    ? validateTeamModeBalance(lobbyPlayerCount, matchSettings.customPlayers)
+    : { valid: true, error: null };
+
   updateLobbyStore({
     playerCount: lobbyPlayerCount,
     selectedPlayerIdx: selectedSetupPlayerIdx,
@@ -170,6 +179,9 @@ export function renderPlayerCards() {
     archetypeName: curArchForStore.name.toUpperCase(),
     archetypeIcon: curArchForStore.icon,
     selectedColorHex: curPlayerForStore?.colorHex || '#10b981',
+    isTeamMode,
+    isTeamBalanceValid: teamValidation.valid,
+    teamBalanceError: teamValidation.error,
     players: lobbyPlayersList
   });
 
@@ -360,4 +372,24 @@ export function togglePlayerRole(idx) {
       broadcastLobbySettings();
     }
   }
+}
+
+export function togglePlayerTeam(idx) {
+  if (networkState.isMultiplayer && !networkState.isHost) return;
+  const cp = matchSettings.customPlayers[idx];
+  if (!cp) return;
+  cp.teamId = (cp.teamId === 0) ? 1 : 0;
+  if (setupPlayers[idx]) {
+    setupPlayers[idx].teamId = cp.teamId;
+  }
+  renderPlayerCards();
+  playSFX('hop');
+  if (networkState.isMultiplayer && networkState.isHost) {
+    broadcastLobbySettings();
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.togglePlayerRole = togglePlayerRole;
+  window.togglePlayerTeam = togglePlayerTeam;
 }
