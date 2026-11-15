@@ -297,6 +297,7 @@ export function initEngine() {
     onTradeAction: (msg) => {
       if (msg.type === 'ACTION_TRADE_OFFER') {
         if (msg.targetIdx === networkState.localPlayerIdx && msg.proposal) {
+          closeTradeModal();
           showIncomingTradeOfferModal(msg.proposal);
         }
       } else if (msg.type === 'ACTION_TRADE_RESPONSE') {
@@ -457,6 +458,9 @@ export function initEngine() {
             p.bankrupt = Boolean(srcP.bankrupt);
             p.inIsland = Boolean(srcP.inIsland);
             p.islandTurns = srcP.islandTurns || 0;
+            if (typeof srcP.teamId === 'number') {
+              p.teamId = srcP.teamId;
+            }
           }
         });
         if (gameState.phase !== 'MOVING') {

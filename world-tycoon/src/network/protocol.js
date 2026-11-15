@@ -45,6 +45,8 @@ const VALID_PACKET_TYPES = new Set([
   'ACTION_CHAT_EMOTE',
   'ACTION_REQUEST_PLAY_AGAIN',
   'ACTION_GUEST_LOBBY',
+  'ACTION_GUEST_TEAM_SELECT',
+  'ACTION_TEAM_BAILOUT',
   'PLAYER_DISCONNECTED',
   'MATCH_DISCONNECTED_TO_LOBBY'
 ]);
@@ -118,17 +120,25 @@ export function createSafeLobbyStatePacket(matchSettings, setupPlayers, lobbyPla
       monopolySetsToWin: matchSettings.monopolySetsToWin || 3,
       lineMonopolyEnabled: Boolean(matchSettings.lineMonopolyEnabled),
       matchDurationMinutes: matchSettings.matchDurationMinutes || 15,
-      gameSpeed: matchSettings.gameSpeed || 1
+      gameSpeed: matchSettings.gameSpeed || 1,
+      teamMode: Boolean(matchSettings.teamMode)
     },
-    setupPlayers: setupPlayers.slice(0, count).map((p, idx) => ({
-      name: (p.name || `PLAYER ${idx + 1}`).trim().toUpperCase().slice(0, 14),
-      isAI: Boolean(p.isAI),
-      isOnlinePeer: Boolean(p.isOnlinePeer),
-      charColor: typeof p.charColor === 'number' ? p.charColor : 0x3b82f6,
-      colorHex: p.colorHex || '#3b82f6',
-      hatStyle: typeof p.hatStyle === 'number' ? p.hatStyle : 0,
-      hatColor: typeof p.hatColor === 'number' ? p.hatColor : 0x334155,
-      pedestal: p.pedestal || 'pedestal_classic'
-    }))
+    setupPlayers: setupPlayers.slice(0, count).map((p, idx) => {
+      const isTeam = Boolean(matchSettings.teamMode);
+      const teamId = typeof p.teamId === 'number' ? p.teamId : (idx % 2);
+      const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+      const teamChar = teamId === 0 ? 0xef4444 : 0x3b82f6;
+      return {
+        name: (p.name || `PLAYER ${idx + 1}`).trim().toUpperCase().slice(0, 14),
+        isAI: Boolean(p.isAI),
+        isOnlinePeer: Boolean(p.isOnlinePeer),
+        charColor: isTeam ? teamChar : (typeof p.charColor === 'number' ? p.charColor : 0x3b82f6),
+        colorHex: isTeam ? teamHex : (p.colorHex || '#3b82f6'),
+        hatStyle: typeof p.hatStyle === 'number' ? p.hatStyle : 0,
+        hatColor: typeof p.hatColor === 'number' ? p.hatColor : 0x334155,
+        pedestal: p.pedestal || 'pedestal_classic',
+        teamId
+      };
+    })
   };
 }

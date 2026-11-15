@@ -9,9 +9,12 @@
     animateTeamClashEntrance,
   } from "../../ui/anim/lobby.js";
 
+  let state = $state({});
+  lobbyStore.subscribe(val => { state = val || {}; });
+
   let prevTeamMode = false;
   $effect(() => {
-    const isTeam = $lobbyStore?.isTeamMode;
+    const isTeam = state.isTeamMode;
     if (isTeam && !prevTeamMode) {
       setTimeout(() => {
         animateTeamClashEntrance();
@@ -21,10 +24,10 @@
   });
 
   const redPlayers = $derived(
-    ($lobbyStore?.players || []).filter((p) => p.teamId === 0),
+    (state.players || []).filter((p) => p.teamId === 0),
   );
   const bluePlayers = $derived(
-    ($lobbyStore?.players || []).filter((p) => p.teamId === 1),
+    (state.players || []).filter((p) => p.teamId === 1),
   );
 
   function selectPlayer(idx) {
@@ -64,9 +67,10 @@
 
 {#snippet playerCard(p)}
   {@const idx = p.idx}
-  {@const isSelected = idx === $lobbyStore.selectedPlayerIdx}
-  {@const isTeam = $lobbyStore.isTeamMode}
+  {@const isSelected = idx === state.selectedPlayerIdx}
+  {@const isTeam = Boolean(state.isTeamMode)}
   {@const isRed = p.teamId === 0}
+  {@const effectiveColor = isTeam ? (isRed ? '#ef4444' : '#3b82f6') : (p.colorHex || '#10b981')}
   <div
     role="button"
     tabindex="0"
@@ -90,15 +94,15 @@
       <div class="relative flex-shrink-0">
         <div
           class="avatar-medallion w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center font-black text-sm shadow-xs transition-transform group-hover:scale-105"
-          style="border-color: {p.colorHex || '#10b981'}; background: radial-gradient(circle at 35% 35%, {p.colorHex || '#10b981'}33 0%, {p.colorHex || '#10b981'}15 100%);"
+          style="border-color: {effectiveColor}; background: radial-gradient(circle at 35% 35%, {effectiveColor}33 0%, {effectiveColor}15 100%);"
         >
           <span class="text-base select-none leading-none drop-shadow-xs">{p.archetypeIcon || '🎩'}</span>
         </div>
         <!-- Candy Color Dot Indicator -->
         <span
           class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-xs"
-          style="background-color: {p.colorHex || '#10b981'};"
-          title="Player Token Color"
+          style="background-color: {effectiveColor};"
+          title={isTeam ? (isRed ? 'Team Red' : 'Team Blue') : 'Player Token Color'}
         ></span>
       </div>
 
@@ -131,7 +135,7 @@
 
     <!-- Right: Action Badges & Role Controls -->
     <div class="flex items-center gap-1.5 flex-shrink-0">
-      {#if $lobbyStore.isTeamMode}
+      {#if state.isTeamMode}
         <button
           type="button"
           onclick={(e) => toggleTeam(idx, e)}
@@ -158,7 +162,7 @@
           {p.isAI ? 'Bot' : 'Player'}
         </button>
 
-        {#if idx > 0 && ($lobbyStore.playerCount || 4) > 2}
+        {#if idx > 0 && (state.playerCount || 4) > 2}
           <button
             type="button"
             onclick={(e) => removeSlot(idx, e)}
@@ -173,9 +177,9 @@
   </div>
 {/snippet}
 
-{#if !$lobbyStore.isTeamMode}
+{#if !state.isTeamMode}
   <div class="player-cards-grid flex flex-col gap-2 w-full">
-    {#each $lobbyStore?.players || [] as p (p.idx)}
+    {#each state.players || [] as p (p.idx)}
       {@render playerCard(p)}
     {/each}
   </div>

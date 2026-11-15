@@ -8,7 +8,7 @@
 
 import * as THREE from 'three';
 import { PLAYER_THEMES } from '../../game/data.js';
-import { matchSettings } from '../../game/state.js';
+import { matchSettings, gameState } from '../../game/state.js';
 import { currentBulbMode, getSoftBloomTexture } from '../core/lighting.js';
 
 // Reusable standard geometries
@@ -229,11 +229,23 @@ function buildEyewear(eyesGroup, effectiveHat, idx, darkMat, glassMat, goldMat, 
  */
 export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatStyle = null, customPedestal = null, customCharColor = null) {
   const customP = matchSettings?.customPlayers?.[idx] || null;
+  const p = gameState?.players?.[idx] || null;
   const theme = PLAYER_THEMES[idx % PLAYER_THEMES.length];
-  const charColor = (customCharColor !== null && customCharColor !== undefined)
+  const isTeam = Boolean(matchSettings?.teamMode);
+  const teamId = (p?.teamId !== undefined) ? p.teamId : ((customP?.teamId !== undefined) ? customP.teamId : (idx % 2));
+  const teamCharColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+
+  let charColor = (customCharColor !== null && customCharColor !== undefined)
     ? customCharColor
     : (customP?.charColor ?? theme.charColor);
-  const hatColor = customP?.hatColor ?? theme.hatColor;
+
+  if (isTeam) {
+    charColor = teamCharColor;
+  }
+
+  const hatColor = isTeam
+    ? (teamId === 0 ? 0xb91c1c : 0x1d4ed8)
+    : (customP?.hatColor ?? theme.hatColor);
 
   const root = new THREE.Group();
   const skinTones = [0xf1c27d, 0xdfa166, 0xb87b40, 0xf5d6b4];
@@ -255,7 +267,16 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatSty
     pedBase.castShadow = true;
     root.add(pedBase);
 
-    const pedRing = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.43, 0.04, 24), goldMat);
+    const pedRingMat = isTeam
+      ? new THREE.MeshStandardMaterial({
+          color: teamCharColor,
+          emissive: teamId === 0 ? 0x7f1d1d : 0x1e3a8a,
+          emissiveIntensity: 0.35,
+          roughness: 0.25,
+          metalness: 0.75
+        })
+      : goldMat;
+    const pedRing = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.43, 0.04, 24), pedRingMat);
     pedRing.position.y = 0.13;
     root.add(pedRing);
   }
@@ -383,6 +404,7 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatSty
     avatarLight,
     groundAura,
     suitMat,
+    charColor,
     themeColor: theme.charColor,
     playerIdx: idx
   };

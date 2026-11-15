@@ -51,7 +51,7 @@ export function setPlayerPortraitMood(playerIdx, mood, durationMs = 3500) {
  * Initializes and starts the portrait RAF render loop.
  */
 export function initPortraitRenderLoop() {
-  if (animationFrameId) return;
+  if (animationFrameId || typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') return;
 
   function loop(timestamp) {
     animationFrameId = requestAnimationFrame(loop);
@@ -107,8 +107,11 @@ export function drawPortraitFrame(canvas, playerIdx, time) {
 
   const theme = PLAYER_THEMES[playerIdx] || { colorHex: '#3b82f6', charColor: 0x3b82f6 };
   const custom = (matchSettings.customPlayers && matchSettings.customPlayers[playerIdx]) || {};
+  const isTeam = Boolean(matchSettings.teamMode);
+  const teamId = p ? (p.teamId !== undefined ? p.teamId : (playerIdx % 2)) : (playerIdx % 2);
+  const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
   const hatStyle = custom.hatStyle !== undefined ? custom.hatStyle : (theme.hatStyle || 0);
-  const colorHex = custom.colorHex || theme.colorHex || '#3b82f6';
+  const colorHex = isTeam ? teamHex : (custom.colorHex || theme.colorHex || '#3b82f6');
 
   let mood = getPlayerMood(playerIdx);
   if (p.bankrupt) mood = 'bankrupt';

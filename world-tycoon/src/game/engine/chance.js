@@ -40,6 +40,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
     playSFX('win');
     showSpeechBubble(`🎉 +${fmtMoney(prize.amount)}!`, 2200);
     spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(prize.amount)}`, true);
+    renderCornerHUDs();
   } else if (prize.type === 'tax') {
     if (p.cash >= prize.amount) {
       p.cash -= prize.amount;
@@ -48,6 +49,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(prize.amount)} Tax`, false);
       triggerTokenHurtAnimation(playerIdx);
       playSFX('hurt');
+      renderCornerHUDs();
     } else {
       const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
       if (owned.length > 0) {
@@ -202,6 +204,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(salary)} START`, true);
       animateGoSalaryStream(playerIdx, fmtMoney(salary));
       logEvent(`💰 <strong>${p.name}</strong> landed on <strong>START</strong> and collected <strong>${fmtMoney(salary)}</strong> salary.`);
+      renderCornerHUDs();
     } else {
       showSpeechBubble(`✈️ Flying to ${BOARD_TILES[dest]?.name || 'Destination'}!`, 2500);
       await flyPlayerDirectFlightAnimation(playerIdx, fromPos, dest);

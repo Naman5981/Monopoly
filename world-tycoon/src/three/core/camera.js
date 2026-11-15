@@ -81,19 +81,21 @@ export function resetCameraView() {
 }
 
 /**
- * Rotates the board view 45 degrees counter-clockwise (smoothly switching between edge-on and diamond).
+ * Rotates the board view 90 degrees counter-clockwise to the adjacent board quadrant.
+ * @param {number} [angle=Math.PI / 2]
  */
-export function rotateBoardLeft() {
-  cameraState.targetCameraAzimuth -= Math.PI / 4;
+export function rotateBoardLeft(angle = Math.PI / 2) {
+  cameraState.targetCameraAzimuth -= angle;
   const snap = Math.PI / 4;
   cameraState.targetCameraAzimuth = Math.round(cameraState.targetCameraAzimuth / snap) * snap;
 }
 
 /**
- * Rotates the board view 45 degrees clockwise (smoothly switching between edge-on and diamond).
+ * Rotates the board view 90 degrees clockwise to the adjacent board quadrant.
+ * @param {number} [angle=Math.PI / 2]
  */
-export function rotateBoardRight() {
-  cameraState.targetCameraAzimuth += Math.PI / 4;
+export function rotateBoardRight(angle = Math.PI / 2) {
+  cameraState.targetCameraAzimuth += angle;
   const snap = Math.PI / 4;
   cameraState.targetCameraAzimuth = Math.round(cameraState.targetCameraAzimuth / snap) * snap;
 }

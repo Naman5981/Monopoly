@@ -1,8 +1,11 @@
 <script>
   import { hudStore } from '../stores/hudStore.js';
+  import { modalStore } from '../stores/modalStore.js';
 
   let state = $state({});
+  let isLeaderboardOpen = $state(false);
   hudStore.subscribe(val => { state = val; });
+  modalStore.subscribe(val => { isLeaderboardOpen = Boolean(val?.leaderboard?.visible); });
 
   function onLobby() { window.handleLobbyButtonClick?.(); }
   function onCities() { window.openPortfolioModal?.(); }
@@ -13,9 +16,18 @@
   function onLight() { window.cycleLightingMode?.(); }
   function onToggleSound() { window.toggleSound?.(); }
   function onVolumeInput(e) { window.setGameVolume?.(e.target.value / 100); }
-  function onRotateLeft() { window.rotateBoardLeft?.(); }
-  function onResetCam() { window.resetCameraView?.(); }
-  function onRotateRight() { window.rotateBoardRight?.(); }
+  function onRotateLeft() {
+    window.rotateBoardLeft?.();
+    window.playSFX?.('click');
+  }
+  function onResetCam() {
+    window.resetCameraView?.();
+    window.playSFX?.('click');
+  }
+  function onRotateRight() {
+    window.rotateBoardRight?.();
+    window.playSFX?.('click');
+  }
   function onRules() { window.openRulesModal?.(); }
   function onEventLog() { window.toggleEventLogDrawer?.(); }
   function onDebug() { window.toggleDebugPanel?.(); }
@@ -64,9 +76,16 @@
 
     <span class="hud-capsule-divider"></span>
 
-    <button onclick={onLeaderboard} class="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-amber-600 transition cursor-pointer" title="View Tycoon Leaderboard" aria-label="View Net Worth Leaderboard">
-      <i class="fa-solid fa-trophy text-amber-500"></i>
-      <span class="tabular-nums font-black text-slate-800">{state.playerCount || '2/2'}</span>
+    <button
+      id="btn-hud-leaderboard"
+      onclick={onLeaderboard}
+      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer active:scale-90 {isLeaderboardOpen ? 'bg-amber-400 text-slate-950 shadow-xs ring-2 ring-amber-300' : 'text-slate-700 hover:text-amber-600 hover:bg-slate-100/80 active:bg-amber-50'}"
+      title="View Tycoon Leaderboard"
+      aria-label="View Net Worth Leaderboard"
+      aria-expanded={isLeaderboardOpen}
+    >
+      <i class="fa-solid fa-trophy {isLeaderboardOpen ? 'text-slate-950 rotate-[-8deg] scale-110' : 'text-amber-500'} transition-transform duration-200"></i>
+      <span class="tabular-nums font-black {isLeaderboardOpen ? 'text-slate-950' : 'text-slate-800'}">{state.playerCount || '2/2'}</span>
     </button>
   </div>
 
@@ -96,16 +115,40 @@
       </div>
     </div>
 
-    <!-- Camera Controls -->
-    <div class="hud-pill !px-1.5 !gap-0.5 hidden lg:flex items-center" title="Camera Rotation Controls">
-      <button id="btn-hud-camera-rotate-left" onclick={onRotateLeft} class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Rotate Board 45° Left" aria-label="Rotate Board Left">
-        <i class="fa-solid fa-rotate-left text-xs"></i>
+    <!-- Camera Controls: Turn Left, Reset Board, Turn Right -->
+    <div id="hud-camera-controls-pill" class="hud-pill !px-1.5 !gap-1 flex items-center flex-shrink-0 shadow-xs border border-slate-200/90" title="Board View Controls">
+      <button
+        id="btn-hud-camera-rotate-left"
+        onclick={onRotateLeft}
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all active:scale-90 cursor-pointer"
+        title="Turn Board Left (90°)"
+        aria-label="Turn Board Left"
+      >
+        <i class="fa-solid fa-rotate-left text-xs sm:text-sm"></i>
       </button>
-      <button id="btn-hud-camera-reset" onclick={onResetCam} class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Reset Isometric Camera" aria-label="Reset Camera View">
-        <i class="fa-solid fa-compress text-xs"></i>
+
+      <span class="w-px h-3.5 bg-slate-200/90"></span>
+
+      <button
+        id="btn-hud-camera-reset"
+        onclick={onResetCam}
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all active:scale-90 cursor-pointer"
+        title="Reset Board View (Home)"
+        aria-label="Reset Board View"
+      >
+        <i class="fa-solid fa-compass text-xs sm:text-sm text-indigo-600"></i>
       </button>
-      <button id="btn-hud-camera-rotate-right" onclick={onRotateRight} class="p-1 px-1.5 text-slate-600 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition" title="Rotate Board 45° Right" aria-label="Rotate Board Right">
-        <i class="fa-solid fa-rotate-right text-xs"></i>
+
+      <span class="w-px h-3.5 bg-slate-200/90"></span>
+
+      <button
+        id="btn-hud-camera-rotate-right"
+        onclick={onRotateRight}
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all active:scale-90 cursor-pointer"
+        title="Turn Board Right (90°)"
+        aria-label="Turn Board Right"
+      >
+        <i class="fa-solid fa-rotate-right text-xs sm:text-sm"></i>
       </button>
     </div>
 

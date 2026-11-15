@@ -127,7 +127,7 @@
           </div>
         </div>
         <div class="text-[11px] font-bold text-slate-400 mb-1.5">Select cities to give:</div>
-        <div id="trade-offer-props" class="space-y-1.5 max-h-52 overflow-y-auto flex-1 pr-1 overscroll-contain">
+        <div id="trade-offer-props" class="space-y-1.5 max-h-56 overflow-y-auto flex-1 pr-1.5 pb-6 overscroll-contain">
           {#each state.myProperties || [] as prop}
             <label class="flex items-center justify-between p-2 rounded-xl border border-slate-700/60 bg-slate-800/70 hover:bg-slate-700/80 cursor-pointer transition select-none group {selectedOfferIds.has(prop.id) ? '!border-sky-400/80 !bg-sky-950/40' : ''}">
               <div class="flex items-center gap-2 min-w-0">
@@ -161,7 +161,7 @@
           </div>
         </div>
         <div class="text-[11px] font-bold text-slate-400 mb-1.5">Select partner cities to receive:</div>
-        <div id="trade-req-props" class="space-y-1.5 max-h-52 overflow-y-auto flex-1 pr-1 overscroll-contain">
+        <div id="trade-req-props" class="space-y-1.5 max-h-56 overflow-y-auto flex-1 pr-1.5 pb-6 overscroll-contain">
           {#each state.partnerProperties || [] as prop}
             <label class="flex items-center justify-between p-2 rounded-xl border border-slate-700/60 bg-slate-800/70 hover:bg-slate-700/80 cursor-pointer transition select-none group {selectedReqIds.has(prop.id) ? '!border-amber-400/80 !bg-amber-950/40' : ''}">
               <div class="flex items-center gap-2 min-w-0">

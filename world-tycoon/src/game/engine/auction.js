@@ -236,7 +236,8 @@ export function startAuctionCountdownTimer() {
 
     gameState.auction.secondsLeft -= (TICK_MS / 1000);
 
-    if (gameState.auction.secondsLeft <= 0) {
+    const concludeThreshold = (networkState.isMultiplayer && networkState.isHost) ? -0.8 : 0;
+    if (gameState.auction.secondsLeft <= concludeThreshold) {
       gameState.auction.secondsLeft = 0;
       clearAuctionTimers();
       syncAuctionModalUI();

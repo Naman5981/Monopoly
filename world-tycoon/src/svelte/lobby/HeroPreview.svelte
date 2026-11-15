@@ -97,26 +97,34 @@
         </span>
       </button>
 
-      <!-- Color Swatches Bar -->
-      <div id="setup-color-swatches-container" class="flex items-center gap-1 px-1">
-        <span class="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 tracking-wider mr-0.5">COLOR</span>
-        <div id="setup-color-swatches" class="flex items-center gap-1 sm:gap-1.5">
-          {#each CANDY_PALETTE as candy}
-            {@const isSelected = (activePlayer.colorHex || '').toLowerCase() === candy.hex.toLowerCase()}
-            <button
-              onclick={() => selectColor(candy.hex)}
-              class="w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full border-2 transition-all cursor-pointer flex items-center justify-center {isSelected ? 'scale-115 border-white ring-2 ring-sky-400 shadow-sm' : 'border-white/80 hover:scale-105'}"
-              style="background-color: {candy.hex};"
-              title="{candy.name}"
-              aria-label="Select {candy.name}"
-            >
-              {#if isSelected}
-                <i class="fa-solid fa-check text-[9px] text-white drop-shadow"></i>
-              {/if}
-            </button>
-          {/each}
+      <!-- Color Swatches Bar: Hidden in Team Mode (strictly Red & Blue) -->
+      {#if !state.isTeamMode}
+        <div id="setup-color-swatches-container" class="flex items-center gap-1 px-1">
+          <span class="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 tracking-wider mr-0.5">COLOR</span>
+          <div id="setup-color-swatches" class="flex items-center gap-1 sm:gap-1.5">
+            {#each CANDY_PALETTE as candy}
+              {@const isSelected = (activePlayer.colorHex || '').toLowerCase() === candy.hex.toLowerCase()}
+              <button
+                onclick={() => selectColor(candy.hex)}
+                class="w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full border-2 transition-all cursor-pointer flex items-center justify-center {isSelected ? 'scale-115 border-white ring-2 ring-sky-400 shadow-sm' : 'border-white/80 hover:scale-105'}"
+                style="background-color: {candy.hex};"
+                title="{candy.name}"
+                aria-label="Select {candy.name}"
+              >
+                {#if isSelected}
+                  <i class="fa-solid fa-check text-[9px] text-white drop-shadow"></i>
+                {/if}
+              </button>
+            {/each}
+          </div>
         </div>
-      </div>
+      {:else}
+        <!-- Team Mode: Locked Team Badge -->
+        <div class="flex items-center gap-1.5 px-3 py-1 rounded-full {activePlayer.teamId === 0 ? 'bg-rose-50 border border-rose-300 text-rose-800' : 'bg-sky-50 border border-sky-300 text-sky-800'} shadow-2xs">
+          <span class="w-2.5 h-2.5 rounded-full {activePlayer.teamId === 0 ? 'bg-rose-500' : 'bg-sky-500'} shadow-2xs animate-pulse"></span>
+          <span class="text-[10px] font-black tracking-wider uppercase">{activePlayer.teamId === 0 ? '🔴 TEAM RED' : '🔵 TEAM BLUE'}</span>
+        </div>
+      {/if}
     </div>
 
     {#if state.currentView === 'title'}

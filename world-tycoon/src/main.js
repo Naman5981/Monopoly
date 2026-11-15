@@ -691,11 +691,11 @@ function initApp() {
       }
     }
 
-    mountLobbyNetworkStatus('lobby-room-status-mount', 'room');
-    mountLobbyNetworkStatus('lobby-network-badge-mount', 'badge');
-    mountLobbyNetworkStatus('lobby-network-status-mount', 'status');
-    mountLobbyNetworkStatus('lobby-portal-status-mount', 'portal');
-    mountLobbyNetworkStatus('lobby-play-button-mount', 'play');
+    try { mountLobbyNetworkStatus('lobby-room-status-mount', 'room'); } catch (e) { console.warn('[Svelte] mount room status failed:', e); }
+    try { mountLobbyNetworkStatus('lobby-network-badge-mount', 'badge'); } catch (e) { console.warn('[Svelte] mount badge status failed:', e); }
+    try { mountLobbyNetworkStatus('lobby-network-status-mount', 'status'); } catch (e) { console.warn('[Svelte] mount status failed:', e); }
+    try { mountLobbyNetworkStatus('lobby-portal-status-mount', 'portal'); } catch (e) { console.warn('[Svelte] mount portal status failed:', e); }
+    try { mountLobbyNetworkStatus('lobby-play-button-mount', 'play'); } catch (e) { console.warn('[Svelte] mount play button failed:', e); }
 
     const settingsMount = document.getElementById('lobby-settings-mount');
     if (settingsMount) {
@@ -799,8 +799,12 @@ function initApp() {
 function mountLobbyNetworkStatus(mountId, variant) {
   const mountTarget = document.getElementById(mountId);
   if (!mountTarget) return;
-  mountTarget.innerHTML = '';
-  mount(LobbyNetworkStatus, { target: mountTarget, props: { variant } });
+  try {
+    mountTarget.innerHTML = '';
+    mount(LobbyNetworkStatus, { target: mountTarget, props: { variant } });
+  } catch (err) {
+    console.warn(`[Svelte] mountLobbyNetworkStatus(${mountId}) error:`, err);
+  }
 }
 
 if (document.readyState === 'loading') {

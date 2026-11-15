@@ -9,7 +9,7 @@ import { fmtMoney } from '../../game/utils.js';
 import { playSFX, stopAdaptiveMusic } from '../../game/audio.js';
 import { ownsFullColorGroup, checkNearMonopolyGroup, calculatePlayerNetWorth } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastReturnToLobby, broadcastStartOnlineMatch } from '../../network/p2p.js';
-import { setMonopolyTileHighlights } from '../../three/scene.js';
+import { setMonopolyTileHighlights, setMonopolyThreatBeacon, resetCameraView } from '../../three/scene.js';
 import { fireConfettiBurst, spawnAnimatedReaction, startVictoryCelebration, stopVictoryCelebration } from '../../three/effects.js';
 import { logEvent } from '../hud.js';
 import { buildNetWorthChartData } from './leaderboard.js';
@@ -17,7 +17,7 @@ import { engineCallbacks, closeAllGameModals, isLobbyScreenActive } from './comm
 import { ARCHETYPES } from '../setup.js';
 import { awardMatchPoints } from '../wardrobe.js';
 import { animateModalPunchIn, animateMonopolyRibbonUnfurl } from '../anim.js';
-import { playVictoryCinematicOrbit, playIntroCinematicFlyIn, playMonopolyThreatCinematic } from '../../three/theatre.js';
+import { playVictoryCinematicOrbit, playIntroCinematicFlyIn, playMonopolyThreatCinematic, cancelActiveCutscene } from '../../three/theatre.js';
 import { getTileWorldPosition } from '../../three/board/coords.js';
 import { context } from '../../three/core/context.js';
 import { setPlayerPortraitMood } from '../portraitRenderer.js';
@@ -256,6 +256,12 @@ export function closeVictoryAndPlayAgain() {
 ───────────────────────────────────────────────────────────────────────────── */
 export function openMonopolyCelebrationModal(playerIdx, groupKey) {
   if (isLobbyScreenActive()) return;
+  if (typeof cancelActiveCutscene === 'function') {
+    cancelActiveCutscene(false);
+  }
+  if (typeof setMonopolyThreatBeacon === 'function') {
+    setMonopolyThreatBeacon(null, false);
+  }
   const p = (gameState.players && gameState.players[playerIdx]) || { name: 'Player 1', colorHex: '#ef4444' };
   const group = GROUP_META[groupKey];
   if (!group) return;
@@ -302,6 +308,17 @@ export function closeMonopolyModal() {
   clearTimeout(monopolyCloseTimer);
   monopolyCloseTimer = null;
   updateModalSlice('monopolyCelebration', { visible: false });
+  if (typeof setMonopolyTileHighlights === 'function') {
+    setMonopolyTileHighlights([]);
+  }
+  if (typeof setMonopolyThreatBeacon === 'function') {
+    setMonopolyThreatBeacon(null, false);
+  }
+  if (typeof cancelActiveCutscene === 'function') {
+    cancelActiveCutscene(true);
+  } else if (typeof resetCameraView === 'function') {
+    resetCameraView();
+  }
 }
 
 export async function triggerMonopolyThreatAlert(playerIdx, groupKey, missingTileId) {

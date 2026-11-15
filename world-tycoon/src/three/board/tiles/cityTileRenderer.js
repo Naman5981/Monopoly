@@ -4,7 +4,7 @@
  */
 
 import { GROUP_META, PLAYER_THEMES } from '../../../game/data.js';
-import { gameState } from '../../../game/state.js';
+import { gameState, matchSettings } from '../../../game/state.js';
 import { fmtMoney } from '../../../game/utils.js';
 import { calculateTileRent } from '../../../game/rules.js';
 import { drawCadastralGrid, drawWhiteNeonText, drawCrispNeonPrice } from './canvasUtils.js';
@@ -34,11 +34,14 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
   if (ownerIdx === null || ownerIdx === undefined) return;
   const player = gameState?.players?.[ownerIdx];
   const theme = PLAYER_THEMES[ownerIdx];
-  const colorHex = player?.colorHex || theme?.colorHex || '#3b82f6';
+  const isTeam = Boolean(matchSettings?.teamMode);
+  const teamId = player ? (player.teamId !== undefined ? player.teamId : (ownerIdx % 2)) : (ownerIdx % 2);
+  const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+  const colorHex = isTeam ? teamHex : (player?.colorHex || theme?.colorHex || '#3b82f6');
   const rawName = player?.name || theme?.name || `PLAYER ${ownerIdx + 1}`;
   const ownerName = rawName.toUpperCase();
   const icon = player?.icon || theme?.icon || THEME_ICONS[ownerIdx % THEME_ICONS.length] || '👑';
-  const slotBadge = `P${ownerIdx + 1}`;
+  const slotBadge = isTeam ? (teamId === 0 ? 'RED' : 'BLUE') : `P${ownerIdx + 1}`;
 
   const rx = 36;
   const ry = 154;

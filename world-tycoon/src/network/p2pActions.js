@@ -185,7 +185,27 @@ export function executeIncomingNetworkAction(msg) {
         if (msg.soldTileIds && Array.isArray(msg.soldTileIds) && msg.soldTileIds.length > 0) {
           const soldTiles = msg.soldTileIds.map(id => BOARD_TILES[id]).filter(Boolean);
           startSoldPropertiesAuctionSequence(soldTiles, msg.debtorIdx, Boolean(msg.isDoubles));
+        } else if (window.concludeActionPhase) {
+          window.concludeActionPhase(Boolean(msg.isDoubles));
         }
+      }
+      break;
+    }
+
+    case 'ACTION_TEAM_BAILOUT': {
+      const partner = gameState.players ? gameState.players[msg.partnerIdx] : null;
+      const player = gameState.players ? gameState.players[msg.playerIdx] : null;
+      if (partner && player && typeof msg.deficit === 'number') {
+        partner.cash -= msg.deficit;
+        player.cash += msg.deficit;
+        playSFX('cash');
+        spawnFloatingCashOnHUD(msg.partnerIdx, `-${fmtMoney(msg.deficit)} Bailout`, false);
+        spawnFloatingCashOnHUD(msg.playerIdx, `+${fmtMoney(msg.deficit)} Bailed out!`, true);
+        logEvent(`🤝 <strong>TEAM BAILOUT!</strong> <strong>${partner.name}</strong> transferred <strong>${fmtMoney(msg.deficit)}</strong> to rescue teammate <strong>${player.name}</strong> from rent bankruptcy!`);
+        renderCornerHUDs();
+      }
+      if (networkState.isHost) {
+        broadcastFullGameState();
       }
       break;
     }
@@ -237,6 +257,8 @@ export function executeIncomingNetworkAction(msg) {
         if (msg.soldTileIds && Array.isArray(msg.soldTileIds) && msg.soldTileIds.length > 0) {
           const soldTiles = msg.soldTileIds.map(id => BOARD_TILES[id]).filter(Boolean);
           startSoldPropertiesAuctionSequence(soldTiles, msg.bankruptIdx, Boolean(msg.isDoubles));
+        } else if (window.concludeActionPhase) {
+          window.concludeActionPhase(Boolean(msg.isDoubles));
         }
       }
       break;

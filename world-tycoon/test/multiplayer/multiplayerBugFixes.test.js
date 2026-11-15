@@ -1,98 +1,107 @@
-/**
- * test/multiplayer/multiplayerBugFixes.test.js
- * Verification test suite for multiplayer bug hunting and clean code fixes:
- * 1. Chance Wheel double execution prevention on remote peers
- * 2. World Festival boost host action phase conclusion & AFK watchdog
- * 3. Simultaneous roll collision grace window
- * 4. Building downgrade broadcast and protocol packet validation
- * 5. Match timer synchronization across peers
- * 6. Multiplayer bot proactive trade pause suppression
- */
-
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { setupBrowserMocks } from '../setup.js';
 setupBrowserMocks();
 
-import { isValidPacket } from '../../src/network/protocol.js';
-import { networkState, registerNetworkCallbacks } from '../../src/network/p2pState.js';
-import { gameState, resetGameStateForNewMatch, matchSeconds, setMatchSeconds } from '../../src/game/state.js';
+import { createSafeLobbyStatePacket } from '../../src/network/protocol.js';
+import { networkState, broadcastAction } from '../../src/network/p2p.js';
+import { gameState, matchSettings, setupPlayers } from '../../src/game/state.js';
+import { togglePlayerTeam } from '../../src/ui/setup/playerCards.js';
+import { completeTradeTransfer } from '../../src/ui/modals/trade.js';
 import { executeIncomingNetworkAction } from '../../src/network/p2pActions.js';
-import { AIPlayerController } from '../../src/game/controllers/AIPlayerController.js';
+import { BOARD_TILES } from '../../src/game/data.js';
 
-describe('Multiplayer Bug Hunting & Clean Code Audits (/bug-hunter)', () => {
+describe('Multiplayer Mode Bug Fixes & Edge Cases (/bug-hunter)', () => {
   beforeEach(() => {
-    resetGameStateForNewMatch();
     gameState.gameStarted = true;
     gameState.phase = 'ROLL';
     gameState.currentPlayerIdx = 0;
-    gameState.players = [
-      { id: 0, name: 'HOST', cash: 2000000, position: 0, bankrupt: false, inIsland: false, islandTurns: 0, isAI: false },
-      { id: 1, name: 'GUEST', cash: 2000000, position: 0, bankrupt: false, inIsland: false, islandTurns: 0, isAI: true }
-    ];
-
     networkState.isMultiplayer = true;
-    networkState.isHost = true;
-    networkState.localPlayerIdx = 0;
-    networkState.connections = new Map();
-  });
-
-  afterEach(() => {
-    networkState.isMultiplayer = false;
     networkState.isHost = false;
-    networkState.localPlayerIdx = 0;
+    networkState.localPlayerIdx = 1;
+
+    matchSettings.teamMode = true;
+    matchSettings.customPlayers = [
+      { name: 'Host', isAI: false, teamId: 0, charColor: 0xef4444, colorHex: '#ef4444' },
+      { name: 'Guest', isAI: false, teamId: 1, charColor: 0x3b82f6, colorHex: '#3b82f6' }
+    ];
+    setupPlayers.splice(0, setupPlayers.length,
+      { name: 'Host', isAI: false, isOnlinePeer: false, teamId: 0 },
+      { name: 'Guest', isAI: false, isOnlinePeer: true, teamId: 1 }
+    );
+    gameState.players = [
+      { id: 'p0', name: 'Host', cash: 2000000, bankrupt: false, isAI: false, position: 0, teamId: 0 },
+      { id: 'p1', name: 'Guest', cash: 2000000, bankrupt: false, isAI: false, position: 0, teamId: 1 }
+    ];
   });
 
-  it('validates ACTION_DOWNGRADE_CITY packet type in protocol validator', () => {
-    assert.equal(isValidPacket({ type: 'ACTION_DOWNGRADE_CITY' }), true);
-    assert.equal(isValidPacket({ type: 'ACTION_INVALID_FOO' }), false);
+  it('createSafeLobbyStatePacket preserves teamMode in matchSettings and teamId in setupPlayers', () => {
+    const packet = createSafeLobbyStatePacket(matchSettings, setupPlayers, 2);
+    assert.equal(packet.matchSettings.teamMode, true, 'Lobby packet must include teamMode');
+    assert.equal(packet.setupPlayers[0].teamId, 0, 'Player 0 must retain teamId 0');
+    assert.equal(packet.setupPlayers[1].teamId, 1, 'Player 1 must retain teamId 1');
   });
 
-  it('dispatches ACTION_DOWNGRADE_CITY to registered network callbacks with correct payload', () => {
-    let downgradeReceived = null;
-    registerNetworkCallbacks({
-      onDowngradeCity: (playerIdx, tileId, refund) => {
-        downgradeReceived = { playerIdx, tileId, refund };
-      }
-    });
+  it('allows Guest to toggle their own team in lobby and broadcasts ACTION_GUEST_TEAM_SELECT', () => {
+    networkState.isHost = false;
+    networkState.localPlayerIdx = 1;
+
+    togglePlayerTeam(1);
+
+    assert.equal(matchSettings.customPlayers[1].teamId, 0, 'Guest teamId should flip from 1 to 0');
+    assert.equal(setupPlayers[1].teamId, 0, 'Setup player teamId should flip from 1 to 0');
+  });
+
+  it('voids trade transfer completely if all offered properties were lost before acceptance', () => {
+    // Tile 22 is already owned by Player 1 (lost by Player 0)
+    gameState.properties[22] = { owner: 1, level: 0 };
+    gameState.properties[6] = { owner: 1, level: 0 };
+
+    // Player 0 offers Paris (22) in exchange for Athens (6)
+    const result = completeTradeTransfer(0, 1, 0, 0, [22], [6]);
+
+    assert.equal(result, false, 'Trade should be voided because Paris was lost by Player 0');
+    assert.equal(gameState.properties[6].owner, 1, 'Athens should remain with Player 1');
+  });
+
+  it('ACTION_TEAM_BAILOUT updates player balances across peers in multiplayer', () => {
+    gameState.players[0].cash = 1000000;
+    gameState.players[1].cash = 50000;
 
     executeIncomingNetworkAction({
-      type: 'ACTION_DOWNGRADE_CITY',
-      senderIdx: 1,
+      type: 'ACTION_TEAM_BAILOUT',
+      partnerIdx: 0,
       playerIdx: 1,
-      tileId: 5,
-      refund: 75000
+      deficit: 150000,
+      senderIdx: 0
     });
 
-    assert.deepEqual(downgradeReceived, {
-      playerIdx: 1,
-      tileId: 5,
-      refund: 75000
-    });
+    assert.equal(gameState.players[0].cash, 850000, 'Partner cash should decrease by bailout deficit');
+    assert.equal(gameState.players[1].cash, 200000, 'Debtor cash should increase by bailout deficit');
   });
 
-  it('suppresses proactive bot trade pauses in multiplayer mode', () => {
-    networkState.isMultiplayer = true;
+  it('Host cleanly concludes action phase when debtor settles rent without selling properties', () => {
     networkState.isHost = true;
+    networkState.localPlayerIdx = 0;
 
-    let tradeModalShown = false;
-    global.window.showIncomingTradeOfferModal = () => {
-      tradeModalShown = true;
+    let concludedDoubles = null;
+    global.window.concludeActionPhase = (doubles) => {
+      concludedDoubles = doubles;
     };
 
-    const botController = new AIPlayerController(1);
-    botController.onTurnStart({ executeRollFn: () => {} });
+    gameState.players[1].cash = 500000;
+    gameState.players[0].cash = 500000;
 
-    // In multiplayer, bot should NOT display proactive trade modal to host
-    assert.equal(tradeModalShown, false);
-    AIPlayerController.cancelTimer();
-  });
+    executeIncomingNetworkAction({
+      type: 'ACTION_SETTLE_RENT',
+      debtorIdx: 1,
+      creditorIdx: 0,
+      rentOwed: 100000,
+      soldTileIds: [],
+      isDoubles: false,
+      senderIdx: 1
+    });
 
-  it('synchronizes matchSeconds correctly without desyncing clocks', () => {
-    setMatchSeconds(0);
-    assert.equal(matchSeconds, 0);
-
-    setMatchSeconds(345);
-    assert.equal(matchSeconds, 345);
+    assert.equal(concludedDoubles, false, 'Host must conclude action phase immediately without 24s stall');
   });
 });

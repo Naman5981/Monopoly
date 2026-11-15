@@ -22,7 +22,11 @@ import {
   checkVictoryConditions,
   validateTeamModeBalance
 } from '../src/game/rules.js';
-import { BOARD_TILES, GROUP_META } from '../src/game/data.js';
+import { BOARD_TILES, GROUP_META, PLAYER_THEMES } from '../src/game/data.js';
+import { renderCornerHUDs } from '../src/ui/hud/cards.js';
+import { hudStore } from '../src/svelte/stores/hudStore.js';
+import { canCurrentPlayerChangeColor, setLocalPlayerColor } from '../src/ui/setup/playerCustomization.js';
+import { createDetailed3DAvatarMesh } from '../src/three/assets/avatars.js';
 
 describe('Team Mode Engine & Rules', () => {
   beforeEach(() => {
@@ -181,5 +185,73 @@ describe('Team Mode Engine & Rules', () => {
       { teamId: 1 }, { teamId: 1 }, { teamId: 1 }
     ];
     assert.equal(validateTeamModeBalance(6, valid6p).valid, true);
+  });
+
+  it('enforces strict Red (#ef4444) and Blue (#3b82f6) team colors on all players', () => {
+    // Both Team 0 players (P1 and P3) must have Team Red (#ef4444, 0xef4444)
+    assert.equal(gameState.players[0].colorHex, '#ef4444');
+    assert.equal(gameState.players[0].charColor, 0xef4444);
+    assert.equal(gameState.players[2].colorHex, '#ef4444');
+    assert.equal(gameState.players[2].charColor, 0xef4444);
+
+    // Both Team 1 players (P2 and P4) must have Team Blue (#3b82f6, 0x3b82f6)
+    assert.equal(gameState.players[1].colorHex, '#3b82f6');
+    assert.equal(gameState.players[1].charColor, 0x3b82f6);
+    assert.equal(gameState.players[3].colorHex, '#3b82f6');
+    assert.equal(gameState.players[3].charColor, 0x3b82f6);
+
+    // PLAYER_THEMES must also be synchronized so buildings/flags on tiles render with team color
+    assert.equal(PLAYER_THEMES[0].colorHex, '#ef4444');
+    assert.equal(PLAYER_THEMES[2].colorHex, '#ef4444');
+    assert.equal(PLAYER_THEMES[1].colorHex, '#3b82f6');
+    assert.equal(PLAYER_THEMES[3].colorHex, '#3b82f6');
+  });
+
+  it('assigns uniform team colors to HUD player cards in Team Mode', () => {
+    renderCornerHUDs();
+    let currentHud = null;
+    const unsub = hudStore.subscribe(val => { currentHud = val; });
+    unsub();
+
+    assert.ok(currentHud);
+    assert.equal(currentHud.isTeamMode, true);
+
+    // All left players (Team 0) must display Team Red
+    currentHud.leftPlayers.forEach(p => {
+      assert.equal(p.colorHex, '#ef4444');
+      assert.equal(p.teamId, 0);
+    });
+
+    // All right players (Team 1) must display Team Blue
+    currentHud.rightPlayers.forEach(p => {
+      assert.equal(p.colorHex, '#3b82f6');
+      assert.equal(p.teamId, 1);
+    });
+  });
+
+  it('disables individual color selection in Team Mode', () => {
+    // Color changing must be forbidden when teamMode is active
+    assert.equal(canCurrentPlayerChangeColor(0), false);
+    assert.equal(canCurrentPlayerChangeColor(1), false);
+    assert.equal(setLocalPlayerColor('#22c55e', 0x22c55e), false);
+  });
+
+  it('renders 3D pawns with strictly Red and Blue team suit colors and pedestal rings', () => {
+    const p1Pawn = createDetailed3DAvatarMesh(0, false);
+    const p2Pawn = createDetailed3DAvatarMesh(1, false);
+    const p3Pawn = createDetailed3DAvatarMesh(2, false);
+    const p4Pawn = createDetailed3DAvatarMesh(3, false);
+
+    // P1 (team 0) and P3 (team 0) are Team Red -> 0xef4444
+    assert.equal(p1Pawn.userData.charColor, 0xef4444);
+    assert.equal(p1Pawn.userData.suitMat.color.getHex(), 0xef4444);
+    assert.equal(p3Pawn.userData.charColor, 0xef4444);
+    assert.equal(p3Pawn.userData.suitMat.color.getHex(), 0xef4444);
+
+    // P2 (team 1) and P4 (team 1) are Team Blue -> 0x3b82f6
+    assert.equal(p2Pawn.userData.charColor, 0x3b82f6);
+    assert.equal(p2Pawn.userData.suitMat.color.getHex(), 0x3b82f6);
+    assert.equal(p4Pawn.userData.charColor, 0x3b82f6);
+    assert.equal(p4Pawn.userData.suitMat.color.getHex(), 0x3b82f6);
   });
 });

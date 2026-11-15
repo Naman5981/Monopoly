@@ -88,6 +88,7 @@ export function canCurrentPlayerEditSlot(slotIdx) {
  * @returns {boolean}
  */
 export function canCurrentPlayerChangeColor(slotIdx) {
+  if (matchSettings.teamMode) return false;
   if (slotIdx < 0 || slotIdx >= lobbyPlayerCount) return false;
   const target = matchSettings.customPlayers[slotIdx];
   if (!target || target.isAI) return false;
@@ -135,6 +136,7 @@ export function setPlayerCount(n) {
  * that is not currently taken by any player in the game.
  */
 export function ensureBotsHaveUniqueColors() {
+  if (matchSettings.teamMode) return;
   // 1. Collect all colors taken by HUMAN players
   const usedColors = new Set();
   matchSettings.customPlayers.forEach((p, idx) => {
@@ -336,6 +338,11 @@ export function cycleAvatarNext() {
 }
 
 export function setLocalPlayerColor(hex, charColor) {
+  if (matchSettings.teamMode) {
+    playSFX('flinch');
+    showTurnLockToast('Color is locked to your Team in Team Mode!');
+    return false;
+  }
   const isGuest = networkState.isMultiplayer && !networkState.isHost;
   const targetIdx = isGuest
     ? (networkState.localPlayerIdx || 0)
@@ -357,6 +364,7 @@ export function setLocalPlayerColor(hex, charColor) {
 }
 
 export function setPlayerColor(playerIdx, hex, charColor) {
+  if (matchSettings.teamMode) return false;
   if (!canCurrentPlayerChangeColor(playerIdx)) return false;
   const normHex = (hex || '').toLowerCase();
 

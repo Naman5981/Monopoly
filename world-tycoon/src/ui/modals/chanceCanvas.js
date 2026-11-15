@@ -19,14 +19,17 @@ export const WHEEL_VECTOR_ICONS = {
   star: createPath2D('M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z')
 };
 
-export function drawChanceWheelCanvas() {
-  const c = document.getElementById('chance-wheel-canvas') || document.getElementById('canvas-chance-wheel');
-  if (!c) return;
+export function drawChanceWheelCanvas(targetCanvas = null) {
+  const c = targetCanvas || document.getElementById('chance-wheel-canvas') || document.getElementById('canvas-chance-wheel');
+  if (!c) return false;
   const ctx = c.getContext('2d');
+  if (!ctx) return false;
   const cx = 320, cy = 320, outerR = 312;
   const rimWidth = 24;
   const innerR = outerR - rimWidth;
-  const N = CHANCE_WHEEL_PRIZES.length;
+  const prizes = (CHANCE_WHEEL_PRIZES && CHANCE_WHEEL_PRIZES.length > 0) ? CHANCE_WHEEL_PRIZES : [];
+  const N = prizes.length;
+  if (N === 0) return false;
   const slice = (Math.PI * 2) / N;
 
   ctx.clearRect(0, 0, 640, 640);
@@ -226,4 +229,5 @@ export function drawChanceWheelCanvas() {
     ctx.fill(WHEEL_VECTOR_ICONS.star);
   }
   ctx.restore();
+  return true;
 }

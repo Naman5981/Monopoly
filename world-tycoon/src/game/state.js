@@ -185,8 +185,27 @@ export function resetGameStateForNewMatch(count) {
   gameState.players = [];
   const startCash = matchSettings.startingCash || 2_000_000;
 
+  const isTeam = Boolean(matchSettings.teamMode);
   for (let i = 0; i < count; i++) {
     const cp = matchSettings.customPlayers[i] || PLAYER_THEMES[i];
+    const teamId = cp.teamId !== undefined ? cp.teamId : (i % 2);
+    const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+    const teamChar = teamId === 0 ? 0xef4444 : 0x3b82f6;
+    const colorHex = isTeam ? teamHex : (cp.colorHex || PLAYER_THEMES[i]?.colorHex || '#3b82f6');
+    const charColor = isTeam ? teamChar : (cp.charColor ?? PLAYER_THEMES[i]?.charColor ?? 0x3b82f6);
+
+    if (isTeam) {
+      if (matchSettings.customPlayers[i]) {
+        matchSettings.customPlayers[i].colorHex = teamHex;
+        matchSettings.customPlayers[i].charColor = teamChar;
+        matchSettings.customPlayers[i].teamId = teamId;
+      }
+      if (PLAYER_THEMES[i]) {
+        PLAYER_THEMES[i].colorHex = teamHex;
+        PLAYER_THEMES[i].charColor = teamChar;
+      }
+    }
+
     const isOnline = Boolean(networkState && networkState.isMultiplayer);
     const isConnectedPeer = isOnline && (
       Boolean(cp.isOnlinePeer) ||
@@ -217,7 +236,9 @@ export function resetGameStateForNewMatch(count) {
       isAI,
       isOnlinePeer: isConnectedPeer,
       peerId: cp.peerId || null,
-      teamId: cp.teamId !== undefined ? cp.teamId : (i % 2),
+      teamId,
+      colorHex,
+      charColor,
       cash: startCash,
       position: 0,
       inIsland: false,

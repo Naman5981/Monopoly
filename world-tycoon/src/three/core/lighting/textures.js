@@ -12,6 +12,7 @@ let softBloomTexture = null;
  */
 export function getSoftBloomTexture() {
   if (softBloomTexture) return softBloomTexture;
+  if (typeof document === 'undefined') return null;
   const c = document.createElement('canvas');
   c.width = 256;
   c.height = 256;

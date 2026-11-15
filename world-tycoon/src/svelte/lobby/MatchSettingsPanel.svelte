@@ -43,7 +43,7 @@
   }
 </script>
 
-<div id="lobby-settings-column" class="col-span-12 lg:col-span-4 game-panel-card p-3.5 sm:p-5 flex flex-col justify-between shadow-xl min-h-[460px] lg:min-h-[500px] space-y-3">
+<div id="lobby-settings-column" class="w-full h-full flex-1 game-panel-card p-3.5 sm:p-5 flex flex-col justify-between shadow-xl min-h-[460px] lg:min-h-[500px] space-y-3">
   <div class="space-y-4">
     <!-- Header -->
     <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3">

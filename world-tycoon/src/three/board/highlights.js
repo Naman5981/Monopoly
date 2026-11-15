@@ -238,14 +238,23 @@ export function setFlightModeHighlights(active, boardGroup = context.boardGroup)
   }
 }
 
+let monopolyHighlightTimer = null;
+
 export function setMonopolyTileHighlights(tileIds, colorHex = '#facc15', boardGroup = context.boardGroup) {
+  if (monopolyHighlightTimer) {
+    clearTimeout(monopolyHighlightTimer);
+    monopolyHighlightTimer = null;
+  }
   if (!monopolyRingsGroup && boardGroup) {
     monopolyRingsGroup = new THREE.Group();
     boardGroup.add(monopolyRingsGroup);
   }
   if (monopolyRingsGroup) {
     while (monopolyRingsGroup.children.length > 0) {
-      monopolyRingsGroup.remove(monopolyRingsGroup.children[0]);
+      const child = monopolyRingsGroup.children[0];
+      monopolyRingsGroup.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
     }
   }
   if (!tileIds || tileIds.length === 0 || !monopolyRingsGroup) return;
@@ -261,13 +270,21 @@ export function setMonopolyTileHighlights(tileIds, colorHex = '#facc15', boardGr
     monopolyRingsGroup.add(mesh);
   });
 
-  setTimeout(() => {
+  monopolyHighlightTimer = setTimeout(() => {
+    monopolyHighlightTimer = null;
     if (monopolyRingsGroup) {
       while (monopolyRingsGroup.children.length > 0) {
-        monopolyRingsGroup.remove(monopolyRingsGroup.children[0]);
+        const child = monopolyRingsGroup.children[0];
+        monopolyRingsGroup.remove(child);
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
       }
     }
   }, 4200);
+}
+
+export function clearMonopolyTileHighlights() {
+  setMonopolyTileHighlights([]);
 }
 
 /**

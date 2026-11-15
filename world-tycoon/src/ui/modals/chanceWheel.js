@@ -82,6 +82,8 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
     isSpinning: false,
     isSpectator: !isLocalUser,
     isAI,
+    hasWon: false,
+    wonPrize: null,
     cardText: isLocalUser ? 'Click Spin to test your luck!' : `${playerName} is testing their luck on the Wheel!`
   });
 
@@ -143,6 +145,18 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
   }
 
   animateModalSpringOpen('#modal-chance-wheel', '#modal-chance-wheel-card');
+  requestAnimationFrame(() => {
+    try {
+      drawChanceWheelCanvas();
+    } catch (e) {
+      console.warn('[ChanceWheel] Draw canvas error:', e);
+    }
+  });
+  setTimeout(() => {
+    try {
+      drawChanceWheelCanvas();
+    } catch (e) {}
+  }, 60);
 }
 
 export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
@@ -399,27 +413,51 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
       setPlayerPortraitMood(activePIdx, 'cheering', 3500);
     }
 
-    // 1. Immediately highlight the result in the box below the wheel
+    // Format prize details clearly for the on-wheel winning banner (Idea 3)
+    let icon = '🎁';
+    let title = prize.label.toUpperCase();
+    let tag = 'CHANCE REWARD';
+    if (prize.type === 'cash') {
+      icon = prize.amount >= 300000 ? '💰' : '💎';
+      title = `+${fmtMoney(prize.amount)} CASH!`;
+      tag = 'CASH GRANT';
+    } else if (prize.type === 'tax') {
+      icon = '⚠️';
+      title = `TAX AUDIT: -${fmtMoney(prize.amount)}`;
+      tag = 'LUXURY TAX AUDIT';
+    } else if (prize.type === 'island') {
+      icon = '🏝️';
+      title = 'DETAINED ON ISLAND!';
+      tag = 'DETENTION SURPRISE';
+    } else if (prize.type === 'move') {
+      icon = prize.target === 0 ? '🚀' : '✈️';
+      title = prize.target === 0 ? 'EXPRESS JET TO START!' : 'WORLD TOUR FLIGHT!';
+      tag = 'BOARD WARP';
+    }
+
+    // 1. Immediately highlight the result on the wheel
+    updateModalSlice('chanceWheel', {
+      isSpinning: false,
+      hasWon: true,
+      wonPrize: {
+        icon,
+        tag,
+        title,
+        desc: prize.desc || prize.label
+      }
+    });
+
     const resultText = document.getElementById('chance-result-text');
     if (resultText) {
       resultText.innerHTML = `<strong>${prize.label}</strong>: ${prize.desc}`;
     }
 
-    // 2. Wait 0.85s so user can clearly see the wheel resting right on the prize
-    await new Promise(r => setTimeout(r, 850));
-    if (isLobbyScreenActive()) return;
-
-    // 3. Close the wheel modal
-    animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card');
-
-    // In multiplayer spectator mode (forcedPrizeIdx !== null), the incoming ACTION_CHANCE_PRIZE
-    // packet is the authoritative trigger for showChanceAwardPopup. Returning early here prevents
-    // executing the prize animation and cash/tax modifications twice on remote peers.
+    // In multiplayer spectator mode (forcedPrizeIdx !== null), return early so host/primary runs prize logic
     if (networkState.isMultiplayer && forcedPrizeIdx !== null) {
       return;
     }
 
-    // Broadcast immediately so ALL peers in multiplayer open the card popup together!
+    // Broadcast immediately so ALL peers in multiplayer see the exact same result
     if (networkState.isMultiplayer && forcedPrizeIdx === null) {
       broadcastAction('ACTION_CHANCE_PRIZE', {
         playerIdx: activePIdx,
@@ -428,13 +466,17 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
       });
     }
 
-    // 4. Show the dedicated, 100% solid, crystal-clear 2.2-second award popup
-    showChanceAwardPopup(prize, async () => {
-      // 5. Run the in-game 3D flight/tax/cash animation!
+    // 2. Wait 1.8s so user can clearly see and read the winning prize details on the wheel!
+    await new Promise(r => setTimeout(r, 1800));
+    if (isLobbyScreenActive()) return;
+
+    // 3. Smoothly close the wheel and transition directly into in-game 3D action!
+    animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card', async () => {
+      updateModalSlice('chanceWheel', { visible: false, isSpinning: false, hasWon: false, wonPrize: null });
       if (engineCallbacks.applyChancePrize) {
         await engineCallbacks.applyChancePrize(activePIdx, prize, isDoub, false, false);
       }
-    }, activePIdx);
+    });
   }, 2650);
 }
 

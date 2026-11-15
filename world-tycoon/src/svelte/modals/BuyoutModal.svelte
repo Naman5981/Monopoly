@@ -17,14 +17,15 @@
 <ActionChipShell modalId="modal-buyout-city" cardId="modal-buyout-city-card" visible={state.visible} borderColor="border-rose-500/80">
   <!-- Top Summary Line -->
   <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
-    <div class="flex items-center gap-2 truncate">
+    <div class="flex items-center gap-2 truncate min-w-0">
       <span class="text-xs px-2.5 py-0.5 rounded-full bg-gradient-to-r from-rose-600 to-rose-800 text-white font-black shadow-sm shrink-0">
         ⚔️ BUYOUT
       </span>
-      <h3 id="buyout-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate">
-        {state.tile?.name || 'CITY'}
+      <span class="w-3.5 h-3.5 rounded-full border border-white/40 shrink-0" style="background-color: {state.colorHex || '#f43f5e'};"></span>
+      <h3 id="buyout-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate drop-shadow-xs">
+        {state.cityName || state.tile?.name || 'CITY'}
       </h3>
-      <span id="buyout-modal-owner" class="text-[11px] font-bold text-slate-300 truncate">
+      <span id="buyout-modal-owner" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/10 text-slate-300 border border-white/20 shrink-0">
         From {state.sellerName || 'Opponent'}
       </span>
     </div>

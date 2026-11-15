@@ -80,12 +80,19 @@ export function initLandingSetup() {
     console.error('Error during initLandingSetup:', err);
   }
 
+  // Initialize 3D podium stage in center of lobby immediately
+  initLobbyHeroStage();
+  const initialP0 = matchSettings.customPlayers[0];
+  if (initialP0) {
+    updateLobbyHeroAvatar(initialP0.hatStyle || 0, initialP0.colorHex || '#3b82f6', initialP0.charColor || 0x3b82f6);
+  }
+
   // Anime.js arcade staggered lobby entrance orchestration
   setTimeout(() => {
     animateLobbyEntrance();
   }, 50);
 
-  // Initialize 3D podium stage in center of lobby
+  // Backup sync to ensure dimensions and meshes after layout settles
   setTimeout(() => {
     initLobbyHeroStage();
     const p0 = matchSettings.customPlayers[0];

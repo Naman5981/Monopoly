@@ -385,7 +385,18 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_AUCTION_PASS':
     case 'ACTION_AUCTION_CONCLUDE':
     case 'ACTION_TRADE_OFFER':
-    case 'ACTION_TRADE_RESPONSE':
+    case 'ACTION_TRADE_RESPONSE': {
+      networkState.connections.forEach((c) => {
+        if (c.peer !== conn.peer && c.open) {
+          try { c.send(msg); } catch (e) { console.warn('[P2P Relay Error]', e); }
+        }
+      });
+      executeIncomingNetworkAction(msg);
+      if (msg.type === 'ACTION_TRADE_RESPONSE' && msg.accepted) {
+        broadcastFullGameState();
+      }
+      break;
+    }
     case 'ACTION_WORLD_TOUR':
     case 'ACTION_CHANCE_PRIZE':
     case 'ACTION_CHANCE_SPIN':
@@ -395,6 +406,32 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_REACTION':
     case 'ACTION_CHAT_EMOTE':
     case 'ACTION_REQUEST_PLAY_AGAIN':
+    case 'ACTION_GUEST_TEAM_SELECT': {
+      if (typeof msg.playerIdx === 'number' && typeof msg.teamId === 'number') {
+        const teamHex = msg.teamId === 0 ? '#ef4444' : '#3b82f6';
+        const teamChar = msg.teamId === 0 ? 0xef4444 : 0x3b82f6;
+        if (setupPlayers[msg.playerIdx]) {
+          setupPlayers[msg.playerIdx].teamId = msg.teamId;
+          setupPlayers[msg.playerIdx].colorHex = teamHex;
+          setupPlayers[msg.playerIdx].charColor = teamChar;
+        }
+        if (matchSettings.customPlayers[msg.playerIdx]) {
+          matchSettings.customPlayers[msg.playerIdx].teamId = msg.teamId;
+          matchSettings.customPlayers[msg.playerIdx].colorHex = teamHex;
+          matchSettings.customPlayers[msg.playerIdx].charColor = teamChar;
+        }
+        if (PLAYER_THEMES[msg.playerIdx]) {
+          PLAYER_THEMES[msg.playerIdx].colorHex = teamHex;
+          PLAYER_THEMES[msg.playerIdx].charColor = teamChar;
+        }
+        if (typeof window !== 'undefined' && typeof window.renderPlayerCards === 'function') {
+          window.renderPlayerCards();
+        }
+        broadcastLobbySettings();
+      }
+      break;
+    }
+    case 'ACTION_TEAM_BAILOUT':
     case 'ACTION_GUEST_LOBBY': {
       // Re-broadcast to all other connected peers
       networkState.connections.forEach((c) => {
@@ -461,7 +498,7 @@ export function broadcastFullGameState() {
       turnTimeLeft: gameState.turnTimeLeft || 15,
       matchSeconds: typeof matchSeconds === 'number' ? matchSeconds : (gameState.matchSeconds || 0),
       festivalPot: gameState.festivalPot,
-      players: gameState.players.map(p => ({
+      players: gameState.players.map((p, idx) => ({
         id: p.id,
         name: p.name,
         cash: p.cash,
@@ -469,7 +506,8 @@ export function broadcastFullGameState() {
         bankrupt: Boolean(p.bankrupt),
         inIsland: Boolean(p.inIsland),
         islandTurns: p.islandTurns || 0,
-        isAI: Boolean(p.isAI)
+        isAI: Boolean(p.isAI),
+        teamId: typeof p.teamId === 'number' ? p.teamId : (idx % 2)
       })),
       properties: Object.keys(gameState.properties).reduce((acc, k) => {
         const prop = gameState.properties[k];

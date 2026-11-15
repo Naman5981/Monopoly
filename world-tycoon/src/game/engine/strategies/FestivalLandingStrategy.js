@@ -43,6 +43,7 @@ export class FestivalLandingStrategy extends ITileLandingStrategy {
       spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(jackpot)} Festival!`, true);
       animateFestivalPotGoldenRain(playerIdx);
       logEvent(`🎉 <strong>${player.name}</strong> won the <strong>${fmtMoney(jackpot)}</strong> Festival Jackpot!`);
+      renderCornerHUDs();
     }
 
     // 2. Identify all properties owned by this player

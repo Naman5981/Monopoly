@@ -8,7 +8,8 @@ import { PLAYER_THEMES } from '../../game/data.js';
 import { playSFX } from '../../game/audio.js';
 import { updateAllPointsBadges } from '../wardrobe.js';
 import { renderCornerHUDs, showTurnLockToast } from '../hud.js';
-import { networkState, broadcastLobbySettings, sendClientProfileUpdate, broadcastFullGameState } from '../../network/p2p.js';
+import { updateLobbyHeroAvatar } from '../../three/scene.js';
+import { networkState, broadcastLobbySettings, sendClientProfileUpdate, broadcastFullGameState, broadcastAction } from '../../network/p2p.js';
 import {
   ARCHETYPES,
   canCurrentPlayerEditSlot,
@@ -139,18 +140,25 @@ export function renderPlayerCards() {
 
   // Sync state into reactive Svelte lobbyStore
   const lobbyPlayersList = [];
+  const isTeamMode = Boolean(matchSettings.teamMode);
   for (let i = 0; i < lobbyPlayerCount; i++) {
     const cp = matchSettings.customPlayers[i];
     const isOnline = networkState.isMultiplayer;
     const isConnectedPeer = isOnline && (Boolean(cp?.isOnlinePeer) || Boolean(setupPlayers[i]?.isOnlinePeer) || Boolean(setupPlayers[i]?.peerId));
     const isHuman = isConnectedPeer ? true : !cp?.isAI;
     const isSelf = isOnline ? (i === networkState.localPlayerIdx) : (i === 0);
+    const teamId = cp?.teamId !== undefined ? cp.teamId : (i % 2);
+    const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+    const teamChar = teamId === 0 ? 0xef4444 : 0x3b82f6;
+    const colorHex = isTeamMode ? teamHex : (cp?.colorHex || '#10b981');
+    const charColor = isTeamMode ? teamChar : (cp?.charColor || 0x10b981);
     lobbyPlayersList.push({
       idx: i,
       name: cp?.name || `P${i + 1}`,
       isAI: !isHuman,
       isOnlinePeer: Boolean(cp?.isOnlinePeer),
-      colorHex: cp?.colorHex || '#10b981',
+      colorHex,
+      charColor,
       hatStyle: cp?.hatStyle || 0,
       archetypeIcon: ARCHETYPES[cp?.hatStyle || 0]?.icon || '🎩',
       archetypeName: ARCHETYPES[cp?.hatStyle || 0]?.name || 'Banker',
@@ -160,12 +168,11 @@ export function renderPlayerCards() {
       canEditName: isSelf && isHuman,
       canEditSlot: canCurrentPlayerEditSlot(i),
       isConnectedPeer,
-      teamId: cp?.teamId !== undefined ? cp.teamId : (i % 2)
+      teamId
     });
   }
   const curPlayerForStore = matchSettings.customPlayers[selectedSetupPlayerIdx] || p0;
   const curArchForStore = ARCHETYPES[curPlayerForStore?.hatStyle || 0] || ARCHETYPES[0];
-  const isTeamMode = Boolean(matchSettings.teamMode);
   const teamValidation = isTeamMode
     ? validateTeamModeBalance(lobbyPlayerCount, matchSettings.customPlayers)
     : { valid: true, error: null };
@@ -178,7 +185,7 @@ export function renderPlayerCards() {
     archetypeId: curArchForStore.id,
     archetypeName: curArchForStore.name.toUpperCase(),
     archetypeIcon: curArchForStore.icon,
-    selectedColorHex: curPlayerForStore?.colorHex || '#10b981',
+    selectedColorHex: isTeamMode ? (curPlayerForStore?.teamId === 0 ? '#ef4444' : '#3b82f6') : (curPlayerForStore?.colorHex || '#10b981'),
     isTeamMode,
     isTeamBalanceValid: teamValidation.valid,
     teamBalanceError: teamValidation.error,
@@ -375,16 +382,38 @@ export function togglePlayerRole(idx) {
 }
 
 export function togglePlayerTeam(idx) {
-  if (networkState.isMultiplayer && !networkState.isHost) return;
+  const isGuest = networkState.isMultiplayer && !networkState.isHost;
+  if (isGuest && idx !== networkState.localPlayerIdx) return;
+
   const cp = matchSettings.customPlayers[idx];
   if (!cp) return;
+
   cp.teamId = (cp.teamId === 0) ? 1 : 0;
+  const teamHex = cp.teamId === 0 ? '#ef4444' : '#3b82f6';
+  const teamChar = cp.teamId === 0 ? 0xef4444 : 0x3b82f6;
+  cp.colorHex = teamHex;
+  cp.charColor = teamChar;
+
   if (setupPlayers[idx]) {
     setupPlayers[idx].teamId = cp.teamId;
+    setupPlayers[idx].colorHex = teamHex;
+    setupPlayers[idx].charColor = teamChar;
   }
+  if (PLAYER_THEMES[idx]) {
+    PLAYER_THEMES[idx].colorHex = teamHex;
+    PLAYER_THEMES[idx].charColor = teamChar;
+  }
+
+  if (selectedSetupPlayerIdx === idx) {
+    updateLobbyHeroAvatar(cp.hatStyle || 0, teamHex, teamChar);
+  }
+
   renderPlayerCards();
   playSFX('hop');
-  if (networkState.isMultiplayer && networkState.isHost) {
+
+  if (isGuest) {
+    broadcastAction('ACTION_GUEST_TEAM_SELECT', { playerIdx: idx, teamId: cp.teamId });
+  } else if (networkState.isMultiplayer && networkState.isHost) {
     broadcastLobbySettings();
   }
 }

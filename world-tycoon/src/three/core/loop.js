@@ -119,18 +119,10 @@ export function animateThreeLoop() {
   // 10. Building animations (elastic popups always update; secondary wind & beacons interleaved)
   updateBuildingAnimations(now, t);
 
-  // 11. Smooth rolling cash display update
+  // 11. Synchronize cash display values
   if (gameState && gameState.players) {
     gameState.players.forEach((p, idx) => {
-      if (displayedCash[idx] !== p.cash) {
-        const diff = p.cash - displayedCash[idx];
-        const step = Math.ceil(Math.abs(diff) * 0.22);
-        if (Math.abs(diff) <= 2000) {
-          displayedCash[idx] = p.cash;
-        } else {
-          displayedCash[idx] += Math.sign(diff) * step;
-        }
-      }
+      displayedCash[idx] = p.cash;
     });
   }
 

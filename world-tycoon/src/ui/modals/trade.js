@@ -24,6 +24,13 @@ import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 let pendingTradeCounter = null;
 let activeIncomingTradeProposal = null;
 
+function getTileGroupColor(tile) {
+  if (tile.group && GROUP_META[tile.group]?.hex) {
+    return GROUP_META[tile.group].hex;
+  }
+  return tile.type === 'resort' ? '#14b8a6' : '#3b82f6';
+}
+
 export function openTradeModal(counterProposal = null) {
   if (isLobbyScreenActive()) return;
   const m = document.getElementById('modal-trade');
@@ -63,14 +70,14 @@ export function openTradeModal(counterProposal = null) {
     myProperties: myProps.map(t => ({
       id: t.id,
       name: t.name,
-      color: t.colorHex || '#3b82f6',
+      color: getTileGroupColor(t),
       price: t.price || 0,
       rentFormatted: fmtMoney(t.price || 0)
     })),
     partnerProperties: partnerProps.map(t => ({
       id: t.id,
       name: t.name,
-      color: t.colorHex || '#3b82f6',
+      color: getTileGroupColor(t),
       price: t.price || 0,
       rentFormatted: fmtMoney(t.price || 0)
     }))
@@ -115,7 +122,7 @@ export function populateTradePartnerProps(selectedPartnerId) {
     partnerProperties: props.map(t => ({
       id: t.id,
       name: t.name,
-      color: t.colorHex || '#3b82f6',
+      color: getTileGroupColor(t),
       price: t.price || 0,
       rentFormatted: fmtMoney(t.price || 0)
     }))
@@ -495,13 +502,12 @@ function getTradeProperties(tileIds = []) {
     .map(id => BOARD_TILES[id])
     .filter(Boolean)
     .map(tile => {
-      const groupMeta = GROUP_META[tile.group] || {};
       return {
         id: tile.id,
         name: tile.name,
         priceFormatted: fmtMoney(tile.price),
         rentFormatted: fmtMoney(tile.rent ? tile.rent[0] : 0),
-        color: groupMeta.color || '#10b981'
+        color: getTileGroupColor(tile)
       };
     });
 }

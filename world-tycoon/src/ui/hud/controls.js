@@ -36,6 +36,7 @@ export function updateGameSpeedUI() {
 /** Show the turn-lock warning toast. */
 export function showTurnLockToast(msg = 'Wait for your turn to manage cities!') {
   updateHudState({ toast: { visible: true, text: msg } });
+  if (typeof document === 'undefined') return;
   const toast = document.getElementById('turn-lock-toast');
   if (toast) animateToastAccordionPush(toast);
   showSpeechBubble(msg, 2000);

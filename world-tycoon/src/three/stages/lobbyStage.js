@@ -28,14 +28,16 @@ export function resizeLobbyHeroStage() {
 
   const rect = canvas.getBoundingClientRect();
   const dpr = Math.min((typeof window !== 'undefined' && window.devicePixelRatio) || 1, 2);
-  const displayW = Math.max(rect.width || 380, 180);
-  const displayH = Math.max(rect.height || 400, 180);
+  const displayW = Math.max(rect.width || 0, (rect.width ? 0 : 260));
+  const displayH = Math.max(rect.height || 0, (rect.height ? 0 : 260));
+  if (displayW === 0 || displayH === 0) return;
+
   const targetW = Math.round(displayW * dpr);
   const targetH = Math.round(displayH * dpr);
 
   if (canvas.width !== targetW || canvas.height !== targetH) {
     lobbyHeroRenderer.setSize(targetW, targetH, false);
-    const aspect = targetW / targetH;
+    const aspect = targetW / Math.max(targetH, 1);
     lobbyHeroCamera.aspect = aspect;
     // Maintain complete stage headroom and plinth visibility even on narrow aspect ratios
     lobbyHeroCamera.fov = aspect < 1.0 ? Math.min(48, 38 / Math.max(aspect, 0.65)) : 38;
@@ -46,6 +48,11 @@ export function resizeLobbyHeroStage() {
 export function initLobbyHeroStage() {
   const canvas = document.getElementById(lobbyHeroCanvasId);
   if (!canvas) return;
+
+  if (lobbyHeroRenderer && lobbyHeroScene) {
+    resizeLobbyHeroStage();
+    return;
+  }
 
   const w = 512;
   const h = 512;
@@ -203,6 +210,12 @@ export function initLobbyHeroStage() {
   lobbyHeroScene.add(lobbyHeroAvatarGroup);
 
   updateLobbyHeroAvatar(0, '#6c5ce7', 0x6c5ce7);
+  resizeLobbyHeroStage();
+  if (lobbyHeroRenderer && lobbyHeroScene && lobbyHeroCamera) {
+    try {
+      lobbyHeroRenderer.render(lobbyHeroScene, lobbyHeroCamera);
+    } catch (_) {}
+  }
 }
 
 export function updateLobbyHeroDiceSkin(skinId = 'dice_classic') {
@@ -254,6 +267,13 @@ export function updateLobbyHeroAvatar(hatStyle = 0, colorHex = '#6c5ce7', charCo
   const avatarMesh = createDetailed3DAvatarMesh(0, false, hatStyle, pedestalStyle, parsedCharColor);
   avatarMesh.scale.setScalar(1.02);
   lobbyHeroAvatarGroup.add(avatarMesh);
+
+  if (lobbyHeroRenderer && lobbyHeroScene && lobbyHeroCamera) {
+    resizeLobbyHeroStage();
+    try {
+      lobbyHeroRenderer.render(lobbyHeroScene, lobbyHeroCamera);
+    } catch (_) {}
+  }
 }
 
 /**
@@ -266,6 +286,8 @@ export function renderLobbyHeroStage(t) {
   const landing = document.getElementById('landing-setup-screen');
   if (!canvas || !landing || landing.classList.contains('hidden') || landing.style.display === 'none') return;
 
+  resizeLobbyHeroStage();
+
   if (lobbyHeroAvatarGroup) {
     lobbyHeroAvatarGroup.rotation.y = Math.sin(t * 0.85) * 0.38;
     const ud = lobbyHeroAvatarGroup.children[0]?.userData;
@@ -276,5 +298,7 @@ export function renderLobbyHeroStage(t) {
   if (lobbyHeroPodiumGroup) {
     lobbyHeroPodiumGroup.rotation.y = t * 0.12;
   }
-  lobbyHeroRenderer.render(lobbyHeroScene, lobbyHeroCamera);
+  try {
+    lobbyHeroRenderer.render(lobbyHeroScene, lobbyHeroCamera);
+  } catch (_) {}
 }

@@ -11,6 +11,7 @@ import {
   confirmUpgradeFromModal,
   closeUpgradeCityModal
 } from '../src/ui/modals/upgradeCity.js';
+import { PropertyLandingStrategy } from '../src/game/engine/strategies/PropertyLandingStrategy.js';
 import { engineCallbacks } from '../src/ui/modals/common.js';
 import { modalStore } from '../src/svelte/stores/modalStore.js';
 
@@ -78,5 +79,38 @@ describe('Upgrade City Modal & Chance Wheel Visual Optimization (/better-layout 
     assert.equal(CHANCE_WHEEL_PRIZES[3].color, '#312e81');
     assert.equal(CHANCE_WHEEL_PRIZES[4].color, '#1e293b');
     assert.equal(CHANCE_WHEEL_PRIZES[5].color, '#312e81');
+  });
+
+  it('correctly upgrades tile.id (and not playerIdx) when bot lands on its self-owned property', async () => {
+    // Setup bot player 1 owning tile 10 (Madrid)
+    const targetTileId = 10;
+    const tile = BOARD_TILES[targetTileId];
+    gameState.players[1] = { id: 'p1', name: 'Baron', cash: 1500000, isAI: true, position: targetTileId };
+    gameState.properties[targetTileId] = {
+      owner: 1,
+      level: 1,
+      mortgaged: false
+    };
+    // Ensure player 0 owns tile 1 (Cairo) at level 1
+    gameState.properties[1] = {
+      owner: 0,
+      level: 1,
+      mortgaged: false
+    };
+
+    const strategy = new PropertyLandingStrategy();
+    const initialBotCash = gameState.players[1].cash;
+    let turnConcluded = false;
+    global.window.concludeActionPhase = () => { turnConcluded = true; };
+
+    await strategy.handleAIOwnedCityLanding(1, tile, false);
+
+    // Verify tile 10 was upgraded to level 2
+    assert.equal(gameState.properties[targetTileId].level, 2, 'Bot property level must increment to 2');
+    assert.equal(gameState.players[1].cash, initialBotCash - tile.houseCost, 'Bot cash must be deducted by houseCost');
+
+    // Verify tile 1 (playerIdx) was untouched and remains level 1
+    assert.equal(gameState.properties[1].level, 1, 'Player 0 tile 1 must not be modified by bot upgrade');
+    assert.equal(turnConcluded, true, 'Turn phase must conclude');
   });
 });

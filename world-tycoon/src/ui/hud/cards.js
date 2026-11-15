@@ -10,7 +10,7 @@ import { ownsFullColorGroup, calculateTeamNetWorth, isTeammate } from '../../gam
 import { triggerTokenHurtAnimation } from '../../three/scene.js';
 import { networkState } from '../../network/p2p.js';
 import { playSFX } from '../../game/audio.js';
-import { animateNumberCounter, animateHUDCardSpringAbsorb } from '../anim.js';
+import { animateHUDCardSpringAbsorb } from '../anim.js';
 import { setPlayerPortraitMood, drawPortraitFrame, initPortraitRenderLoop } from '../portraitRenderer.js';
 import { setStatusPill } from './statusPill.js';
 import { updateHudState } from '../../svelte/stores/hudStore.js';
@@ -83,10 +83,15 @@ export function renderCornerHUDs() {
 
   gameState.players.forEach((player, id) => {
     const theme = PLAYER_THEMES[id] || { colorHex: '#3b82f6' };
-    const shownMoney = displayedCash[id] ?? player.cash;
+    displayedCash[id] = player.cash;
+    const shownMoney = player.cash;
     const playerTeam = player.teamId !== undefined ? player.teamId : (id % 2);
     const isLeft = isTeamMode ? (playerTeam === localTeamId) : (id % 2 === 0);
     const isPartner = isTeamMode && (playerTeam === localTeamId) && (id !== localPlayerIdx);
+    const teamHex = TEAM_META[playerTeam]?.colorHex || (playerTeam === 0 ? '#ef4444' : '#3b82f6');
+    const colorHex = isTeamMode
+      ? teamHex
+      : (player.colorHex || matchSettings.customPlayers?.[id]?.colorHex || theme.colorHex);
 
     const playerRecord = {
       id,
@@ -95,7 +100,7 @@ export function renderCornerHUDs() {
       isSelf: id === localPlayerIdx,
       isHost: networkState.isMultiplayer && id === 0,
       isCurrent: id === gameState.currentPlayerIdx,
-      colorHex: theme.colorHex,
+      colorHex,
       cashFormatted: player.bankrupt ? 'OUT' : fmtMoney(shownMoney),
       inIsland: Boolean(player.inIsland),
       islandTurns: player.islandTurns || 0,
@@ -107,7 +112,7 @@ export function renderCornerHUDs() {
 
     (isLeft ? leftPlayers : rightPlayers).push(playerRecord);
 
-    if (!isSvelteMounted) {
+    if (!isSvelteMounted && typeof document !== 'undefined') {
       syncFallbackCard(id, player, shownMoney, isLeft, leftContainer, rightContainer);
     }
   });
@@ -150,14 +155,23 @@ export function renderCornerHUDs() {
     rightTeamColor
   });
 
-  const leaderboard = document.getElementById('modal-leaderboard');
+  const leaderboard = typeof document !== 'undefined' ? document.getElementById('modal-leaderboard') : null;
   if (leaderboard && !leaderboard.classList.contains('hidden') && window.renderLeaderboardModal) {
     window.renderLeaderboardModal();
   }
 }
-/** Show a floating cash label next to a player's HUD card. */
+/** Show a floating cash label next to a player's HUD card and pulse the card. */
 export function spawnFloatingCashOnHUD(playerIdx, text, isGain = true) {
   const card = document.getElementById(`hud-card-${playerIdx}`);
+  if (card) {
+    const pulseClass = isGain ? 'hud-card-receive' : 'hud-card-deduct';
+    card.classList.remove('hud-card-receive', 'hud-card-deduct');
+    void card.offsetWidth;
+    card.classList.add(pulseClass);
+    setTimeout(() => {
+      card?.classList.remove(pulseClass);
+    }, 650);
+  }
   const rect = card
     ? card.getBoundingClientRect()
     : { left: window.innerWidth / 2, top: 100, width: 120 };
@@ -292,17 +306,10 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
       fromCard.classList.remove('hud-card-deduct');
       spawnFloatingCashOnHUD(toIdx, `+${fmtMoney(amount)} Rent`, true);
 
-      // Smooth count numbers with Anime.js odometer
       const fromEl = document.getElementById(`hud-cash-val-${fromIdx}`);
       const toEl = document.getElementById(`hud-cash-val-${toIdx}`);
-      if (fromEl) {
-        fromEl.classList.add('text-rose-600');
-        animateNumberCounter(fromEl, fromPlayer.cash, Math.max(0, fromPlayer.cash - amount), '$', '', 450);
-      }
-      if (toEl) {
-        toEl.classList.add('text-emerald-600');
-        animateNumberCounter(toEl, toPlayer.cash, toPlayer.cash + amount, '$', '', 450);
-      }
+      if (fromEl) fromEl.classList.add('text-rose-600');
+      if (toEl) toEl.classList.add('text-emerald-600');
 
       setTimeout(() => {
         toCard.classList.remove('hud-card-receive');

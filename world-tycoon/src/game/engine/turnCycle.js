@@ -161,6 +161,7 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
         animateIslandJailbreak(pIdx);
         triggerTokenHurtAnimation(pIdx);
         logEvent(`🏝️ <strong>${p.name}</strong> paid 150K after 3 turns on the Island.`);
+        renderCornerHUDs();
       } else {
         setPlayerPortraitMood(pIdx, 'shocked', 3000);
         showSpeechBubble(`Stuck on Island (${p.islandTurns}/3)`, 2000);

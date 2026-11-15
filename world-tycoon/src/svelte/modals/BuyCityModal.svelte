@@ -17,12 +17,12 @@
 <ActionChipShell modalId="modal-buy-city" cardId="modal-buy-city-card" visible={state.visible} borderColor="border-sky-500/80">
   <!-- Top Summary Line -->
   <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
-    <div class="flex items-center gap-2 truncate">
+    <div class="flex items-center gap-2 truncate min-w-0">
       <span class="w-3.5 h-3.5 rounded-full border border-white/40 shrink-0" style="background-color: {state.colorHex || '#0284c7'};"></span>
-      <h3 id="buy-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate">
+      <h3 id="buy-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate drop-shadow-xs">
         {state.cityName || 'CITY'}
       </h3>
-      <span id="buy-modal-country" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/10 text-slate-300 border border-white/20 shrink-0">
+      <span id="buy-modal-country" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/15 text-slate-200 border border-white/30 shrink-0">
         {state.countryName || 'ESTATE'}
       </span>
     </div>

@@ -77,11 +77,14 @@ export function openBuyoutCityModal(tile, isDoubles) {
 
   const nearStatus = tile.group ? checkNearMonopolyGroup(pIdx, tile.group) : null;
   const isMonopolyFinisher = Boolean(nearStatus?.isNear && nearStatus?.missingTile?.id === tile.id);
+  const colorHex = tile.group ? GROUP_META[tile.group]?.hex : (tile.type === 'resort' ? '#14b8a6' : '#f43f5e');
 
   let secondsLeft = 12;
   updateModalSlice('buyout', {
     visible: true,
     tile,
+    cityName: tile.name,
+    colorHex,
     buyoutCost: totalBuyoutCost,
     buyoutCostFormatted: fmtMoney(totalBuyoutCost),
     basePriceFormatted: fmtMoney(basePrice),

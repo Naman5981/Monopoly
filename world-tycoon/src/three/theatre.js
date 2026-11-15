@@ -135,21 +135,18 @@ export function playLandmarkCinematicReveal(tileId) {
     const origTarget = cameraState.targetCameraTarget.clone();
     const origZoom = cameraState.targetCameraZoom;
     const origAzimuth = cameraState.targetCameraAzimuth;
+    const snap = Math.PI / 4;
+    const normalAzimuth = Math.round((origAzimuth || (Math.PI / 4)) / snap) * snap;
 
-    // Glide camera directly to the landmark building
-    cameraState.targetCameraTarget.set(tilePos.x, tilePos.y + 1.2, tilePos.z);
-    cameraState.targetCameraZoom = 2.15; // Dramatic close-up
-
-    // Angle to face the city
-    const angleToCenter = Math.atan2(tilePos.z, tilePos.x);
-    cameraState.targetCameraAzimuth = angleToCenter + Math.PI / 6;
+    // Glide camera directly to the landmark building (zero board spin)
+    cameraState.targetCameraTarget.set(tilePos.x, tilePos.y + 0.8, tilePos.z);
+    cameraState.targetCameraZoom = 1.5; // Smooth close-up
 
     // Hold dramatic framing for 2.2 seconds before returning smoothly
     setTimeout(() => {
       if (cancelled) return;
       cameraState.targetCameraTarget.copy(origTarget);
       cameraState.targetCameraZoom = origZoom;
-      cameraState.targetCameraAzimuth = origAzimuth;
 
       setTimeout(() => {
         cutsceneCancel = null;
@@ -220,31 +217,54 @@ export function playBuyoutCinematicFocus(tileId, durationMs = 1500) {
     const origTarget = cameraState.targetCameraTarget.clone();
     const origZoom = cameraState.targetCameraZoom;
     const origAzimuth = cameraState.targetCameraAzimuth;
+    const snap = Math.PI / 4;
+    const normalAzimuth = Math.round((origAzimuth || (Math.PI / 4)) / snap) * snap;
 
-    // Glide camera directly to the seized property with close-up focus
-    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 1.1, tilePos.z);
+    // Glide camera directly to the seized property with close-up focus (zero board spin)
+    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 0.6, tilePos.z);
     cameraState.targetCameraZoom = 2.15; // Close-up focus on property
-
-    // Angle to face the city
-    const angleToCenter = Math.atan2(tilePos.z, tilePos.x);
-    cameraState.targetCameraAzimuth = angleToCenter + Math.PI / 6;
 
     theatreState.activeCutsceneName = 'BuyoutFocus';
 
-    // Hold dramatic framing on the property for durationMs (1.5s)
-    setTimeout(() => {
+    const finish = () => {
       if (cancelled) return;
-      cameraState.targetCameraTarget.copy(origTarget);
-      cameraState.targetCameraZoom = origZoom;
-      cameraState.targetCameraAzimuth = origAzimuth;
+      cancelled = true;
+      cameraState.targetCameraTarget.set(0, 0, 0);
+      cameraState.targetCameraZoom = 1.0;
 
       setTimeout(() => {
         cutsceneCancel = null;
         theatreState.activeCutsceneName = null;
         resolve();
       }, 350);
+    };
+
+    cutsceneCancel = finish;
+
+    // Hold dramatic framing on the property for durationMs (1.5s)
+    setTimeout(() => {
+      finish();
     }, durationMs);
   });
+}
+
+/**
+  * Forcefully cancels any active cinematic camera cutscene and cleanly restores normal board state.
+  * @param {boolean} [restoreCamera=true]
+  */
+export function cancelActiveCutscene(restoreCamera = true) {
+  if (cutsceneCancel) {
+    cutsceneCancel();
+    cutsceneCancel = null;
+  }
+  theatreState.activeCutsceneName = null;
+  setMonopolyThreatBeacon(null, false);
+  if (restoreCamera && cameraState) {
+    cameraState.targetCameraTarget.set(0, 0, 0);
+    cameraState.targetCameraZoom = 1.0;
+    const snap = Math.PI / 4;
+    cameraState.targetCameraAzimuth = Math.round((cameraState.targetCameraAzimuth || (Math.PI / 4)) / snap) * snap;
+  }
 }
 
 /**
@@ -263,6 +283,11 @@ export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
       return;
     }
 
+    if (cutsceneCancel) {
+      cutsceneCancel();
+      cutsceneCancel = null;
+    }
+
     const gameSpeed = matchSettings?.gameSpeed || 1;
     // Scale duration with speed, minimum 2400ms so players have ample time to register the strategic threat
     const effectiveDuration = Math.max(2400, Math.round(durationMs / Math.min(gameSpeed, 1.4)));
@@ -270,18 +295,16 @@ export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
     let cancelled = false;
     let cleanupSkip = null;
 
-    const origTarget = cameraState.targetCameraTarget.clone();
-    const origZoom = cameraState.targetCameraZoom;
-    const origAzimuth = cameraState.targetCameraAzimuth;
+    const snap = Math.PI / 4;
+    const normalAzimuth = Math.round((cameraState.targetCameraAzimuth || (Math.PI / 4)) / snap) * snap;
 
     const finish = () => {
       if (cancelled) return;
       cancelled = true;
       if (cleanupSkip) cleanupSkip();
-      setMonopolyThreatBeacon(tileId, false);
-      cameraState.targetCameraTarget.copy(origTarget);
-      cameraState.targetCameraZoom = origZoom;
-      cameraState.targetCameraAzimuth = origAzimuth;
+      setMonopolyThreatBeacon(null, false);
+      cameraState.targetCameraTarget.set(0, 0, 0);
+      cameraState.targetCameraZoom = 1.0;
 
       setTimeout(() => {
         cutsceneCancel = null;
@@ -301,13 +324,9 @@ export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
     // Turn on glowing beacon on missing tile
     setMonopolyThreatBeacon(tileId, true, '#f59e0b');
 
-    // Smoothly pan camera directly to the missing tile with dynamic zoom
-    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 0.6, tilePos.z);
-    cameraState.targetCameraZoom = 1.95;
-
-    // Angle to face the city
-    const angleToCenter = Math.atan2(tilePos.z, tilePos.x);
-    cameraState.targetCameraAzimuth = angleToCenter + Math.PI / 6;
+    // Smoothly pan camera directly to the missing tile with gentle zoom (zero board spin)
+    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 0.5, tilePos.z);
+    cameraState.targetCameraZoom = 1.48; // Gentle smooth zoom
 
     theatreState.activeCutsceneName = 'MonopolyThreatFocus';
 
@@ -329,4 +348,5 @@ if (typeof window !== 'undefined') {
   window.playCinematicCutscene = playCinematicCutscene;
   window.playBuyoutCinematicFocus = playBuyoutCinematicFocus;
   window.playMonopolyThreatCinematic = playMonopolyThreatCinematic;
+  window.cancelActiveCutscene = cancelActiveCutscene;
 }

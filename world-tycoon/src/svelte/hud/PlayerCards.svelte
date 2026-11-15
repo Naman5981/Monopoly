@@ -108,7 +108,7 @@
             </span>
           </div>
           <div class="hud-cash-row">
-            <span id="hud-cash-val-{player.id}" class="hud-cash-amount">{player.cashFormatted || '$0'}</span>
+            <span id="hud-cash-val-{player.id}" class="hud-cash-amount">{player.cashFormatted ?? '0'}</span>
             <span class="hud-cash-icon" title="Cash">💵</span>
           </div>
         </div>
@@ -126,11 +126,15 @@
   {/each}
 
   {#if state.isTeamMode && (state.leftPlayers || []).length > 0}
-    <div class="team-networth-pill mt-0.5 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border-2 border-rose-400/80 shadow-md text-slate-800">
-      <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs flex-shrink-0 animate-pulse"></span>
+    {@const leftColor = (state.leftPlayers && state.leftPlayers[0]?.teamId !== undefined) ? (state.leftPlayers[0].teamId === 0 ? '#ef4444' : '#3b82f6') : (state.leftTeamColor || '#ef4444')}
+    <div
+      class="team-networth-pill mt-1 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border-2 shadow-md text-slate-800"
+      style="border-color: {leftColor};"
+    >
+      <span class="w-2.5 h-2.5 rounded-full shadow-xs flex-shrink-0 animate-pulse" style="background-color: {leftColor};"></span>
       <div class="flex flex-col">
-        <span class="text-[9px] font-black uppercase tracking-wider text-rose-600 leading-tight">{state.leftTeamLabel || 'TEAM RED'}</span>
-        <span class="text-xs font-black font-mono text-slate-900 leading-tight">{state.leftTeamNetWorth || '$0'}</span>
+        <span class="text-[9px] font-black uppercase tracking-wider leading-none" style="color: {leftColor};">{state.leftTeamLabel || 'TEAM RED'}</span>
+        <span class="text-xs font-black font-mono text-slate-900 leading-normal mt-0.5">{state.leftTeamNetWorth || '$0'}</span>
       </div>
     </div>
   {/if}
@@ -181,7 +185,7 @@
           </div>
           <div class="hud-cash-row justify-end">
             <span class="hud-cash-icon" title="Cash">💵</span>
-            <span id="hud-cash-val-{player.id}" class="hud-cash-amount">{player.cashFormatted || '$0'}</span>
+            <span id="hud-cash-val-{player.id}" class="hud-cash-amount">{player.cashFormatted ?? '0'}</span>
           </div>
         </div>
         <div class="avatar-circle" style="box-shadow: 0 0 0 2.5px {player.colorHex || '#3b82f6'}, 0 4px 10px rgba(0,0,0,0.12);">
@@ -201,12 +205,16 @@
   {/each}
 
   {#if state.isTeamMode && (state.rightPlayers || []).length > 0}
-    <div class="team-networth-pill mt-0.5 flex items-center justify-end gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border-2 border-sky-400/80 shadow-md text-slate-800">
+    {@const rightColor = (state.rightPlayers && state.rightPlayers[0]?.teamId !== undefined) ? (state.rightPlayers[0].teamId === 0 ? '#ef4444' : '#3b82f6') : (state.rightTeamColor || '#3b82f6')}
+    <div
+      class="team-networth-pill mt-1 flex items-center justify-end gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border-2 shadow-md text-slate-800"
+      style="border-color: {rightColor};"
+    >
       <div class="flex flex-col text-right">
-        <span class="text-[9px] font-black uppercase tracking-wider text-sky-600 leading-tight">{state.rightTeamLabel || 'TEAM BLUE'}</span>
-        <span class="text-xs font-black font-mono text-slate-900 leading-tight">{state.rightTeamNetWorth || '$0'}</span>
+        <span class="text-[9px] font-black uppercase tracking-wider leading-none" style="color: {rightColor};">{state.rightTeamLabel || 'TEAM BLUE'}</span>
+        <span class="text-xs font-black font-mono text-slate-900 leading-normal mt-0.5">{state.rightTeamNetWorth || '$0'}</span>
       </div>
-      <span class="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-xs flex-shrink-0 animate-pulse"></span>
+      <span class="w-2.5 h-2.5 rounded-full shadow-xs flex-shrink-0 animate-pulse" style="background-color: {rightColor};"></span>
     </div>
   {/if}
 </div>

@@ -159,6 +159,10 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
           logEvent(`🏗️ <strong>${player.name}</strong> invested and built a house in teammate <strong>${partnerName}</strong>'s city <strong>${tile.name}</strong> (Now Level ${st.level})!`);
           refreshTileTextureAndBuildings(tile.id);
           renderCornerHUDs();
+          if (networkState.isMultiplayer && networkState.isHost) {
+            broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, count: 1, levelsToAdd: 1 });
+            broadcastFullGameState();
+          }
         }
         if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
       } else {
@@ -187,7 +191,8 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         const partnerIdx = teammates[0];
         const partner = gameState.players[partnerIdx];
         if (partner && partner.cash >= deficit) {
-          if (partner.isAI && partner.cash >= deficit + 200000) {
+          const shouldBailout = partner.isAI ? (partner.cash >= deficit + 200000) : (partner.cash >= deficit);
+          if (shouldBailout) {
             partner.cash -= deficit;
             player.cash += deficit;
             playSFX('cash');
@@ -196,6 +201,12 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
             showSpeechBubble(`${partner.name} bailed out ${player.name}! 🤝`, 2400);
             logEvent(`🤝 <strong>TEAM BAILOUT!</strong> <strong>${partner.name}</strong> transferred <strong>${fmtMoney(deficit)}</strong> to rescue teammate <strong>${player.name}</strong> from rent bankruptcy!`);
             renderCornerHUDs();
+            if (networkState.isMultiplayer) {
+              broadcastAction('ACTION_TEAM_BAILOUT', { partnerIdx, playerIdx, deficit });
+              if (networkState.isHost) {
+                broadcastFullGameState();
+              }
+            }
           }
         }
       }
@@ -211,7 +222,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
             showSpeechBubble(`${player.name} is selling cities to pay rent...`, 2500);
             return;
           }
-          await this.handleAIDebtorLiquidation(playerIdx, player, owner, rent, isDoubles);
+          await this.handleAIDebtorLiquidation(playerIdx, player, owner, rent, isDoubles, st.owner);
           return;
         } else {
           if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
@@ -226,13 +237,6 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
               isDoubles: Boolean(isDoubles)
             };
             logEvent(`💸 <strong>${player.name}</strong> is selling cities to pay rent to <strong>${owner.name}</strong>.`);
-            broadcastAction('ACTION_RENT_DEBT', {
-              debtorIdx: playerIdx,
-              creditorIdx: st.owner,
-              rentOwed: rent,
-              tileId: tile.id,
-              isDoubles: Boolean(isDoubles)
-            });
 
             // Host safety timeout if remote debtor peer disconnects or freezes
             if (networkState.isHost) {
@@ -263,7 +267,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         }
       } else {
         // Bankruptcy: Debtor owns 0 properties and cash < rent
-        this.executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles);
+        this.executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles, st.owner);
         return;
       }
     }
@@ -289,7 +293,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
           await this.handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles);
           return;
         }
-      } else if (player.cash >= buyoutCost + 100000) {
+      } else if (player.cash >= buyoutCost) {
         if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
           showSpeechBubble(`${player.name} is considering a buyout of ${tile.name}...`, 3000);
           setStatusPill(`⚔️ Waiting for <strong>${player.name}</strong> to decide on hostile buyout of <strong>${tile.name}</strong>...`, { isThinking: true, playerIdx });
@@ -298,7 +302,11 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
           if (networkState.isHost) {
             setTimeout(() => {
               if (gameState.phase === 'MODAL' && gameState.currentPlayerIdx === playerIdx) {
-                if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
+                if (typeof window !== 'undefined' && window.passBuyoutCity) {
+                  window.passBuyoutCity();
+                } else if (window.concludeActionPhase) {
+                  window.concludeActionPhase(isDoubles);
+                }
               }
             }, 14000);
           }
@@ -342,7 +350,11 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     }
   }
 
-  async handleAIDebtorLiquidation(playerIdx, player, owner, rent, isDoubles) {
+  async handleAIDebtorLiquidation(playerIdx, player, owner, rent, isDoubles, ownerIdx = null) {
+    const resolvedOwnerIdx = typeof ownerIdx === 'number' && ownerIdx >= 0
+      ? ownerIdx
+      : (owner ? gameState.players.indexOf(owner) : -1);
+
     setStatusPill(`💸 <strong>${player.name}</strong> is selling cities to pay rent to <strong>${owner.name}</strong>...`, { isThinking: true, playerIdx });
     logEvent(`💸 <strong>${player.name}</strong> is selling properties to pay <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
     await new Promise(r => setTimeout(r, getGameDelay(700)));
@@ -369,18 +381,22 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     clearThinkingState();
 
     if (player.cash >= rent) {
-      await animateRentTransferOnHUD(playerIdx, owner.id !== undefined ? owner.id : gameState.properties[cheapest?.id]?.owner, rent);
+      await animateRentTransferOnHUD(playerIdx, resolvedOwnerIdx >= 0 ? resolvedOwnerIdx : 0, rent);
       player.cash -= rent;
       owner.cash += rent;
       logEvent(`💸 <strong>${player.name}</strong> settled <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
       renderCornerHUDs();
       if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
     } else {
-      this.executeBankruptcy(playerIdx, player, owner, rent, null, isDoubles);
+      this.executeBankruptcy(playerIdx, player, owner, rent, null, isDoubles, resolvedOwnerIdx);
     }
   }
 
-  executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles) {
+  executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles, ownerIdx = null) {
+    const resolvedOwnerIdx = typeof ownerIdx === 'number' && ownerIdx >= 0
+      ? ownerIdx
+      : (owner ? gameState.players.indexOf(owner) : null);
+
     const paid = Math.max(0, player.cash);
     player.cash = 0;
     if (owner) {
@@ -403,9 +419,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     triggerBoardShockwave(0, 0, 26, 32);
 
     if (networkState.isMultiplayer) {
-      const creditorIdx = owner
-        ? (owner.id !== undefined ? owner.id : (gameState.players.indexOf(owner) >= 0 ? gameState.players.indexOf(owner) : null))
-        : null;
+      const creditorIdx = resolvedOwnerIdx !== null && resolvedOwnerIdx >= 0 ? resolvedOwnerIdx : null;
       broadcastAction('ACTION_BANKRUPTCY', {
         bankruptIdx: playerIdx,
         creditorIdx,
@@ -519,7 +533,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
     if (st && st.level < 4 && player.cash >= tile.houseCost + 200000) {
-      upgradeCityLevel(playerIdx, tile.id, 1);
+      upgradeCityLevel(tile.id, true);
       showSpeechBubble(`Upgraded ${tile.name}! 🏗️`, 1800);
       logEvent(`🏗️ <strong>${player.name}</strong> upgraded estate in <strong>${tile.name}</strong>.`);
       if (networkState.isMultiplayer && networkState.isHost) {

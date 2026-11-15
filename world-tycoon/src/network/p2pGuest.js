@@ -222,6 +222,7 @@ function applyGameplayMatchSettings(src) {
   if (typeof src.matchDurationMinutes === 'number') matchSettings.matchDurationMinutes = src.matchDurationMinutes;
   if (typeof src.monopolySetsToWin === 'number') matchSettings.monopolySetsToWin = src.monopolySetsToWin;
   if (typeof src.lineMonopolyEnabled === 'boolean') matchSettings.lineMonopolyEnabled = src.lineMonopolyEnabled;
+  if (typeof src.teamMode === 'boolean') matchSettings.teamMode = src.teamMode;
   if (src.lightingTheme && ['day', 'sunset', 'night'].includes(src.lightingTheme)) {
     matchSettings.lightingTheme = src.lightingTheme;
     applyLightingMode(src.lightingTheme, getSceneLighting());
@@ -254,14 +255,31 @@ export function handleGuestReceivedMessage(msg) {
       if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
+        const isTeam = Boolean(matchSettings.teamMode);
         setupPlayers.forEach((sp, idx) => {
+          if (isTeam) {
+            const teamId = sp.teamId !== undefined ? sp.teamId : (idx % 2);
+            sp.teamId = teamId;
+            sp.colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+            sp.charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+          }
           if (!matchSettings.customPlayers[idx]) {
             matchSettings.customPlayers[idx] = { ...sp };
           } else {
             Object.assign(matchSettings.customPlayers[idx], sp);
           }
+          if (isTeam && matchSettings.customPlayers[idx]) {
+            const teamId = matchSettings.customPlayers[idx].teamId !== undefined ? matchSettings.customPlayers[idx].teamId : (idx % 2);
+            matchSettings.customPlayers[idx].colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+            matchSettings.customPlayers[idx].charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+          }
           if (PLAYER_THEMES[idx]) {
             Object.assign(PLAYER_THEMES[idx], sp);
+            if (isTeam) {
+              const teamId = sp.teamId !== undefined ? sp.teamId : (idx % 2);
+              PLAYER_THEMES[idx].colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+              PLAYER_THEMES[idx].charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+            }
           }
         });
       }
@@ -299,7 +317,14 @@ export function handleGuestReceivedMessage(msg) {
       if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
+        const isTeam = Boolean(matchSettings.teamMode);
         setupPlayers.forEach((sp, idx) => {
+          if (isTeam) {
+            const teamId = sp.teamId !== undefined ? sp.teamId : (idx % 2);
+            sp.teamId = teamId;
+            sp.colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+            sp.charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+          }
           if (!matchSettings.customPlayers[idx]) {
             matchSettings.customPlayers[idx] = { ...sp };
           } else {
@@ -382,14 +407,31 @@ export function handleGuestReceivedMessage(msg) {
       if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
+        const isTeam = Boolean(matchSettings.teamMode);
         setupPlayers.forEach((sp, idx) => {
+          if (isTeam) {
+            const teamId = sp.teamId !== undefined ? sp.teamId : (idx % 2);
+            sp.teamId = teamId;
+            sp.colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+            sp.charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+          }
           if (!matchSettings.customPlayers[idx]) {
             matchSettings.customPlayers[idx] = { ...sp };
           } else {
             Object.assign(matchSettings.customPlayers[idx], sp);
           }
+          if (isTeam && matchSettings.customPlayers[idx]) {
+            const teamId = matchSettings.customPlayers[idx].teamId !== undefined ? matchSettings.customPlayers[idx].teamId : (idx % 2);
+            matchSettings.customPlayers[idx].colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+            matchSettings.customPlayers[idx].charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+          }
           if (PLAYER_THEMES[idx]) {
             Object.assign(PLAYER_THEMES[idx], sp);
+            if (isTeam) {
+              const teamId = sp.teamId !== undefined ? sp.teamId : (idx % 2);
+              PLAYER_THEMES[idx].colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+              PLAYER_THEMES[idx].charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+            }
           }
         });
       }
@@ -420,14 +462,31 @@ export function handleGuestReceivedMessage(msg) {
       if (msg.matchSettings) applyGameplayMatchSettings(msg.matchSettings);
       if (msg.setupPlayers) {
         setupPlayers.splice(0, setupPlayers.length, ...msg.setupPlayers);
+        const isTeam = Boolean(matchSettings.teamMode);
         setupPlayers.forEach((sp, idx) => {
+          if (isTeam) {
+            const teamId = sp.teamId !== undefined ? sp.teamId : (idx % 2);
+            sp.teamId = teamId;
+            sp.colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+            sp.charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+          }
           if (!matchSettings.customPlayers[idx]) {
             matchSettings.customPlayers[idx] = { ...sp };
           } else {
             Object.assign(matchSettings.customPlayers[idx], sp);
           }
+          if (isTeam && matchSettings.customPlayers[idx]) {
+            const teamId = matchSettings.customPlayers[idx].teamId !== undefined ? matchSettings.customPlayers[idx].teamId : (idx % 2);
+            matchSettings.customPlayers[idx].colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+            matchSettings.customPlayers[idx].charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+          }
           if (PLAYER_THEMES[idx]) {
             Object.assign(PLAYER_THEMES[idx], sp);
+            if (isTeam) {
+              const teamId = sp.teamId !== undefined ? sp.teamId : (idx % 2);
+              PLAYER_THEMES[idx].colorHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+              PLAYER_THEMES[idx].charColor = teamId === 0 ? 0xef4444 : 0x3b82f6;
+            }
           }
         });
       }
@@ -476,6 +535,7 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_REACTION':
     case 'ACTION_CHAT_EMOTE':
     case 'ACTION_REQUEST_PLAY_AGAIN':
+    case 'ACTION_TEAM_BAILOUT':
     case 'ACTION_GUEST_LOBBY': {
       executeIncomingNetworkAction(msg);
       break;

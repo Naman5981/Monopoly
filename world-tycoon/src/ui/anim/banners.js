@@ -7,6 +7,10 @@
 import { isReducedMotion } from './common.js';
 import { triggerBanner } from '../../svelte/stores/bannerStore.js';
 
+function isSvelteMounted() {
+  return typeof document !== 'undefined' && Boolean(document.getElementById('svelte-hud-mount')?.firstElementChild);
+}
+
 /**
  * Comic-book pop banner when rolling doubles.
  * @param {string} playerName - Player who rolled doubles
@@ -14,7 +18,7 @@ import { triggerBanner } from '../../svelte/stores/bannerStore.js';
 export function animateDoublesBurstBanner(playerName = '') {
   triggerBanner('doubles', { playerName }, 1600);
 
-  if (typeof document !== 'undefined' && !document.getElementById('doubles-comic-banner')) {
+  if (typeof document !== 'undefined' && !isSvelteMounted() && !document.getElementById('doubles-comic-banner')) {
     const el = document.createElement('div');
     el.id = 'doubles-comic-banner';
     el.style.display = 'flex';
@@ -29,7 +33,7 @@ export function animateDoublesBurstBanner(playerName = '') {
 export function animateBoardingPassZoom(destinationName = 'AIRPORT') {
   triggerBanner('boardingPass', { destinationName }, 2000);
 
-  if (typeof document !== 'undefined' && !document.getElementById('world-tour-boarding-pass')) {
+  if (typeof document !== 'undefined' && !isSvelteMounted() && !document.getElementById('world-tour-boarding-pass')) {
     const el = document.createElement('div');
     el.id = 'world-tour-boarding-pass';
     el.style.display = 'flex';
@@ -45,7 +49,7 @@ export function animateBoardingPassZoom(destinationName = 'AIRPORT') {
 export function animateMonopolyRibbonUnfurl(groupName = 'COLOR GROUP', colorHex = '#eab308') {
   triggerBanner('monopoly', { groupName, colorHex }, 2000);
 
-  if (typeof document !== 'undefined' && !document.getElementById('monopoly-anime-ribbon')) {
+  if (typeof document !== 'undefined' && !isSvelteMounted() && !document.getElementById('monopoly-anime-ribbon')) {
     const el = document.createElement('div');
     el.id = 'monopoly-anime-ribbon';
     el.style.display = 'flex';
@@ -62,7 +66,7 @@ export function animateMonopolyRibbonUnfurl(groupName = 'COLOR GROUP', colorHex 
 export function animateBuyoutHostileStamp(cityName = 'PROPERTY', buyerName = null, prevOwnerName = null) {
   triggerBanner('takeover', { cityName, buyerName, prevOwnerName }, 2200);
 
-  if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined' && !isSvelteMounted()) {
     let stamp = document.getElementById('buyout-hostile-stamp');
     if (!stamp) {
       stamp = document.createElement('div');
@@ -92,7 +96,7 @@ export function animatePlayerEliminatedBanner(player, creditor = null) {
 
   triggerBanner('eliminated', { playerName, creditorName }, 2800);
 
-  if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined' && !isSvelteMounted()) {
     let banner = document.getElementById('player-eliminated-banner');
     if (!banner) {
       banner = document.createElement('div');

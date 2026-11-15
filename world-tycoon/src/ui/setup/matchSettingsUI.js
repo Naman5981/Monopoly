@@ -3,11 +3,11 @@
  * Match settings buttons: Starting Cash, Turn Timer, Duration, Atmosphere, Board Styles & Editions, and Color Swatches.
  */
 
-import { matchSettings, lobbyPlayerCount } from '../../game/state.js';
-import { applyBoardEdition } from '../../game/data.js';
+import { matchSettings, lobbyPlayerCount, setupPlayers } from '../../game/state.js';
+import { applyBoardEdition, PLAYER_THEMES } from '../../game/data.js';
 import { playSFX } from '../../game/audio.js';
 import { applyLightingMode } from '../../three/effects.js';
-import { getSceneLighting, applyBoardStyle, refreshAllTileTexturesAndMaterials } from '../../three/scene.js';
+import { getSceneLighting, applyBoardStyle, refreshAllTileTexturesAndMaterials, updateLobbyHeroAvatar } from '../../three/scene.js';
 import { networkState, broadcastLobbySettings, broadcastAction } from '../../network/p2p.js';
 import { CANDY_PALETTE, canCurrentPlayerChangeColor, selectedSetupPlayerIdx } from './playerCustomization.js';
 import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
@@ -138,9 +138,26 @@ export function setTeamMode(enabled) {
     matchSettings.monopolySetsToWin = 4;
     matchSettings.customPlayers.forEach((p, idx) => {
       if (p.teamId === undefined) p.teamId = idx % 2;
+      const teamHex = p.teamId === 0 ? '#ef4444' : '#3b82f6';
+      const teamChar = p.teamId === 0 ? 0xef4444 : 0x3b82f6;
+      p.colorHex = teamHex;
+      p.charColor = teamChar;
+      if (PLAYER_THEMES[idx]) {
+        PLAYER_THEMES[idx].colorHex = teamHex;
+        PLAYER_THEMES[idx].charColor = teamChar;
+      }
+      if (setupPlayers[idx]) {
+        setupPlayers[idx].teamId = p.teamId;
+        setupPlayers[idx].colorHex = teamHex;
+        setupPlayers[idx].charColor = teamChar;
+      }
     });
   } else {
     matchSettings.monopolySetsToWin = 3;
+  }
+  const curP = matchSettings.customPlayers[selectedSetupPlayerIdx] || matchSettings.customPlayers[0];
+  if (curP) {
+    updateLobbyHeroAvatar(curP.hatStyle || 0, curP.colorHex || '#3b82f6', curP.charColor || 0x3b82f6);
   }
   playSFX('hop');
   renderMatchSettingButtons();

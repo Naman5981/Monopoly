@@ -182,8 +182,10 @@ export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks, creditor
 
   for (const t of BOARD_TILES) {
     const st = gameState.properties[t.id];
+    const houseCost = t.houseCost || 0;
+    if (houseCost <= 0) continue;
     while (p.cash < 0 && st && st.owner === playerIdx && st.level > 0) {
-      const refund = t.houseCost / 2;
+      const refund = Math.floor(houseCost / 2);
       p.cash += refund;
       st.level--;
       refreshCallbacks?.onRefreshTile?.(t.id);

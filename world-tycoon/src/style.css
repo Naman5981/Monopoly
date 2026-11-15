@@ -1443,6 +1443,11 @@ body {
   display: flex !important;
 }
 
+#modal-chance-wheel.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 /* ═══ 3D CHANCE WHEEL GOLDEN TICKER PIN & NEEDLE ═══ */
 #chance-wheel-ticker-pin,
 .chance-wheel-ticker-pin {
@@ -2467,6 +2472,15 @@ body.production-build #debug-modal {
   z-index: 1000 !important;
 }
 
+#modal-buy-city-card,
+#modal-buyout-city-card,
+#modal-upgrade-city-card,
+#modal-auction-card,
+#modal-incoming-trade-card {
+  background-color: rgba(2, 6, 23, 0.96) !important;
+  color: #ffffff !important;
+}
+
 #event-log-drawer { z-index: 1350 !important; }
 #debug-suite-panel { z-index: 1400 !important; }
 #debug-floating-toggle-pill { display: none !important; }
@@ -2621,4 +2635,34 @@ html, body {
 .hud-capsule-btn:active {
   transform: scale(0.97) translateY(1px) !important;
   transition: transform 30ms ease-out !important;
+}
+
+/* Speech-bubble callout animation for Leaderboard Popover (/fixing-motion-performance /game-art) */
+@keyframes speechBubblePopIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.85);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.speech-bubble-pop-in {
+  transform-origin: 65% -6px;
+  animation: speechBubblePopIn 260ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speech-bubble-pop-in {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }

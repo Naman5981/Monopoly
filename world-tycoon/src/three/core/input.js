@@ -274,7 +274,7 @@ export function initInputHandlers(domElement, onTileClickCb) {
     pointerMoved = false;
 
     const isZoomed = (cameraState.targetCameraZoom > 1.05 || cameraState.cameraZoom > 1.05);
-    // Left-click while zoomed in or middle-click pans; otherwise left-click when zoomed out or right-click rotates
+    // Left-click while zoomed in or middle-click pans; mouse board rotation is removed in favor of HUD capsule controls
     isPanningMode = (e.button === 1) || (e.button === 0 && isZoomed);
 
     if (isPanningMode) {
@@ -291,29 +291,23 @@ export function initInputHandlers(domElement, onTileClickCb) {
         pointerMoved = true;
       }
 
-      if (pointerMoved) {
-        if (isPanningMode) {
-          domElement.style.cursor = 'grabbing';
-          const prevPt = getGroundPoint(lastDragX, lastDragY);
-          const currPt = getGroundPoint(e.clientX, e.clientY);
-          if (prevPt && currPt) {
-            const delta = currPt.clone().sub(prevPt);
-            // Move camera target opposite to drag vector so world moves 1:1 with cursor
-            cameraState.targetCameraTarget.sub(delta);
-            cameraState.cameraTarget.sub(delta);
+      if (pointerMoved && isPanningMode) {
+        domElement.style.cursor = 'grabbing';
+        const prevPt = getGroundPoint(lastDragX, lastDragY);
+        const currPt = getGroundPoint(e.clientX, e.clientY);
+        if (prevPt && currPt) {
+          const delta = currPt.clone().sub(prevPt);
+          // Move camera target opposite to drag vector so world moves 1:1 with cursor
+          cameraState.targetCameraTarget.sub(delta);
+          cameraState.cameraTarget.sub(delta);
 
-            const maxPan = 13.5;
-            cameraState.targetCameraTarget.x = Math.max(-maxPan, Math.min(maxPan, cameraState.targetCameraTarget.x));
-            cameraState.targetCameraTarget.z = Math.max(-maxPan, Math.min(maxPan, cameraState.targetCameraTarget.z));
-            cameraState.cameraTarget.x = Math.max(-maxPan, Math.min(maxPan, cameraState.cameraTarget.x));
-            cameraState.cameraTarget.z = Math.max(-maxPan, Math.min(maxPan, cameraState.cameraTarget.z));
+          const maxPan = 13.5;
+          cameraState.targetCameraTarget.x = Math.max(-maxPan, Math.min(maxPan, cameraState.targetCameraTarget.x));
+          cameraState.targetCameraTarget.z = Math.max(-maxPan, Math.min(maxPan, cameraState.targetCameraTarget.z));
+          cameraState.cameraTarget.x = Math.max(-maxPan, Math.min(maxPan, cameraState.cameraTarget.x));
+          cameraState.cameraTarget.z = Math.max(-maxPan, Math.min(maxPan, cameraState.cameraTarget.z));
 
-            updateIsometricCamera();
-          }
-        } else {
-          // Orbit rotate azimuth
-          const dx = e.clientX - lastDragX;
-          cameraState.targetCameraAzimuth += dx * 0.0045;
+          updateIsometricCamera();
         }
 
         lastDragX = e.clientX;
@@ -348,10 +342,6 @@ export function initInputHandlers(domElement, onTileClickCb) {
       if (dragButton === 0) {
         handleCanvasClick(e);
       }
-    } else if (!isPanningMode) {
-      // Snap to nearest 45 degree angle so board layout remains crisp and squared
-      const snap = Math.PI / 4;
-      cameraState.targetCameraAzimuth = Math.round(cameraState.targetCameraAzimuth / snap) * snap;
     }
   });
 

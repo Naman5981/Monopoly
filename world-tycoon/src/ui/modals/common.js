@@ -256,6 +256,9 @@ if (typeof window !== 'undefined') {
 export function closeAllGameModals() {
   releaseFocus();
   clearCityPreview();
+  if (typeof window !== 'undefined' && typeof window.closeMonopolyModal === 'function') {
+    window.closeMonopolyModal();
+  }
   closeAllModalsInStore();
   const modalIds = [
     'modal-victory',

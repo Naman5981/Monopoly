@@ -88,9 +88,17 @@ export function buildAllBoardTiles3D(boardGroup) {
 
   BOARD_TILES.forEach(tile => {
     const pos = getTileWorldPosition(tile.id);
-    const propState = gameState.properties[tile.id] || null;
-    const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
-    const ownerTheme = isOwned ? PLAYER_THEMES[propState.owner] : null;
+    const propState = gameState?.properties?.[tile.id] || null;
+    const isOwned = Boolean(propState?.owner !== null && propState?.owner !== undefined && gameState?.players?.[propState.owner]);
+    const ownerPlayer = isOwned ? gameState.players[propState.owner] : null;
+    const isTeam = Boolean(matchSettings?.teamMode);
+    const ownerTeam = ownerPlayer ? (ownerPlayer.teamId !== undefined ? ownerPlayer.teamId : ((propState?.owner || 0) % 2)) : 0;
+    const teamColorHex = ownerTeam === 0 ? '#ef4444' : '#3b82f6';
+    const teamCharColor = ownerTeam === 0 ? 0xef4444 : 0x3b82f6;
+    const ownerThemeFallback = (propState?.owner != null && PLAYER_THEMES[propState.owner]) ? PLAYER_THEMES[propState.owner] : null;
+    const ownerColorHex = isTeam ? teamColorHex : (ownerPlayer?.colorHex || ownerThemeFallback?.colorHex || '#3b82f6');
+    const ownerColor = isTeam ? teamCharColor : (ownerPlayer?.charColor ?? ownerThemeFallback?.charColor ?? 0x6366f1);
+    const ownerTheme = isOwned ? { colorHex: ownerColorHex, charColor: ownerColor } : null;
     const lightPlayerAccent = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
     const boardStyle = matchSettings.boardStyle || 'wood';
     const isCyber = (boardStyle === 'cyberpunk');
@@ -126,7 +134,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     const borderFrame = createTileBorderFrame(ownerTheme ? ownerTheme.colorHex : '#e2e8f0');
     borderFrame.visible = !!isOwned;
     if (isOwned && ownerTheme) {
-      const isLocalPlayer = (propState.owner === gameState.localPlayerIdx);
+      const isLocalPlayer = Boolean(propState?.owner != null && propState.owner === gameState?.localPlayerIdx);
       borderFrame.userData.borderMat.emissiveIntensity = isLocalPlayer ? 0.55 : 0.28;
     }
     tileMesh.add(borderFrame);
@@ -206,8 +214,16 @@ export function refreshTileTextureAndBuildings(tileId) {
     topMat.needsUpdate = true;
   }
 
-  const isOwned = propState?.owner !== null && propState?.owner !== undefined && gameState.players[propState.owner];
-  const ownerTheme = isOwned ? PLAYER_THEMES[propState.owner] : null;
+  const isOwned = Boolean(propState?.owner !== null && propState?.owner !== undefined && gameState?.players?.[propState.owner]);
+  const ownerPlayer = isOwned ? gameState.players[propState.owner] : null;
+  const isTeam = Boolean(matchSettings?.teamMode);
+  const ownerTeam = ownerPlayer ? (ownerPlayer.teamId !== undefined ? ownerPlayer.teamId : ((propState?.owner || 0) % 2)) : 0;
+  const teamColorHex = ownerTeam === 0 ? '#ef4444' : '#3b82f6';
+  const teamCharColor = ownerTeam === 0 ? 0xef4444 : 0x3b82f6;
+  const ownerThemeFallback = (propState?.owner != null && PLAYER_THEMES[propState.owner]) ? PLAYER_THEMES[propState.owner] : null;
+  const ownerColorHex = isTeam ? teamColorHex : (ownerPlayer?.colorHex || ownerThemeFallback?.colorHex || '#3b82f6');
+  const ownerColor = isTeam ? teamCharColor : (ownerPlayer?.charColor ?? ownerThemeFallback?.charColor ?? 0x6366f1);
+  const ownerTheme = isOwned ? { colorHex: ownerColorHex, charColor: ownerColor } : null;
   const lightPlayerAccent = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
 
   const boardStyle = matchSettings.boardStyle || 'wood';
@@ -247,7 +263,7 @@ export function refreshTileTextureAndBuildings(tileId) {
       frame.visible = true;
       frame.userData.borderMat.color.setStyle(ownerTheme.colorHex);
       frame.userData.borderMat.emissive.setStyle(ownerTheme.colorHex);
-      const isLocalPlayer = (propState.owner === gameState.localPlayerIdx);
+      const isLocalPlayer = Boolean(propState?.owner != null && propState.owner === gameState?.localPlayerIdx);
       if (isNight) {
         frame.userData.borderMat.emissiveIntensity = isLocalPlayer ? 1.15 : 0.85;
       } else if (isSunset) {
@@ -285,8 +301,8 @@ export function refreshTileTextureAndBuildings(tileId) {
   // Dedicated Resort Architecture (Beach Cabana & Palm Oasis)
   if (tile.type === 'resort') {
     const isOwned = Boolean(propState && propState.owner !== null);
-    const ownerColor = isOwned ? (PLAYER_THEMES[propState.owner]?.charColor ?? 0x6366f1) : null;
-    const resortMesh = createDetailedResortMesh(ownerColor, isOwned);
+    const resortOwnerColor = isOwned ? ownerColor : null;
+    const resortMesh = createDetailedResortMesh(resortOwnerColor, isOwned);
     resortMesh.position.set(0, 0, -1.02);
     bGroup.add(resortMesh);
     if (isOwned) {
@@ -297,7 +313,6 @@ export function refreshTileTextureAndBuildings(tileId) {
 
   if (!propState || propState.owner === null) return;
 
-  const ownerColor = PLAYER_THEMES[propState.owner]?.charColor ?? 0x6366f1;
   const lvl = propState.level || 0;
 
   if (lvl === 0) {
