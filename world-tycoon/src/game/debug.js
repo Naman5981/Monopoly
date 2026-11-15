@@ -8,7 +8,7 @@
  */
 
 import { gameState, debugState, matchSettings } from './state.js';
-import { BUILD_CONFIG } from './buildConfig.js';
+import { BUILD_CONFIG, isLocalDevEnvironment } from './buildConfig.js';
 import {
   ensureGameStarted,
   debugRoll,
@@ -53,11 +53,12 @@ export * from './debug/ui.js';
  * Initialize Developer & QA Testing Suite
  */
 export function initDebugSuite() {
-  const isDebugAllowed = BUILD_CONFIG?.DEBUG_ENABLED !== false &&
+  const isDebugAllowed = isLocalDevEnvironment() &&
+    BUILD_CONFIG?.DEBUG_ENABLED !== false &&
     (typeof __DEBUG_ALLOWED__ === 'undefined' || __DEBUG_ALLOWED__ !== false);
 
   if (!isDebugAllowed) {
-    // Production / CI Release Build: completely disable debug suite
+    // Production / Vercel / CI Release Build: completely disable debug suite
     window.toggleDebugPanel = () => {};
     if (window.debug) delete window.debug;
     if (window.WorldTycoonDebug) delete window.WorldTycoonDebug;

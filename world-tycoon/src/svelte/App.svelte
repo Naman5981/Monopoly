@@ -6,9 +6,10 @@
   import GameHud from './hud/GameHud.svelte';
   import ModalsRoot from './modals/ModalsRoot.svelte';
   import DebugDrawer from './debug/DebugDrawer.svelte';
-  import { BUILD_CONFIG } from '../game/config.js';
+  import { BUILD_CONFIG, isLocalDevEnvironment } from '../game/buildConfig.js';
 
-  const isDebugAllowed = BUILD_CONFIG?.DEBUG_ENABLED !== false &&
+  const isDebugAllowed = isLocalDevEnvironment() &&
+    BUILD_CONFIG?.DEBUG_ENABLED !== false &&
     (typeof __DEBUG_ALLOWED__ === 'undefined' || __DEBUG_ALLOWED__ !== false);
 </script>
 

@@ -4,7 +4,7 @@
  */
 
 import { applyBoardEdition } from './game/data.js';
-import { BUILD_CONFIG } from './game/buildConfig.js';
+import { BUILD_CONFIG, isLocalDevEnvironment } from './game/buildConfig.js';
 import { gameState, debugState, incrementMatchSeconds, matchSeconds, soundEnabled, soundVolume, matchSettings, isHumanTurnActionable, cycleGameSpeed, getSavedPlayerName } from './game/state.js';
 import { updateMasterVolume, playSFX, initAudioUnlock, startAdaptiveMusic, stopAdaptiveMusic } from './game/audio.js';
 import { updateGameSpeedUI, showTurnLockToast, initFastHUDButtonInteractions, updateSoundUI, handleSetGameVolume, handleToggleSound } from './ui/hud.js';
@@ -740,7 +740,8 @@ function initApp() {
       console.warn('[Svelte] ModalsRoot mounting deferred:', err);
     }
 
-    const isDebugAllowed = BUILD_CONFIG?.DEBUG_ENABLED !== false &&
+    const isDebugAllowed = isLocalDevEnvironment() &&
+      BUILD_CONFIG?.DEBUG_ENABLED !== false &&
       (typeof __DEBUG_ALLOWED__ === 'undefined' || __DEBUG_ALLOWED__ !== false);
     if (isDebugAllowed) {
       let debugMount = document.getElementById('svelte-debug-mount');

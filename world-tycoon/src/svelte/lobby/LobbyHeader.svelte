@@ -4,11 +4,13 @@
    * Declarative lobby top bar: navigation, player profile capsule, logo, version pill, rules, and sound controls.
    */
   import { lobbyStore } from '../stores/lobbyStore.js';
+  import { BUILD_CONFIG, isLocalDevEnvironment } from '../../game/buildConfig.js';
 
   let state = $state({});
   lobbyStore.subscribe(val => { state = val; });
 
   const isTitle = $derived(state.currentView === 'title');
+  const showDebug = BUILD_CONFIG.DEBUG_ENABLED && isLocalDevEnvironment();
 
   function backToTitle() {
     window.showTitleScreen?.();
@@ -99,10 +101,12 @@
 
   <!-- Right: Rules, Audio & Quick Action Buttons (Unified 38px Height) -->
   <div class="flex items-center gap-1 sm:gap-2">
-    <button data-debug-ui="true" onclick={toggleDebug} class="h-[38px] top-pill px-2.5 sm:px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1 flex-shrink-0 transition-transform hover:scale-105 active:scale-95" title="Open Debug & QA Suite [Key: ~ or F2]" aria-label="Open Debug & QA Suite">
-      <i class="fa-solid fa-bug text-slate-900 text-xs"></i>
-      <span class="hidden sm:inline">DEBUG</span>
-    </button>
+    {#if showDebug}
+      <button data-debug-ui="true" onclick={toggleDebug} class="h-[38px] top-pill px-2.5 sm:px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1 flex-shrink-0 transition-transform hover:scale-105 active:scale-95" title="Open Debug & QA Suite [Key: ~ or F2]" aria-label="Open Debug & QA Suite">
+        <i class="fa-solid fa-bug text-slate-900 text-xs"></i>
+        <span class="hidden sm:inline">DEBUG</span>
+      </button>
+    {/if}
     <button onclick={openRules} class="h-[38px] top-pill px-2.5 sm:px-3.5 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs shadow-md border-2 border-white cursor-pointer flex items-center gap-1.5 flex-shrink-0 transition-transform hover:scale-105 active:scale-95" title="How to Play & Rules" aria-label="How to Play & Rules">
       <i class="fa-solid fa-book-open text-sky-600 text-xs"></i>
       <span class="hidden sm:inline">RULES</span>

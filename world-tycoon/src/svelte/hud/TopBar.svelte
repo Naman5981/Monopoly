@@ -1,9 +1,11 @@
 <script>
   import { hudStore } from '../stores/hudStore.js';
   import { modalStore } from '../stores/modalStore.js';
+  import { BUILD_CONFIG, isLocalDevEnvironment } from '../../game/buildConfig.js';
 
   let state = $state({});
   let isLeaderboardOpen = $state(false);
+  const showDebug = BUILD_CONFIG.DEBUG_ENABLED && isLocalDevEnvironment();
   hudStore.subscribe(val => { state = val; });
   modalStore.subscribe(val => { isLeaderboardOpen = Boolean(val?.leaderboard?.visible); });
 
@@ -162,9 +164,11 @@
     </button>
 
     <!-- Debug Trigger -->
-    <button id="btn-hud-debug" data-debug-ui="true" onclick={onDebug} class="hud-pill !bg-amber-400 hover:!bg-amber-300 text-slate-950 font-black border border-amber-300 !px-2.5 !py-1 text-xs flex items-center gap-1 cursor-pointer" title="Open Debug & QA Suite [Key: ~ or F2]" aria-label="Open Debug Panel">
-      <i class="fa-solid fa-bug text-xs"></i>
-      <span class="hidden 2xl:inline text-[11px]">DEBUG</span>
-    </button>
+    {#if showDebug}
+      <button id="btn-hud-debug" data-debug-ui="true" onclick={onDebug} class="hud-pill !bg-amber-400 hover:!bg-amber-300 text-slate-950 font-black border border-amber-300 !px-2.5 !py-1 text-xs flex items-center gap-1 cursor-pointer" title="Open Debug & QA Suite [Key: ~ or F2]" aria-label="Open Debug Panel">
+        <i class="fa-solid fa-bug text-xs"></i>
+        <span class="hidden 2xl:inline text-[11px]">DEBUG</span>
+      </button>
+    {/if}
   </div>
 </header>

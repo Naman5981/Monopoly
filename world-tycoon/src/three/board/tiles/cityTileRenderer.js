@@ -26,6 +26,23 @@ function adjustColorBrightness(hex, percent) {
 }
 
 /**
+ * Resolves the owner theme color for ribbons and on-tile rent price text.
+ * Respects Team Mode (Red #ef4444 / Blue #3b82f6) and player custom colors in Solo Mode.
+ * @param {object|null} propState
+ * @returns {string}
+ */
+export function getOwnerThemeColor(propState) {
+  const ownerIdx = propState?.owner;
+  if (ownerIdx === null || ownerIdx === undefined) return '#b91c1c';
+  const player = gameState?.players?.[ownerIdx];
+  const theme = PLAYER_THEMES[ownerIdx];
+  const isTeam = Boolean(matchSettings?.teamMode);
+  const teamId = player ? (player.teamId !== undefined ? player.teamId : (ownerIdx % 2)) : (ownerIdx % 2);
+  const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
+  return isTeam ? teamHex : (player?.colorHex || theme?.colorHex || '#3b82f6');
+}
+
+/**
  * Draws the high-contrast Owner Ribbon directly onto the tile face.
  * Displays owner avatar emoji, bold capitalized name, and slot badge (P1-P4).
  */
@@ -36,8 +53,7 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
   const theme = PLAYER_THEMES[ownerIdx];
   const isTeam = Boolean(matchSettings?.teamMode);
   const teamId = player ? (player.teamId !== undefined ? player.teamId : (ownerIdx % 2)) : (ownerIdx % 2);
-  const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
-  const colorHex = isTeam ? teamHex : (player?.colorHex || theme?.colorHex || '#3b82f6');
+  const colorHex = getOwnerThemeColor(propState);
   const rawName = player?.name || theme?.name || `PLAYER ${ownerIdx + 1}`;
   const ownerName = rawName.toUpperCase();
   const icon = player?.icon || theme?.icon || THEME_ICONS[ownerIdx % THEME_ICONS.length] || '👑';
@@ -181,10 +197,12 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
   const nameY = 270;
   const valY = 415;
 
+  const rentColor = isOwned ? getOwnerThemeColor(propState) : '#b91c1c';
+
   if (isOwned) {
     if (isNight || isSunset) {
       drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
-      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, '#f43f5e');
+      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, rentColor);
     } else {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -201,7 +219,7 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
       ctx.lineWidth = isCyber ? 12 : 14;
       ctx.font = valFont;
       ctx.strokeText(valStr, 256, valY);
-      ctx.fillStyle = isCyber ? '#f43f5e' : '#b91c1c';
+      ctx.fillStyle = rentColor;
       ctx.fillText(valStr, 256, valY);
     }
   } else {
@@ -292,10 +310,12 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
   const nameY = 270;
   const valY = 415;
 
+  const rentColor = isOwned ? getOwnerThemeColor(propState) : '#b91c1c';
+
   if (isOwned) {
     if (isNight || isSunset) {
       drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
-      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, '#f43f5e');
+      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, rentColor);
     } else {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -312,7 +332,7 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
       ctx.lineWidth = isCyber ? 12 : 14;
       ctx.font = valFont;
       ctx.strokeText(valStr, 256, valY);
-      ctx.fillStyle = isCyber ? '#f43f5e' : '#b91c1c';
+      ctx.fillStyle = rentColor;
       ctx.fillText(valStr, 256, valY);
     }
   } else {
