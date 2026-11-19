@@ -3,12 +3,14 @@
  * 3D Monopoly Threat Tile Flight Animation.
  * 
  * Clean Architecture & Game Feel:
- * - Uses the authentic board tile texture directly (no synthetic card mimicry or text clutter).
- * - Extended, comfortable cinematic timeout (~3.8s - 4.2s) so players have ample time to read.
- * - Springs out of the 3D board tile up into the clear sky (+3.8 units above board).
- * - Tilts upright toward camera with warm golden amber border and dynamic point light.
- * - Hovers peacefully with gentle floating breathing.
- * - Swoops cleanly back down into the board tile slot and dissolves into place.
+ * - Uses the authentic 1:1 board tile texture created 100% upright (isUpright = true).
+ * - Strictly ROTATION LOCKED TO SCREEN at all times: faces camera/screen directly (never orients to board side).
+ * - Hides the board tile in-place so the authentic tile physically lifts off the board into the sky.
+ * - Zero duplication: Only ONE tile exists during flight.
+ * - Springs out of the 3D board tile slot up into clear sky (+3.8 units above board).
+ * - Warm golden amber frame border and dynamic point light glow.
+ * - Hovers peacefully with gentle floating breathing for comfortable reading (~3.8s - 4.2s).
+ * - Swoops cleanly back down into the board tile slot and restores board tile.
  */
 
 import * as THREE from 'three';
@@ -21,6 +23,9 @@ import { disposeHierarchy } from '../core/dispose.js';
 
 let activeThreatCardGroup = null;
 let activeThreatCardAnimId = null;
+let hiddenBoardTileMesh = null;
+let hiddenBuildingGroup = null;
+let activeTileTexture = null;
 
 /**
  * Standard elastic / backOut easing for snappy spring emergence.
@@ -40,6 +45,7 @@ function easeInCubic(x) {
 
 /**
  * Spawns the authentic 3D board tile into the sky for the Monopoly Threat cinematic.
+ * The tile is strictly rotation-locked to the screen at all times.
  * @param {number} tileId
  * @param {number} [durationMs=4000]
  */
@@ -50,33 +56,44 @@ export function spawnFlyingThreatCard(tileId, durationMs = 4000) {
   const pos = getTileWorldPosition(tileId);
   if (!tile || !pos || !context.scene) return;
 
-  // Retrieve the authentic tile canvas texture directly from the existing board mesh
+  // Retrieve existing board tile mesh and hide it so only the flying tile is on screen
   const boardTileMesh = context.tilesMeshMap?.[tileId];
+  const bGroup = context.tileBuildingGroups?.[tileId];
+
+  if (boardTileMesh) {
+    boardTileMesh.visible = false;
+    hiddenBoardTileMesh = boardTileMesh;
+  }
+  if (bGroup) {
+    bGroup.visible = false;
+    hiddenBuildingGroup = bGroup;
+  }
+
+  // Create authentic 1:1 board tile texture that is ALWAYS 100% upright to the screen
   let tileTexture = null;
-  if (boardTileMesh && Array.isArray(boardTileMesh.material) && boardTileMesh.material[2]?.map) {
-    tileTexture = boardTileMesh.material[2].map;
-  } else if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined') {
     const propState = gameState?.properties?.[tile.id] || null;
-    tileTexture = createTileTexture(tile, propState);
+    tileTexture = createTileTexture(tile, propState, true); // isUpright = true (locked to screen, never board side)
+    activeTileTexture = tileTexture;
   }
 
   const cardGroup = new THREE.Group();
   cardGroup.name = 'flyingThreatTileGroup';
 
-  // 1. Tile Front Face (1:1 authentic board tile, scaled comfortably to 3.3x3.3 for high visibility)
-  const tileGeo = new THREE.PlaneGeometry(3.3, 3.3);
+  // 1. Tile Front Face (1:1 authentic board tile, scaled comfortably to 3.2x3.2 for high visibility)
+  const tileGeo = new THREE.PlaneGeometry(3.2, 3.2);
   const tileMat = new THREE.MeshBasicMaterial({
     map: tileTexture || undefined,
     color: 0xffffff,
     transparent: true,
-    opacity: 0,
+    opacity: 1.0,
     side: THREE.DoubleSide
   });
   const tileMesh = new THREE.Mesh(tileGeo, tileMat);
   cardGroup.add(tileMesh);
 
   // 2. Glowing Amber Outer Frame Rim
-  const frameGeo = new THREE.PlaneGeometry(3.48, 3.48);
+  const frameGeo = new THREE.PlaneGeometry(3.38, 3.38);
   const frameMat = new THREE.MeshBasicMaterial({
     color: 0xf59e0b,
     transparent: true,
@@ -93,11 +110,11 @@ export function spawnFlyingThreatCard(tileId, durationMs = 4000) {
   cardGroup.add(amberLight);
 
   // Initial Placement: Rest directly on 3D tile socket
-  const startY = (pos.y || 0) + 0.20;
+  const startY = (pos.y || 0) + 0.46;
   const targetSkyY = (pos.y || 0) + 3.80; // Elevated into clear sky directly above tile
   cardGroup.position.set(pos.x, startY, pos.z);
-  cardGroup.scale.set(0.35, 0.35, 0.35);
 
+  // Strictly rotation-locked to camera/screen coordinates
   if (context.camera) {
     cardGroup.quaternion.copy(context.camera.quaternion);
   }
@@ -107,9 +124,9 @@ export function spawnFlyingThreatCard(tileId, durationMs = 4000) {
 
   // Extended, relaxed animation timeline (~3.8s - 4.2s)
   const totalAnimTime = Math.max(3800, durationMs);
-  const springDuration = 600; // Launch out of tile into sky
-  const swoopDuration = 650;  // Swoop cleanly back down into tile slot & dissolve
-  const hoverDuration = totalAnimTime - springDuration - swoopDuration; // ~2.55s - 2.95s of stable hover
+  const springDuration = 650; // Launch out of tile into sky
+  const swoopDuration = 650;  // Swoop cleanly back down into tile slot & lock in
+  const hoverDuration = totalAnimTime - springDuration - swoopDuration; // ~2.5s of stable hover
 
   const startTime = performance.now();
 
@@ -119,7 +136,7 @@ export function spawnFlyingThreatCard(tileId, durationMs = 4000) {
     const now = performance.now();
     const elapsed = now - startTime;
 
-    // Keep tile face billboarded perpendicular to camera view ray
+    // Strict rotation lock to screen: billboarded directly to camera view on every frame
     if (context.camera) {
       cardGroup.quaternion.copy(context.camera.quaternion);
     }
@@ -130,69 +147,79 @@ export function spawnFlyingThreatCard(tileId, durationMs = 4000) {
       const ease = easeOutBack(p);
 
       cardGroup.position.y = startY + (targetSkyY - startY) * ease;
-      const curScale = 0.35 + 0.65 * Math.min(1.0, ease);
+      const curScale = 1.0 + 0.15 * Math.min(1.0, ease);
       cardGroup.scale.set(curScale, curScale, curScale);
 
-      // Fade in quickly during launch
-      const fadeP = Math.min(1, elapsed / 220);
-      tileMat.opacity = fadeP;
-      frameMat.opacity = fadeP * 0.95;
-      amberLight.intensity = fadeP * 2.8;
+      // Amber glow illuminates as tile reaches altitude
+      const glowP = Math.min(1, elapsed / 300);
+      frameMat.opacity = glowP * 0.95;
+      amberLight.intensity = glowP * 2.8;
 
     } else if (elapsed < springDuration + hoverDuration) {
       // ─── PHASE 2: Extended hover in clear sky with warm amber glow ──────────
       const hoverElapsed = (elapsed - springDuration) * 0.001; // seconds
-      const bob = Math.sin(hoverElapsed * 3.5) * 0.10;
+      const bob = Math.sin(hoverElapsed * 3.5) * 0.08;
       cardGroup.position.y = targetSkyY + bob;
-      cardGroup.scale.set(1.0, 1.0, 1.0);
+      cardGroup.scale.set(1.15, 1.15, 1.15);
 
-      tileMat.opacity = 1.0;
       frameMat.opacity = 0.80 + Math.sin(hoverElapsed * 4.5) * 0.20;
       amberLight.intensity = 2.4 + Math.sin(hoverElapsed * 4.0) * 0.50;
 
     } else if (elapsed < totalAnimTime) {
-      // ─── PHASE 3: Swoops cleanly back down into board tile slot & dissolves ─
+      // ─── PHASE 3: Swoops cleanly back down into board tile slot & locks in ──
       const swoopElapsed = elapsed - (springDuration + hoverDuration);
       const p = Math.min(1, swoopElapsed / swoopDuration);
       const swoopEase = easeInCubic(p);
 
       cardGroup.position.y = targetSkyY - (targetSkyY - startY) * swoopEase;
+      const curScale = 1.15 - 0.15 * p;
+      cardGroup.scale.set(curScale, curScale, curScale);
 
-      // Dissolve in the final half of swoop as it touches the slot
-      if (p > 0.40) {
-        const dissolveP = Math.max(0, 1 - (p - 0.40) / 0.60);
-        tileMat.opacity = dissolveP;
-        frameMat.opacity = dissolveP * 0.9;
-        amberLight.intensity = dissolveP * 2.4;
-        const curScale = 0.60 + 0.40 * dissolveP;
-        cardGroup.scale.set(curScale, curScale, curScale);
-      } else {
-        tileMat.opacity = 1.0;
-        frameMat.opacity = 0.95;
-        amberLight.intensity = 2.4;
-        cardGroup.scale.set(1.0, 1.0, 1.0);
-      }
+      // Fade out amber glow as tile nears slot
+      const fadeGlow = Math.max(0, 1.0 - p * 1.5);
+      frameMat.opacity = fadeGlow * 0.9;
+      amberLight.intensity = fadeGlow * 2.4;
 
     } else {
-      // ─── COMPLETE: Dissolved cleanly into board slot ───────────────────────
+      // ─── COMPLETE: Restore board tile into slot cleanly ─────────────────────
       cancelFlyingThreatCard();
       return;
     }
 
-    activeThreatCardAnimId = requestAnimationFrame(animateCard);
+    if (typeof requestAnimationFrame !== 'undefined') {
+      activeThreatCardAnimId = requestAnimationFrame(animateCard);
+    }
   };
 
-  activeThreatCardAnimId = requestAnimationFrame(animateCard);
+  if (typeof requestAnimationFrame !== 'undefined') {
+    activeThreatCardAnimId = requestAnimationFrame(animateCard);
+  }
 }
 
 /**
- * Cleanly cancels, disposes, and removes the active flying threat tile from the scene.
+ * Cleanly cancels, disposes, and restores board tile visibility.
  */
 export function cancelFlyingThreatCard() {
-  if (activeThreatCardAnimId) {
+  if (activeThreatCardAnimId && typeof cancelAnimationFrame !== 'undefined') {
     cancelAnimationFrame(activeThreatCardAnimId);
     activeThreatCardAnimId = null;
   }
+
+  // Restore board tile visibility
+  if (hiddenBoardTileMesh) {
+    hiddenBoardTileMesh.visible = true;
+    hiddenBoardTileMesh = null;
+  }
+  if (hiddenBuildingGroup) {
+    hiddenBuildingGroup.visible = true;
+    hiddenBuildingGroup = null;
+  }
+
+  if (activeTileTexture) {
+    try { activeTileTexture.dispose(); } catch (_) {}
+    activeTileTexture = null;
+  }
+
   if (activeThreatCardGroup) {
     if (context.scene) {
       context.scene.remove(activeThreatCardGroup);

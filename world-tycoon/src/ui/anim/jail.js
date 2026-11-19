@@ -51,43 +51,53 @@ export function animateIslandJailbreak(playerIdx = 0) {
 
   card.classList.remove('in-island-detention');
 
-  const bars = card.querySelector('.island-iron-bars');
-  if (bars) {
-    if (typeof anime === 'undefined' || isReducedMotion()) {
-      bars.remove();
-      return;
-    }
+  const allBars = card.querySelectorAll('.island-iron-bars');
+  if (allBars.length === 0) return;
 
-    const children = Array.from(bars.children);
-    if (children.length >= 4) {
-      anime({
-        targets: [children[0], children[1]],
-        translateX: [-10, -90],
-        rotate: [0, -40],
-        opacity: [1, 0],
-        duration: 480,
-        easing: 'easeOutQuad'
-      });
-      anime({
-        targets: [children[2], children[3]],
-        translateX: [10, 90],
-        rotate: [0, 40],
-        opacity: [1, 0],
-        duration: 480,
-        easing: 'easeOutQuad',
-        complete: () => {
-          bars.remove();
-        }
-      });
-    } else {
-      anime({
-        targets: bars,
-        opacity: [1, 0],
-        scale: [1, 1.3],
-        duration: 400,
-        complete: () => bars.remove()
-      });
-    }
+  if (typeof anime === 'undefined' || isReducedMotion()) {
+    allBars.forEach(b => b.remove());
+    return;
+  }
+
+  // Clean up any extra duplicate bar containers immediately
+  for (let i = 1; i < allBars.length; i++) {
+    allBars[i].remove();
+  }
+
+  const bars = allBars[0];
+  const children = Array.from(bars.children);
+  if (children.length >= 4) {
+    anime({
+      targets: [children[0], children[1]],
+      translateX: [-10, -90],
+      rotate: [0, -40],
+      opacity: [1, 0],
+      duration: 480,
+      easing: 'easeOutQuad'
+    });
+    anime({
+      targets: [children[2], children[3]],
+      translateX: [10, 90],
+      rotate: [0, 40],
+      opacity: [1, 0],
+      duration: 480,
+      easing: 'easeOutQuad',
+      complete: () => {
+        bars.remove();
+        card.classList.remove('in-island-detention');
+      }
+    });
+  } else {
+    anime({
+      targets: bars,
+      opacity: [1, 0],
+      scale: [1, 1.3],
+      duration: 400,
+      complete: () => {
+        bars.remove();
+        card.classList.remove('in-island-detention');
+      }
+    });
   }
 
   // Elastic celebration bounce on HUD card

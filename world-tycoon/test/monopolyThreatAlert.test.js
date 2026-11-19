@@ -99,4 +99,23 @@ describe('Monopoly Threat Detection & Svelte Alerts (/fixing-motion-performance 
       cancelFlyingThreatCard();
     });
   });
+
+  test('spawnFlyingThreatCard locks rotation to camera and vacates board slot during flight', async () => {
+    const { spawnFlyingThreatCard, cancelFlyingThreatCard } = await import('../src/three/board/flyingThreatCard.js');
+    const { context } = await import('../src/three/core/context.js');
+
+    const fakeScene = { add: () => {}, remove: () => {} };
+    const fakeCamera = { quaternion: { copy: () => {}, x: 0.1, y: 0.2, z: 0.3, w: 0.9 } };
+    const fakeBoardMesh = { visible: true, material: [] };
+
+    context.scene = fakeScene;
+    context.camera = fakeCamera;
+    context.tilesMeshMap = { 3: fakeBoardMesh };
+
+    spawnFlyingThreatCard(3, 2000);
+    assert.equal(fakeBoardMesh.visible, false, 'Board slot must be vacated (hidden) during flight to eliminate duplicates');
+
+    cancelFlyingThreatCard();
+    assert.equal(fakeBoardMesh.visible, true, 'Board slot visibility must be restored upon flight cancellation/landing');
+  });
 });

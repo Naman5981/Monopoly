@@ -376,6 +376,7 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_DOWNGRADE_CITY':
     case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
+    case 'ACTION_RENT_DEBT':
     case 'ACTION_SELL_CITY_FOR_RENT':
     case 'ACTION_SETTLE_RENT':
     case 'ACTION_BANKRUPTCY':
@@ -385,7 +386,19 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_AUCTION_PASS':
     case 'ACTION_AUCTION_CONCLUDE':
     case 'ACTION_TRADE_OFFER':
-    case 'ACTION_TRADE_RESPONSE': {
+    case 'ACTION_TRADE_RESPONSE':
+    case 'ACTION_WORLD_TOUR':
+    case 'ACTION_CHANCE_PRIZE':
+    case 'ACTION_CHANCE_SPIN':
+    case 'ACTION_MONOPOLY':
+    case 'ACTION_MONOPOLY_THREAT':
+    case 'ACTION_SYNC_BOARD_EDITION':
+    case 'ACTION_END_TURN':
+    case 'ACTION_REACTION':
+    case 'ACTION_CHAT_EMOTE':
+    case 'ACTION_REQUEST_PLAY_AGAIN':
+    case 'ACTION_TEAM_BAILOUT':
+    case 'ACTION_GUEST_LOBBY': {
       networkState.connections.forEach((c) => {
         if (c.peer !== conn.peer && c.open) {
           try { c.send(msg); } catch (e) { console.warn('[P2P Relay Error]', e); }
@@ -397,15 +410,6 @@ export function handleHostReceivedMessage(conn, msg) {
       }
       break;
     }
-    case 'ACTION_WORLD_TOUR':
-    case 'ACTION_CHANCE_PRIZE':
-    case 'ACTION_CHANCE_SPIN':
-    case 'ACTION_MONOPOLY':
-    case 'ACTION_MONOPOLY_THREAT':
-    case 'ACTION_END_TURN':
-    case 'ACTION_REACTION':
-    case 'ACTION_CHAT_EMOTE':
-    case 'ACTION_REQUEST_PLAY_AGAIN':
     case 'ACTION_GUEST_TEAM_SELECT': {
       if (typeof msg.playerIdx === 'number' && typeof msg.teamId === 'number') {
         const teamHex = msg.teamId === 0 ? '#ef4444' : '#3b82f6';
@@ -429,18 +433,6 @@ export function handleHostReceivedMessage(conn, msg) {
         }
         broadcastLobbySettings();
       }
-      break;
-    }
-    case 'ACTION_TEAM_BAILOUT':
-    case 'ACTION_GUEST_LOBBY': {
-      // Re-broadcast to all other connected peers
-      networkState.connections.forEach((c) => {
-        if (c.peer !== conn.peer && c.open) {
-          try { c.send(msg); } catch (e) { console.warn('[P2P Relay Error]', e); }
-        }
-      });
-      // Execute locally on Host
-      executeIncomingNetworkAction(msg);
       break;
     }
 

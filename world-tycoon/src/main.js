@@ -615,6 +615,11 @@ function initApp() {
         hostRemoteRollGraceSeconds = 0;
       }
     } else if ((gameState.phase === 'MODAL' || gameState.phase === 'FESTIVAL_SELECT' || gameState.phase === 'WORLD_TOUR') && networkState.isMultiplayer && networkState.isHost && !isHumanTurnActionable()) {
+      if (gameState.pendingRentDebt) {
+        // Rent debt liquidation requires deliberation; freeze AFK watchdog timer
+        modalAfkSeconds = 0;
+        return;
+      }
       phaseEndStallSeconds = 0;
       hostRemoteRollGraceSeconds = 0;
       modalAfkSeconds++;

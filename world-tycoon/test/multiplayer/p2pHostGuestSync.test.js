@@ -259,4 +259,114 @@ describe('P2P Host-Guest Lifecycle & State Sync', () => {
       assert.equal(guestLobbyEchoed, false, 'Guest should NOT echo ACTION_GUEST_LOBBY back to Host');
     });
   });
+
+  describe('World Tour & Chance Multiplayer Relay (/bug-hunter)', () => {
+    it('relays ACTION_WORLD_TOUR from guest to other peers and updates player position on host', () => {
+      let relayedMsg = null;
+      let executedWorldTour = null;
+
+      const mockGuest1 = {
+        peer: 'guest-1',
+        open: true,
+        send: () => {}
+      };
+      const mockGuest2 = {
+        peer: 'guest-2',
+        open: true,
+        send: (msg) => { relayedMsg = msg; }
+      };
+
+      networkState.connections.set('guest-1', mockGuest1);
+      networkState.connections.set('guest-2', mockGuest2);
+
+      // Player 1 (guest) is on World Tour (Tile 24)
+      gameState.players[1].position = 24;
+
+      registerNetworkCallbacks({
+        onWorldTour: (playerIdx, destTileId) => {
+          executedWorldTour = { playerIdx, destTileId };
+          gameState.players[playerIdx].position = destTileId;
+        }
+      });
+
+      // Guest 1 sends ACTION_WORLD_TOUR flying to Mumbai (Tile 3)
+      handleHostReceivedMessage(mockGuest1, {
+        type: 'ACTION_WORLD_TOUR',
+        senderIdx: 1,
+        playerIdx: 1,
+        destTileId: 3
+      });
+
+      // 1. Must be relayed to Guest 2
+      assert.notEqual(relayedMsg, null, 'Host must relay ACTION_WORLD_TOUR to other connected peers');
+      assert.equal(relayedMsg.type, 'ACTION_WORLD_TOUR');
+      assert.equal(relayedMsg.destTileId, 3);
+
+      // 2. Must be executed locally on Host
+      assert.deepEqual(executedWorldTour, { playerIdx: 1, destTileId: 3 });
+      assert.equal(gameState.players[1].position, 3, 'Host must update player position to destination tile');
+
+      // 3. Full state broadcast from Host must contain destination position (3), not World Tour (24)
+      let broadcastSnapshot = null;
+      mockGuest1.send = (msg) => {
+        if (msg.type === 'FULL_STATE_SYNC') broadcastSnapshot = msg;
+      };
+      broadcastFullGameState();
+
+      assert.notEqual(broadcastSnapshot, null);
+      assert.equal(broadcastSnapshot.gameState.players[1].position, 3, 'Guest position must remain at destination tile, not reset to World Tour');
+    });
+
+    it('relays ACTION_RENT_DEBT across peers and invokes onRentDebt on Host and Guest', () => {
+      let hostExecutedDebt = null;
+      networkCallbacks.onRentDebt = (msg) => {
+        hostExecutedDebt = msg;
+      };
+
+      const mockGuest1 = { peer: 'guest-1', open: true, send: () => {} };
+      let relayedMsg = null;
+      const mockGuest2 = {
+        peer: 'guest-2',
+        open: true,
+        send: (msg) => { relayedMsg = msg; }
+      };
+
+      networkState.connections.set('guest-1', mockGuest1);
+      networkState.connections.set('guest-2', mockGuest2);
+
+      const debtPacket = {
+        type: 'ACTION_RENT_DEBT',
+        debtorIdx: 1,
+        creditorIdx: 0,
+        rentOwed: 250000,
+        tileId: 5,
+        isDoubles: false
+      };
+
+      // 1. Host receives ACTION_RENT_DEBT from Guest 1
+      handleHostReceivedMessage(mockGuest1, debtPacket);
+
+      // Must be relayed to Guest 2
+      assert.notEqual(relayedMsg, null, 'Host must relay ACTION_RENT_DEBT to other connected peers');
+      assert.equal(relayedMsg.type, 'ACTION_RENT_DEBT');
+      assert.equal(relayedMsg.debtorIdx, 1);
+      assert.equal(relayedMsg.rentOwed, 250000);
+
+      // Must execute locally on Host
+      assert.notEqual(hostExecutedDebt, null, 'Host must execute onRentDebt');
+      assert.equal(hostExecutedDebt.debtorIdx, 1);
+      assert.equal(hostExecutedDebt.rentOwed, 250000);
+
+      // 2. Guest receives ACTION_RENT_DEBT
+      let guestExecutedDebt = null;
+      networkCallbacks.onRentDebt = (msg) => {
+        guestExecutedDebt = msg;
+      };
+
+      handleGuestReceivedMessage(debtPacket);
+      assert.notEqual(guestExecutedDebt, null, 'Guest must execute onRentDebt');
+      assert.equal(guestExecutedDebt.debtorIdx, 1);
+      assert.equal(guestExecutedDebt.rentOwed, 250000);
+    });
+  });
 });

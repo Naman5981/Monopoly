@@ -516,6 +516,7 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_DOWNGRADE_CITY':
     case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
+    case 'ACTION_RENT_DEBT':
     case 'ACTION_SELL_CITY_FOR_RENT':
     case 'ACTION_AUCTION_START':
     case 'ACTION_AUCTION_BID':

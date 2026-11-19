@@ -35,7 +35,7 @@ export * from './tiles/specialTileRenderer.js';
  * @param {object} tile
  * @param {object} propState
  */
-export function drawTileToCanvas(canvas, tile, propState) {
+export function drawTileToCanvas(canvas, tile, propState, isUpright = false) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, 512, 512);
 
@@ -105,14 +105,16 @@ export function drawTileToCanvas(canvas, tile, propState) {
     }
   }
 
-  // 3. Tile rotation facing center/street
-  const pos = getTileWorldPosition(tile.id);
-  ctx.save();
-  ctx.translate(256, 256);
-  if (pos.side === 1) ctx.rotate(Math.PI / 2);
-  else if (pos.side === 2) ctx.rotate(Math.PI);
-  else if (pos.side === 3) ctx.rotate(-Math.PI / 2);
-  ctx.translate(-256, -256);
+  // 3. Tile rotation facing center/street (only on board; screen-facing flyout remains 100% upright)
+  if (!isUpright) {
+    const pos = getTileWorldPosition(tile.id);
+    ctx.save();
+    ctx.translate(256, 256);
+    if (pos?.side === 1) ctx.rotate(Math.PI / 2);
+    else if (pos?.side === 2) ctx.rotate(Math.PI);
+    else if (pos?.side === 3) ctx.rotate(-Math.PI / 2);
+    ctx.translate(-256, -256);
+  }
 
   // 4. Inner Content
   if (tile.type === 'city') {
@@ -127,7 +129,9 @@ export function drawTileToCanvas(canvas, tile, propState) {
     drawCornerTile(ctx, tile, isCyber);
   }
 
-  ctx.restore();
+  if (!isUpright) {
+    ctx.restore();
+  }
 }
 
 /**

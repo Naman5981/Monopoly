@@ -28,12 +28,14 @@ import {
   setPlayerPortraitMood,
   hideDiceSumBadge
 } from '../../ui/hud.js';
-import { showVictoryModal, closeTurnActionModals } from '../../ui/modals.js';
+import { showVictoryModal, closeTurnActionModals, openSellCitiesModal, settleDebtDeficitWithoutProperties } from '../../ui/modals.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from '../persistence.js';
 import { PlayerControllerFactory } from '../controllers/PlayerControllerFactory.js';
 import { AIPlayerController } from '../controllers/AIPlayerController.js';
+import { BOARD_TILES } from '../data.js';
+import { fmtMoney } from '../utils.js';
 import {
   animateDoublesBurstBanner,
   animateActiveTurnSwitch,
@@ -149,19 +151,69 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
       setPlayerPortraitMood(pIdx, 'smug', 3000);
       animateIslandJailbreak(pIdx);
       logEvent(`🏝️ <strong>${p.name}</strong> rolled doubles and escaped the Island!`);
+      showSpeechBubble('Rolled doubles & escaped! 🏝️', 2000);
+      renderCornerHUDs();
+      refreshActivePlayerTurnStatus();
+      updateRollButtonsUI(isHumanTurnActionable());
     } else {
       p.islandTurns++;
       if (p.islandTurns >= 3) {
-        p.inIsland = false;
-        p.islandTurns = 0;
-        p.cash -= 150000;
-        gameState.festivalPot += 150000;
-        setPlayerPortraitMood(pIdx, 'crying', 3000);
-        spawnFloatingCashOnHUD(pIdx, '-150K Bail', false);
-        animateIslandJailbreak(pIdx);
-        triggerTokenHurtAnimation(pIdx);
-        logEvent(`🏝️ <strong>${p.name}</strong> paid 150K after 3 turns on the Island.`);
-        renderCornerHUDs();
+        // Player has served 3 chances on Island; now forced to pay 150K bail!
+        const bailAmt = 150000;
+        if (p.cash >= bailAmt) {
+          p.inIsland = false;
+          p.islandTurns = 0;
+          p.cash -= bailAmt;
+          gameState.festivalPot += bailAmt;
+          setPlayerPortraitMood(pIdx, 'smug', 3000);
+          spawnFloatingCashOnHUD(pIdx, '-150K Bail', false);
+          animateIslandJailbreak(pIdx);
+          logEvent(`🏝️ <strong>${p.name}</strong> served 3 turns and paid <strong>${fmtMoney(bailAmt)}</strong> Island fine.`);
+          renderCornerHUDs();
+          refreshActivePlayerTurnStatus();
+          updateRollButtonsUI(isHumanTurnActionable());
+        } else {
+          // Insufficient money: must sell properties and auction or face bankruptcy!
+          const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === pIdx);
+          p.inIsland = false;
+          p.islandTurns = 0;
+          animateIslandJailbreak(pIdx);
+          renderCornerHUDs();
+          refreshActivePlayerTurnStatus();
+          updateRollButtonsUI(false);
+
+          if (owned.length > 0) {
+            logEvent(`💸 <strong>${p.name}</strong> owes <strong>${fmtMoney(bailAmt)}</strong> Island fine and must sell properties.`);
+            if (networkState.isMultiplayer) {
+              broadcastAction('ACTION_RENT_DEBT', {
+                debtorIdx: pIdx,
+                creditorIdx: null,
+                rentOwed: bailAmt,
+                tileId: 8,
+                isDoubles: Boolean(isDoubles)
+              });
+            }
+            openSellCitiesModal(BOARD_TILES[8], bailAmt, null, isDoubles, pIdx);
+            if (gameState.pendingRentDebt) {
+              gameState.pendingRentDebt.isTax = true;
+            }
+            return;
+          } else {
+            // No properties and cash < 150K: Total bankruptcy to Bank
+            logEvent(`💀 <strong>${p.name}</strong> cannot pay <strong>${fmtMoney(bailAmt)}</strong> Island fine and has gone BANKRUPT!`);
+            gameState.pendingRentDebt = {
+              debtorIdx: pIdx,
+              creditorIdx: null,
+              rentOwed: bailAmt,
+              tile: BOARD_TILES[8],
+              isDoubles: false,
+              isTax: true,
+              soldTiles: []
+            };
+            settleDebtDeficitWithoutProperties();
+            return;
+          }
+        }
       } else {
         setPlayerPortraitMood(pIdx, 'shocked', 3000);
         showSpeechBubble(`Stuck on Island (${p.islandTurns}/3)`, 2000);

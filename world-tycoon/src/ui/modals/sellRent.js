@@ -14,14 +14,20 @@ import { spawnAnimatedReaction } from '../../three/effects.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateBankruptcyQuake, animateModalSpringOpen, animateModalSpringClose, animatePlayerEliminatedBanner } from '../anim.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
-import { startSoldPropertiesAuctionSequence } from '../../game/engine/auction.js';
+import { startSoldPropertiesAuctionSequence, clearAuctionTimers } from '../../game/engine/auction.js';
+import { cancelAllGameTimers } from '../../game/engine/turnCycle.js';
+import { cameraState } from '../../three/core/camera.js';
+import { getTileWorldPosition } from '../../three/board/coords.js';
+import { context } from '../../three/core/context.js';
 
 export function calculatePropertySaleValue(tile, propState) {
   if (!tile) return 0;
   const basePrice = tile.price || 0;
   const level = propState?.level || 0;
-  const houseCost = tile.houseCost || 0;
-  return basePrice + (level * (houseCost / 2));
+  if (level >= 1 && Array.isArray(tile.rent)) {
+    return basePrice + (tile.rent[1] || 0);
+  }
+  return basePrice;
 }
 
 export function openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles, debtorIdx) {
@@ -32,6 +38,10 @@ export function openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles, debt
   const hasCreditor = creditorIdx !== null && creditorIdx !== undefined;
   const creditor = hasCreditor ? gameState.players[creditorIdx] : null;
 
+  // 1. Explicitly freeze all game timers, turn countdowns, and any lingering auction timers
+  cancelAllGameTimers();
+  clearAuctionTimers();
+
   gameState.phase = 'MODAL';
   gameState.pendingRentDebt = {
     tile,
@@ -40,6 +50,15 @@ export function openSellCitiesModal(tile, rentOwed, creditorIdx, isDoubles, debt
     debtorIdx: pIdx,
     isDoubles
   };
+
+  // 2. Smoothly focus 3D camera on the debt property so diorama is 100% visible above drawer
+  if (tile && typeof tile.id === 'number' && context.camera && cameraState) {
+    const pos = getTileWorldPosition(tile.id);
+    if (pos) {
+      cameraState.targetCameraTarget.set(pos.x, (pos.y || 0) + 1.2, pos.z);
+      cameraState.targetCameraZoom = 1.45;
+    }
+  }
 
   if (engineCallbacks.updateUI) engineCallbacks.updateUI();
 
@@ -72,7 +91,10 @@ export function renderSellCitiesModal() {
     const saleVal = calculatePropertySaleValue(t, propState);
     const color = t.group && GROUP_META[t.group] ? GROUP_META[t.group].hex : '#0284c7';
     const lvl = propState?.level || 0;
-    const lvlDesc = getBuildingLevelDescription(lvl);
+    const baseDesc = getBuildingLevelDescription(lvl);
+    const lvlDesc = (lvl >= 1 && Array.isArray(t.rent) && t.rent[1])
+      ? `${baseDesc} (+${fmtMoney(t.rent[1])} L1 Rent)`
+      : baseDesc;
     return {
       id: t.id,
       name: t.name,
@@ -198,6 +220,10 @@ export function autoSellCheapestForRent() {
 function closeSellCitiesModal() {
   updateModalSlice('sellCities', { visible: false });
   animateModalSpringClose('#modal-sell-cities', '#modal-sell-cities-card');
+  if (cameraState) {
+    cameraState.targetCameraTarget.set(0, 0, 0);
+    cameraState.targetCameraZoom = 1.0;
+  }
 }
 
 export async function settlePendingRentAndCloseModal() {
@@ -252,7 +278,15 @@ export async function settlePendingRentAndCloseModal() {
 
   if (soldTiles.length > 0) {
     if (!networkState.isMultiplayer || networkState.isHost) {
-      startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+      // Grace period in browser: allows rent settlement cash floating text to settle before starting auction
+      const delay = globalThis.__WT_TEST__ ? 0 : 700;
+      if (delay > 0) {
+        setTimeout(() => {
+          startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+        }, delay);
+      } else {
+        startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+      }
     }
     return;
   }
@@ -328,7 +362,15 @@ export function settleDebtDeficitWithoutProperties() {
 
   if (soldTiles.length > 0) {
     if (!networkState.isMultiplayer || networkState.isHost) {
-      startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+      // 2850ms delay in browser: allows 2.8s player-eliminated banner & quake to conclude completely before auction timer starts!
+      const delay = globalThis.__WT_TEST__ ? 0 : 2850;
+      if (delay > 0) {
+        setTimeout(() => {
+          startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+        }, delay);
+      } else {
+        startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
+      }
     }
     return;
   }

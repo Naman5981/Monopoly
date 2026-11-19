@@ -112,6 +112,15 @@ export function renderCornerHUDs() {
 
     (isLeft ? leftPlayers : rightPlayers).push(playerRecord);
 
+    if (typeof document !== 'undefined') {
+      const cardEl = document.getElementById(`hud-card-${id}`);
+      if (cardEl && !player.inIsland) {
+        cardEl.classList.remove('in-island-detention');
+        const bars = cardEl.querySelectorAll('.island-iron-bars');
+        bars.forEach(b => b.remove());
+      }
+    }
+
     if (!isSvelteMounted && typeof document !== 'undefined') {
       syncFallbackCard(id, player, shownMoney, isLeft, leftContainer, rightContainer);
     }

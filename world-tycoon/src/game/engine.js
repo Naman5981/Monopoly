@@ -483,14 +483,15 @@ export function initEngine() {
           gameState.currentPlayerIdx = incomingIdx;
         }
         if (incomingState.phase && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
-          // If local player is actively in debt liquidation or modal phase, do not let host's transient 'MOVING' stomp our modal!
+          // If local player is actively moving (hopping/flight) or in modal liquidation, protect local phase
+          const isCurrentlyMoving = (gameState.phase === 'MOVING');
           const isLocalPlayerInModal = (gameState.phase === 'MODAL' && (
             (gameState.pendingRentDebt && gameState.pendingRentDebt.debtorIdx === networkState.localPlayerIdx) ||
             gameState.pendingBuyTile ||
             gameState.pendingBuyoutTile ||
             gameState.pendingUpgradeTile
           ));
-          if (!isLocalPlayerInModal || incomingState.phase === 'MODAL') {
+          if (!isCurrentlyMoving && (!isLocalPlayerInModal || incomingState.phase === 'MODAL')) {
             gameState.phase = incomingState.phase;
           }
         }

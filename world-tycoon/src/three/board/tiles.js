@@ -30,13 +30,13 @@ import { drawTileToCanvas, createTileEmissiveTexture } from './tileCanvas.js';
  * @param {object} propState - Dynamic property ownership and mortgage state
  * @returns {THREE.CanvasTexture}
  */
-export function createTileTexture(tile, propState) {
+export function createTileTexture(tile, propState, isUpright = false) {
   const c = document.createElement('canvas');
   c.width = 512;
   c.height = 512;
 
   // Render tile face directly to canvas context
-  drawTileToCanvas(c, tile, propState);
+  drawTileToCanvas(c, tile, propState, isUpright);
 
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;

@@ -331,7 +331,7 @@ export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
 
     // Smoothly pan camera directly to the missing tile & sky with gentle zoom (zero board spin)
     cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 1.2, tilePos.z);
-    cameraState.targetCameraZoom = 1.55; // Gentle smooth zoom framing both tile and floating card
+    cameraState.targetCameraZoom = 1.48; // Gentle smooth zoom framing both tile and floating card
 
     theatreState.activeCutsceneName = 'MonopolyThreatFocus';
 

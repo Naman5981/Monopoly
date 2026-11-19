@@ -136,9 +136,9 @@ describe('Liquidate Properties to Pay Rent (/bug-hunter /clean-code)', () => {
       assert.equal(val, cairoTile.price);
     });
 
-    it('calculates upgraded property sale value including 50% house refunds', () => {
+    it('calculates upgraded property sale value as city rate + level 1 house rent only', () => {
       const val = calculatePropertySaleValue(mumbaiTile, { level: 2 });
-      const expected = mumbaiTile.price + (2 * (mumbaiTile.houseCost / 2));
+      const expected = mumbaiTile.price + mumbaiTile.rent[1];
       assert.equal(val, expected);
     });
 

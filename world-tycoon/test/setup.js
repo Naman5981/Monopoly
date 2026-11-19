@@ -4,6 +4,7 @@
  */
 
 export function setupBrowserMocks() {
+  globalThis.__WT_TEST__ = true;
   if (typeof globalThis.window === 'undefined') {
     const mockContext = new Proxy({
       canvas: { width: 100, height: 100 },
