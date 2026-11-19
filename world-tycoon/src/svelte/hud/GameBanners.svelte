@@ -23,7 +23,7 @@
 </script>
 
 {#if banner.activeBanner}
-  <div class="fixed inset-0 pointer-events-none z-[1200] flex flex-col items-center justify-center select-none" transition:fade={{ duration: 180 }}>
+  <div role="status" aria-live="polite" class="fixed inset-0 pointer-events-none z-[1200] flex flex-col items-center justify-center select-none" transition:fade={{ duration: 180 }}>
     
     <!-- 1. Player Eliminated Banner -->
     {#if banner.activeBanner === 'eliminated'}
@@ -34,11 +34,11 @@
         transition:scale={{ duration: 450, start: 0.3, easing: backOut }}
       >
         <div class="flex items-center gap-3">
-          <span class="text-3xl sm:text-4xl filter drop-shadow">☠️</span>
+          <i class="fa-solid fa-skull-crossbones text-3xl sm:text-4xl text-rose-300 filter drop-shadow" aria-hidden="true"></i>
           <span class="font-display font-black text-2xl sm:text-4xl text-rose-100 tracking-widest uppercase drop-shadow-[0_4px_16px_rgba(225,29,72,0.95)]">
             PLAYER ELIMINATED!
           </span>
-          <span class="text-3xl sm:text-4xl filter drop-shadow">☠️</span>
+          <i class="fa-solid fa-skull-crossbones text-3xl sm:text-4xl text-rose-300 filter drop-shadow" aria-hidden="true"></i>
         </div>
         <div class="mt-2 text-base sm:text-lg text-white font-bold tracking-wide text-center">
           <span class="text-amber-300 font-black">{banner.data.playerName || 'Player'}</span> has gone <span class="text-rose-400 font-black uppercase">BANKRUPT</span>!
@@ -61,13 +61,13 @@
         transition:scale={{ duration: 420, start: 0.35, easing: backOut }}
       >
         <div class="flex items-center gap-2">
-          <span class="text-3xl">⚔️</span>
+          <i class="fa-solid fa-handshake-slash text-2xl sm:text-3xl text-white" aria-hidden="true"></i>
           <span class="font-display font-black text-2xl sm:text-3xl text-white tracking-widest uppercase drop-shadow">
             HOSTILE TAKEOVER!
           </span>
-          <span class="text-3xl">⚔️</span>
+          <i class="fa-solid fa-handshake-slash text-2xl sm:text-3xl text-white" aria-hidden="true"></i>
         </div>
-        <div class="mt-1 px-4 py-0.5 rounded-full bg-black/30 border border-white/20 text-rose-100 font-extrabold text-[12px] uppercase tracking-wider text-center">
+        <div class="mt-1 px-4 py-0.5 rounded-full bg-black/30 border border-white/20 text-rose-100 font-extrabold text-xs uppercase tracking-wider text-center">
           {#if banner.data.buyerName && banner.data.prevOwnerName}
             <span class="text-white font-black">{banner.data.buyerName}</span> SEIZED <span class="text-amber-200 font-black">{banner.data.cityName}</span> FROM <span class="text-rose-200 font-black">{banner.data.prevOwnerName}</span>
           {:else}
@@ -85,9 +85,9 @@
         transition:scale={{ duration: 400, start: 0.3, easing: backOut }}
       >
         <div class="flex items-center gap-2.5">
-          <span class="text-3xl filter drop-shadow">🎲</span>
+          <i class="fa-solid fa-dice text-3xl sm:text-4xl text-slate-950 filter drop-shadow" aria-hidden="true"></i>
           <span class="font-display font-black text-3xl sm:text-4xl text-slate-950 tracking-wider drop-shadow-sm uppercase">DOUBLES!</span>
-          <span class="text-3xl filter drop-shadow">🎲</span>
+          <i class="fa-solid fa-dice text-3xl sm:text-4xl text-slate-950 filter drop-shadow" aria-hidden="true"></i>
         </div>
         <div class="mt-1 px-3.5 py-0.5 rounded-full bg-slate-950 text-amber-300 font-black text-xs uppercase tracking-widest shadow-inner">
           {banner.data.playerName ? `${banner.data.playerName.toUpperCase()} GETS A ` : ''}ROLL AGAIN BONUS!
@@ -102,15 +102,15 @@
         class="relative bg-gradient-to-r from-sky-600 to-indigo-700 text-white rounded-3xl p-5 shadow-[0_16px_48px_rgba(2,132,199,0.55)] border-2 border-white/60 flex items-center gap-5 min-w-[320px] max-w-sm -translate-y-16"
         transition:fly={{ duration: 450, y: -40, easing: backOut }}
       >
-        <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl shadow-inner border border-white/30 shrink-0">
-          ✈️
+        <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/30 shrink-0">
+          <i class="fa-solid fa-plane-departure text-white" aria-hidden="true"></i>
         </div>
         <div class="flex flex-col">
-          <span class="text-[10px] uppercase font-black tracking-widest text-sky-200">WORLD TYCOON AIRWAYS</span>
+          <span class="text-xs uppercase font-black tracking-widest text-sky-200">WORLD TYCOON AIRWAYS</span>
           <span class="font-display font-black text-xl text-white tracking-wide">
             {banner.data.destinationName || 'DESTINATION'}
           </span>
-          <span class="text-[11px] font-semibold text-sky-100">Direct Express Flight</span>
+          <span class="text-xs font-semibold text-sky-100">Direct Express Flight</span>
         </div>
       </div>
 

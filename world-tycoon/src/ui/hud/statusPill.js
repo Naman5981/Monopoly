@@ -52,7 +52,7 @@ export function setStatusPill(htmlContent, options = {}) {
 
   const textEl = document.getElementById('hud-status-pill-text');
   if (textEl) {
-    textEl.innerHTML = htmlContent;
+    textEl.innerHTML = formatActivityEmoji(htmlContent);
   }
 
   if (statusPillResetTimer) {
@@ -122,13 +122,26 @@ export function refreshActivePlayerTurnStatus() {
   }
 }
 
+/**
+ * Format activity string to replace leading emojis with accessible SVG icons.
+ * @param {string} html
+ * @returns {string}
+ */
+export function formatActivityEmoji(html) {
+  if (typeof html !== 'string') return html;
+  return html
+    .replace(/^🎲\s*/, '<i class="fa-solid fa-dice text-amber-400 mr-1.5" aria-hidden="true"></i>')
+    .replace(/^⏳\s*/, '<i class="fa-solid fa-hourglass-half text-amber-400 mr-1.5" aria-hidden="true"></i>')
+    .replace(/^🤔\s*/, '<i class="fa-solid fa-brain text-amber-400 mr-1.5" aria-hidden="true"></i>');
+}
+
 /** Log an event to the event log drawer and display on real-time bottom-center pill. */
 export function logEvent(html) {
   const log = document.getElementById('activity-log');
   if (log) {
     const div = document.createElement('div');
     div.className = 'border-l-2 border-indigo-400 pl-2 py-0.5';
-    div.innerHTML = html;
+    div.innerHTML = formatActivityEmoji(html);
     log.prepend(div);
     animateToastAccordionPush(div);
   }

@@ -84,7 +84,17 @@
   function onDeclineIncoming() {
     window.declineIncomingTrade?.();
   }
+
+  function handleWindowKeydown(e) {
+    if (!state.visible) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <!-- Propose Trade / Counter-Offer Modal (/anti-ui-slop /better-interface) -->
 <div id="modal-trade" class="fixed inset-0 bg-slate-950/65 backdrop-blur-xs z-50 items-center justify-center p-3 sm:p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}">
@@ -92,23 +102,27 @@
     <!-- Header -->
     <div id="trade-header" class="bg-gradient-to-r from-emerald-600 via-teal-700 to-indigo-900 p-4 sm:p-4.5 text-white relative overflow-hidden flex items-center justify-between border-b border-white/10 shadow-md">
       <div class="relative z-10 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-xl shadow-inner text-white shrink-0">
-          🤝
+        <div class="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-lg shadow-inner text-white shrink-0">
+          <i class="fa-solid fa-handshake text-white" aria-hidden="true"></i>
         </div>
         <div>
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 text-[10px] font-black uppercase tracking-wider text-emerald-200 border border-white/15 mb-0.5">
-            {state.counterMode ? '⚡ DIPLOMATIC COUNTER-PROPOSAL' : 'GLOBAL DIPLOMACY'}
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 text-xs font-black uppercase tracking-wider text-emerald-200 border border-white/15 mb-0.5">
+            {#if state.counterMode}
+              <i class="fa-solid fa-bolt text-amber-300 mr-1" aria-hidden="true"></i> DIPLOMATIC COUNTER-PROPOSAL
+            {:else}
+              GLOBAL DIPLOMACY
+            {/if}
           </div>
           <h3 class="font-display font-black text-lg sm:text-xl text-white tracking-wide leading-tight drop-shadow">
             {state.counterMode ? `COUNTER-OFFER: ${state.counterPartnerName?.toUpperCase() || 'PARTNER'}` : 'PROPOSE CITY TRADE'}
           </h3>
-          <p class="text-[11px] font-bold text-emerald-100/80 truncate">
+          <p class="text-xs font-bold text-emerald-100/80 truncate">
             {state.counterMode ? 'Adjust properties to propose revised counter-terms' : 'Strategic mutual exchange of metropolitan property deeds'}
           </p>
         </div>
       </div>
 
-      <button onclick={onClose} class="relative z-10 w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition border border-white/20 text-sm" title="Close trade">
+      <button onclick={onClose} class="relative z-10 w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition border border-white/20 text-sm focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none" title="Close trade [Esc]">
         ✕
       </button>
     </div>
@@ -122,20 +136,20 @@
             YOUR OFFER
           </span>
           <div class="flex items-center gap-1.5">
-            <span class="text-[9px] font-black uppercase text-sky-200 bg-sky-500/20 px-2 py-0.5 rounded-full border border-sky-400/40">YOU</span>
-            <span id="trade-my-wallet" class="text-[10px] font-extrabold uppercase text-sky-300 bg-slate-800 px-2 py-0.5 rounded-full border border-sky-500/30">Wallet: {state.myWallet || '$0'}</span>
+            <span class="text-xs font-black uppercase text-sky-200 bg-sky-500/20 px-2 py-0.5 rounded-full border border-sky-400/40">YOU</span>
+            <span id="trade-my-wallet" class="text-xs font-extrabold uppercase text-sky-300 bg-slate-800 px-2 py-0.5 rounded-full border border-sky-500/30">Wallet: {state.myWallet || '$0'}</span>
           </div>
         </div>
-        <div class="text-[11px] font-bold text-slate-400 mb-1.5">Select cities to give:</div>
+        <div class="text-xs font-bold text-slate-400 mb-1.5">Select cities to give:</div>
         <div id="trade-offer-props" class="space-y-1.5 max-h-56 overflow-y-auto flex-1 pr-1.5 pb-6 overscroll-contain">
           {#each state.myProperties || [] as prop}
-            <label class="flex items-center justify-between p-2 rounded-xl border border-slate-700/60 bg-slate-800/70 hover:bg-slate-700/80 cursor-pointer transition select-none group {selectedOfferIds.has(prop.id) ? '!border-sky-400/80 !bg-sky-950/40' : ''}">
+            <label class="flex items-center justify-between p-2 rounded-xl border border-slate-700/60 bg-slate-800/70 hover:bg-slate-700/80 cursor-pointer transition-all duration-150 hover:-translate-y-0.5 select-none group {selectedOfferIds.has(prop.id) ? '!border-sky-400/80 !bg-sky-950/40' : ''}">
               <div class="flex items-center gap-2 min-w-0">
                 <input type="checkbox" class="trade-my-prop accent-sky-400 w-4 h-4 rounded cursor-pointer shrink-0" value={prop.id} checked={selectedOfferIds.has(prop.id)} onchange={(e) => toggleOfferProp(prop.id, e.currentTarget.checked)} />
                 <span class="w-2.5 h-2.5 rounded-full shrink-0 border border-black/30" style="background-color: {prop.color};"></span>
                 <span class="font-bold text-xs text-slate-100 truncate group-hover:text-white">{prop.name}</span>
               </div>
-              <span class="text-[11px] font-extrabold font-mono text-sky-400 shrink-0">{prop.rentFormatted}</span>
+              <span class="text-xs font-extrabold font-mono text-sky-400 shrink-0">{prop.rentFormatted}</span>
             </label>
           {/each}
           {#if !state.myProperties?.length}
@@ -151,7 +165,7 @@
             YOU REQUEST
           </span>
           <div class="flex items-center gap-1.5">
-            <span id="trade-partner-wallet" class="text-[10px] font-extrabold uppercase text-amber-300 bg-slate-800 px-2 py-0.5 rounded-full border border-amber-500/30">Wallet: {state.partnerWallet || '$0'}</span>
+            <span id="trade-partner-wallet" class="text-xs font-extrabold uppercase text-amber-300 bg-slate-800 px-2 py-0.5 rounded-full border border-amber-500/30">Wallet: {state.partnerWallet || '$0'}</span>
             <select id="trade-partner-select" onchange={onPartnerChange} disabled={state.counterMode} class="text-xs font-bold bg-slate-800 border border-amber-400/50 rounded-lg px-2 py-0.5 text-amber-200 cursor-pointer shadow-xs focus:outline-none {state.counterMode ? 'opacity-80 cursor-default' : ''}">
               {#if !state.partners?.length}<option value="">No partners</option>{/if}
               {#each state.partners || [] as p}
@@ -160,10 +174,10 @@
             </select>
           </div>
         </div>
-        <div class="text-[11px] font-bold text-slate-400 mb-1.5">Select partner cities to receive:</div>
+        <div class="text-xs font-bold text-slate-400 mb-1.5">Select partner cities to receive:</div>
         <div id="trade-req-props" class="space-y-1.5 max-h-56 overflow-y-auto flex-1 pr-1.5 pb-6 overscroll-contain">
           {#each state.partnerProperties || [] as prop}
-            <label class="flex items-center justify-between p-2 rounded-xl border border-slate-700/60 bg-slate-800/70 hover:bg-slate-700/80 cursor-pointer transition select-none group {selectedReqIds.has(prop.id) ? '!border-amber-400/80 !bg-amber-950/40' : ''}">
+            <label class="flex items-center justify-between p-2 rounded-xl border border-slate-700/60 bg-slate-800/70 hover:bg-slate-700/80 cursor-pointer transition-all duration-150 hover:-translate-y-0.5 select-none group {selectedReqIds.has(prop.id) ? '!border-amber-400/80 !bg-amber-950/40' : ''}">
               <div class="flex items-center gap-2 min-w-0">
                 <input type="checkbox" class="trade-their-prop accent-amber-400 w-4 h-4 rounded cursor-pointer shrink-0" value={prop.id} checked={selectedReqIds.has(prop.id)} onchange={(e) => toggleReqProp(prop.id, e.currentTarget.checked)} />
                 <span class="w-2.5 h-2.5 rounded-full shrink-0 border border-black/30" style="background-color: {prop.color};"></span>
@@ -182,12 +196,12 @@
     <!-- Live Trade Value Delta Capsule -->
     <div class="mx-3.5 sm:mx-4 my-1 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 flex items-center justify-between text-xs font-bold">
       <div class="flex items-center gap-1.5 text-slate-300">
-        <span class="text-[10px] uppercase text-slate-400 font-extrabold">Value Balance:</span>
+        <span class="text-xs uppercase text-slate-400 font-extrabold">Value Balance:</span>
         <span class="font-mono text-sky-300">${fmtVal(totalOfferVal)}</span>
         <span class="text-slate-500">⇄</span>
         <span class="font-mono text-amber-300">${fmtVal(totalReqVal)}</span>
       </div>
-      <div class="text-[11px] font-black font-mono">
+      <div class="text-xs font-black font-mono">
         {#if valDelta > 0}
           <span class="text-emerald-400 bg-emerald-950/60 border border-emerald-500/40 px-2 py-0.5 rounded-md">+{fmtVal(valDelta)} In Your Favor</span>
         {:else if valDelta < 0}

@@ -36,21 +36,21 @@
     <div class="p-4 bg-gradient-to-b from-white to-slate-50 border-b border-slate-100 shrink-0 space-y-2.5">
       <div class="grid grid-cols-3 gap-2">
         <div class="game-stat-card stat-card-rose p-2.5 text-center">
-          <span class="text-[10px] font-black uppercase text-rose-800 tracking-wider">RENT DUE</span>
+          <span class="text-xs font-black uppercase text-rose-800 tracking-wider">RENT DUE</span>
           <div id="sell-cities-rent-due" class="text-base sm:text-lg font-black text-rose-950">{state.rentDueFormatted || '$0'}</div>
         </div>
         <div class="game-stat-card stat-card-sky p-2.5 text-center">
-          <span class="text-[10px] font-black uppercase text-sky-800 tracking-wider">YOUR CASH</span>
+          <span class="text-xs font-black uppercase text-sky-800 tracking-wider">YOUR CASH</span>
           <div id="sell-cities-current-cash" class="text-base sm:text-lg font-black text-sky-950">{state.currentCashFormatted || '$0'}</div>
         </div>
         <div class="game-stat-card stat-card-amber p-2.5 text-center">
-          <span class="text-[10px] font-black uppercase text-amber-800 tracking-wider">DEFICIT</span>
+          <span class="text-xs font-black uppercase text-amber-800 tracking-wider">DEFICIT</span>
           <div id="sell-cities-deficit" class="text-base sm:text-lg font-black text-amber-950">{state.deficitFormatted || '$0'}</div>
         </div>
       </div>
 
       <!-- Quick Action: Auto-sell cheapest -->
-      <button id="btn-auto-sell-cheapest" onclick={onAutoSell} class="game-btn game-btn-orange w-full py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-md">
+      <button id="btn-auto-sell-cheapest" onclick={onAutoSell} class="game-btn game-btn-orange w-full py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0">
         <i class="fa-solid fa-bolt-lightning text-amber-300"></i>
         <span>AUTO-SELL CHEAPEST TO COVER RENT</span>
       </button>
@@ -66,22 +66,22 @@
                role="button"
                data-tile-id="{prop.id}"
                aria-label="Sell {prop.name} for {prop.saleValFormatted}"
-               class="group bg-white border-2 border-slate-200/90 hover:border-rose-500 hover:bg-rose-50/20 active:scale-[0.99] rounded-2xl p-3 flex items-center justify-between gap-3 shadow-2xs hover:shadow-sm transition cursor-pointer select-none">
+               class="group bg-white border-2 border-slate-200/90 hover:border-rose-500 hover:bg-rose-50/20 active:scale-[0.99] rounded-2xl p-3 flex items-center justify-between gap-3 shadow-2xs hover:shadow-sm transition-all duration-150 hover:-translate-y-0.5 cursor-pointer select-none">
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0" style="background:{prop.color}"></span>
               <div class="truncate">
                 <div class="font-black text-xs sm:text-sm text-slate-900 group-hover:text-rose-950 transition-colors truncate">{prop.name}</div>
-                <div class="text-[10px] font-bold text-slate-500">{prop.levelDesc}</div>
+                <div class="text-xs font-bold text-slate-500">{prop.levelDesc}</div>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <div class="text-right">
-                <div class="text-[9px] font-extrabold uppercase text-slate-400">SALE VALUE</div>
+                <div class="text-xs font-extrabold uppercase text-slate-400">SALE VALUE</div>
                 <div class="text-xs sm:text-sm font-black text-emerald-600">+{prop.saleValFormatted}</div>
               </div>
               <button type="button"
                       onclick={(e) => { e.stopPropagation(); onSell(prop.id); }}
-                      class="game-btn game-btn-rose !py-2 !px-3 text-xs font-black shadow-xs pointer-events-auto">
+                      class="game-btn game-btn-rose !py-2 !px-3 text-xs font-black shadow-xs pointer-events-auto cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0">
                 <i class="fa-solid fa-tag mr-1"></i> SELL
               </button>
             </div>

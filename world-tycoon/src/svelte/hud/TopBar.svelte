@@ -65,8 +65,16 @@
 
     <span class="hud-capsule-divider"></span>
 
-    <button id="btn-game-speed" onclick={onSpeed} class="hud-capsule-btn px-2 py-0.5 rounded-full text-slate-700 hover:text-sky-600 hover:bg-slate-100 text-xs font-black cursor-pointer transition" title="Game Speed (1x, 2x, 4x Turbo)" aria-label="Cycle Game Speed">
-      <span id="game-speed-label">{state.gameSpeed === 4 ? '🚀 4× Turbo' : state.gameSpeed === 2 ? '⚡ 2× Fast' : '⚡ 1×'}</span>
+    <button id="btn-game-speed" onclick={onSpeed} class="hud-capsule-btn px-2 py-0.5 rounded-full text-slate-700 hover:text-sky-600 hover:bg-slate-100 text-xs font-black cursor-pointer transition focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:outline-none" title="Game Speed (1x, 2x, 4x Turbo)" aria-label="Cycle Game Speed">
+      <span id="game-speed-label" class="inline-flex items-center gap-1">
+        {#if state.gameSpeed === 4}
+          <i class="fa-solid fa-forward-fast text-sky-400" aria-hidden="true"></i> 4× Turbo
+        {:else if state.gameSpeed === 2}
+          <i class="fa-solid fa-bolt text-amber-400" aria-hidden="true"></i> 2× Fast
+        {:else}
+          <i class="fa-solid fa-play text-slate-500 text-[10px]" aria-hidden="true"></i> 1×
+        {/if}
+      </span>
     </button>
 
     <span class="hud-capsule-divider"></span>

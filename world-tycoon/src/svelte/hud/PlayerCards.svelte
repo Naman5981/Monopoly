@@ -87,29 +87,29 @@
             <span class="hud-player-name">{player.name}</span>
             <span class="hud-island-icon">
               {#if player.inIsland}
-                <span class="hud-detention-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/50 text-amber-900 font-black text-[9px] tracking-wider shadow-2xs" title="In Island Detention (Turn {player.islandTurns || 0}/3)"><i class="fa-solid fa-lock text-[8px] text-amber-700"></i> JAIL {player.islandTurns || 0}/3</span>
+                <span class="hud-detention-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/50 text-amber-900 font-black text-[10px] tracking-wider shadow-2xs" title="In Island Detention (Turn {player.islandTurns || 0}/3)"><i class="fa-solid fa-lock text-[9px] text-amber-700"></i> JAIL {player.islandTurns || 0}/3</span>
               {/if}
             </span>
             <span class="hud-turn-badge">
               {#if player.isPartner}
-                <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs mr-1">ALLY</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs mr-1">ALLY</span>
               {/if}
               {#if player.isCurrent}
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[10px] tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-xs tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>
               {:else if player.isAI}
-                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">BOT</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">BOT</span>
               {:else if player.isSelf}
-                <span class="text-[9px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200">YOU</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200">YOU</span>
               {:else if player.isHost}
-                <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">HOST</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">HOST</span>
               {:else}
-                <span class="text-[9px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">P{player.id + 1}</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">P{player.id + 1}</span>
               {/if}
             </span>
           </div>
           <div class="hud-cash-row">
             <span id="hud-cash-val-{player.id}" class="hud-cash-amount">{player.cashFormatted ?? '0'}</span>
-            <span class="hud-cash-icon" title="Cash">💵</span>
+            <span class="hud-cash-icon flex items-center" title="Cash"><i class="fa-solid fa-money-bill-wave text-emerald-500 text-xs" aria-hidden="true"></i></span>
           </div>
         </div>
 
@@ -162,29 +162,29 @@
           <div class="hud-header-row justify-end">
             <span class="hud-turn-badge">
               {#if player.isPartner}
-                <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs mr-1">ALLY</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs mr-1">ALLY</span>
               {/if}
               {#if player.isCurrent}
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-[10px] tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-xs tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>
               {:else if player.isAI}
-                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">BOT</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">BOT</span>
               {:else if player.isSelf}
-                <span class="text-[9px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200">YOU</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200">YOU</span>
               {:else if player.isHost}
-                <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">HOST</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">HOST</span>
               {:else}
-                <span class="text-[9px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">P{player.id + 1}</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">P{player.id + 1}</span>
               {/if}
             </span>
             <span class="hud-island-icon">
               {#if player.inIsland}
-                <span class="hud-detention-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/50 text-amber-900 font-black text-[9px] tracking-wider shadow-2xs" title="In Island Detention (Turn {player.islandTurns || 0}/3)"><i class="fa-solid fa-lock text-[8px] text-amber-700"></i> JAIL {player.islandTurns || 0}/3</span>
+                <span class="hud-detention-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/50 text-amber-900 font-black text-[10px] tracking-wider shadow-2xs" title="In Island Detention (Turn {player.islandTurns || 0}/3)"><i class="fa-solid fa-lock text-[9px] text-amber-700"></i> JAIL {player.islandTurns || 0}/3</span>
               {/if}
             </span>
             <span class="hud-player-name">{player.name}</span>
           </div>
           <div class="hud-cash-row justify-end">
-            <span class="hud-cash-icon" title="Cash">💵</span>
+            <span class="hud-cash-icon flex items-center" title="Cash"><i class="fa-solid fa-money-bill-wave text-emerald-500 text-xs" aria-hidden="true"></i></span>
             <span id="hud-cash-val-{player.id}" class="hud-cash-amount">{player.cashFormatted ?? '0'}</span>
           </div>
         </div>

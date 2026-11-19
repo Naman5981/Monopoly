@@ -16,7 +16,17 @@
       onClose();
     }
   }
+
+  function handleWindowKeydown(e) {
+    if (!state.visible) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <!-- Leaderboard Speech-Bubble Popover (Unobstructed 3D Board, Attached to TopBar Trophy Pill) -->
 <div
@@ -96,29 +106,29 @@
                 </div>
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full shrink-0 shadow-xs" style="background:{s.colorHex}"></span>
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" style="background:{s.colorHex}"></span>
                     <span class="font-display font-black text-xs sm:text-sm text-white truncate">{s.name}</span>
                     {#if s.isLocal}
-                      <span class="text-[8px] font-mono font-black uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">YOU</span>
+                      <span class="text-[9px] font-mono font-black uppercase px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">YOU</span>
                     {/if}
                     {#if s.isAI}
-                      <span class="text-[8px] font-mono font-bold uppercase px-1 py-0.2 rounded bg-white/10 text-slate-400 border border-white/10">BOT</span>
+                      <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-white/10 text-slate-400 border border-white/10">BOT</span>
                     {/if}
                   </div>
-                  <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
-                    <span>💵 <strong class="text-emerald-400">{s.cashFormatted}</strong></span>
+                  <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-money-bill-wave text-emerald-400 text-[10px]" aria-hidden="true"></i> <strong class="text-emerald-400">{s.cashFormatted}</strong></span>
                     <span>•</span>
-                    <span>🏙️ <strong class="text-slate-200">{s.citiesCount}</strong></span>
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-city text-sky-400 text-[10px]" aria-hidden="true"></i> <strong class="text-slate-200">{s.citiesCount}</strong></span>
                     {#if s.setsCount > 0}
                       <span>•</span>
-                      <span>👑 <strong class="text-amber-300">{s.setsCount}</strong></span>
+                      <span class="flex items-center gap-1"><i class="fa-solid fa-crown text-amber-400 text-[10px]" aria-hidden="true"></i> <strong class="text-amber-300">{s.setsCount}</strong></span>
                     {/if}
                   </div>
                 </div>
               </div>
 
               <div class="text-right shrink-0">
-                <div class="text-[8px] font-mono font-bold uppercase tracking-wider text-slate-400">Net Worth</div>
+                <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Net Worth</div>
                 <div class="font-mono font-black text-sm sm:text-base text-amber-300 drop-shadow-xs">{s.netWorthFormatted}</div>
               </div>
             </div>

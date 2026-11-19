@@ -39,7 +39,7 @@
         <span class="font-extrabold text-slate-700">Host:</span>
         <span id="festival-boost-player-name" class="font-black text-emerald-950">{state.playerName || 'Player'}</span>
       </div>
-      <span id="festival-boost-count" class="px-2.5 py-0.5 rounded-full bg-white text-emerald-800 font-black text-[10px] border border-emerald-200 shadow-2xs">
+      <span id="festival-boost-count" class="px-2.5 py-0.5 rounded-full bg-white text-emerald-800 font-black text-xs border border-emerald-200 shadow-2xs">
         {state.ownedProperties?.length || 0} Properties Owned
       </span>
     </div>
@@ -47,24 +47,24 @@
     <!-- Properties list / Grid -->
     <div id="festival-boost-grid" class="p-4 sm:p-5 overflow-y-auto space-y-3 bg-gradient-to-b from-white to-slate-50/70 max-h-[50vh]">
       {#each state.ownedProperties || [] as prop}
-        <div onclick={() => onSelectCity(prop.id)} class="p-3 rounded-2xl border-2 border-emerald-200 bg-white hover:bg-emerald-50 cursor-pointer transition flex items-center justify-between shadow-2xs">
+        <div onclick={() => onSelectCity(prop.id)} class="p-3 rounded-2xl border-2 border-emerald-200 bg-white hover:bg-emerald-50 cursor-pointer transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
             <span class="w-4 h-4 rounded-full border border-black/20" style="background-color: {prop.color};"></span>
             <div>
               <div class="font-black text-sm text-slate-800">{prop.name}</div>
-              <div class="text-[11px] font-bold text-slate-500">Tier: {prop.level || 0}</div>
+              <div class="text-xs font-bold text-slate-500">Tier: {prop.level || 0}</div>
             </div>
           </div>
           <div class="text-right">
             <div class="text-xs font-black text-emerald-600">Rent: {prop.rentFormatted}</div>
-            <div class="text-[10px] font-bold text-amber-600">Boosts to 2×!</div>
+            <div class="text-xs font-bold text-amber-600">Boosts to 2×!</div>
           </div>
         </div>
       {/each}
     </div>
 
     <div class="p-3 bg-white border-t border-slate-100 flex items-center justify-between gap-2 shrink-0">
-      <button onclick={onClose} class="w-full py-2.5 rounded-xl text-xs font-black text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 flex items-center justify-center gap-1.5 cursor-pointer transition-all">
+      <button onclick={onClose} class="w-full py-2.5 rounded-xl text-xs font-black text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0">
         Or Click Directly on the 3D Board
       </button>
     </div>
@@ -75,11 +75,11 @@
 <div id="modal-festival-no-properties" role="alertdialog" aria-modal="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.noPropertiesVisible ? 'flex' : 'hidden'}">
   <div id="modal-festival-no-properties-card" class="game-modal-shell modal-shell-amber relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border-4 !border-amber-400" tabindex="-1">
     <div class="game-modal-header bg-gradient-to-r from-amber-500 to-amber-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
-      <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white relative z-10 shrink-0">
-        🎪
+      <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-xl shadow-inner text-white relative z-10 shrink-0">
+        <i class="fa-solid fa-masks-theater text-white" aria-hidden="true"></i>
       </div>
       <div class="relative z-10 flex-1">
-        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-amber-100 shadow-xs mb-1 border border-white/20">
+        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-xs font-black uppercase tracking-widest text-amber-100 shadow-xs mb-1 border border-white/20">
           WORLD FESTIVAL
         </div>
         <h2 id="festival-no-props-title" class="font-rounded font-black text-xl text-white tracking-wide drop-shadow">NO PROPERTIES OWNED</h2>

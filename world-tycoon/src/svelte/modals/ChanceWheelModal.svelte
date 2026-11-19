@@ -65,15 +65,15 @@
         <span id="btn-spin-wheel-text" class="flex flex-col items-center justify-center leading-tight">
           {#if state.isSpinning}
             <i class="fa-solid fa-arrows-rotate text-lg animate-spin text-slate-950"></i>
-            <span class="text-[9px] uppercase tracking-wider font-black mt-0.5">SPINNING</span>
+            <span class="text-[10px] uppercase tracking-wider font-black mt-0.5">SPINNING</span>
           {:else if state.isSpectator}
             <i class="fa-solid fa-eye text-sm text-slate-950"></i>
-            <span class="text-[8px] uppercase tracking-wider font-black mt-0.5">WATCHING</span>
+            <span class="text-[10px] uppercase tracking-wider font-black mt-0.5">WATCHING</span>
           {:else if state.wonPrize}
             <span class="text-xl leading-none">{state.wonPrize.icon || '🎉'}</span>
           {:else}
             <span class="text-sm font-black uppercase tracking-widest text-slate-950 leading-none drop-shadow-xs">SPIN</span>
-            <span class="text-[8px] font-extrabold text-amber-950 uppercase tracking-wider mt-0.5">WHEEL</span>
+            <span class="text-[10px] font-extrabold text-amber-950 uppercase tracking-wider mt-0.5">WHEEL</span>
           {/if}
         </span>
       </button>
@@ -87,7 +87,7 @@
         </div>
         <div class="flex flex-col text-left min-w-0">
           <div class="flex items-center gap-2">
-            <span class="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30 font-mono shrink-0">
+            <span class="text-xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30 font-mono shrink-0">
               {state.wonPrize.tag || 'CHANCE'}
             </span>
             <span class="text-sm sm:text-base font-black text-white truncate drop-shadow">
