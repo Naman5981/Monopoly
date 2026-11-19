@@ -5,25 +5,25 @@
  */
 
 const WORLD_GROUP_META = {
-  brown:     { hex: '#8d6e63', name: 'Caucasus & Nile' },
-  lightblue: { hex: '#38bdf8', name: 'Aegean & Black Sea' },
-  pink:      { hex: '#f472b6', name: 'Anatolia & Levant' },
-  orange:    { hex: '#fb923c', name: 'Mediterranean Hubs' },
-  red:       { hex: '#ef4444', name: 'Asian Tigers' },
-  yellow:    { hex: '#facc15', name: 'European Capitals' },
-  green:     { hex: '#4ade80', name: 'Global Supercities' },
-  darkblue:  { hex: '#6366f1', name: 'Bosphorus & Crown' },
+  brown:     { hex: '#8d6e63', name: 'Brown Set' },
+  lightblue: { hex: '#38bdf8', name: 'Sky Blue Set' },
+  pink:      { hex: '#f472b6', name: 'Pink Set' },
+  orange:    { hex: '#fb923c', name: 'Orange Set' },
+  red:       { hex: '#ef4444', name: 'Red Set' },
+  yellow:    { hex: '#facc15', name: 'Yellow Set' },
+  green:     { hex: '#4ade80', name: 'Green Set' },
+  darkblue:  { hex: '#6366f1', name: 'Dark Blue Set' },
 };
 
 const RAJASTHAN_GROUP_META = {
-  brown:     { hex: '#8d6e63', name: 'Matsya & Gateway' },
-  lightblue: { hex: '#38bdf8', name: 'Hadoti & Ajmer' },
-  pink:      { hex: '#f472b6', name: 'Shekhawati Heritage' },
-  orange:    { hex: '#fb923c', name: 'Sacred Pushkar & Forest' },
-  red:       { hex: '#ef4444', name: 'Desert Fortresses' },
-  yellow:    { hex: '#facc15', name: 'Citadels & Golden Thar' },
-  green:     { hex: '#4ade80', name: 'Marwar & Sun City' },
-  darkblue:  { hex: '#6366f1', name: 'Royal Jewels (Udaipur & Jaipur)' },
+  brown:     { hex: '#8d6e63', name: 'Brown Set' },
+  lightblue: { hex: '#38bdf8', name: 'Sky Blue Set' },
+  pink:      { hex: '#f472b6', name: 'Pink Set' },
+  orange:    { hex: '#fb923c', name: 'Orange Set' },
+  red:       { hex: '#ef4444', name: 'Red Set' },
+  yellow:    { hex: '#facc15', name: 'Yellow Set' },
+  green:     { hex: '#4ade80', name: 'Green Set' },
+  darkblue:  { hex: '#6366f1', name: 'Dark Blue Set' },
 };
 
 const WORLD_BOARD_TILES = [

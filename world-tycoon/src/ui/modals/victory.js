@@ -16,7 +16,7 @@ import { buildNetWorthChartData } from './leaderboard.js';
 import { engineCallbacks, closeAllGameModals, isLobbyScreenActive } from './common.js';
 import { ARCHETYPES } from '../setup.js';
 import { awardMatchPoints } from '../wardrobe.js';
-import { animateModalPunchIn, animateMonopolyRibbonUnfurl } from '../anim.js';
+import { animateModalPunchIn } from '../anim.js';
 import { playVictoryCinematicOrbit, playIntroCinematicFlyIn, playMonopolyThreatCinematic, cancelActiveCutscene } from '../../three/theatre.js';
 import { getTileWorldPosition } from '../../three/board/coords.js';
 import { context } from '../../three/core/context.js';
@@ -296,12 +296,11 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.45, 120);
   spawnAnimatedReaction('money');
   setMonopolyTileHighlights(groupTiles.map(t => t.id), group.hex);
-  animateMonopolyRibbonUnfurl(group.name, group.hex);
 
   clearTimeout(monopolyCloseTimer);
   monopolyCloseTimer = setTimeout(closeMonopolyModal, 4800);
 
-  logEvent(`👑 <strong>${p.name}</strong> completed the <strong>${group.name}</strong> Monopoly! All cities collect <strong>2× Rent</strong>!`);
+  logEvent(`👑 <strong>${p.name}</strong> completed the <strong>${group.name}</strong>! All cities collect <strong>2× Rent</strong>!`);
 }
 
 export function closeMonopolyModal() {
@@ -332,17 +331,23 @@ export async function triggerMonopolyThreatAlert(playerIdx, groupKey, missingTil
   playSFX('monopolyThreat', 1.0, getTileWorldPosition(missingTileId));
 
   // 2. Trigger declarative Svelte banner overlay (high-contrast, Anime.js orchestrated)
+  const baseRent = missingTile.rent ? (Array.isArray(missingTile.rent) ? missingTile.rent[0] : missingTile.rent) : (missingTile.price ? Math.round(missingTile.price * 0.1) : 50000);
+  const boostedRent = (baseRent || 50000) * 2;
+
   triggerBanner('monopolyThreat', {
     playerName: player.name,
     playerColor: player.colorHex || '#ef4444',
     missingCityName: missingTile.name,
     groupName: group.name,
     groupColor: group.hex,
-    missingTileId
+    missingTileId,
+    priceFormatted: fmtMoney(missingTile.price || 0),
+    baseRentFormatted: fmtMoney(baseRent),
+    boostedRentFormatted: `${fmtMoney(boostedRent)} / visit`
   }, 5200);
 
   // 3. Log event in HUD
-  logEvent(`⚠️ <strong>MONOPOLY THREAT!</strong> <strong>${player.name}</strong> needs <strong>${missingTile.name}</strong> to conquer the <strong>${group.name}</strong> district! Rent will DOUBLE (2×)!`);
+  logEvent(`⚠️ <strong>MONOPOLY THREAT!</strong> <strong>${player.name}</strong> needs <strong>${missingTile.name}</strong> to complete the <strong>${group.name}</strong>! Rent will DOUBLE (2×)!`);
 
   // 4. Smooth 4.2-second 3D camera pan & golden beacon focus
   if (context.camera) {

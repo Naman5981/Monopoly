@@ -16,6 +16,7 @@ import { context } from './core/context.js';
 import { cameraState, updateIsometricCamera } from './core/camera.js';
 import { getTileWorldPosition } from './board/coords.js';
 import { setMonopolyThreatBeacon } from './board/highlights.js';
+import { spawnFlyingThreatCard, cancelFlyingThreatCard } from './board/flyingThreatCard.js';
 import { matchSettings } from '../game/state.js';
 
 let activeCutscene = null;
@@ -289,8 +290,8 @@ export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
     }
 
     const gameSpeed = matchSettings?.gameSpeed || 1;
-    // Scale duration with speed, minimum 2400ms so players have ample time to register the strategic threat
-    const effectiveDuration = Math.max(2400, Math.round(durationMs / Math.min(gameSpeed, 1.4)));
+    // Scale duration with speed, minimum 3800ms so players have comfortable time to see the floating tile
+    const effectiveDuration = Math.max(3800, Math.round(durationMs / Math.min(gameSpeed, 1.4)));
 
     let cancelled = false;
     let cleanupSkip = null;
@@ -302,6 +303,7 @@ export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
       if (cancelled) return;
       cancelled = true;
       if (cleanupSkip) cleanupSkip();
+      cancelFlyingThreatCard();
       setMonopolyThreatBeacon(null, false);
       cameraState.targetCameraTarget.set(0, 0, 0);
       cameraState.targetCameraZoom = 1.0;
@@ -321,12 +323,15 @@ export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
       return;
     }
 
-    // Turn on glowing beacon on missing tile
+    // Turn on glowing beacon ring on missing tile slot
     setMonopolyThreatBeacon(tileId, true, '#f59e0b');
 
-    // Smoothly pan camera directly to the missing tile with gentle zoom (zero board spin)
-    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 0.5, tilePos.z);
-    cameraState.targetCameraZoom = 1.48; // Gentle smooth zoom
+    // 3D Title Deed card springs out of tile, floats up into clear sky, hovers for 1.0s with amber glow, and swoops down & dissolves
+    spawnFlyingThreatCard(tileId, effectiveDuration);
+
+    // Smoothly pan camera directly to the missing tile & sky with gentle zoom (zero board spin)
+    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 1.2, tilePos.z);
+    cameraState.targetCameraZoom = 1.55; // Gentle smooth zoom framing both tile and floating card
 
     theatreState.activeCutsceneName = 'MonopolyThreatFocus';
 

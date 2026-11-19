@@ -314,7 +314,7 @@ export function setMonopolyThreatBeacon(tileId, active, colorHex = '#f59e0b', bo
   const pos = getTileWorldPosition(tileId);
   const color = new THREE.Color(colorHex);
 
-  // 1. Dual glowing pulse rings on the tile
+  // 1. Glowing pulse ground ring on the tile slot
   const ringGeo = new THREE.RingGeometry(1.10, 1.50, 32);
   const ringMat = new THREE.MeshBasicMaterial({
     color,
@@ -327,20 +327,21 @@ export function setMonopolyThreatBeacon(tileId, active, colorHex = '#f59e0b', bo
   ring.position.set(pos.x, 0.48, pos.z);
   threatHighlightGroup.add(ring);
 
-  // 2. Floating golden warning diamond above tile
-  const diamondGeo = new THREE.OctahedronGeometry(0.38, 0);
-  const diamondMat = new THREE.MeshStandardMaterial({
+  // 2. Inner radiant ground disc inside the tile slot
+  const discGeo = new THREE.CircleGeometry(1.08, 32);
+  const discMat = new THREE.MeshBasicMaterial({
     color,
-    emissive: color,
-    emissiveIntensity: 0.85,
-    roughness: 0.2,
-    metalness: 0.5
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.35,
+    blending: THREE.AdditiveBlending
   });
-  const diamond = new THREE.Mesh(diamondGeo, diamondMat);
-  diamond.position.set(pos.x, 2.6, pos.z);
-  threatHighlightGroup.add(diamond);
+  const disc = new THREE.Mesh(discGeo, discMat);
+  disc.rotation.x = -Math.PI / 2;
+  disc.position.set(pos.x, 0.482, pos.z);
+  threatHighlightGroup.add(disc);
 
-  threatHighlightGroup.userData = { ring, diamond };
+  threatHighlightGroup.userData = { ring, disc };
 }
 
 /**
@@ -672,14 +673,14 @@ export function updateActivePlayerBeacon(t) {
 
   if (threatHighlightGroup?.visible) {
     const s = 1 + Math.sin(t * 5.5) * 0.10;
-    const { ring, diamond } = threatHighlightGroup.userData || {};
+    const { ring, disc } = threatHighlightGroup.userData || {};
     if (ring) {
       ring.scale.set(s, s, 1);
       ring.material.opacity = 0.70 + Math.sin(t * 5.5) * 0.28;
     }
-    if (diamond) {
-      diamond.rotation.y = t * 3.2;
-      diamond.position.y = 2.6 + Math.sin(t * 4.0) * 0.18;
+    if (disc) {
+      disc.scale.set(s, s, 1);
+      disc.material.opacity = 0.30 + Math.sin(t * 5.5) * 0.15;
     }
   }
 

@@ -91,4 +91,12 @@ describe('Monopoly Threat Detection & Svelte Alerts (/fixing-motion-performance 
     const afterDismiss = get(bannerStore);
     assert.equal(afterDismiss.activeBanner, null);
   });
+
+  test('spawnFlyingThreatCard and cancelFlyingThreatCard execute safely without throwing', async () => {
+    const { spawnFlyingThreatCard, cancelFlyingThreatCard } = await import('../src/three/board/flyingThreatCard.js');
+    assert.doesNotThrow(() => {
+      spawnFlyingThreatCard(3, 2000);
+      cancelFlyingThreatCard();
+    });
+  });
 });

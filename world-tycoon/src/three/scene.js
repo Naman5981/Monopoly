@@ -232,6 +232,7 @@ export function getTileScreenPosition(tileId) {
   }
 }
 export { triggerTileButtonPress } from './board/tilePress.js';
+export { spawnFlyingThreatCard, cancelFlyingThreatCard } from './board/flyingThreatCard.js';
 export {
   refreshTileTextureAndBuildings,
   updateTileMesh,
