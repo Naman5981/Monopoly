@@ -292,7 +292,8 @@ export function revealGameHud() {
     'hud-match-status-capsule',
     'hud-left-players',
     'hud-right-players',
-    'hud-bottom-status-wrap'
+    'hud-bottom-status-wrap',
+    'hud-bottom-left-container'
   ];
   elements.forEach(id => {
     const el = document.getElementById(id);
@@ -314,6 +315,8 @@ export function hideGameHud() {
     'hud-left-players',
     'hud-right-players',
     'hud-bottom-status-wrap',
+    'hud-bottom-left-container',
+    'event-log-drawer',
     'turn-lock-toast',
     'world-tour-banner',
     'token-speech-bubble',

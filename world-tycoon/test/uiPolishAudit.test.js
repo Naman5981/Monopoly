@@ -6,8 +6,10 @@ setupBrowserMocks();
 import { gameState, resetGameStateForNewMatch, matchSettings } from '../src/game/state.js';
 import { BOARD_TILES } from '../src/game/data.js';
 import { openPortfolioModal, closePortfolioModal } from '../src/ui/modals/inspector.js';
-import { openRulesModal, closeRulesModal } from '../src/ui/modals/system.js';
+import { openRulesModal, closeRulesModal, toggleEventLogDrawer } from '../src/ui/modals/system.js';
 import { modalStore } from '../src/svelte/stores/modalStore.js';
+import { hudStore } from '../src/svelte/stores/hudStore.js';
+import { revealGameHud, hideGameHud } from '../src/ui/hud/controls.js';
 
 describe('UI Polish & Design Gaps Audit (/better-ui /anti-ui-slop)', () => {
   beforeEach(() => {
@@ -60,5 +62,36 @@ describe('UI Polish & Design Gaps Audit (/better-ui /anti-ui-slop)', () => {
     const unsub2 = modalStore.subscribe(val => { rulesState = val.rules; });
     unsub2();
     assert.equal(rulesState.visible, false);
+  });
+
+  it('toggleEventLogDrawer cleanly synchronizes hudStore and manages bottom-left drawer', () => {
+    const drawer = document.getElementById('event-log-drawer');
+    drawer.classList.add('hidden');
+    drawer.classList.remove('flex');
+
+    toggleEventLogDrawer();
+
+    let hud = null;
+    const unsub = hudStore.subscribe(val => { hud = val; });
+    unsub();
+    assert.equal(hud.isEventLogOpen, true);
+    assert.equal(drawer.classList.contains('hidden'), false);
+
+    toggleEventLogDrawer();
+    const unsub2 = hudStore.subscribe(val => { hud = val; });
+    unsub2();
+    assert.equal(hud.isEventLogOpen, false);
+    assert.equal(drawer.classList.contains('hidden'), true);
+  });
+
+  it('revealGameHud and hideGameHud properly control hud-bottom-left-container', () => {
+    const container = document.getElementById('hud-bottom-left-container');
+    container.classList.add('hidden');
+
+    revealGameHud();
+    assert.equal(container.classList.contains('hidden'), false);
+
+    hideGameHud();
+    assert.equal(container.classList.contains('hidden'), true);
   });
 });

@@ -318,7 +318,7 @@ export function initInputHandlers(domElement, onTileClickCb) {
       if (tooltip) tooltip.classList.add('hidden');
     } else {
       const target = e.target;
-      if (target && target.closest && (target.closest('#main-game-hud-bar') || target.closest('[id^="modal-"]') || target.closest('#event-log-drawer') || target.closest('#debug-suite-panel'))) {
+      if (target && target.closest && (target.closest('#main-game-hud-bar') || target.closest('[id^="modal-"]') || target.closest('#event-log-drawer') || target.closest('#hud-bottom-left-container') || target.closest('#debug-suite-panel'))) {
         const tooltip = document.getElementById('tile-hover-tooltip');
         if (tooltip) tooltip.classList.add('hidden');
         return;

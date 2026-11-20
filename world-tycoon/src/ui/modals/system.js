@@ -13,6 +13,7 @@ import { closeAllGameModals, closeOtherInformationalModals } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { renderCornerHUDs, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { updateHudState } from '../../svelte/stores/hudStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SETUP / LOBBY MODAL (LEGACY FALLBACK)
@@ -124,13 +125,14 @@ export function toggleEventLogDrawer() {
     d.classList.add('flex');
     d.style.removeProperty('display');
     d.style.setProperty('display', 'flex', 'important');
-    d.style.setProperty('z-index', '1350', 'important');
     d.style.pointerEvents = 'auto';
     playSFX('hop');
+    updateHudState({ isEventLogOpen: true });
   } else {
     d.classList.add('hidden');
     d.classList.remove('flex');
     d.style.setProperty('display', 'none', 'important');
+    updateHudState({ isEventLogOpen: false });
   }
 }
 

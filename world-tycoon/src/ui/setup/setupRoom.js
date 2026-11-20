@@ -311,6 +311,11 @@ export function startGameFromLandingPage() {
     hudRight.classList.remove('hidden');
     hudRight.style.removeProperty('display');
   }
+  const hudBottomLeft = document.getElementById('hud-bottom-left-container');
+  if (hudBottomLeft) {
+    hudBottomLeft.classList.remove('hidden');
+    hudBottomLeft.style.removeProperty('display');
+  }
 
   // Initialize and start match with configured players & starting cash
   startNewMatch();
@@ -390,6 +395,17 @@ export function openLandingSetupScreen() {
   if (statusWrap) {
     statusWrap.classList.add('hidden');
     statusWrap.style.setProperty('display', 'none', 'important');
+  }
+  const hudBottomLeft = document.getElementById('hud-bottom-left-container');
+  if (hudBottomLeft) {
+    hudBottomLeft.classList.add('hidden');
+    hudBottomLeft.style.setProperty('display', 'none', 'important');
+  }
+  const eventDrawer = document.getElementById('event-log-drawer');
+  if (eventDrawer) {
+    eventDrawer.classList.add('hidden');
+    eventDrawer.classList.remove('flex');
+    eventDrawer.style.setProperty('display', 'none', 'important');
   }
 
   if (networkState.isMultiplayer) {

@@ -31,7 +31,6 @@
     window.playSFX?.('click');
   }
   function onRules() { window.openRulesModal?.(); }
-  function onEventLog() { window.toggleEventLogDrawer?.(); }
   function onDebug() { window.toggleDebugPanel?.(); }
 </script>
 
@@ -165,12 +164,6 @@
     <!-- Quick Utilities -->
     <button id="btn-hud-rules" onclick={onRules} class="hud-circle-icon-btn transition-transform duration-150 ease-out active:scale-[0.96]" title="How to Play & Game Rules" aria-label="How to Play and Rules">
       <i class="fa-regular fa-circle-question text-slate-700 text-sm"></i>
-    </button>
-
-    <button id="btn-hud-event-log" onclick={onEventLog} class="hud-circle-icon-btn transition-transform duration-150 ease-out active:scale-[0.96]" title="Open Activity Event Log" aria-label="Open Activity Event Log">
-      <i class="fa-regular fa-file-lines text-slate-700 text-xs"></i>
-    </button>
-      <i class="fa-regular fa-file-lines text-slate-700 text-xs"></i>
     </button>
 
     <!-- Debug Trigger -->

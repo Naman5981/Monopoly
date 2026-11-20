@@ -2481,7 +2481,15 @@ body.production-build #debug-modal {
   color: #ffffff !important;
 }
 
-#event-log-drawer { z-index: 1350 !important; }
+#hud-bottom-left-container {
+  z-index: 45;
+}
+#hud-bottom-left-container.hidden {
+  display: none !important;
+}
+#event-log-drawer {
+  z-index: 45;
+}
 #debug-suite-panel { z-index: 1400 !important; }
 #debug-floating-toggle-pill { display: none !important; }
 
