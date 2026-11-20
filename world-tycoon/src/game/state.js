@@ -123,7 +123,12 @@ export function cycleGameSpeed() {
 export const displayedCash = [2000000, 2000000, 2000000, 2000000, 2000000, 2000000];
 
 export let lobbyPlayerCount = 2;
-export function setLobbyPlayerCount(n) { lobbyPlayerCount = n; }
+export function setLobbyPlayerCount(n) {
+  lobbyPlayerCount = n;
+  if (!matchSettings._startingCashCustomized) {
+    matchSettings.startingCash = (n >= 4) ? 1_500_000 : 2_000_000;
+  }
+}
 
 const SAVED_VOLUME = (typeof localStorage !== 'undefined') ? localStorage.getItem('WORLD_TYCOON_SOUND_VOLUME') : null;
 const INITIAL_VOL = SAVED_VOLUME !== null ? Math.max(0, Math.min(1, parseFloat(SAVED_VOLUME))) : 0.55;

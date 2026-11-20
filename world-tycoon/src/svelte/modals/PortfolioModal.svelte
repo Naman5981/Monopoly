@@ -12,6 +12,12 @@
     window.handleModalBackdropClick?.(e, window.closePortfolioModal);
   }
 
+  function onInspectTile(id) {
+    if (typeof window.openInspectorModal === 'function') {
+      window.openInspectorModal(id);
+    }
+  }
+
   function handleWindowKeydown(e) {
     if (!state.visible) return;
     if (e.key === 'Escape') {
@@ -48,7 +54,7 @@
         </div>
       </div>
 
-      <button onclick={onClose} class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none" title="Close portfolio [Esc]">
+      <button onclick={onClose} class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 active:scale-[0.96] text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none" title="Close portfolio [Esc]">
         <i class="fa-solid fa-xmark text-base"></i>
       </button>
     </div>
@@ -66,10 +72,17 @@
     </div>
 
     <!-- Scrollable Properties Grid -->
-    <div id="portfolio-grid" class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-gradient-to-b from-white to-slate-50/70">
+    <div id="portfolio-grid" class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-gradient-to-b from-white to-slate-50/70 overscroll-contain">
       {#if state.properties && state.properties.length > 0}
         {#each state.properties as prop}
-          <div class="p-3 bg-white rounded-2xl border-2 border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-150 hover:-translate-y-0.5">
+          <div
+            onclick={() => onInspectTile(prop.id)}
+            class="p-3 bg-white rounded-2xl border-2 border-slate-200/90 shadow-2xs flex items-center justify-between transition-all duration-150 hover:-translate-y-0.5 cursor-pointer hover:border-emerald-400"
+            role="button"
+            tabindex="0"
+            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspectTile(prop.id); } }}
+            title="Click to inspect deed & upgrade options"
+          >
             <div class="flex items-center gap-2.5">
               <span class="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0" style="background:{prop.color}"></span>
               <div>

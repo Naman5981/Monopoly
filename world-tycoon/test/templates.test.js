@@ -32,13 +32,6 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
     assert.ok(content.includes('id="svelte-hud-mount"'));
     assert.ok(content.includes('id="svelte-modals-mount"'));
 
-    // The setup dialog remains an HTML template; migrated dialogs mount from Svelte.
-    const expectedModalIds = ['modal-setup'];
-
-    for (const modalId of expectedModalIds) {
-      assert.ok(content.includes(`id="${modalId}"`), `index.html must include modal id "${modalId}"`);
-    }
-
     // Essential Svelte 5 declarative modal components
     const svelteModals = [
       'BuyCityModal.svelte',
@@ -71,38 +64,31 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
   it('ensures each modular template file in src/templates/ is valid and non-empty', () => {
     const templatesDir = path.join(rootDir, 'src', 'templates');
     const files = fs.readdirSync(templatesDir).filter(f => f.endsWith('.html'));
-    const modalFiles = fs.readdirSync(path.join(templatesDir, 'modals')).filter(f => f.endsWith('.html'));
 
     assert.ok(files.length >= 3, 'Top-level templates must exist');
-    assert.ok(modalFiles.length >= 1, 'The remaining setup template must exist');
 
     for (const f of files) {
       const stat = fs.statSync(path.join(templatesDir, f));
       assert.ok(stat.size > 0, `${f} should not be empty`);
     }
-
-    for (const f of modalFiles) {
-      const stat = fs.statSync(path.join(templatesDir, 'modals', f));
-      assert.ok(stat.size > 0, `modals/${f} should not be empty`);
-    }
   });
 
   it('ensures all template files have balanced <div> open and close tags', () => {
     const templatesDir = path.join(rootDir, 'src', 'templates');
-    const modalFiles = fs.readdirSync(path.join(templatesDir, 'modals')).filter(f => f.endsWith('.html'));
+    const files = fs.readdirSync(templatesDir).filter(f => f.endsWith('.html'));
 
-    for (const file of modalFiles) {
-      const content = fs.readFileSync(path.join(templatesDir, 'modals', file), 'utf8');
+    for (const file of files) {
+      const content = fs.readFileSync(path.join(templatesDir, file), 'utf8');
       const opens = (content.match(/<div\b/gi) || []).length;
       const closes = (content.match(/<\/div>/gi) || []).length;
-      assert.equal(opens, closes, `Modal template modals/${file} must have balanced <div> tags (opened: ${opens}, closed: ${closes})`);
+      assert.equal(opens, closes, `Template ${file} must have balanced <div> tags (opened: ${opens}, closed: ${closes})`);
     }
   });
 
-  it('keeps the remaining setup dialog separate from the Svelte modal tree', () => {
-    const setupTemplate = fs.readFileSync(path.join(rootDir, 'src', 'templates', 'modals', 'setup-dialog.html'), 'utf8');
+  it('ensures Svelte ModalsRoot cleanly mounts all active dialogs', () => {
     const modalRoot = fs.readFileSync(path.join(rootDir, 'src', 'svelte', 'modals', 'ModalsRoot.svelte'), 'utf8');
-    assert.ok(setupTemplate.includes('id="modal-setup"'));
+    assert.ok(modalRoot.includes('<RulesModal />'));
+    assert.ok(modalRoot.includes('<PortfolioModal />'));
     assert.ok(modalRoot.includes('<LeaderboardModal />'));
     assert.ok(modalRoot.includes('<MonopolyCelebrationModal />'));
   });

@@ -509,7 +509,8 @@ export function broadcastFullGameState() {
             level: prop.level,
             festival: Boolean(prop.festivalBoost || prop.festival),
             festivalBoost: Boolean(prop.festivalBoost || prop.festival),
-            festivalMultiplier: prop.festivalMultiplier || 1
+            festivalMultiplier: prop.festivalMultiplier || 1,
+            takeoverCount: Number(prop.takeoverCount || 0)
           };
         }
         return acc;

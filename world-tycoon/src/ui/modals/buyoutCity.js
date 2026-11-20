@@ -43,6 +43,7 @@ export function clearBuyoutTimers() {
 export function calculateBuyoutCost(tile, propState) {
   if (!tile || !propState) return 0;
   if ((propState.level || 0) >= 4) return 0; // Maxed skyscrapers are immune to hostile takeover
+  if ((propState.takeoverCount || 0) >= 2) return 0; // Protected landmark after 2 takeovers
   const baseCost = (tile.price || 0) * 2;
   const housesBuilt = propState.level || 0;
   const houseCost = tile.houseCost || 0;
@@ -74,6 +75,10 @@ export function openBuyoutCityModal(tile, isDoubles) {
   const basePrice = (tile.price || 0) * 2;
   const housesCost = (st?.level || 0) * (tile.houseCost || 0);
   const totalBuyoutCost = basePrice + housesCost;
+  const sellerPayout = Math.round((tile.price || 0) * 1.4) + housesCost;
+  const bankFee = totalBuyoutCost - sellerPayout;
+  const currentTakeovers = st?.takeoverCount || 0;
+  const isFinalTakeover = (currentTakeovers === 1);
 
   const nearStatus = tile.group ? checkNearMonopolyGroup(pIdx, tile.group) : null;
   const isMonopolyFinisher = Boolean(nearStatus?.isNear && nearStatus?.missingTile?.id === tile.id);
@@ -88,6 +93,10 @@ export function openBuyoutCityModal(tile, isDoubles) {
     buyoutCost: totalBuyoutCost,
     buyoutCostFormatted: fmtMoney(totalBuyoutCost),
     basePriceFormatted: fmtMoney(basePrice),
+    sellerPayoutFormatted: fmtMoney(sellerPayout),
+    bankFeeFormatted: fmtMoney(bankFee),
+    takeoverBadge: isFinalTakeover ? 'FINAL TAKEOVER (2/2) — LOCKS TO YOU!' : 'TAKEOVER 1/2',
+    isFinalTakeover,
     housesCostFormatted: (st?.level || 0) > 0 ? `${fmtMoney(housesCost)} (${st.level} built)` : '$0 (None)',
     sellerName: prevOwner?.name || 'Opponent',
     buyerBalanceFormatted: fmtMoney(p?.cash || 0),
@@ -133,22 +142,41 @@ export function confirmBuyoutCity() {
   const buyoutCost = calculateBuyoutCost(tile, st);
   if (p.cash < buyoutCost) return;
 
+  const basePrice = (tile.price || 0) * 2;
+  const housesCost = (st.level || 0) * (tile.houseCost || 0);
+  const sellerPayout = Math.round((tile.price || 0) * 1.4) + housesCost;
+  const bankFee = buyoutCost - sellerPayout;
+
   p.cash -= buyoutCost;
   if (prevOwner) {
-    prevOwner.cash += buyoutCost;
-    if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(prevOwnerIdx, `+${fmtMoney(buyoutCost)}`, true);
+    prevOwner.cash += sellerPayout;
+    if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(prevOwnerIdx, `+${fmtMoney(sellerPayout)}`, true);
   }
   st.owner = pIdx;
+  st.takeoverCount = (st.takeoverCount || 0) + 1;
 
   playSFX('takeover', 1.0, getTileWorldPosition(tile.id));
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.4, 45);
   spawnAnimatedReaction('money', window.innerWidth / 2, window.innerHeight * 0.4);
   animateBuyoutHostileStamp(tile.name, p.name, prevOwner ? prevOwner.name : 'Opponent');
   if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(pIdx, `-${fmtMoney(buyoutCost)}`, false);
-  logEvent(`⚔️ <strong>${p.name}</strong> bought out <strong>${tile.name}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong> for <strong>${fmtMoney(buyoutCost)}</strong>!`);
+  if (st.takeoverCount >= 2) {
+    logEvent(`🏛️ <strong>${p.name}</strong> executed the FINAL takeover on <strong>${tile.name}</strong> for <strong>${fmtMoney(buyoutCost)}</strong>! It is now a <strong>Protected Landmark</strong> (immune to further buyouts)! (${fmtMoney(bankFee)} Bank Tax burned).`);
+  } else {
+    logEvent(`⚔️ <strong>${p.name}</strong> bought out <strong>${tile.name}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong> for <strong>${fmtMoney(buyoutCost)}</strong> (${fmtMoney(bankFee)} Bank Tax burned, Takeover 1/2)!`);
+  }
 
   if (networkState.isMultiplayer) {
-    broadcastAction('ACTION_BUYOUT_CITY', { playerIdx: pIdx, tileId: tile.id, prevOwnerIdx, buyoutCost, isDoubles: Boolean(isDoubles) });
+    broadcastAction('ACTION_BUYOUT_CITY', {
+      playerIdx: pIdx,
+      tileId: tile.id,
+      prevOwnerIdx,
+      buyoutCost,
+      sellerPayout,
+      bankFee,
+      takeoverCount: st.takeoverCount,
+      isDoubles: Boolean(isDoubles)
+    });
     if (networkState.isHost) {
       broadcastFullGameState();
     }

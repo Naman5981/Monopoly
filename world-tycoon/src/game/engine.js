@@ -335,14 +335,23 @@ export function initEngine() {
       const prevOwner = gameState.players[prevOwnerIdx];
       const tile = BOARD_TILES[tileId];
       if (st && buyer) {
+        const housesCost = (st.level || 0) * (tile?.houseCost || 0);
+        const sellerPayout = Math.round((tile?.price || 0) * 1.4) + housesCost;
+        const bankFee = buyoutCost - sellerPayout;
+
         buyer.cash -= buyoutCost;
-        if (prevOwner) prevOwner.cash += buyoutCost;
+        if (prevOwner) prevOwner.cash += sellerPayout;
         st.owner = playerIdx;
+        st.takeoverCount = (st.takeoverCount || 0) + 1;
         playSFX('takeover', 1.0, getTileWorldPosition(tileId));
         animateBuyoutHostileStamp(tile ? tile.name : 'PROPERTY', buyer.name, prevOwner ? prevOwner.name : 'Opponent');
         spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(buyoutCost)}`, false);
-        if (prevOwner) spawnFloatingCashOnHUD(prevOwnerIdx, `+${fmtMoney(buyoutCost)}`, true);
-        logEvent(`⚔️ <strong>${buyer.name}</strong> bought out <strong>${tile ? tile.name : 'City'}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong>!`);
+        if (prevOwner) spawnFloatingCashOnHUD(prevOwnerIdx, `+${fmtMoney(sellerPayout)}`, true);
+        if (st.takeoverCount >= 2) {
+          logEvent(`🏛️ <strong>${buyer.name}</strong> executed the FINAL takeover on <strong>${tile ? tile.name : 'City'}</strong>! It is now a <strong>Protected Landmark</strong>!`);
+        } else {
+          logEvent(`⚔️ <strong>${buyer.name}</strong> bought out <strong>${tile ? tile.name : 'City'}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong> (${fmtMoney(bankFee)} Bank Tax burned)!`);
+        }
         refreshTileTextureAndBuildings(tileId);
         renderCornerHUDs();
         saveCurrentMatchToStorage();
@@ -439,6 +448,7 @@ export function initEngine() {
             gameState.properties[tid].owner = src.owner;
             gameState.properties[tid].level = src.level;
             gameState.properties[tid].festivalBoost = Boolean(src.festivalBoost || src.festival);
+            gameState.properties[tid].takeoverCount = Number(src.takeoverCount || 0);
           }
           refreshTileTextureAndBuildings(tid);
         });

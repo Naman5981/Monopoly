@@ -69,7 +69,7 @@ test('Instant Cash Reflection & Synchronization Suite (/bug-hunter)', async (t) 
     assert.equal(displayedCash[0], 2400000, 'displayedCash is synchronized with player.cash');
   });
 
-  await t.test('StartLandingStrategy updates cash and immediately syncs HUD to +400K', async () => {
+  await t.test('StartLandingStrategy updates cash and immediately syncs HUD to +350K', async () => {
     gameState.players = [
       { id: 0, name: 'Alice', cash: 1000000, position: 0, isAI: false, bankrupt: false },
       { id: 1, name: 'Bob', cash: 1500000, position: 0, isAI: true, bankrupt: false }
@@ -88,9 +88,9 @@ test('Instant Cash Reflection & Synchronization Suite (/bug-hunter)', async (t) 
     unsub();
 
     const p0Card = hudSnapshot.leftPlayers.find(p => p.id === 0);
-    assert.equal(gameState.players[0].cash, 1400000);
-    assert.equal(p0Card.cashFormatted, '1.4M');
-    assert.equal(displayedCash[0], 1400000);
+    assert.equal(gameState.players[0].cash, 1350000);
+    assert.equal(p0Card.cashFormatted, '1.35M');
+    assert.equal(displayedCash[0], 1350000);
   });
 
   await t.test('applyChancePrize immediately reflects cash grant on HUD', async () => {

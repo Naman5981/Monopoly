@@ -488,22 +488,41 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     if (player.cash >= buyoutCost + 600000) {
       const currentTurn = gameState.netWorthHistory?.length || 0;
       lastBotBuyoutTurn[playerIdx] = currentTurn;
+      const housesCost = (st.level || 0) * (tile.houseCost || 0);
+      const sellerPayout = Math.round((tile.price || 0) * 1.4) + housesCost;
+      const bankFee = buyoutCost - sellerPayout;
+
       player.cash -= buyoutCost;
-      prevOwner.cash += buyoutCost;
+      if (prevOwner) prevOwner.cash += sellerPayout;
       st.owner = playerIdx;
+      st.takeoverCount = (st.takeoverCount || 0) + 1;
+
       playSFX('takeover', 1.0, getTileWorldPosition(tile.id));
       animateBuyoutHostileStamp(tile.name, player.name, prevOwner ? prevOwner.name : 'Opponent');
       spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(buyoutCost)} Buyout`, false);
-      spawnFloatingCashOnHUD(previousOwnerIdx, `+${fmtMoney(buyoutCost)} Sold`, true);
+      if (prevOwner) spawnFloatingCashOnHUD(previousOwnerIdx, `+${fmtMoney(sellerPayout)} Sold`, true);
       showSpeechBubble(`Hostile Buyout on ${tile.name}! 💰`, 2000);
-      logEvent(`⚔️ <strong>${player.name}</strong> executed a hostile buyout on <strong>${tile.name}</strong> from <strong>${prevOwner.name}</strong> for <strong>${fmtMoney(buyoutCost)}</strong>.`);
+      if (st.takeoverCount >= 2) {
+        logEvent(`🏛️ <strong>${player.name}</strong> executed the FINAL takeover on <strong>${tile.name}</strong>! It is now a <strong>Protected Landmark</strong>!`);
+      } else {
+        logEvent(`⚔️ <strong>${player.name}</strong> executed a hostile buyout on <strong>${tile.name}</strong> from <strong>${prevOwner.name}</strong> for <strong>${fmtMoney(buyoutCost)}</strong> (${fmtMoney(bankFee)} Bank Tax burned).`);
+      }
       refreshTileTextureAndBuildings(tile.id);
       renderCornerHUDs();
       if (tile.group) {
         checkAndTriggerMonopoly(playerIdx, tile.group);
       }
       if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_BUYOUT_CITY', { playerIdx, tileId: tile.id, buyoutCost, prevOwnerIdx: previousOwnerIdx, isDoubles: Boolean(isDoubles) });
+        broadcastAction('ACTION_BUYOUT_CITY', {
+          playerIdx,
+          tileId: tile.id,
+          buyoutCost,
+          sellerPayout,
+          bankFee,
+          takeoverCount: st.takeoverCount,
+          prevOwnerIdx: previousOwnerIdx,
+          isDoubles: Boolean(isDoubles)
+        });
         broadcastFullGameState();
       }
       if (context.camera) {
@@ -533,11 +552,14 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
     if (st && st.level < 4 && player.cash >= tile.houseCost + 200000) {
+      const canDoTwo = st.level <= 2 && player.cash >= (tile.houseCost * 2) + 400000;
+      const count = canDoTwo ? 2 : 1;
       upgradeCityLevel(tile.id, true);
-      showSpeechBubble(`Upgraded ${tile.name}! 🏗️`, 1800);
-      logEvent(`🏗️ <strong>${player.name}</strong> upgraded estate in <strong>${tile.name}</strong>.`);
+      if (canDoTwo) upgradeCityLevel(tile.id, true);
+      showSpeechBubble(canDoTwo ? `Double Upgraded ${tile.name}! 🏗️🏗️` : `Upgraded ${tile.name}! 🏗️`, 1800);
+      logEvent(`🏗️ <strong>${player.name}</strong> upgraded estate in <strong>${tile.name}</strong> (+${count} Level${count > 1 ? 's' : ''}).`);
       if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, count: 1, levelsToAdd: 1 });
+        broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, count, levelsToAdd: count });
         broadcastFullGameState();
       }
     } else {

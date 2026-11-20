@@ -52,6 +52,16 @@
     </div>
   </div>
 
+  <!-- Takeover Badge & Tax Breakdown -->
+  <div class="flex items-center justify-between text-[11px] font-bold px-1 text-slate-300">
+    <span class="px-2 py-0.5 rounded-full {state.isFinalTakeover ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40 font-black' : 'bg-white/10 text-slate-300'}">
+      {state.takeoverBadge || 'TAKEOVER 1/2'}
+    </span>
+    <span class="text-slate-400">
+      Seller gets: <strong class="text-emerald-300">{state.sellerPayoutFormatted || '$0'}</strong> • Bank Tax: <strong class="text-rose-400">{state.bankFeeFormatted || '$0'}</strong>
+    </span>
+  </div>
+
   <!-- Hidden compatibility elements for tests and scripts -->
   <span id="buyout-modal-base-price" class="hidden">{state.basePriceFormatted || '$0'}</span>
   <span id="buyout-modal-houses-cost" class="hidden">{state.housesCostFormatted || '$0'}</span>

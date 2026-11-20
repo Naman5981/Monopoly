@@ -15,62 +15,21 @@ import { renderCornerHUDs, refreshActivePlayerTurnStatus, updateRollButtonsUI } 
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   SETUP / LOBBY MODAL
+   SETUP / LOBBY MODAL (LEGACY FALLBACK)
 ───────────────────────────────────────────────────────────────────────────── */
 export function openSetupModal() {
-  stopVictoryCelebration();
-  document.getElementById('modal-victory')?.classList.add('hidden');
-  document.getElementById('modal-victory')?.classList.remove('flex');
-  renderLobbyControls();
-  updateModalSlice('setup', { visible: true });
-  const m = document.getElementById('modal-setup');
-  if (m) {
-    m.classList.remove('hidden');
-    m.classList.add('flex');
+  if (window.openLandingSetupScreen) {
+    window.openLandingSetupScreen();
   }
 }
 
-export function closeSetupModal() {
-  updateModalSlice('setup', { visible: false });
-  const m = document.getElementById('modal-setup');
-  if (m) {
-    m.classList.add('hidden');
-    m.classList.remove('flex');
-  }
-}
+export function closeSetupModal() {}
 
 export function setLobbyCount(n) {
   setLobbyPlayerCount(n);
-  renderLobbyControls();
 }
 
-export function renderLobbyControls() {
-  [2, 3, 4, 5, 6].forEach(n => {
-    const b = document.getElementById(`lobby-cnt-${n}`);
-    if (b) {
-      b.className = n === lobbyPlayerCount
-        ? 'px-3 py-1.5 rounded-xl text-xs font-extrabold bg-indigo-600 text-white cursor-pointer'
-        : 'px-3 py-1.5 rounded-xl text-xs font-extrabold bg-slate-200 text-slate-600 cursor-pointer';
-    }
-  });
-
-  const list = document.getElementById('lobby-players-list');
-  if (!list) return;
-  list.innerHTML = '';
-  const myIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : 0;
-  for (let i = 0; i < lobbyPlayerCount; i++) {
-    const th = PLAYER_THEMES[i] || { name: `PLAYER ${i + 1}`, colorHex: '#3b82f6', isAI: i > 0 };
-    list.innerHTML += `
-      <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-2xl border border-slate-200">
-        <div class="flex items-center gap-2">
-          <span class="w-3.5 h-3.5 rounded-full" style="background:${th.colorHex}"></span>
-          <input type="text" value="${th.name}" oninput="window.setPlayerSetupName(${i}, this.value)" onchange="window.setPlayerSetupName(${i}, this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-extrabold w-28 uppercase">
-        </div>
-        <span class="text-xs font-bold text-slate-500">${i === myIdx ? 'Human (YOU)' : (th.isAI ? 'Smart AI Bot' : 'Player')}</span>
-      </div>
-    `;
-  }
-}
+export function renderLobbyControls() {}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    RULES MODAL

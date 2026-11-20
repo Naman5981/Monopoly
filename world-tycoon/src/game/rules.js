@@ -521,3 +521,15 @@ export function checkVictoryConditions() {
   return null;
 }
 
+/**
+ * Check if a property is permanently immune to hostile takeover.
+ * Immunity rules: Level 4 Skyscraper, or has reached 2 hostile takeovers.
+ * @param {number} tileId
+ * @returns {boolean}
+ */
+export function isPropertyBuyoutImmune(tileId) {
+  const st = gameState.properties?.[tileId];
+  if (!st) return false;
+  return (st.level || 0) >= 4 || (st.takeoverCount || 0) >= 2;
+}
+

@@ -96,7 +96,12 @@ flowchart TD
 - [`world-tycoon/src/core/Events.js`](world-tycoon/src/core/Events.js): Global event name constants (`TURN_START`, `TILE_LANDED`, `DICE_ROLLED`, `MONOPOLY_TRIGGERED`).
 - [`world-tycoon/src/game/state.js`](world-tycoon/src/game/state.js): Primary source of truth (`gameState`, `matchSettings`, `debugState`, `cycleGameSpeed`).
 - [`world-tycoon/src/game/data.js`](world-tycoon/src/game/data.js): Tile metadata for World and Rajasthan boards, avatar definitions, color groups, and Chance tables.
-- [`world-tycoon/src/game/rules.js`](world-tycoon/src/game/rules.js): Business rules for rent multipliers, full color group detection (`ownsFullColorGroup`), near-monopoly threat detection (`checkNearMonopolyGroup`), side monopolies, and debt liquidation.
+- [`world-tycoon/src/game/rules.js`](world-tycoon/src/game/rules.js): Business rules for rent multipliers, full color group detection (`ownsFullColorGroup`), near-monopoly threat detection (`checkNearMonopolyGroup`), side monopolies, debt liquidation, and buyout immunity (`isPropertyBuyoutImmune`).
+- **Pacing & Hostile Takeover Balance Overhaul (4–5 Player Tuning)**:
+  - **Bank Acquisition Tax (30% Sink)**: Hostile buyouts cost `2x base + houses`. Seller receives `1.4x base + houses`, while `0.6x base` (30% of base buyout fee) is burned directly as a municipal tax to curb inflation.
+  - **2-Takeover Hard Cap (Protected Landmarks)**: Each property tracks `takeoverCount`. On the 2nd buyout, the property converts into a permanent Protected Landmark (`takeoverCount >= 2`) with buyout immunity, preventing endless cycling.
+  - **Multi-House Construction (+2 Levels)**: Players and AI bots can upgrade up to 2 levels in a single visit if cash permits, accelerating properties to Level 4 (Skyscrapers) for natural immunity.
+  - **Tuned Match Economy**: 4–5 player starting cash defaults to $1.5M (2–3 players keep $2M); passing START salary tuned to $250k and landing super bonus to $350k.
 - **Team Mode (2v2 & 3v3 Alliance Engine)**:
   - [`world-tycoon/src/game/data.js`](world-tycoon/src/game/data.js): `TEAM_META` metadata defining Team Red (`#ef4444`) and Team Blue (`#3b82f6`).
   - [`world-tycoon/src/game/rules.js`](world-tycoon/src/game/rules.js): `isTeammate`, `getTeamMembers`, `calculateTeamNetWorth`, `validateTeamModeBalance` (strict 2v2 / 3v3 pre-start balance validator), team-aware `ownsFullColorGroup` (shared color groups across allies), `calculateTileRent` ($0 partner rent immunity), and victory evaluator (`quad_monopoly` with 4 required color groups, team line monopoly, team bankruptcy elimination).

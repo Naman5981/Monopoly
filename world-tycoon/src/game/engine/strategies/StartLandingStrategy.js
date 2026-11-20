@@ -16,13 +16,13 @@ export class StartLandingStrategy extends ITileLandingStrategy {
   async execute(context) {
     const { playerIdx, player, isDoubles } = context;
 
-    player.cash += 400000;
+    player.cash += 350000;
     setPlayerPortraitMood(playerIdx, 'smug', 3500);
     playSFX('cash', 1.0, getTileWorldPosition(0));
     spawnAnimatedReaction('cash');
-    spawnFloatingCashOnHUD(playerIdx, '+400K LANDED START!', true);
-    showSpeechBubble('Landed on START! +400K Super Bonus! 🚩', 2800);
-    logEvent(`🚩 <strong>${player.name}</strong> landed directly on <strong>START</strong> and collected <strong>400K</strong> super bonus!`);
+    spawnFloatingCashOnHUD(playerIdx, '+350K LANDED START!', true);
+    showSpeechBubble('Landed on START! +350K Super Bonus! 🚩', 2800);
+    logEvent(`🚩 <strong>${player.name}</strong> landed directly on <strong>START</strong> and collected <strong>350K</strong> super bonus!`);
 
     renderCornerHUDs();
 

@@ -76,14 +76,14 @@
     <div id="hud-roll-station" class="relative flex items-center justify-center pointer-events-auto">
       <!-- Island Pay Bail Button -->
       {#if state.bailButton?.visible}
-        <button id="btn-escape-island" onclick={onBail} class="bottom-bail-btn flex max-sm:static max-sm:mr-2 sm:absolute sm:right-full sm:mr-3 items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95" title="Pay 150K bail to exit Island immediately">
+        <button id="btn-escape-island" onclick={onBail} class="bottom-bail-btn flex max-sm:static max-sm:mr-2 sm:absolute sm:right-full sm:mr-3 items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all duration-150 ease-out hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96]" title="Pay 150K bail to exit Island immediately">
           <i class="fa-solid fa-lock-open text-sm" aria-hidden="true"></i>
           <span id="bottom-bail-label">{state.bailButton.label || 'Pay 150K Bail'}</span>
         </button>
       {/if}
 
       <!-- Primary Roll Button -->
-      <button id="btn-bottom-roll" onclick={onRoll} class="bottom-roll-btn cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 {state.rollButton?.enabled ? '' : 'opacity-70'}" title="Roll Dice [Space]">
+      <button id="btn-bottom-roll" onclick={onRoll} class="bottom-roll-btn cursor-pointer transition-all duration-150 ease-out hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96] disabled:hover:brightness-100 disabled:hover:translate-y-0 {state.rollButton?.enabled ? '' : 'opacity-70'}" title="Roll Dice [Space]">
         <i class="fa-solid fa-dice text-xl" aria-hidden="true"></i>
         <span id="bottom-roll-label">{state.rollButton?.label || 'Roll'}</span>
         <kbd class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-mono text-white/90 border border-white/20 hidden sm:inline-block">SPACE</kbd>

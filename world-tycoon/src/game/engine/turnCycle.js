@@ -245,15 +245,15 @@ export async function hopPlayerSteps3D(playerIdx, steps) {
     await hopPlayerStepAnimation(playerIdx, startPos, endPos, s, steps, destTileId);
     if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
-    // Passing START bonus (+300K) — only on intermediate passing, not final landing
+    // Passing START bonus (+250K) — only on intermediate passing, not final landing
     if (p.position === 0 && s < steps - 1) {
-      p.cash += 300000;
+      p.cash += 250000;
       setPlayerPortraitMood(playerIdx, 'smug', 3000);
       playSFX('cash', 1.0, endPos);
       spawnAnimatedReaction('cash');
-      spawnFloatingCashOnHUD(playerIdx, '+300K Passed START', true);
-      animateGoSalaryStream(playerIdx, '+300K');
-      logEvent(`🚩 <strong>${p.name}</strong> passed START and collected <strong>300K</strong> salary!`);
+      spawnFloatingCashOnHUD(playerIdx, '+250K Passed START', true);
+      animateGoSalaryStream(playerIdx, '+250K');
+      logEvent(`🚩 <strong>${p.name}</strong> passed START and collected <strong>250K</strong> salary!`);
       renderCornerHUDs();
     }
 

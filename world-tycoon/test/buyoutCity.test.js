@@ -79,7 +79,7 @@ describe('Hostile Buyout Lifecycle & P2P Synchronization (/bug-hunter)', () => {
     assert.match(statusPill.innerHTML || statusPill.textContent, /Hostile buyout option for/);
   });
 
-  it('confirms buyout: transfers cash, updates ownership, and concludes turn', () => {
+  it('confirms buyout: transfers cash, updates ownership, applies bank tax, and concludes turn', () => {
     let concluded = false;
     window.concludeActionPhase = () => { concluded = true; };
 
@@ -87,13 +87,23 @@ describe('Hostile Buyout Lifecycle & P2P Synchronization (/bug-hunter)', () => {
     const buyerInitialCash = gameState.players[0].cash;
     const sellerInitialCash = gameState.players[1].cash;
     const cost = calculateBuyoutCost(bangkokTile, gameState.properties[bangkokTile.id]);
+    const housesCost = (gameState.properties[bangkokTile.id].level || 0) * (bangkokTile.houseCost || 0);
+    const sellerPayout = Math.round((bangkokTile.price || 0) * 1.4) + housesCost;
 
     confirmBuyoutCity();
 
     assert.equal(gameState.properties[bangkokTile.id].owner, 0);
+    assert.equal(gameState.properties[bangkokTile.id].takeoverCount, 1);
     assert.equal(gameState.players[0].cash, buyerInitialCash - cost);
-    assert.equal(gameState.players[1].cash, sellerInitialCash + cost);
+    assert.equal(gameState.players[1].cash, sellerInitialCash + sellerPayout);
     assert.equal(concluded, true);
+  });
+
+  it('enforces 2-takeover hard cap and landmark immunity', () => {
+    const prop = gameState.properties[bangkokTile.id];
+    prop.takeoverCount = 2;
+
+    assert.equal(calculateBuyoutCost(bangkokTile, prop), 0);
   });
 
   it('passes buyout: logs pass, closes modal, and concludes turn', () => {

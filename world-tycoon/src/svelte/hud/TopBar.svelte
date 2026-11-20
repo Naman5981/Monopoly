@@ -38,19 +38,19 @@
 <header id="main-game-hud-bar" class="fixed top-2.5 sm:top-3 inset-x-3 sm:inset-x-5 z-[1300] hidden flex items-center justify-between pointer-events-none select-none gap-2 flex-nowrap">
   <!-- Left Pod: Navigation & Primary Actions -->
   <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-shrink-0">
-    <button id="btn-top-lobby" onclick={onLobby} class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Return to Lobby" aria-label="Return to Lobby">
+    <button id="btn-top-lobby" onclick={onLobby} class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Return to Lobby" aria-label="Return to Lobby">
       <i class="fa-solid fa-house text-indigo-600"></i>
       <span class="hidden sm:inline">Lobby</span>
     </button>
 
     <div class="h-5 w-px bg-slate-300/60 hidden sm:block"></div>
 
-    <button id="btn-manage-cities" onclick={onCities} class="hud-pill text-indigo-950" title="Manage Cities" aria-label="Manage Cities Portfolio">
+    <button id="btn-manage-cities" onclick={onCities} class="hud-pill text-indigo-950 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Manage Cities" aria-label="Manage Cities Portfolio">
       <i class="fa-solid fa-city text-indigo-600"></i>
       <span class="hidden md:inline">Manage Cities</span>
       <span class="hidden sm:inline md:hidden">Cities</span>
     </button>
-    <button id="btn-trade" onclick={onTrade} class="hud-pill text-emerald-950" title="Trade Properties with Opponents" aria-label="Trade Properties">
+    <button id="btn-trade" onclick={onTrade} class="hud-pill text-emerald-950 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Trade Properties with Opponents" aria-label="Trade Properties">
       <i class="fa-solid fa-handshake text-emerald-600"></i>
       <span class="hidden sm:inline">Trade</span>
     </button>
@@ -89,7 +89,7 @@
     <button
       id="btn-hud-leaderboard"
       onclick={onLeaderboard}
-      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer active:scale-90 {isLeaderboardOpen ? 'bg-amber-400 text-slate-950 shadow-xs ring-2 ring-amber-300' : 'text-slate-700 hover:text-amber-600 hover:bg-slate-100/80 active:bg-amber-50'}"
+      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-150 ease-out cursor-pointer active:scale-[0.96] {isLeaderboardOpen ? 'bg-amber-400 text-slate-950 shadow-xs ring-2 ring-amber-300' : 'text-slate-700 hover:text-amber-600 hover:bg-slate-100/80 active:bg-amber-50'}"
       title="View Tycoon Leaderboard"
       aria-label="View Net Worth Leaderboard"
       aria-expanded={isLeaderboardOpen}
@@ -130,7 +130,7 @@
       <button
         id="btn-hud-camera-rotate-left"
         onclick={onRotateLeft}
-        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all active:scale-90 cursor-pointer"
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all duration-150 ease-out active:scale-[0.96] cursor-pointer"
         title="Turn Board Left (90°)"
         aria-label="Turn Board Left"
       >
@@ -142,7 +142,7 @@
       <button
         id="btn-hud-camera-reset"
         onclick={onResetCam}
-        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all active:scale-90 cursor-pointer"
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all duration-150 ease-out active:scale-[0.96] cursor-pointer"
         title="Reset Board View (Home)"
         aria-label="Reset Board View"
       >
@@ -154,7 +154,7 @@
       <button
         id="btn-hud-camera-rotate-right"
         onclick={onRotateRight}
-        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all active:scale-90 cursor-pointer"
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all duration-150 ease-out active:scale-[0.96] cursor-pointer"
         title="Turn Board Right (90°)"
         aria-label="Turn Board Right"
       >
@@ -163,11 +163,13 @@
     </div>
 
     <!-- Quick Utilities -->
-    <button id="btn-hud-rules" onclick={onRules} class="hud-circle-icon-btn" title="How to Play & Game Rules" aria-label="How to Play and Rules">
+    <button id="btn-hud-rules" onclick={onRules} class="hud-circle-icon-btn transition-transform duration-150 ease-out active:scale-[0.96]" title="How to Play & Game Rules" aria-label="How to Play and Rules">
       <i class="fa-regular fa-circle-question text-slate-700 text-sm"></i>
     </button>
 
-    <button id="btn-hud-event-log" onclick={onEventLog} class="hud-circle-icon-btn" title="Open Activity Event Log" aria-label="Open Activity Event Log">
+    <button id="btn-hud-event-log" onclick={onEventLog} class="hud-circle-icon-btn transition-transform duration-150 ease-out active:scale-[0.96]" title="Open Activity Event Log" aria-label="Open Activity Event Log">
+      <i class="fa-regular fa-file-lines text-slate-700 text-xs"></i>
+    </button>
       <i class="fa-regular fa-file-lines text-slate-700 text-xs"></i>
     </button>
 

@@ -11,7 +11,17 @@
   function onBackdropClick(e) {
     window.handleModalBackdropClick?.(e, window.closeRulesModal);
   }
+
+  function handleWindowKeydown(e) {
+    if (!state.visible) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}" onclick={onBackdropClick}>
   <div class="game-modal-shell modal-shell-sky max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
@@ -38,35 +48,39 @@
         </div>
       </div>
 
-      <button onclick={onClose} class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30" title="Close rules">
+      <button onclick={onClose} class="relative z-10 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition shadow-xs border border-white/30 active:scale-[0.96]" title="Close rules [Esc]">
         <svg class="ui-icon w-4 h-4 text-white" aria-hidden="true"><use href="#icon-xmark"></use></svg>
       </button>
     </div>
 
     <!-- Rulebook Accolade Cards -->
-    <div class="p-5 overflow-y-auto space-y-3.5 bg-gradient-to-b from-white to-slate-50/70 text-sm leading-relaxed">
+    <div class="p-5 overflow-y-auto space-y-3.5 bg-gradient-to-b from-white to-slate-50/70 text-sm leading-relaxed overscroll-contain">
       <div class="victory-accolade-box victory-accolade-box-emerald">
         <svg class="ui-icon w-8 h-8 text-emerald-600 flex-shrink-0" aria-hidden="true"><use href="#icon-money"></use></svg>
         <div>
           <div class="text-xs font-black text-emerald-950 uppercase tracking-wider">STARTING CAPITAL & SALARY</div>
-          <div class="text-xs font-semibold text-emerald-900 mt-0.5">Every player starts with <strong>2,000K (2M)</strong> and collects <strong>+300K</strong> every time they pass START.</div>
+          <div class="text-xs font-semibold text-emerald-900 mt-0.5">
+            Start with <strong>2,000K (2M)</strong> (1,500K in 4–5P). Collect <strong>+250K</strong> when passing START, or <strong>+350K Super Bonus</strong> when landing on it!
+          </div>
         </div>
       </div>
 
       <div class="victory-accolade-box victory-accolade-box-sky">
         <svg class="ui-icon w-8 h-8 text-sky-600 flex-shrink-0" aria-hidden="true"><use href="#icon-city"></use></svg>
         <div>
-          <div class="text-xs font-black text-sky-950 uppercase tracking-wider">CITIES & SKYSCRAPERS</div>
-          <div class="text-xs font-semibold text-sky-900 mt-0.5">Buy world cities and erect 3D Houses & Megatowers. Owning a full color set doubles base rent!</div>
+          <div class="text-xs font-black text-sky-950 uppercase tracking-wider">CITIES, HOUSES & MULTI-UPGRADES</div>
+          <div class="text-xs font-semibold text-sky-900 mt-0.5">
+            Buy world cities and erect 3D Houses & Megatowers. Build up to <strong>+2 Levels</strong> in one visit! Owning a full color set doubles district rent!
+          </div>
         </div>
       </div>
 
       <div class="victory-accolade-box victory-accolade-box-purple">
         <svg class="ui-icon w-8 h-8 text-purple-600 flex-shrink-0" aria-hidden="true"><use href="#icon-pin"></use></svg>
         <div>
-          <div class="text-xs font-black text-purple-950 uppercase tracking-wider">4 CORNER TILES</div>
+          <div class="text-xs font-black text-purple-950 uppercase tracking-wider">HOSTILE BUYOUTS & LANDMARK CAPS</div>
           <div class="text-xs font-semibold text-purple-900 mt-0.5">
-            <strong>1. START:</strong> +300K Salary &bull; <strong>2. ISLAND:</strong> Roll doubles or pay 150K bail &bull; <strong>3. FESTIVAL:</strong> Tax Jackpot & 2× rent &bull; <strong>4. WORLD TOUR:</strong> Direct flight to any tile!
+            Take over rival cities for 2× price. Seller receives 1.4× + houses; 30% is burned as <strong>Bank Tax</strong>. On the 2nd takeover, the city locks forever as an immune <strong>Protected Landmark</strong>! Maxed Skyscrapers are also immune.
           </div>
         </div>
       </div>

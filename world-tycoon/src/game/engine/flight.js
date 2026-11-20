@@ -64,14 +64,14 @@ export async function executeWorldTourFlight(destTileId, isRemote = false, expli
         await flyPlayerStepAnimation(pIdx, curWorldPos, nextWorldPos, s, totalSteps, nextTileId);
         if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
-        // Passing START bonus (+300K) — only on intermediate passing, not final landing on START
+        // Passing START bonus (+250K) — only on intermediate passing, not final landing on START
         if (p.position === 0 && s < totalSteps - 1) {
-          p.cash += 300000;
+          p.cash += 250000;
           playSFX('cash', 1.0, getTileWorldPosition(0));
           spawnAnimatedReaction('cash');
-          spawnFloatingCashOnHUD(pIdx, '+300K Passed START', true);
-          animateGoSalaryStream(pIdx, '+300K');
-          logEvent(`🚩 <strong>${p.name}</strong> passed START on World Tour and collected <strong>300K</strong> salary!`);
+          spawnFloatingCashOnHUD(pIdx, '+250K Passed START', true);
+          animateGoSalaryStream(pIdx, '+250K');
+          logEvent(`🚩 <strong>${p.name}</strong> passed START on World Tour and collected <strong>250K</strong> salary!`);
           renderCornerHUDs();
         }
       }
