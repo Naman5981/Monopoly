@@ -250,6 +250,59 @@ export function playBuyoutCinematicFocus(tileId, durationMs = 1500) {
 }
 
 /**
+ * 4B. World Festival 2x Rent Boost: Smooth cinematic camera glide and zoom to the host property for 2.2s.
+ * Spotlights the property for all local & multiplayer players, showing the 2x rent upgrade.
+ * @param {number} tileId
+ * @param {number} [durationMs=2200]
+ * @returns {Promise<void>}
+ */
+export function playFestivalCinematicFocus(tileId, durationMs = 2200) {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !context.camera || !cameraState) {
+      resolve();
+      return;
+    }
+
+    let cancelled = false;
+    cutsceneCancel = () => {
+      cancelled = true;
+      resolve();
+    };
+
+    const tilePos = getTileWorldPosition(tileId);
+    if (!tilePos) {
+      resolve();
+      return;
+    }
+
+    // Glide camera directly to the festival city with close-up framing
+    cameraState.targetCameraTarget.set(tilePos.x, (tilePos.y || 0) + 0.7, tilePos.z);
+    cameraState.targetCameraZoom = 1.85;
+
+    theatreState.activeCutsceneName = 'FestivalFocus';
+
+    const finish = () => {
+      if (cancelled) return;
+      cancelled = true;
+      cameraState.targetCameraTarget.set(0, 0, 0);
+      cameraState.targetCameraZoom = 1.0;
+
+      setTimeout(() => {
+        cutsceneCancel = null;
+        theatreState.activeCutsceneName = null;
+        resolve();
+      }, 350);
+    };
+
+    cutsceneCancel = finish;
+
+    setTimeout(() => {
+      finish();
+    }, durationMs);
+  });
+}
+
+/**
   * Forcefully cancels any active cinematic camera cutscene and cleanly restores normal board state.
   * @param {boolean} [restoreCamera=true]
   */
@@ -352,6 +405,7 @@ export function playMonopolyThreatCinematic(tileId, durationMs = 2000) {
 if (typeof window !== 'undefined') {
   window.playCinematicCutscene = playCinematicCutscene;
   window.playBuyoutCinematicFocus = playBuyoutCinematicFocus;
+  window.playFestivalCinematicFocus = playFestivalCinematicFocus;
   window.playMonopolyThreatCinematic = playMonopolyThreatCinematic;
   window.cancelActiveCutscene = cancelActiveCutscene;
 }

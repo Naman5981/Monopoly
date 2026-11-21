@@ -8,7 +8,7 @@ import { getCtx, getAudioDestination, createSpatialPanner } from './context.js';
 
 /**
  * Play a synthesized SFX.
- * @param {'gameStart'|'click'|'dice'|'diceShuffle'|'diceBounce'|'hop'|'cash'|'build'|'monopoly'|'monopolyThreat'|'bankrupt'|'gavel'|'win'|'victory'|'flight'|'whoosh'|'hurt'|'flinch'|'wheelTick'|'jail'|'jailDoor'|'pop'|'fireworkLaunch'|'fireworkBoom'|'takeover'|'buyout'} type
+ * @param {'gameStart'|'click'|'dice'|'diceShuffle'|'diceBounce'|'hop'|'cash'|'build'|'monopoly'|'monopolyThreat'|'festivalBoost'|'festival'|'bankrupt'|'gavel'|'win'|'victory'|'flight'|'whoosh'|'hurt'|'flinch'|'wheelTick'|'jail'|'jailDoor'|'pop'|'fireworkLaunch'|'fireworkBoom'|'takeover'|'buyout'} type
  * @param {number} [volumeMultiplier=1.0]
  * @param {{x: number, y?: number, z: number}|null} [worldPos=null] Optional 3D emitter coordinates for spatial audio
  */
@@ -309,6 +309,64 @@ export function playSFX(type, volumeMultiplier = 1.0, worldPos = null) {
         chime.start(t);
         chime.stop(t + 0.85);
       });
+
+    // ═══ 8C. WORLD FESTIVAL 2X RENT BOOST (OPTION 3: GRAND HERALDIC TRUMPET) ═══
+    } else if (type === 'festivalBoost' || type === 'festival') {
+      const festVol = 0.9 * vol;
+
+      // Heraldic Fanfare Notes (G4 - G4 - G4 -> Sustained Triumphant C5)
+      const trumpetNotes = [
+        { f: 392.00, t: 0.00, dur: 0.16, g: 0.28 },
+        { f: 392.00, t: 0.16, dur: 0.16, g: 0.28 },
+        { f: 392.00, t: 0.32, dur: 0.16, g: 0.30 },
+        { f: 523.25, t: 0.48, dur: 0.95, g: 0.38 }
+      ];
+
+      trumpetNotes.forEach((n) => {
+        const t = now + n.t;
+        const osc = ctx.createOscillator();
+        const harm = ctx.createOscillator();
+        const g = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(n.f, t);
+        harm.type = 'triangle';
+        harm.frequency.setValueAtTime(n.f * 2, t);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(n.f * 3.4, t);
+        filter.Q.value = 1.2;
+
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(n.g * festVol, t + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + n.dur);
+
+        osc.connect(filter);
+        harm.connect(filter);
+        filter.connect(g);
+        g.connect(soundOutput);
+
+        osc.start(t);
+        osc.stop(t + n.dur);
+        harm.start(t);
+        harm.stop(t + n.dur);
+      });
+
+      // Warm resonance on resolution (C5 impact)
+      const sub = ctx.createOscillator();
+      const subG = ctx.createGain();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(110, now + 0.48);
+      sub.frequency.exponentialRampToValueAtTime(45, now + 0.85);
+      subG.gain.setValueAtTime(0.0001, now + 0.48);
+      subG.gain.linearRampToValueAtTime(0.22 * festVol, now + 0.50);
+      subG.gain.exponentialRampToValueAtTime(0.0001, now + 0.95);
+      sub.connect(subG);
+      subG.connect(soundOutput);
+      sub.start(now + 0.48);
+      sub.stop(now + 0.95);
+      sub.stop(now + 0.45);
 
     // ═══ 9. BANKRUPT / ELIMINATION MOTIF ═══
     } else if (type === 'bankrupt') {

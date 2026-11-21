@@ -31,7 +31,9 @@
   <!-- Main Content Arena -->
   <div id="lobby-main-arena" class="relative z-10 flex-1 max-w-7xl 2xl:max-w-[1540px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4.5 2xl:gap-6 items-stretch my-auto py-1 sm:py-2">
     {#if state.currentView === 'multiplayer-portal'}
-      <MultiplayerPortal />
+      <div id="lobby-portal-mount" class="col-span-12 max-w-3xl mx-auto w-full my-auto py-6">
+        <MultiplayerPortal />
+      </div>
     {:else}
       <!-- Left Column: Players Roster -->
       <LobbyRoster />
@@ -40,7 +42,9 @@
       <HeroPreview />
 
       <!-- Right Column: Match Configuration -->
-      <MatchSettingsPanel />
+      <div id="lobby-settings-mount" class="col-span-12 lg:col-span-4 flex flex-col items-stretch">
+        <MatchSettingsPanel />
+      </div>
     {/if}
   </div>
 </div>

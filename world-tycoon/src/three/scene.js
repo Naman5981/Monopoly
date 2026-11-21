@@ -326,6 +326,7 @@ export {
   playLandmarkCinematicReveal,
   playVictoryCinematicOrbit,
   playBuyoutCinematicFocus,
+  playFestivalCinematicFocus,
   playMonopolyThreatCinematic,
   cancelActiveCutscene
 } from './theatre.js';

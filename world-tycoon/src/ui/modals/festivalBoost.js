@@ -15,7 +15,8 @@ import {
   getTileWorldPosition,
   setTileHighlightRing,
   triggerBoardShockwave,
-  setFestivalSelectionHighlights
+  setFestivalSelectionHighlights,
+  playFestivalCinematicFocus
 } from '../../three/scene.js';
 import {
   fireConfettiBurst,
@@ -31,6 +32,7 @@ import { networkState, broadcastAction, broadcastFullGameState } from '../../net
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML } from './common.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { triggerBanner } from '../../svelte/stores/bannerStore.js';
 
 let pendingFestivalDoubles = false;
 let festivalPlayerIdx = null;
@@ -190,13 +192,23 @@ export function chooseFestivalBoostCity(tileId) {
   const newRent = calculateTileRent(tileId);
   const worldPos = getTileWorldPosition(tileId);
 
-  // 3. Audio, confetti, and shockwave celebrations
-  playSFX('win', 1.0, worldPos);
+  // 3. Audio, confetti, camera glide, and celebration banner
+  playSFX('festivalBoost', 1.0, worldPos);
+  playFestivalCinematicFocus(tileId, 2200);
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.45, 60);
   spawnAnimatedReaction('star', window.innerWidth / 2, window.innerHeight * 0.45);
   triggerBoardShockwave(worldPos.x, worldPos.z, 16, 24);
   setTileHighlightRing(tileId, true);
   setTimeout(() => setTileHighlightRing(tileId, false), 2200);
+
+  triggerBanner('festival', {
+    cityName: tile.name,
+    groupColor: (tile.group && GROUP_META[tile.group]) ? GROUP_META[tile.group].hex : '#f59e0b',
+    rentFormatted: fmtMoney(newRent),
+    playerName: player.name,
+    playerColor: player.colorHex || '#fde047',
+    prevCityName: prevHostTile ? prevHostTile.name : null
+  }, 3200);
 
   spawnFloatingCashOnHUD(pIdx, `✨ 2× Rent in ${tile.name}!`, true);
 

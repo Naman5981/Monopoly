@@ -302,7 +302,7 @@ sequenceDiagram
   - [`world-tycoon/src/ui/wardrobe.js`](world-tycoon/src/ui/wardrobe.js): Cosmetic inventory, unlock/equip rules, profile persistence, and 3D previews; `WardrobeModal.svelte` renders the item cards, categories, and balance declaratively with reactive drawer visibility synchronization and inline display property safety.
 - **Animation Engine (`src/ui/anim/`)**:
   - [`world-tycoon/src/ui/anim/events.js`](world-tycoon/src/ui/anim/events.js): Animation facade routing events to specialized submodules.
-  - [`world-tycoon/src/ui/anim/banners.js`](world-tycoon/src/ui/anim/banners.js): Doubles comic banners, boarding pass zooms, hostile takeover stamps, player elimination banners, and Monopoly Threat alert banners (`animateMonopolyThreatBannerEntrance`) paired with 3D flying title deed card launch (`flyingThreatCard.js`) in `theatre.js`, dispatched cleanly to reactive Svelte `bannerStore` (`GameBanners.svelte`) with safe `isSvelteMounted()` guard preventing leaked raw body elements.
+  - [`world-tycoon/src/ui/anim/banners.js`](world-tycoon/src/ui/anim/banners.js): Doubles comic banners, boarding pass zooms, hostile takeover stamps, player elimination banners, Monopoly Threat alert banners (`animateMonopolyThreatBannerEntrance`), and World Festival 2× Rent Grand Hero banners (`#festival-hero-banner`) paired with 3D property cinematic glide (`playFestivalCinematicFocus`) in `theatre.js`, dispatched cleanly to reactive Svelte `bannerStore` (`GameBanners.svelte`) with safe `isSvelteMounted()` guard preventing leaked raw body elements.
   - [`world-tycoon/src/ui/anim/lobby.js`](world-tycoon/src/ui/anim/lobby.js): Staggered arcade entrance choreography (`animateLobbyEntrance`), team pill toggle spring animation (`animateTeamPillToggle`), and player slot radar insertion ping (`animatePlayerJoinRadarPing`).
   - [`world-tycoon/src/ui/anim/celebrations.js`](world-tycoon/src/ui/anim/celebrations.js): Victory tally breakdown, festival pot golden rain fountain, and GO salary bill streams.
   - [`world-tycoon/src/ui/anim/jail.js`](world-tycoon/src/ui/anim/jail.js): Island detention iron bars slam and jailbreak scatter animations.
@@ -315,7 +315,7 @@ sequenceDiagram
 
 ### 2.7 Audio Subsystem
 - [`world-tycoon/src/game/audio/context.js`](world-tycoon/src/game/audio/context.js): Shared Web Audio `AudioContext`, master volume slider state, and 3D panner nodes.
-- [`world-tycoon/src/game/audio/sfx.js`](world-tycoon/src/game/audio/sfx.js): Procedural synthesis for dice rolls, cash counts, button taps, error chirps, hostile takeover brass impacts, and dramatic player elimination motifs (sub-bass impact gong, shatter transient noise burst, and descending doom chord arpeggio).
+- [`world-tycoon/src/game/audio/sfx.js`](world-tycoon/src/game/audio/sfx.js): Procedural synthesis for dice rolls, cash counts, button taps, error chirps, hostile takeover brass impacts, World Festival 2× rent carnival brass fanfare (`festivalBoost`), and dramatic player elimination motifs (sub-bass impact gong, shatter transient noise burst, and descending doom chord arpeggio).
 - [`world-tycoon/src/game/audio/music.js`](world-tycoon/src/game/audio/music.js): Algorithmic background music arrangements that adapt to match tension.
 
 ---

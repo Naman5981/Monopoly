@@ -4,18 +4,27 @@
  */
 
 import { gameState, setupPlayers, lobbyPlayerCount } from '../game/state.js';
-import { logEvent, renderCornerHUDs, refreshActivePlayerTurnStatus, spawnFloatingCashOnHUD } from '../ui/hud.js';
+import { logEvent, renderCornerHUDs, refreshActivePlayerTurnStatus, spawnFloatingCashOnHUD, setStatusPill } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { fmtMoney } from '../game/utils.js';
-import { spawnAnimatedReaction } from '../three/effects.js';
-import { BOARD_TILES } from '../game/data.js';
-import { refreshTileTextureAndBuildings, showSpeechBubble, spawnShatterDebris, triggerBoardShockwave } from '../three/scene.js';
-import { checkVictoryConditions } from '../game/rules.js';
+import { spawnAnimatedReaction, fireConfettiBurst } from '../three/effects.js';
+import { BOARD_TILES, GROUP_META } from '../game/data.js';
+import {
+  refreshTileTextureAndBuildings,
+  showSpeechBubble,
+  spawnShatterDebris,
+  triggerBoardShockwave,
+  playFestivalCinematicFocus,
+  getTileWorldPosition,
+  setTileHighlightRing
+} from '../three/scene.js';
+import { checkVictoryConditions, calculateTileRent } from '../game/rules.js';
 import { showVictoryModal } from '../ui/modals.js';
 import { animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../ui/anim.js';
 import { startSoldPropertiesAuctionSequence } from '../game/engine/auction.js';
 import { networkState, networkCallbacks } from './p2pState.js';
 import { broadcastToAll, broadcastFullGameState } from './p2pHost.js';
+import { triggerBanner } from '../svelte/stores/bannerStore.js';
 
 export function broadcastAction(actionType, payload = {}) {
   const msg = {
@@ -329,7 +338,40 @@ export function executeIncomingNetworkAction(msg) {
         st.festivalBoost = true;
         refreshTileTextureAndBuildings(msg.tileId);
       }
+
+      const newRent = calculateTileRent(msg.tileId);
+      const tilePos = (typeof getTileWorldPosition === 'function') ? getTileWorldPosition(msg.tileId) : null;
+
+      // Synchronized audio fanfare, camera pan, highlight ring, and celebration banner
+      playSFX('festivalBoost', 1.0, tilePos);
+      if (typeof playFestivalCinematicFocus === 'function') {
+        playFestivalCinematicFocus(msg.tileId, 2200);
+      }
+      if (typeof setTileHighlightRing === 'function') {
+        setTileHighlightRing(msg.tileId, true);
+        setTimeout(() => setTileHighlightRing(msg.tileId, false), 2200);
+      }
+      if (typeof fireConfettiBurst === 'function' && typeof window !== 'undefined') {
+        fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.45, 60);
+      }
+      if (tilePos && typeof triggerBoardShockwave === 'function') {
+        triggerBoardShockwave(tilePos.x, tilePos.z, 16, 24);
+      }
+
       if (p && t) {
+        triggerBanner('festival', {
+          cityName: t.name,
+          groupColor: (t.group && GROUP_META[t.group]) ? GROUP_META[t.group].hex : '#f59e0b',
+          rentFormatted: fmtMoney(newRent),
+          playerName: p.name,
+          playerColor: p.colorHex || '#fde047',
+          prevCityName: prevHostTile ? prevHostTile.name : null
+        }, 3200);
+
+        if (typeof setStatusPill === 'function') {
+          setStatusPill(`🎪 <strong>${p.name}</strong> doubled rent on <strong>${t.name}</strong> (2× Rent)!`, { isThinking: false, playerIdx: msg.playerIdx });
+        }
+
         if (prevHostTile) {
           logEvent(`🎉 <strong>${p.name}</strong> moved the World Festival to <strong>${t.name}</strong> (2× Rent Boost)! <strong>${prevHostTile.name}</strong> rent restored to normal.`);
         } else {

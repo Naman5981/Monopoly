@@ -14,6 +14,7 @@ import {
 } from '../../src/network/p2pActions.js';
 import { networkState, networkCallbacks, registerNetworkCallbacks } from '../../src/network/p2pState.js';
 import { gameState, setupPlayers } from '../../src/game/state.js';
+import { bannerStore } from '../../src/svelte/stores/bannerStore.js';
 
 describe('P2P Action Dispatcher & Executor', () => {
   beforeEach(() => {
@@ -427,9 +428,12 @@ describe('P2P Action Dispatcher & Executor', () => {
       assert.equal(gameState.properties[1].owner, null, 'Properties must revert to unowned without creditor');
     });
 
-    it('handles ACTION_FESTIVAL_BOOST and restores any other previously boosted city', () => {
+    it('handles ACTION_FESTIVAL_BOOST, restores any other previously boosted city, and triggers celebration banner', () => {
       gameState.properties[1].festivalBoost = false;
       gameState.properties[2].festivalBoost = true; // previously boosted city
+
+      let latestBanner = null;
+      const unsubscribe = bannerStore.subscribe((b) => { latestBanner = b; });
 
       executeIncomingNetworkAction({
         type: 'ACTION_FESTIVAL_BOOST',
@@ -440,6 +444,10 @@ describe('P2P Action Dispatcher & Executor', () => {
 
       assert.equal(gameState.properties[1].festivalBoost, true);
       assert.equal(gameState.properties[2].festivalBoost, false);
+      assert.equal(latestBanner.activeBanner, 'festival');
+      assert.equal(latestBanner.data.cityName, 'CAIRO');
+      assert.ok(latestBanner.data.rentFormatted);
+      unsubscribe();
     });
 
     it('routes auctions, trades, and world tours properly', () => {

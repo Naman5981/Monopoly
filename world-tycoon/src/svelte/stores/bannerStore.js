@@ -7,7 +7,7 @@
 import { writable } from 'svelte/store';
 
 const initialBannerState = {
-  activeBanner: null, // 'eliminated' | 'takeover' | 'doubles' | 'boardingPass' | 'monopoly' | 'monopolyThreat' | 'rentTransfer' | 'salary' | null
+  activeBanner: null, // 'eliminated' | 'takeover' | 'doubles' | 'boardingPass' | 'monopoly' | 'monopolyThreat' | 'rentTransfer' | 'salary' | 'festival' | null
   data: {}
 };
 
@@ -17,7 +17,7 @@ let bannerDismissTimer = null;
 
 /**
  * Triggers a declarative banner overlay in Svelte.
- * @param {'eliminated'|'takeover'|'doubles'|'boardingPass'|'monopoly'|'monopolyThreat'|'rentTransfer'|'salary'} type
+ * @param {'eliminated'|'takeover'|'doubles'|'boardingPass'|'monopoly'|'monopolyThreat'|'rentTransfer'|'salary'|'festival'} type
  * @param {object} data
  * @param {number} [durationMs=2400]
  */

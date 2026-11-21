@@ -5,7 +5,7 @@
  */
 
 import { ITileLandingStrategy } from './ITileLandingStrategy.js';
-import { BOARD_TILES } from '../../data.js';
+import { BOARD_TILES, GROUP_META } from '../../data.js';
 import { gameState, matchSettings } from '../../state.js';
 import { fmtMoney } from '../../utils.js';
 import { playSFX } from '../../audio.js';
@@ -14,7 +14,8 @@ import { getTileWorldPosition } from '../../../three/board/coords.js';
 import {
   refreshTileTextureAndBuildings,
   showSpeechBubble,
-  setTileHighlightRing
+  setTileHighlightRing,
+  playFestivalCinematicFocus
 } from '../../../three/scene.js';
 import {
   renderCornerHUDs,
@@ -27,6 +28,7 @@ import { concludeActionPhase } from '../turnCycle.js';
 import { animateFestivalPotGoldenRain } from '../../../ui/anim.js';
 import { openFestivalBoostModal, showFestivalNoPropertiesModal } from '../../../ui/modals/festivalBoost.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
+import { triggerBanner } from '../../../svelte/stores/bannerStore.js';
 
 export class FestivalLandingStrategy extends ITileLandingStrategy {
   async execute(context) {
@@ -102,11 +104,21 @@ export class FestivalLandingStrategy extends ITileLandingStrategy {
       refreshTileTextureAndBuildings(target.id);
 
       const targetPos = getTileWorldPosition(target.id);
-      playSFX('win', 1.0, targetPos);
+      playSFX('festivalBoost', 1.0, targetPos);
+      playFestivalCinematicFocus(target.id, 2200);
       setTileHighlightRing(target.id, true);
       setTimeout(() => setTileHighlightRing(target.id, false), 2200);
 
       const newRent = calculateTileRent(target.id);
+      triggerBanner('festival', {
+        cityName: target.name,
+        groupColor: (target.group && GROUP_META[target.group]) ? GROUP_META[target.group].hex : '#f59e0b',
+        rentFormatted: fmtMoney(newRent),
+        playerName: player.name,
+        playerColor: player.colorHex || '#fde047',
+        prevCityName: prevHostTile ? prevHostTile.name : null
+      }, 3200);
+
       if (prevHostTile) {
         const prevOwnerText = prevHostOwner ? ` (${prevHostOwner.name})` : '';
         logEvent(`🎉 <strong>${player.name}</strong> moved the World Festival to <strong>${target.name}</strong>! Rent boosted 2× to <strong>${fmtMoney(newRent)}</strong>, and <strong>${prevHostTile.name}</strong>${prevOwnerText} rent restored to normal.`);

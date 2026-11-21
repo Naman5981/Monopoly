@@ -5,6 +5,8 @@
    */
   import { lobbyStore } from '../stores/lobbyStore.js';
   import LobbyNetworkStatus from './LobbyNetworkStatus.svelte';
+  import { onMount } from 'svelte';
+  import { initLobbyHeroStage, updateLobbyHeroAvatar } from '../../three/scene.js';
 
   const CANDY_PALETTE = [
     { hex: '#ef4444', name: 'Ruby Red' },
@@ -23,6 +25,25 @@
   const activePlayer = $derived(
     state.players?.[state.selectedPlayerIdx || 0] || state.players?.[0] || {}
   );
+
+  onMount(() => {
+    const canvas = document.getElementById('lobby-avatar-3d-canvas');
+    if (canvas && typeof initLobbyHeroStage === 'function') {
+      initLobbyHeroStage(canvas);
+      if (activePlayer) {
+        updateLobbyHeroAvatar(activePlayer.hatStyle || 0, activePlayer.colorHex || '#3b82f6', activePlayer.charColor || 0x3b82f6);
+      }
+    }
+  });
+
+  $effect(() => {
+    if (activePlayer && typeof updateLobbyHeroAvatar === 'function') {
+      const hat = activePlayer.hatStyle || 0;
+      const color = activePlayer.colorHex || '#3b82f6';
+      const charCol = activePlayer.charColor || 0x3b82f6;
+      updateLobbyHeroAvatar(hat, color, charCol);
+    }
+  });
 
   function prevArchetype() {
     window.cycleAvatarPrev?.();

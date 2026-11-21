@@ -157,31 +157,30 @@
       {:else if banner.activeBanner === 'rentTransfer'}
         <div
           id="rent-transfer-banner"
-          style="display: flex;"
-          class="relative rounded-full bg-slate-950/92 backdrop-blur-xl border-2 border-amber-400/60 px-6 py-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.7),0_0_24px_rgba(245,158,11,0.3)] flex items-center gap-4 text-white transform -translate-y-12 select-none"
+          class="relative rounded-full px-6 py-2.5 flex items-center gap-4 text-white transform -translate-y-12 select-none"
           transition:scale={{ duration: 380, start: 0.6, easing: backOut }}
         >
           <!-- City Group Tag -->
-          <div class="flex items-center gap-2 border-r border-white/20 pr-4">
-            <span class="w-2.5 h-2.5 rounded-full shadow-xs inline-block shrink-0" style="background-color: {banner.data.groupColor || '#f43f5e'};"></span>
-            <span class="font-black text-xs uppercase tracking-wider text-white">{banner.data.cityName || 'CITY'}</span>
+          <div class="rent-city-tag flex items-center gap-2 border-r border-white/20 pr-4">
+            <span class="rent-group-dot w-3 h-3 rounded-full shrink-0" style="background-color: {banner.data.groupColor || '#f59e0b'}; box-shadow: 0 0 8px {banner.data.groupColor || '#f59e0b'};"></span>
+            <span class="rent-city-name font-black text-xs uppercase tracking-wider text-white">{banner.data.cityName || 'CITY'}</span>
           </div>
 
           <!-- Rent Value -->
-          <div class="flex items-center gap-1.5 font-black text-emerald-400 text-lg tracking-tight">
-            <span class="text-xs text-slate-400 font-extrabold uppercase tracking-wider">RENT</span>
-            <span>{banner.data.amountFormatted || ('$' + (banner.data.amount || 0))}</span>
+          <div class="rent-amount-group flex items-center gap-2 font-black tracking-tight">
+            <span class="rent-label-badge text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded">RENT</span>
+            <span class="rent-value-amount text-xl font-black tabular-nums text-white">{banner.data.amountFormatted || ('$' + (banner.data.amount || 0))}</span>
           </div>
 
           <!-- Player Transfer Flow -->
-          <div class="flex items-center gap-2 border-l border-white/20 pl-4 text-xs font-black">
-            <span class="flex items-center gap-1.5 text-rose-400">
-              <span class="w-2 h-2 rounded-full inline-block border border-black/10 shrink-0" style="background-color: {banner.data.fromColor || '#f43f5e'};"></span>
+          <div class="rent-transfer-flow flex items-center gap-2 border-l border-white/20 pl-4 text-xs font-black">
+            <span class="rent-player-from flex items-center gap-1.5 font-extrabold">
+              <span class="w-2.5 h-2.5 rounded-full inline-block border border-black/20 shrink-0" style="background-color: {banner.data.fromColor || '#f43f5e'};"></span>
               {banner.data.fromName}
             </span>
-            <span class="text-amber-400 text-xs">➔</span>
-            <span class="flex items-center gap-1.5 text-emerald-400">
-              <span class="w-2 h-2 rounded-full inline-block border border-black/10 shrink-0" style="background-color: {banner.data.toColor || '#10b981'};"></span>
+            <span class="rent-arrow text-sm font-black">➔</span>
+            <span class="rent-player-to flex items-center gap-1.5 font-extrabold">
+              <span class="w-2.5 h-2.5 rounded-full inline-block border border-black/20 shrink-0" style="background-color: {banner.data.toColor || '#10b981'};"></span>
               {banner.data.toName}
             </span>
           </div>
@@ -198,6 +197,52 @@
           <span>💰</span>
           <span>{banner.data.amountLabel || '$200K'} SALARY!</span>
           <span>🚩</span>
+        </div>
+
+      <!-- 7. World Festival 2x Rent Boost (Option B: Grand Hero Card) -->
+      {:else if banner.activeBanner === 'festival'}
+        <div
+          id="festival-hero-banner"
+          class="relative px-8 py-5 rounded-3xl flex flex-col items-center select-none transform -translate-y-12"
+          transition:scale={{ duration: 450, start: 0.3, easing: backOut }}
+        >
+          <!-- Top Carnival Ribbon Badge -->
+          <div class="festival-ribbon flex items-center gap-1.5 px-4 py-1 rounded-full font-black text-xs uppercase tracking-widest shadow-md">
+            <span>🎪</span>
+            <span>WORLD FESTIVAL HOST</span>
+            <span>🎪</span>
+          </div>
+
+          <!-- Headline -->
+          <div class="festival-headline mt-1.5 font-display font-black text-2xl sm:text-3xl text-white tracking-wide uppercase drop-shadow">
+            {banner.data.cityName || 'CITY'} RENT DOUBLED!
+          </div>
+
+          <!-- Hero Details Capsule -->
+          <div class="festival-details-capsule mt-2.5 px-5 py-2 rounded-2xl flex items-center gap-4">
+            <!-- City Chip -->
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full shrink-0" style="background-color: {banner.data.groupColor || '#f59e0b'}; box-shadow: 0 0 8px {banner.data.groupColor || '#f59e0b'};"></span>
+              <span class="font-black text-sm uppercase text-white tracking-wider">{banner.data.cityName || 'CITY'}</span>
+            </div>
+
+            <!-- Big 2x Rent Hero -->
+            <div class="festival-rent-val text-xl sm:text-2xl font-black text-emerald-400 tabular-nums">
+              {banner.data.rentFormatted || ('$' + (banner.data.amount || 0))}
+            </div>
+
+            <!-- Player Attribution -->
+            <div class="text-xs font-bold text-slate-300">
+              Selected by <strong class="text-amber-300 font-black">{banner.data.playerName || 'Player'}</strong>
+            </div>
+          </div>
+
+          <!-- Subtext for previous host tile if moved -->
+          {#if banner.data.prevCityName}
+            <div class="mt-1.5 text-[11px] font-bold text-amber-200/80 tracking-wide">
+              ({banner.data.prevCityName} rent restored to normal)
+            </div>
+          {/if}
         </div>
       {/if}
 

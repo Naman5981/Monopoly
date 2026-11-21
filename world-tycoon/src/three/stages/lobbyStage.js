@@ -45,13 +45,19 @@ export function resizeLobbyHeroStage() {
   }
 }
 
-export function initLobbyHeroStage() {
-  const canvas = document.getElementById(lobbyHeroCanvasId);
+export function initLobbyHeroStage(targetCanvas = null) {
+  const canvas = targetCanvas || document.getElementById(lobbyHeroCanvasId);
   if (!canvas) return;
 
   if (lobbyHeroRenderer && lobbyHeroScene) {
-    resizeLobbyHeroStage();
-    return;
+    if (lobbyHeroRenderer.domElement === canvas) {
+      resizeLobbyHeroStage();
+      return;
+    }
+    try {
+      lobbyHeroRenderer.dispose();
+    } catch (_) {}
+    lobbyHeroRenderer = null;
   }
 
   const w = 512;
@@ -83,6 +89,14 @@ export function initLobbyHeroStage() {
     lobbyHeroRenderer.shadowMap.enabled = true;
     lobbyHeroRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
   } catch (err) {
+    return;
+  }
+
+  if (lobbyHeroScene && lobbyHeroCamera) {
+    resizeLobbyHeroStage();
+    try {
+      lobbyHeroRenderer.render(lobbyHeroScene, lobbyHeroCamera);
+    } catch (_) {}
     return;
   }
 
@@ -281,10 +295,14 @@ export function updateLobbyHeroAvatar(hatStyle = 0, colorHex = '#6c5ce7', charCo
  * @param {number} t - Current time in seconds
  */
 export function renderLobbyHeroStage(t) {
-  if (!lobbyHeroRenderer || !lobbyHeroScene || !lobbyHeroCamera) return;
   const canvas = document.getElementById(lobbyHeroCanvasId);
   const landing = document.getElementById('landing-setup-screen');
   if (!canvas || !landing || landing.classList.contains('hidden') || landing.style.display === 'none') return;
+
+  if (!lobbyHeroRenderer || lobbyHeroRenderer.domElement !== canvas) {
+    initLobbyHeroStage(canvas);
+  }
+  if (!lobbyHeroRenderer || !lobbyHeroScene || !lobbyHeroCamera) return;
 
   resizeLobbyHeroStage();
 

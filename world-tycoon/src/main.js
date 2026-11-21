@@ -460,6 +460,61 @@ function onTileClick(tileId) {
 
 // Bootstrap
 function initApp() {
+  // 1. Mount Svelte 5 Declarative Overlays first so DOM and canvas elements are live
+  if (typeof document !== 'undefined') {
+    const lobbyMount = document.getElementById('svelte-lobby-mount') || document.getElementById('landing-setup-screen');
+    if (lobbyMount) {
+      try {
+        lobbyMount.innerHTML = '';
+        mount(LobbyScreen, { target: lobbyMount });
+      } catch (err) {
+        console.warn('[Svelte] LobbyScreen mounting deferred:', err);
+      }
+    }
+
+    const hudContainer = document.getElementById('svelte-hud-mount');
+    if (hudContainer) {
+      try {
+        hudContainer.innerHTML = '';
+        mount(GameHud, { target: hudContainer });
+      } catch (err) {
+        console.warn('[Svelte] GameHud mounting deferred:', err);
+      }
+    }
+
+    let modalsContainer = document.getElementById('svelte-modals-mount');
+    if (!modalsContainer) {
+      modalsContainer = document.createElement('div');
+      modalsContainer.id = 'svelte-modals-mount';
+      document.body.appendChild(modalsContainer);
+    }
+    try {
+      modalsContainer.innerHTML = '';
+      mount(ModalsRoot, { target: modalsContainer });
+    } catch (err) {
+      console.warn('[Svelte] ModalsRoot mounting deferred:', err);
+    }
+
+    const isDebugAllowed = isLocalDevEnvironment() &&
+      BUILD_CONFIG?.DEBUG_ENABLED !== false &&
+      (typeof __DEBUG_ALLOWED__ === 'undefined' || __DEBUG_ALLOWED__ !== false);
+    if (isDebugAllowed) {
+      let debugMount = document.getElementById('svelte-debug-mount');
+      if (!debugMount) {
+        debugMount = document.createElement('div');
+        debugMount.id = 'svelte-debug-mount';
+        document.body.appendChild(debugMount);
+      }
+      try {
+        debugMount.innerHTML = '';
+        mount(DebugDrawer, { target: debugMount });
+      } catch (err) {
+        console.warn('[Svelte] DebugDrawer mounting deferred:', err);
+      }
+    }
+  }
+
+  // 2. Initialize engine and 3D scenes
   applyBoardEdition(matchSettings.boardEdition || 'world');
   initEngine();
   initThreeScene(onTileClick);
@@ -680,60 +735,6 @@ function initApp() {
       phaseEndStallSeconds = 0;
     }
   }, 1000);
-
-  // Mount Svelte 5 Declarative Overlays (Lobby, HUD & Modals)
-  if (typeof document !== 'undefined') {
-    const lobbyMount = document.getElementById('svelte-lobby-mount') || document.getElementById('landing-setup-screen');
-    if (lobbyMount) {
-      try {
-        lobbyMount.innerHTML = '';
-        mount(LobbyScreen, { target: lobbyMount });
-      } catch (err) {
-        console.warn('[Svelte] LobbyScreen mounting deferred:', err);
-      }
-    }
-
-    const hudContainer = document.getElementById('svelte-hud-mount');
-    if (hudContainer) {
-      try {
-        hudContainer.innerHTML = '';
-        mount(GameHud, { target: hudContainer });
-      } catch (err) {
-        console.warn('[Svelte] GameHud mounting deferred:', err);
-      }
-    }
-
-    let modalsContainer = document.getElementById('svelte-modals-mount');
-    if (!modalsContainer) {
-      modalsContainer = document.createElement('div');
-      modalsContainer.id = 'svelte-modals-mount';
-      document.body.appendChild(modalsContainer);
-    }
-    try {
-      modalsContainer.innerHTML = '';
-      mount(ModalsRoot, { target: modalsContainer });
-    } catch (err) {
-      console.warn('[Svelte] ModalsRoot mounting deferred:', err);
-    }
-
-    const isDebugAllowed = isLocalDevEnvironment() &&
-      BUILD_CONFIG?.DEBUG_ENABLED !== false &&
-      (typeof __DEBUG_ALLOWED__ === 'undefined' || __DEBUG_ALLOWED__ !== false);
-    if (isDebugAllowed) {
-      let debugMount = document.getElementById('svelte-debug-mount');
-      if (!debugMount) {
-        debugMount = document.createElement('div');
-        debugMount.id = 'svelte-debug-mount';
-        document.body.appendChild(debugMount);
-      }
-      try {
-        debugMount.innerHTML = '';
-        mount(DebugDrawer, { target: debugMount });
-      } catch (err) {
-        console.warn('[Svelte] DebugDrawer mounting deferred:', err);
-      }
-    }
-  }
 
   // Keyboard hotkeys for Leaderboard (Tab or L), Space to Roll, and Esc
   window.addEventListener('keydown', (e) => {
