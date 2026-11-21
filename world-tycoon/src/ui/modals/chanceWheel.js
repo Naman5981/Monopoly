@@ -320,7 +320,7 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
   }, popupDuration);
 }
 
-export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx = null, isDoubles = null) {
+export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx = null, isDoubles = null, isRemote = false) {
   if (isWheelSpinning) return;
   isWheelSpinning = true;
   clearChanceTimers();
@@ -350,8 +350,8 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
   if (forwardDelta <= 0) forwardDelta += 360;
   wheelAngle += (fullSpins * 360) + forwardDelta;
 
-  // Broadcast draw initiation in multiplayer so all peers see the exact same card sweep and reveal!
-  if (networkState.isMultiplayer && forcedPrizeIdx === null) {
+  // Broadcast draw initiation in multiplayer if this is the active local player's action
+  if (networkState.isMultiplayer && !isRemote) {
     broadcastAction('ACTION_CHANCE_SPIN', {
       playerIdx: activePIdx,
       prizeIdx,
@@ -459,13 +459,13 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
       resultText.innerHTML = `<strong>${prize.label}</strong>: ${prize.desc}`;
     }
 
-    // In multiplayer spectator mode (forcedPrizeIdx !== null), return early so host/primary runs prize logic
-    if (networkState.isMultiplayer && forcedPrizeIdx !== null) {
+    // In multiplayer spectator mode (isRemote === true), return early so host/primary runs prize logic
+    if (networkState.isMultiplayer && isRemote) {
       return;
     }
 
     // Broadcast immediately so ALL peers in multiplayer see the exact same result
-    if (networkState.isMultiplayer && forcedPrizeIdx === null) {
+    if (networkState.isMultiplayer && !isRemote) {
       broadcastAction('ACTION_CHANCE_PRIZE', {
         playerIdx: activePIdx,
         prize,
@@ -492,7 +492,7 @@ export function executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDouble
   if (!modal || modal.classList.contains('hidden') || modal.style.display === 'none') {
     openChanceWheelModal(isDoubles, playerIdx);
   }
-  spinChanceWheel(prizeIdx, fullSpins, playerIdx, isDoubles);
+  spinChanceWheel(prizeIdx, fullSpins, playerIdx, isDoubles, true);
 }
 
 if (typeof window !== 'undefined') {

@@ -94,4 +94,39 @@ describe('Concept C: 3D Mystery Chance Card Fan Deck Suite (/better-ui /multipla
     assert.equal(currentSlice.visible, true);
     assert.equal(currentSlice.isSpectator, true);
   });
+
+  it('verifies ChanceWheelModal renders clean single-hero card without duplicate outcome banner', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const sveltePath = fs.existsSync('src/svelte/modals/ChanceWheelModal.svelte')
+      ? path.resolve('src/svelte/modals/ChanceWheelModal.svelte')
+      : path.resolve('world-tycoon/src/svelte/modals/ChanceWheelModal.svelte');
+    const content = fs.readFileSync(sveltePath, 'utf8');
+
+    // No duplicate banner or stacked toast
+    assert.ok(!content.includes('id="chance-wheel-won-banner"'), 'Must eliminate duplicate winner banner');
+
+    // Card face separation: front face only in winner block, back face in unrevealed block (zero mirroring bleed)
+    assert.ok(content.includes('{#if isWinner}'), 'Must isolate winner card face');
+    assert.ok(content.includes('card-surface-front'), 'Must render card-surface-front for winner');
+    assert.ok(content.includes('card-surface-back'), 'Must render card-surface-back for unrevealed cards');
+  });
+
+  it('supports direct interactive card picking with chosen card index', async () => {
+    openChanceWheelModal(false, 0);
+    spinChanceWheel(4); // Pick card index 4 directly
+
+    let currentSlice;
+    const unsub = modalStore.subscribe(val => { currentSlice = val.chanceWheel; });
+    unsub();
+
+    assert.equal(currentSlice.isSpinning, true);
+    await new Promise(r => setTimeout(r, 2200));
+
+    const unsub2 = modalStore.subscribe(val => { currentSlice = val.chanceWheel; });
+    unsub2();
+
+    assert.equal(currentSlice.winnerIdx, 4);
+    assert.equal(currentSlice.hasWon, true);
+  });
 });
