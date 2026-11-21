@@ -258,13 +258,17 @@ export function refreshTileTextureAndBuildings(tileId) {
   }
 
   const frame = context.tileBorderFrames[tileId];
+  const isFestival = Boolean(propState?.festivalBoost);
   if (frame && frame.userData?.borderMat) {
     if (isOwned && ownerTheme) {
       frame.visible = true;
-      frame.userData.borderMat.color.setStyle(ownerTheme.colorHex);
-      frame.userData.borderMat.emissive.setStyle(ownerTheme.colorHex);
+      const borderHex = isFestival ? '#f59e0b' : ownerTheme.colorHex;
+      frame.userData.borderMat.color.setStyle(borderHex);
+      frame.userData.borderMat.emissive.setStyle(borderHex);
       const isLocalPlayer = Boolean(propState?.owner != null && propState.owner === gameState?.localPlayerIdx);
-      if (isNight) {
+      if (isFestival) {
+        frame.userData.borderMat.emissiveIntensity = 1.05;
+      } else if (isNight) {
         frame.userData.borderMat.emissiveIntensity = isLocalPlayer ? 1.15 : 0.85;
       } else if (isSunset) {
         frame.userData.borderMat.emissiveIntensity = isLocalPlayer ? 0.75 : 0.50;
@@ -314,6 +318,8 @@ export function refreshTileTextureAndBuildings(tileId) {
   if (!propState || propState.owner === null) return;
 
   const lvl = propState.level || 0;
+  const customOwner = (typeof propState.owner === 'number') ? matchSettings?.customPlayers?.[propState.owner] : null;
+  const buildingSkin = (customOwner || ownerPlayer)?.buildingSkin || 'bldg_classic';
 
   if (lvl === 0) {
     const flagMesh = createDetailedFlagMesh(ownerColor);
@@ -323,14 +329,14 @@ export function refreshTileTextureAndBuildings(tileId) {
     bGroup.add(flagMesh);
     animatedBuildingPopups.push({ mesh: flagMesh, startTime: performance.now(), duration: 400, targetScale: 1.05 });
   } else if (lvl >= 1 && lvl <= 3) {
-    const hGroup = createDetailedHouseMesh(ownerColor, lvl);
+    const hGroup = createDetailedHouseMesh(ownerColor, lvl - 1, buildingSkin);
     // House sits comfortably on upper rim of tile with generous margin
     hGroup.position.set(0, 0, -1.02);
     hGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(hGroup);
     animatedBuildingPopups.push({ mesh: hGroup, startTime: performance.now(), duration: 420, targetScale: 0.92 });
   } else if (lvl >= 4) {
-    const towerGroup = createDetailedSkyscraperMesh(ownerColor);
+    const towerGroup = createDetailedSkyscraperMesh(ownerColor, buildingSkin);
     // Skyscraper sits at upper rim with balanced height that leaves city name fully clear
     towerGroup.position.set(0, 0, -1.02);
     towerGroup.scale.set(0.01, 0.01, 0.01);

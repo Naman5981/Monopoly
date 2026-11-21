@@ -54,17 +54,47 @@ const staticMatCache = {
 Object.values(geomCache).forEach(g => { g.userData = { isShared: true }; });
 Object.values(staticMatCache).forEach(m => { m.userData = { isShared: true }; });
 
-// Owner-color material pool
+// Owner-color & building skin material pool
 const colorMatPool = new Map();
-function getOwnerMaterials(ownerColor) {
-  const key = String(ownerColor);
+function getOwnerMaterials(ownerColor, buildingSkin = 'bldg_classic') {
+  const key = `${ownerColor}_${buildingSkin}`;
   if (!colorMatPool.has(key)) {
-    colorMatPool.set(key, {
-      roof: new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.18, roughness: 0.35, metalness: 0.15, flatShading: true }),
-      cloth: new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.18, roughness: 0.38, metalness: 0.12 }),
-      door: new THREE.MeshStandardMaterial({ color: ownerColor, roughness: 0.45, metalness: 0.15 }),
-      accent: new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.25, roughness: 0.2, metalness: 0.6 })
-    });
+    if (buildingSkin === 'bldg_midas') {
+      colorMatPool.set(key, {
+        roof: new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0x78350f, emissiveIntensity: 0.35, roughness: 0.18, metalness: 0.90 }),
+        cloth: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.25, metalness: 0.85 }),
+        door: new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.2, metalness: 0.8 }),
+        accent: new THREE.MeshStandardMaterial({ color: 0xfef08a, emissive: 0xf59e0b, emissiveIntensity: 0.45, roughness: 0.15, metalness: 0.92 })
+      });
+    } else if (buildingSkin === 'bldg_cyber') {
+      colorMatPool.set(key, {
+        roof: new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0284c7, emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.65 }),
+        cloth: new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x7e22ce, emissiveIntensity: 0.45, roughness: 0.25, metalness: 0.5 }),
+        door: new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, emissiveIntensity: 0.35, roughness: 0.2, metalness: 0.7 }),
+        accent: new THREE.MeshStandardMaterial({ color: 0xf43f5e, emissive: 0xe11d48, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.8 })
+      });
+    } else if (buildingSkin === 'bldg_artdeco') {
+      colorMatPool.set(key, {
+        roof: new THREE.MeshStandardMaterial({ color: 0x065f46, emissive: 0x047857, emissiveIntensity: 0.25, roughness: 0.22, metalness: 0.4 }),
+        cloth: new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.25, metalness: 0.8 }),
+        door: new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2, metalness: 0.75 }),
+        accent: new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xd97706, emissiveIntensity: 0.3, roughness: 0.18, metalness: 0.85 })
+      });
+    } else if (buildingSkin === 'bldg_resort') {
+      colorMatPool.set(key, {
+        roof: new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.75, flatShading: true }),
+        cloth: new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.4, metalness: 0.1 }),
+        door: new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.6, metalness: 0.1 }),
+        accent: new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.25, roughness: 0.3 })
+      });
+    } else {
+      colorMatPool.set(key, {
+        roof: new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.18, roughness: 0.35, metalness: 0.15, flatShading: true }),
+        cloth: new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.18, roughness: 0.38, metalness: 0.12 }),
+        door: new THREE.MeshStandardMaterial({ color: ownerColor, roughness: 0.45, metalness: 0.15 }),
+        accent: new THREE.MeshStandardMaterial({ color: ownerColor, emissive: ownerColor, emissiveIntensity: 0.25, roughness: 0.2, metalness: 0.6 })
+      });
+    }
   }
   return colorMatPool.get(key);
 }
@@ -286,9 +316,9 @@ function buildManor(mats, group) {
  * @param {number} index - Upgrade level (0 to 2)
  * @returns {THREE.Group}
  */
-export function createDetailedHouseMesh(ownerColor, index = 0) {
+export function createDetailedHouseMesh(ownerColor, index = 0, buildingSkin = 'bldg_classic') {
   const houseGroup = new THREE.Group();
-  const mats = getOwnerMaterials(ownerColor);
+  const mats = getOwnerMaterials(ownerColor, buildingSkin);
 
   if (index === 0) {
     buildCottage(mats, houseGroup);
@@ -304,11 +334,12 @@ export function createDetailedHouseMesh(ownerColor, index = 0) {
 /**
  * Creates a 5-tier modern contemporary skyscraper with glass curtain walls, terraces, and flashing beacon.
  * @param {number|string} ownerColor
+ * @param {string} buildingSkin
  * @returns {THREE.Group}
  */
-export function createDetailedSkyscraperMesh(ownerColor) {
+export function createDetailedSkyscraperMesh(ownerColor, buildingSkin = 'bldg_classic') {
   const towerGroup = new THREE.Group();
-  const mats = getOwnerMaterials(ownerColor);
+  const mats = getOwnerMaterials(ownerColor, buildingSkin);
 
   // Podium Base
   const basePlinth = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.12, 0.88), staticMatCache.foundation);

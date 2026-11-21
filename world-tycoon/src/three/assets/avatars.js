@@ -237,7 +237,7 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatSty
 
   let charColor = (customCharColor !== null && customCharColor !== undefined)
     ? customCharColor
-    : (customP?.charColor ?? theme.charColor);
+    : (p?.charColor ?? (p?.colorHex ? parseInt(p.colorHex.replace('#', '0x'), 16) : null) ?? customP?.charColor ?? (customP?.colorHex ? parseInt(customP.colorHex.replace('#', '0x'), 16) : null) ?? theme?.charColor ?? 0x3b82f6);
 
   if (isTeam) {
     charColor = teamCharColor;
@@ -245,7 +245,7 @@ export function createDetailed3DAvatarMesh(idx, isPortrait = false, customHatSty
 
   const hatColor = isTeam
     ? (teamId === 0 ? 0xb91c1c : 0x1d4ed8)
-    : (customP?.hatColor ?? theme.hatColor);
+    : (p?.hatColor ?? customP?.hatColor ?? theme?.hatColor ?? 0x334155);
 
   const root = new THREE.Group();
   const skinTones = [0xf1c27d, 0xdfa166, 0xb87b40, 0xf5d6b4];

@@ -5,6 +5,8 @@
 
 import { PLAYER_THEMES, BOARD_TILES } from './data.js';
 import { networkState } from '../network/p2pState.js';
+import { resetMatchAchievements } from './achievements.js';
+import { resetMatchLiveAchievements } from '../ui/wardrobe.js';
 
 export const PLAYER_NAME_STORAGE_KEY = 'WORLD_TYCOON_PLAYER_NAME';
 
@@ -197,7 +199,8 @@ export function resetGameStateForNewMatch(count) {
     const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
     const teamChar = teamId === 0 ? 0xef4444 : 0x3b82f6;
     const colorHex = isTeam ? teamHex : (cp.colorHex || PLAYER_THEMES[i]?.colorHex || '#3b82f6');
-    const charColor = isTeam ? teamChar : (cp.charColor ?? PLAYER_THEMES[i]?.charColor ?? 0x3b82f6);
+    const parsedFromHex = colorHex ? parseInt(colorHex.replace('#', '0x'), 16) : null;
+    const charColor = isTeam ? teamChar : ((typeof cp.charColor === 'number') ? cp.charColor : (parsedFromHex ?? PLAYER_THEMES[i]?.charColor ?? 0x3b82f6));
 
     if (isTeam) {
       if (matchSettings.customPlayers[i]) {
@@ -208,6 +211,16 @@ export function resetGameStateForNewMatch(count) {
       if (PLAYER_THEMES[i]) {
         PLAYER_THEMES[i].colorHex = teamHex;
         PLAYER_THEMES[i].charColor = teamChar;
+      }
+    } else {
+      if (matchSettings.customPlayers[i]) {
+        matchSettings.customPlayers[i].colorHex = colorHex;
+        matchSettings.customPlayers[i].charColor = charColor;
+      }
+      if (PLAYER_THEMES[i]) {
+        PLAYER_THEMES[i].colorHex = colorHex;
+        PLAYER_THEMES[i].charColor = charColor;
+        PLAYER_THEMES[i].color = charColor;
       }
     }
 
@@ -244,6 +257,8 @@ export function resetGameStateForNewMatch(count) {
       teamId,
       colorHex,
       charColor,
+      hatStyle: cp.hatStyle || 0,
+      hatColor: cp.hatColor || PLAYER_THEMES[i]?.hatColor || 0x334155,
       cash: startCash,
       position: 0,
       inIsland: false,
@@ -272,5 +287,7 @@ export function resetGameStateForNewMatch(count) {
   gameState.activeInspectorTile = null;
   gameState.achievedMonopolies = {};
   gameState.gameStarted = true;
+  resetMatchAchievements();
+  resetMatchLiveAchievements();
   matchSeconds = 0;
 }

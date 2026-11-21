@@ -302,7 +302,11 @@ export {
 } from './stages/cityPreview.js';
 export {
   initLobbyHeroStage,
-  updateLobbyHeroAvatar
+  updateLobbyHeroAvatar,
+  setLobbyHeroShowcaseMode,
+  updateLobbyHeroBuildingSkin,
+  updateLobbyHeroDiceTrail,
+  triggerLobbyHeroDiceRoll
 } from './stages/lobbyStage.js';
 export { resetLocalCarAnimationClock } from './environment/cars.js';
 

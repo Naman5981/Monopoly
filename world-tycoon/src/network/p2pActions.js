@@ -390,6 +390,17 @@ export function executeIncomingNetworkAction(msg) {
       break;
     }
 
+    case 'ACTION_STAR_BOUNTY': {
+      triggerBanner('starBounty', {
+        stars: msg.stars,
+        title: msg.title,
+        desc: msg.desc,
+        playerIdx: msg.playerIdx
+      }, 2400);
+      playSFX('cash');
+      break;
+    }
+
     case 'ACTION_REACTION':
       if (msg.reactionType) {
         spawnAnimatedReaction(msg.reactionType);

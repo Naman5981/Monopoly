@@ -47,6 +47,7 @@ const VALID_PACKET_TYPES = new Set([
   'ACTION_GUEST_LOBBY',
   'ACTION_GUEST_TEAM_SELECT',
   'ACTION_TEAM_BAILOUT',
+  'ACTION_STAR_BOUNTY',
   'PLAYER_DISCONNECTED',
   'MATCH_DISCONNECTED_TO_LOBBY'
 ]);
@@ -94,6 +95,14 @@ export function sanitizeProfileUpdate(raw) {
 
   if (typeof raw.pedestal === 'string') {
     clean.pedestal = raw.pedestal.slice(0, 32);
+  }
+
+  if (typeof raw.buildingSkin === 'string') {
+    clean.buildingSkin = raw.buildingSkin.slice(0, 32);
+  }
+
+  if (typeof raw.diceTrail === 'string') {
+    clean.diceTrail = raw.diceTrail.slice(0, 32);
   }
 
   return clean;

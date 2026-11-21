@@ -49,7 +49,7 @@ export function ensure3DPortraitSystemInitialized() {
     rl.position.set(-3, 2, -2);
     pScene.add(rl);
 
-    const avatar3D = createDetailed3DAvatarMesh(i, true);
+    const avatar3D = createDetailed3DAvatarMesh(i, true, gameState.players?.[i]?.hatStyle, null, gameState.players?.[i]?.charColor);
     avatar3D.position.set(0, -0.05, 0);
     avatar3D.rotation.y = (i % 2 === 0) ? 0.24 : -0.24;
     pScene.add(avatar3D);
@@ -82,7 +82,7 @@ function rebuild3DPortraits() {
     rl.position.set(-3, 2, -2);
     pScene.add(rl);
 
-    const avatar3D = createDetailed3DAvatarMesh(i, true);
+    const avatar3D = createDetailed3DAvatarMesh(i, true, gameState.players?.[i]?.hatStyle, null, gameState.players?.[i]?.charColor);
     avatar3D.position.set(0, -0.05, 0);
     avatar3D.rotation.y = (i % 2 === 0) ? 0.24 : -0.24;
     pScene.add(avatar3D);
@@ -104,8 +104,8 @@ export function spawnAllPlayerTokens3D(boardGroup = context.boardGroup) {
   });
   context.playerMeshes = [];
 
-  gameState.players.forEach((_, idx) => {
-    const mesh = createDetailed3DAvatarMesh(idx, false);
+  gameState.players.forEach((p, idx) => {
+    const mesh = createDetailed3DAvatarMesh(idx, false, p.hatStyle, null, p.charColor);
     mesh.scale.setScalar(0.88);
     boardGroup.add(mesh);
     context.playerMeshes.push(mesh);

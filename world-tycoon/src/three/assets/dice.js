@@ -6,8 +6,9 @@
 import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { playSFX } from '../../game/audio.js';
-import { simulateDicePhysicsToss, triggerBoardShockwave } from '../physics/physicsEngine.js';
+import { simulateDicePhysicsToss, triggerBoardShockwave, spawnDiceTrailSpark } from '../physics/physicsEngine.js';
 import { showDiceSumBadge, hideDiceSumBadge } from '../../ui/hud.js';
+import { gameState, matchSettings } from '../../game/state.js';
 
 export const DICE_SKIN_PALETTES = {
   dice_classic: { bg: '#ffffff', stroke: '#cbd5e1', pipSpecial: '#ef4444', pipNormal: '#0f172a' },
@@ -103,8 +104,6 @@ export function getTargetRotationForDieFace(faceVal) {
   }
 }
 
-import { matchSettings } from '../../game/state.js';
-
 /**
  * Triggers full 3D tumbling physics on the board for a dice roll.
  * @param {number} d1 - Die 1 result (1 to 6)
@@ -119,6 +118,11 @@ export function animate3DDiceTumble(d1, d2) {
     const baseDuration = 1150;
     const duration = Math.max(220, Math.round(baseDuration / speed));
     const startPos = [{ x: -1.25, z: -0.45 }, { x: 0.95, z: -1.55 }];
+
+    const curP = (gameState?.players && typeof gameState?.currentPlayerIdx === 'number')
+      ? gameState.players[gameState.currentPlayerIdx]
+      : null;
+    const trail = curP?.diceTrail || matchSettings?.customPlayers?.[gameState?.currentPlayerIdx]?.diceTrail || 'trail_classic';
 
     // Prepare 3D board dice meshes for dynamic bouncing toss
     const dieMesh1 = context.diceMeshes && context.diceMeshes[0];
@@ -138,6 +142,12 @@ export function animate3DDiceTumble(d1, d2) {
 
     // Simulate 3D rigid-body dice physics with real bounce, angular momentum, and rim ricochets
     simulateDicePhysicsToss(dieMesh1, dieMesh2, d1, d2, duration, (progress) => {
+      // Spawn dice trail sparks
+      if (trail !== 'trail_classic' && progress < 0.85) {
+        if (dieMesh1) spawnDiceTrailSpark(dieMesh1.position, trail);
+        if (dieMesh2) spawnDiceTrailSpark(dieMesh2.position, trail);
+      }
+
       // Small shockwave pulse when dice hit the board
       if (progress > 0.45 && !bounced) {
         bounced = true;

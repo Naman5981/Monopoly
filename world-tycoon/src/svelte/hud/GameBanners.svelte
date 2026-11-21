@@ -244,6 +244,27 @@
             </div>
           {/if}
         </div>
+
+      <!-- 8. Live In-Game Achievement Star Bounty -->
+      {:else if banner.activeBanner === 'starBounty'}
+        <div
+          id="star-bounty-banner"
+          class="relative px-6 py-3.5 rounded-2xl bg-white/95 backdrop-blur-md text-slate-900 shadow-[0_12px_40px_rgba(245,158,11,0.35),0_4px_16px_rgba(0,0,0,0.15)] border-2 border-amber-400 flex items-center gap-3.5 select-none transform -translate-y-12"
+          transition:scale={{ duration: 400, start: 0.35, easing: backOut }}
+        >
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center text-lg shadow-sm font-black flex-shrink-0">
+            ⭐
+          </div>
+          <div class="flex flex-col text-left min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-black uppercase tracking-wider text-amber-600">{banner.data.title || 'ACHIEVEMENT!'}</span>
+              <span class="px-2 py-0.5 rounded-full bg-slate-950 text-amber-300 text-[10px] font-black tabular-nums shadow-xs">+{banner.data.stars || 40} ⭐</span>
+            </div>
+            <div class="text-xs sm:text-sm font-black text-slate-900 tracking-wide truncate">
+              {banner.data.desc || 'Milestone Reached!'}
+            </div>
+          </div>
+        </div>
       {/if}
 
     </div>

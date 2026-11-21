@@ -8,12 +8,21 @@ import { playSFX } from '../game/audio.js';
 import { gameState, matchSettings, getSavedPlayerName, PLAYER_NAME_STORAGE_KEY } from '../game/state.js';
 import { context } from '../three/core/context.js';
 import { spawnAllPlayerTokens3D } from '../three/pawns/tokens.js';
-import { updateLobbyHeroAvatar, updateLobbyHeroDiceSkin } from '../three/stages/lobbyStage.js';
+import {
+  updateLobbyHeroAvatar,
+  updateLobbyHeroDiceSkin,
+  setLobbyHeroShowcaseMode,
+  updateLobbyHeroBuildingSkin,
+  updateLobbyHeroDiceTrail,
+  triggerLobbyHeroDiceRoll
+} from '../three/stages/lobbyStage.js';
 import { applyEquippedDiceSkin } from '../three/assets/dice.js';
 import { networkState, sendClientProfileUpdate, broadcastLobbySettings } from '../network/p2p.js';
 import { currentLobbyView } from './setup/lobbyNavigation.js';
 import { showTurnLockToast } from './hud.js';
 import { updateModalSlice } from '../svelte/stores/modalStore.js';
+
+import { triggerBanner } from '../svelte/stores/bannerStore.js';
 
 const WARDROBE_STORAGE_KEY = 'WORLD_TYCOON_PROFILE_V3';
 
@@ -27,6 +36,13 @@ export const WARDROBE_ITEMS = {
     { id: 'hat_fedora', hatStyle: 5, rarity: 'epic', name: 'Diamond Fedora', icon: '💎', cost: 950, desc: 'Crisp midnight fedora with a diamond-cut band.' },
     { id: 'hat_captain', hatStyle: 6, rarity: 'legendary', name: 'Royal Bicorn', icon: '⚓', cost: 1850, desc: 'Naval fleet admiral bicorn with gold bullion fringe.' }
   ],
+  buildingSkin: [
+    { id: 'bldg_classic', rarity: 'common', name: 'Midtown Architectural', icon: '🏛️', cost: 0, desc: 'Classic slate blue roofs, white stone facades, and brick chimneys.' },
+    { id: 'bldg_artdeco', rarity: 'rare', name: 'Art Deco Imperial', icon: '🗽', cost: 450, desc: 'Stepped emerald marble facades with gilded brass spire terracing.' },
+    { id: 'bldg_resort', rarity: 'rare', name: 'Castaway Cabana', icon: '🏝️', cost: 650, desc: 'Thatched bamboo villas, tiki torches, and turquoise plunge pools.' },
+    { id: 'bldg_cyber', rarity: 'epic', name: 'Neo-Tokyo Cyber', icon: '🌆', cost: 950, desc: 'Electroluminescent cyan & magenta neon trim with rooftop holographic antennas.' },
+    { id: 'bldg_midas', rarity: 'legendary', name: '24K Midas Syndicate', icon: '🏆', cost: 1500, desc: 'Solid gold bullion pillars, mirror-finish gilded balconies, and warm amber aura.' }
+  ],
   dice: [
     { id: 'dice_classic', rarity: 'common', name: 'Classic Ivory', icon: '🎲', cost: 0, desc: 'Crisp polished ivory cubes with red and black pips.' },
     { id: 'dice_ruby', rarity: 'rare', name: 'Vegas Ruby Red', icon: '🔴', cost: 350, desc: 'Casino crimson resin cubes with metallic golden pips.' },
@@ -34,11 +50,17 @@ export const WARDROBE_ITEMS = {
     { id: 'dice_midas', rarity: 'legendary', name: 'Midas Solid Gold', icon: '🟡', cost: 1450, desc: 'Pure 24K bullion dice that shimmer on the green felt.' },
     { id: 'dice_obsidian', rarity: 'mythic', name: 'Obsidian Onyx', icon: '⚫', cost: 1950, desc: 'Volcanic glass dice forged with mystical violet energy.' }
   ],
+  diceTrail: [
+    { id: 'trail_classic', rarity: 'common', name: 'Standard Throw', icon: '🎲', cost: 0, desc: 'Clean, unembellished 3D dice bounce on the green felt.' },
+    { id: 'trail_fire', rarity: 'rare', name: 'Comet Fireball', icon: '🔥', cost: 400, desc: 'Blazing flame ribbons and fiery orange ember sparks trailing the roll.' },
+    { id: 'trail_gold', rarity: 'epic', name: 'Starlight Gold Dust', icon: '✨', cost: 850, desc: 'Shimmering 24K gold star particles that float behind bouncing dice.' },
+    { id: 'trail_cyber', rarity: 'legendary', name: 'Cyber Matrix Stream', icon: '⚡', cost: 1250, desc: 'Digital cyan data stream and high-tech grid sparks on collision.' }
+  ],
   pedestal: [
-    { id: 'pedestal_classic', rarity: 'common', name: 'Slate Plinth', icon: '🔘', cost: 0, desc: 'Clean boardroom architectural marble base.' },
-    { id: 'pedestal_gold', rarity: 'rare', name: 'Gilded 24K Ring', icon: '🌟', cost: 400, desc: 'High-gloss champion gold plinth with mirror finish.' },
-    { id: 'pedestal_emerald', rarity: 'epic', name: 'Emerald Matrix', icon: '❇️', cost: 900, desc: 'Glowing crystal jade plinth with internal pulse.' },
-    { id: 'pedestal_magma', rarity: 'legendary', name: 'Molten Magma', icon: '🔥', cost: 1750, desc: 'Obsidian rim surrounded by an intense fiery aura.' }
+    { id: 'pedestal_classic', rarity: 'common', name: 'Slate Halo', icon: '🔘', cost: 0, desc: 'Clean architectural plinth and glowing ground ring under your pawn.' },
+    { id: 'pedestal_gold', rarity: 'rare', name: 'Gilded 24K Aura', icon: '🌟', cost: 400, desc: 'High-gloss champion gold plinth and radiant halo ring for your pawn.' },
+    { id: 'pedestal_emerald', rarity: 'epic', name: 'Emerald Matrix', icon: '❇️', cost: 900, desc: 'Glowing crystal jade plinth with an energizing emerald aura.' },
+    { id: 'pedestal_magma', rarity: 'legendary', name: 'Molten Magma', icon: '🔥', cost: 1750, desc: 'Obsidian base surrounded by an intense fiery magma aura.' }
   ]
 };
 
@@ -47,16 +69,55 @@ let previousActiveElement = null;
 let wardrobeCloseTimer = null;
 let previewState = {
   hat: null,
+  buildingSkin: null,
   dice: null,
+  diceTrail: null,
   pedestal: null
 };
+
+// In-game live achievement tracking during active match
+let matchLiveAchievementStars = 0;
+let matchLiveAchievements = [];
+
+export function resetMatchLiveAchievements() {
+  matchLiveAchievementStars = 0;
+  matchLiveAchievements = [];
+}
+
+export function getMatchLiveAchievements() {
+  return {
+    totalStars: matchLiveAchievementStars,
+    achievements: [...matchLiveAchievements]
+  };
+}
+
+export function awardLiveAchievementStars(stars, achievementId, title, desc, playerIdx = 0) {
+  const myIdx = (networkState?.isMultiplayer && !networkState?.isHost) ? (networkState.localPlayerIdx || 0) : 0;
+  if (playerIdx === myIdx) {
+    const profile = getTycoonProfile();
+    profile.tycoonStars += stars;
+    saveTycoonProfile(profile);
+    matchLiveAchievementStars += stars;
+    matchLiveAchievements.push({ id: achievementId, title, stars });
+    updateAllPointsBadges();
+  }
+
+  triggerBanner('starBounty', {
+    stars,
+    title,
+    desc,
+    playerIdx
+  }, 2400);
+
+  playSFX('cash');
+}
 
 /**
  * Loads or initializes the player's persistent profile from localStorage.
  * Includes automatic migration from previous versions with a balanced 150 ⭐ wallet.
  * @returns {object}
  */
-function getTycoonProfile() {
+export function getTycoonProfile() {
   const currentSavedName = getSavedPlayerName();
   if (typeof localStorage === 'undefined') {
     return getDefaultProfile(currentSavedName);
@@ -69,13 +130,19 @@ function getTycoonProfile() {
       return def;
     }
     const parsed = JSON.parse(raw);
+    const unlocked = Array.isArray(parsed.unlockedItems) ? [...parsed.unlockedItems] : ['hat_aviator', 'hat_banker', 'hat_safari', 'hat_cyber', 'dice_classic', 'pedestal_classic'];
+    if (!unlocked.includes('bldg_classic')) unlocked.push('bldg_classic');
+    if (!unlocked.includes('trail_classic')) unlocked.push('trail_classic');
+
     return {
       name: currentSavedName || parsed.name || 'TYCOON',
       tycoonStars: typeof parsed.tycoonStars === 'number' ? parsed.tycoonStars : 150,
-      unlockedItems: Array.isArray(parsed.unlockedItems) ? parsed.unlockedItems : ['hat_aviator', 'hat_banker', 'hat_safari', 'hat_cyber', 'dice_classic', 'pedestal_classic'],
+      unlockedItems: unlocked,
       equipped: {
         hat: parsed.equipped?.hat || 'hat_banker',
+        buildingSkin: parsed.equipped?.buildingSkin || 'bldg_classic',
         dice: parsed.equipped?.dice || 'dice_classic',
+        diceTrail: parsed.equipped?.diceTrail || 'trail_classic',
         pedestal: parsed.equipped?.pedestal || 'pedestal_classic'
       }
     };
@@ -89,10 +156,12 @@ function getDefaultProfile(name = 'TYCOON') {
   return {
     name: name || getSavedPlayerName() || 'TYCOON',
     tycoonStars: 150, // Balanced starter wallet
-    unlockedItems: ['hat_aviator', 'hat_banker', 'hat_safari', 'hat_cyber', 'dice_classic', 'pedestal_classic'],
+    unlockedItems: ['hat_aviator', 'hat_banker', 'hat_safari', 'hat_cyber', 'bldg_classic', 'dice_classic', 'trail_classic', 'pedestal_classic'],
     equipped: {
       hat: 'hat_banker',
+      buildingSkin: 'bldg_classic',
       dice: 'dice_classic',
+      diceTrail: 'trail_classic',
       pedestal: 'pedestal_classic'
     }
   };
@@ -105,6 +174,7 @@ export function resetTycoonProfile() {
   const profile = getDefaultProfile();
   saveTycoonProfile(profile);
   applyEquippedCosmeticsToPlayer();
+  setLobbyHeroShowcaseMode('avatar');
   updateWardrobeItems();
   renderWardrobeHeader();
   updateAllPointsBadges();
@@ -115,7 +185,7 @@ export function resetTycoonProfile() {
  * Persists the tycoon profile to localStorage.
  * @param {object} profile
  */
-function saveTycoonProfile(profile) {
+export function saveTycoonProfile(profile) {
   if (typeof localStorage === 'undefined') return;
   try {
     localStorage.setItem(WARDROBE_STORAGE_KEY, JSON.stringify(profile));
@@ -161,9 +231,19 @@ export function awardMatchPoints({ isWinner = false, propertiesOwned = 0, monopo
     breakdown.push({ label: `${monopoliesCount} Monopolies Built`, pts: monoPts });
   }
 
-  const totalEarned = breakdown.reduce((sum, item) => sum + item.pts, 0);
-  profile.tycoonStars += totalEarned;
+  if (matchLiveAchievementStars > 0) {
+    breakdown.push({ label: 'Live In-Game Feats', pts: matchLiveAchievementStars });
+  }
+
+  // Base match earnings (excluding live feats already added to profile wallet in real time)
+  const baseMatchEarned = breakdown
+    .filter(item => item.label !== 'Live In-Game Feats')
+    .reduce((sum, item) => sum + item.pts, 0);
+
+  profile.tycoonStars += baseMatchEarned;
   saveTycoonProfile(profile);
+
+  const totalEarned = breakdown.reduce((sum, item) => sum + item.pts, 0);
 
   return {
     totalEarned,
@@ -188,7 +268,9 @@ export function unlockItem(itemId) {
 
   if (profile.tycoonStars < item.cost) {
     playSFX('bankrupt');
-    alert(`Not enough Tycoon Stars! You need ${item.cost.toLocaleString()} ⭐ (Balance: ${profile.tycoonStars.toLocaleString()} ⭐). Play more matches to earn stars!`);
+    if (typeof alert !== 'undefined') {
+      alert(`Not enough Tycoon Stars! You need ${item.cost.toLocaleString()} ⭐ (Balance: ${profile.tycoonStars.toLocaleString()} ⭐). Play more matches to earn stars!`);
+    }
     return;
   }
 
@@ -231,7 +313,7 @@ export function equipItem(category, itemId) {
  * @param {string} itemId
  */
 export function previewWardrobeItem(category, itemId) {
-  if (!['hat', 'dice', 'pedestal'].includes(category)) return;
+  if (!['hat', 'buildingSkin', 'dice', 'diceTrail', 'pedestal'].includes(category)) return;
   previewState[category] = itemId;
 
   const item = findItemById(itemId);
@@ -239,20 +321,29 @@ export function previewWardrobeItem(category, itemId) {
 
   const myIdx = (networkState?.isMultiplayer && !networkState?.isHost) ? (networkState.localPlayerIdx || 0) : 0;
   const cp = matchSettings?.customPlayers?.[myIdx] || { hatStyle: 0, colorHex: '#3b82f6', charColor: 0x3b82f6 };
+  const charCol = (typeof cp.charColor === 'number')
+    ? cp.charColor
+    : (cp.colorHex ? parseInt(cp.colorHex.replace('#', '0x'), 16) : 0x3b82f6);
 
-  // Determine current preview hat style
-  const previewHat = findItemById(previewState.hat);
-  const curHatStyle = (previewHat && typeof previewHat.hatStyle === 'number') ? previewHat.hatStyle : (cp.hatStyle || 0);
-
-  // Determine current preview pedestal
-  const curPedestal = previewState.pedestal;
-
-  // Update 3D hero avatar & podium live
-  updateLobbyHeroAvatar(curHatStyle, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6, curPedestal);
-
-  // Update 3D mini dice on podium
-  if (category === 'dice') {
+  if (category === 'buildingSkin') {
+    setLobbyHeroShowcaseMode('building', { skinId: itemId, ownerColor: charCol });
+  } else if (category === 'dice') {
     updateLobbyHeroDiceSkin(itemId);
+    setLobbyHeroShowcaseMode('dice', { diceSkinId: itemId, trailId: previewState.diceTrail || 'trail_classic' });
+  } else if (category === 'diceTrail') {
+    updateLobbyHeroDiceTrail(itemId);
+    setLobbyHeroShowcaseMode('dice', { diceSkinId: previewState.dice || 'dice_classic', trailId: itemId });
+    triggerLobbyHeroDiceRoll();
+  } else {
+    const previewHat = findItemById(previewState.hat);
+    const curHatStyle = (previewHat && typeof previewHat.hatStyle === 'number') ? previewHat.hatStyle : (cp.hatStyle || 0);
+    const curPedestal = previewState.pedestal;
+    setLobbyHeroShowcaseMode('avatar', {
+      hatStyle: curHatStyle,
+      colorHex: cp.colorHex || '#3b82f6',
+      charColor: charCol,
+      pedestal: curPedestal
+    });
   }
 
   playSFX('hop');
@@ -265,8 +356,8 @@ export function previewWardrobeItem(category, itemId) {
  * @returns {object|null}
  */
 function findItemById(itemId) {
-  for (const cat of ['hat', 'dice', 'pedestal']) {
-    const found = WARDROBE_ITEMS[cat].find(i => i.id === itemId);
+  for (const cat of ['hat', 'buildingSkin', 'dice', 'diceTrail', 'pedestal']) {
+    const found = WARDROBE_ITEMS[cat]?.find(i => i.id === itemId);
     if (found) return { ...found, category: cat };
   }
   return null;
@@ -280,13 +371,17 @@ function applyEquippedCosmeticsToPlayer() {
   const equippedHat = findItemById(profile.equipped.hat);
   const equippedPedestal = findItemById(profile.equipped.pedestal);
   const equippedDice = profile.equipped.dice;
+  const equippedBuildingSkin = profile.equipped.buildingSkin || 'bldg_classic';
+  const equippedDiceTrail = profile.equipped.diceTrail || 'trail_classic';
 
   // Synchronize preview state with profile loadout
   previewState.hat = profile.equipped.hat;
   previewState.dice = profile.equipped.dice;
+  previewState.diceTrail = equippedDiceTrail;
   previewState.pedestal = profile.equipped.pedestal;
+  previewState.buildingSkin = equippedBuildingSkin;
 
-  // 1. Update local player's hat style & pedestal in matchSettings
+  // 1. Update local player's cosmetics in matchSettings
   const myIdx = (networkState?.isMultiplayer && !networkState?.isHost) ? (networkState.localPlayerIdx || 0) : 0;
   if (matchSettings?.customPlayers?.[myIdx]) {
     if (equippedHat) {
@@ -295,14 +390,25 @@ function applyEquippedCosmeticsToPlayer() {
     if (equippedPedestal) {
       matchSettings.customPlayers[myIdx].pedestal = equippedPedestal.id;
     }
+    matchSettings.customPlayers[myIdx].buildingSkin = equippedBuildingSkin;
+    matchSettings.customPlayers[myIdx].diceTrail = equippedDiceTrail;
+
     const cp = matchSettings.customPlayers[myIdx];
-    updateLobbyHeroAvatar(cp.hatStyle, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6, equippedPedestal?.id);
+    const charCol = (typeof cp?.charColor === 'number')
+      ? cp.charColor
+      : (cp?.colorHex ? parseInt(cp.colorHex.replace('#', '0x'), 16) : 0x3b82f6);
+    updateLobbyHeroAvatar(cp.hatStyle, cp.colorHex || '#3b82f6', charCol, equippedPedestal?.id);
 
     if (networkState?.isMultiplayer) {
       if (networkState.isHost) {
         broadcastLobbySettings();
       } else {
-        sendClientProfileUpdate({ hatStyle: cp.hatStyle, pedestal: cp.pedestal });
+        sendClientProfileUpdate({
+          hatStyle: cp.hatStyle,
+          pedestal: cp.pedestal,
+          buildingSkin: cp.buildingSkin,
+          diceTrail: cp.diceTrail
+        });
       }
     }
   }
@@ -319,12 +425,40 @@ function applyEquippedCosmeticsToPlayer() {
 
 /**
  * Switches the active wardrobe category tab.
- * @param {string} cat - 'hat' | 'dice' | 'pedestal'
+ * @param {string} cat - 'hat' | 'buildingSkin' | 'dice' | 'diceTrail' | 'pedestal'
  */
 export function setWardrobeCategory(cat) {
-  if (!['hat', 'dice', 'pedestal'].includes(cat)) return;
+  if (!['hat', 'buildingSkin', 'dice', 'diceTrail', 'pedestal'].includes(cat)) return;
   activeCategory = cat;
   playSFX('click');
+
+  const myIdx = (networkState?.isMultiplayer && !networkState?.isHost) ? (networkState.localPlayerIdx || 0) : 0;
+  const cp = matchSettings?.customPlayers?.[myIdx] || { hatStyle: 0, colorHex: '#3b82f6', charColor: 0x3b82f6 };
+  const charCol = (typeof cp.charColor === 'number')
+    ? cp.charColor
+    : (cp.colorHex ? parseInt(cp.colorHex.replace('#', '0x'), 16) : 0x3b82f6);
+
+  if (cat === 'buildingSkin') {
+    const skin = previewState.buildingSkin || 'bldg_classic';
+    setLobbyHeroShowcaseMode('building', { skinId: skin, ownerColor: charCol });
+  } else if (cat === 'dice') {
+    const diceSkin = previewState.dice || 'dice_classic';
+    setLobbyHeroShowcaseMode('dice', { diceSkinId: diceSkin, trailId: previewState.diceTrail || 'trail_classic' });
+  } else if (cat === 'diceTrail') {
+    const trail = previewState.diceTrail || 'trail_classic';
+    setLobbyHeroShowcaseMode('dice', { diceSkinId: previewState.dice || 'dice_classic', trailId: trail });
+    triggerLobbyHeroDiceRoll();
+  } else {
+    const previewHat = findItemById(previewState.hat);
+    const curHatStyle = (previewHat && typeof previewHat.hatStyle === 'number') ? previewHat.hatStyle : (cp.hatStyle || 0);
+    setLobbyHeroShowcaseMode('avatar', {
+      hatStyle: curHatStyle,
+      colorHex: cp.colorHex || '#3b82f6',
+      charColor: charCol,
+      pedestal: previewState.pedestal
+    });
+  }
+
   updateModalSlice('wardrobe', {
     activeCategory: cat,
     items: getWardrobeItemsForView(cat)
@@ -490,5 +624,7 @@ export function initWardrobeSystem() {
     window.unlockWardrobeItem = unlockItem;
     window.previewWardrobeItem = previewWardrobeItem;
     window.resetTycoonProfile = resetTycoonProfile;
+    window.triggerLobbyHeroDiceRoll = triggerLobbyHeroDiceRoll;
+    window.setLobbyHeroShowcaseMode = setLobbyHeroShowcaseMode;
   }
 }

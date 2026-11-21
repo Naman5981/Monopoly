@@ -24,6 +24,7 @@ import { setPlayerPortraitMood } from '../portraitRenderer.js';
 import { get } from 'svelte/store';
 import { modalStore, updateModalSlice } from '../../svelte/stores/modalStore.js';
 import { triggerBanner } from '../../svelte/stores/bannerStore.js';
+import { checkMonopolyBuilt } from '../../game/achievements.js';
 
 let monopolyCloseTimer = null;
 
@@ -386,6 +387,7 @@ export function checkAndTriggerMonopoly(playerIdx, groupKey) {
 
   if (ownsFullColorGroup(playerIdx, groupKey)) {
     gameState.achievedMonopolies[key] = true;
+    checkMonopolyBuilt(playerIdx, groupKey, GROUP_META[groupKey]?.name || groupKey);
     openMonopolyCelebrationModal(playerIdx, groupKey);
     if (networkState.isMultiplayer) {
       broadcastAction('ACTION_MONOPOLY', { playerIdx, groupKey });

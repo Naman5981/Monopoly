@@ -9,17 +9,18 @@
   import { initLobbyHeroStage, updateLobbyHeroAvatar } from '../../three/scene.js';
 
   const CANDY_PALETTE = [
-    { hex: '#ef4444', name: 'Ruby Red' },
-    { hex: '#3b82f6', name: 'Sky Blue' },
-    { hex: '#22c55e', name: 'Lawn Green' },
-    { hex: '#84cc16', name: 'Lime' },
-    { hex: '#8b5cf6', name: 'Purple' },
-    { hex: '#fb923c', name: 'Peach' },
-    { hex: '#ec4899', name: 'Pink' },
-    { hex: '#06b6d4', name: 'Turquoise' }
+    { hex: '#ef4444', charColor: 0xef4444, name: 'Ruby Red' },
+    { hex: '#3b82f6', charColor: 0x3b82f6, name: 'Sky Blue' },
+    { hex: '#22c55e', charColor: 0x22c55e, name: 'Lawn Green' },
+    { hex: '#84cc16', charColor: 0x84cc16, name: 'Lime' },
+    { hex: '#8b5cf6', charColor: 0x8b5cf6, name: 'Purple' },
+    { hex: '#fb923c', charColor: 0xfb923c, name: 'Peach' },
+    { hex: '#ec4899', charColor: 0xec4899, name: 'Pink' },
+    { hex: '#06b6d4', charColor: 0x06b6d4, name: 'Turquoise' }
   ];
 
   let state = $state({});
+  let canvasEl = $state(null);
   lobbyStore.subscribe(val => { state = val; });
 
   const activePlayer = $derived(
@@ -27,11 +28,14 @@
   );
 
   onMount(() => {
-    const canvas = document.getElementById('lobby-avatar-3d-canvas');
+    const canvas = canvasEl || document.getElementById('lobby-avatar-3d-canvas');
     if (canvas && typeof initLobbyHeroStage === 'function') {
       initLobbyHeroStage(canvas);
       if (activePlayer) {
-        updateLobbyHeroAvatar(activePlayer.hatStyle || 0, activePlayer.colorHex || '#3b82f6', activePlayer.charColor || 0x3b82f6);
+        const hex = activePlayer.colorHex || '#3b82f6';
+        const parsedHex = hex ? parseInt(hex.replace('#', '0x'), 16) : 0x3b82f6;
+        const charCol = (typeof activePlayer.charColor === 'number') ? activePlayer.charColor : parsedHex;
+        updateLobbyHeroAvatar(activePlayer.hatStyle || 0, hex, charCol);
       }
     }
   });
@@ -40,7 +44,8 @@
     if (activePlayer && typeof updateLobbyHeroAvatar === 'function') {
       const hat = activePlayer.hatStyle || 0;
       const color = activePlayer.colorHex || '#3b82f6';
-      const charCol = activePlayer.charColor || 0x3b82f6;
+      const parsedHex = color ? parseInt(color.replace('#', '0x'), 16) : 0x3b82f6;
+      const charCol = (typeof activePlayer.charColor === 'number') ? activePlayer.charColor : parsedHex;
       updateLobbyHeroAvatar(hat, color, charCol);
     }
   });
@@ -53,8 +58,11 @@
     window.cycleAvatarNext?.();
   }
 
-  function selectColor(hex) {
-    window.setLocalPlayerColor?.(hex);
+  function selectColor(hex, charColor) {
+    const parsed = (typeof charColor === 'number')
+      ? charColor
+      : (hex ? parseInt(hex.replace('#', '0x'), 16) : 0x3b82f6);
+    window.setLocalPlayerColor?.(hex, parsed);
   }
 
   function openWardrobe() {
@@ -100,7 +108,7 @@
 
     <!-- 3D Canvas Stage -->
     <div id="lobby-avatar-3d-canvas-wrapper" class="relative flex items-center justify-center">
-      <canvas id="lobby-avatar-3d-canvas" width="512" height="512" class="w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] lg:w-[270px] lg:h-[270px] 2xl:w-[330px] 2xl:h-[330px] pointer-events-auto relative z-10"></canvas>
+      <canvas id="lobby-avatar-3d-canvas" bind:this={canvasEl} width="512" height="512" class="w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] lg:w-[270px] lg:h-[270px] 2xl:w-[330px] 2xl:h-[330px] pointer-events-auto relative z-10 touch-none cursor-grab active:cursor-grabbing" title="Drag to spin 360°"></canvas>
     </div>
   </div>
 
@@ -126,7 +134,7 @@
             {#each CANDY_PALETTE as candy}
               {@const isSelected = (activePlayer.colorHex || '').toLowerCase() === candy.hex.toLowerCase()}
               <button
-                onclick={() => selectColor(candy.hex)}
+                onclick={() => selectColor(candy.hex, candy.charColor)}
                 class="w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full border-2 transition-all cursor-pointer flex items-center justify-center {isSelected ? 'scale-115 border-white ring-2 ring-sky-400 shadow-sm' : 'border-white/80 hover:scale-105'}"
                 style="background-color: {candy.hex};"
                 title="{candy.name}"

@@ -111,8 +111,8 @@ export function selectSetupPlayer(idx) {
     if (cp) {
       updateLobbyHeroAvatar(cp.hatStyle || 0, cp.colorHex || '#3b82f6', cp.charColor || 0x3b82f6);
     }
-    if (window.renderPlayerCards) window.renderPlayerCards();
-    if (window.renderMatchSettingButtons) window.renderMatchSettingButtons();
+    if (typeof window !== 'undefined' && window.renderPlayerCards) window.renderPlayerCards();
+    if (typeof window !== 'undefined' && window.renderMatchSettingButtons) window.renderMatchSettingButtons();
     playSFX('hop');
   }
 }
@@ -209,8 +209,8 @@ export function addBotOrSlot() {
         setupPlayers[newIdx].charColor = botLook.charColor;
       }
     }
-    if (window.renderPlayerCards) window.renderPlayerCards();
-    if (window.renderMatchSettingButtons) window.renderMatchSettingButtons();
+    if (typeof window !== 'undefined' && window.renderPlayerCards) window.renderPlayerCards();
+    if (typeof window !== 'undefined' && window.renderMatchSettingButtons) window.renderMatchSettingButtons();
     animatePlayerJoinRadarPing(newIdx);
     playSFX('hop');
     if (networkState.isMultiplayer && networkState.isHost) {
@@ -353,11 +353,14 @@ export function setLocalPlayerColor(hex, charColor) {
     showTurnLockToast('You can only change your own player color!');
     return false;
   }
-  const success = setPlayerColor(targetIdx, hex, charColor);
+  const parsedColor = (typeof charColor === 'number')
+    ? charColor
+    : (hex ? parseInt(hex.replace('#', '0x'), 16) : 0x3b82f6);
+  const success = setPlayerColor(targetIdx, hex, parsedColor);
   if (success) {
     const p = matchSettings.customPlayers[targetIdx];
     if (p && selectedSetupPlayerIdx === targetIdx) {
-      updateLobbyHeroAvatar(p.hatStyle || 0, hex, charColor);
+      updateLobbyHeroAvatar(p.hatStyle || 0, hex, parsedColor);
     }
   }
   return success;
@@ -367,6 +370,9 @@ export function setPlayerColor(playerIdx, hex, charColor) {
   if (matchSettings.teamMode) return false;
   if (!canCurrentPlayerChangeColor(playerIdx)) return false;
   const normHex = (hex || '').toLowerCase();
+  const parsedCharColor = (typeof charColor === 'number')
+    ? charColor
+    : (hex ? parseInt(hex.replace('#', '0x'), 16) : 0x3b82f6);
 
   // A color is ONLY taken if another HUMAN player in the game already has it!
   const isTakenByHuman = matchSettings.customPlayers.some((p, idx) => 
@@ -379,32 +385,32 @@ export function setPlayerColor(playerIdx, hex, charColor) {
 
   if (matchSettings.customPlayers[playerIdx]) {
     matchSettings.customPlayers[playerIdx].colorHex = hex;
-    matchSettings.customPlayers[playerIdx].charColor = charColor;
+    matchSettings.customPlayers[playerIdx].charColor = parsedCharColor;
     if (PLAYER_THEMES[playerIdx]) {
       PLAYER_THEMES[playerIdx].colorHex = hex;
-      PLAYER_THEMES[playerIdx].charColor = charColor;
-      PLAYER_THEMES[playerIdx].color = charColor;
+      PLAYER_THEMES[playerIdx].charColor = parsedCharColor;
+      PLAYER_THEMES[playerIdx].color = parsedCharColor;
     }
     if (setupPlayers[playerIdx]) {
       setupPlayers[playerIdx].colorHex = hex;
-      setupPlayers[playerIdx].charColor = charColor;
+      setupPlayers[playerIdx].charColor = parsedCharColor;
     }
 
     // When a player takes a color, any conflicting bot immediately picks a random unused color
     ensureBotsHaveUniqueColors();
 
     if (playerIdx === selectedSetupPlayerIdx) {
-      updateLobbyHeroAvatar(matchSettings.customPlayers[playerIdx].hatStyle || 0, hex, charColor);
+      updateLobbyHeroAvatar(matchSettings.customPlayers[playerIdx].hatStyle || 0, hex, parsedCharColor);
     }
-    if (window.renderPlayerCards) window.renderPlayerCards();
-    if (window.renderMatchSettingButtons) window.renderMatchSettingButtons();
+    if (typeof window !== 'undefined' && window.renderPlayerCards) window.renderPlayerCards();
+    if (typeof window !== 'undefined' && window.renderMatchSettingButtons) window.renderMatchSettingButtons();
     playSFX('click');
 
     if (networkState.isMultiplayer) {
       if (networkState.isHost) {
         broadcastLobbySettings();
       } else {
-        sendClientProfileUpdate({ colorHex: hex, charColor });
+        sendClientProfileUpdate({ colorHex: hex, charColor: parsedCharColor });
       }
     }
     return true;

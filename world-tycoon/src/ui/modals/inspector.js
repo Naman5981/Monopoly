@@ -20,6 +20,7 @@ import { saveCurrentMatchToStorage } from '../../game/persistence.js';
 import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML, closeOtherInformationalModals } from './common.js';
 import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { checkSkyscraperBuilt } from '../../game/achievements.js';
 
 export function buildInspectorSliceData(tileId) {
   const tile = BOARD_TILES[tileId];
@@ -205,6 +206,9 @@ export function upgradeCityLevel(tileId, isForcedAI = false) {
 
   p.cash -= tile.houseCost;
   st.level++;
+  if (st.level === 4) {
+    checkSkyscraperBuilt(st.owner, tile.name);
+  }
   if (!isForcedAI) {
     gameState.upgradesThisVisit = (gameState.upgradesThisVisit || 0) + 1;
   }

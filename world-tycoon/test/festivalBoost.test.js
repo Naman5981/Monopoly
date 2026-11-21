@@ -15,6 +15,7 @@ import {
   closeFestivalNoPropertiesModal,
 } from '../src/ui/modals/festivalBoost.js';
 import { networkState } from '../src/network/p2pState.js';
+import { drawFestivalBadge } from '../src/three/board/tiles/cityTileRenderer.js';
 
 describe('World Festival Boost & 3D Breathing Property Highlights (/better-interface)', () => {
   let concludedActionDoubles = null;
@@ -228,6 +229,27 @@ describe('World Festival Boost & 3D Breathing Property Highlights (/better-inter
       assert.equal(gameState.properties[27].festivalBoost, false);
       // Bot's Tokyo should now hold the festival boost
       assert.equal(gameState.properties[31].festivalBoost, true);
+    });
+
+    it('exports drawFestivalBadge for distinct on-tile festival UI', () => {
+      assert.equal(typeof drawFestivalBadge, 'function');
+      const fakeCtx = {
+        save: () => {},
+        restore: () => {},
+        fillStyle: '',
+        shadowColor: '',
+        shadowBlur: 0,
+        beginPath: () => {},
+        roundRect: () => {},
+        rect: () => {},
+        fill: () => {},
+        fillText: () => {},
+        font: '',
+        textAlign: '',
+        textBaseline: ''
+      };
+      // Should execute without throwing
+      drawFestivalBadge(fakeCtx, 320);
     });
   });
 });

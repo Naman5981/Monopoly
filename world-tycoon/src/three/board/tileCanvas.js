@@ -65,16 +65,18 @@ export function drawTileToCanvas(canvas, tile, propState, isUpright = false) {
   const ownerColorHex = isTeam ? teamColorHex : (ownerPlayer?.colorHex || ownerThemeFallback?.colorHex || '#3b82f6');
   const ownerTheme = isOwned ? { colorHex: ownerColorHex } : null;
 
+  const isFestivalBoost = Boolean(propState?.festivalBoost);
+
   if (isOwned && ownerTheme) {
-    ctx.strokeStyle = ownerTheme.colorHex;
+    ctx.strokeStyle = isFestivalBoost ? '#f59e0b' : ownerTheme.colorHex;
     ctx.lineWidth = 26;
     ctx.strokeRect(13, 13, 486, 486);
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.strokeStyle = isFestivalBoost ? '#fef08a' : 'rgba(255, 255, 255, 0.95)';
     ctx.lineWidth = 3.5;
     ctx.strokeRect(27, 27, 458, 458);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.90)';
+    ctx.fillStyle = isFestivalBoost ? 'rgba(254, 240, 138, 0.95)' : 'rgba(255, 255, 255, 0.90)';
     ctx.fillRect(29, 29, 454, 6);
     ctx.fillRect(29, 29, 6, 454);
     ctx.fillStyle = 'rgba(15, 23, 42, 0.22)';

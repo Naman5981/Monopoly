@@ -25,7 +25,9 @@ import { triggerTileButtonPress } from '../board/tilePress.js';
 const activeDebris = [];
 const activeCoins = [];
 const activeShockwaves = [];
+const activeTrailSparks = [];
 let physicsSceneGroup = null;
+let trailSparkGeo = null;
 
 // Shared physics materials and geometries
 let coinGeometry = null;
@@ -437,4 +439,72 @@ export function updatePhysicsSimulation(dt) {
       activeShockwaves.splice(i, 1);
     }
   }
+
+  // 4. Advance 3D Dice VFX Trail Sparks
+  for (let i = activeTrailSparks.length - 1; i >= 0; i--) {
+    const s = activeTrailSparks[i];
+    s.life -= s.decay * dt;
+    if (s.life <= 0) {
+      if (s.mesh.parent) s.mesh.parent.remove(s.mesh);
+      s.mat.dispose();
+      activeTrailSparks.splice(i, 1);
+    } else {
+      s.mesh.position.addScaledVector(s.vel, dt);
+      s.mat.opacity = s.life;
+      const sc = Math.max(0.01, s.life * 0.9);
+      s.mesh.scale.set(sc, sc, sc);
+    }
+  }
+}
+
+/**
+ * Spawns a lightweight particle spark behind a rolling 3D die.
+ * @param {THREE.Vector3|{x:number, y:number, z:number}} pos
+ * @param {string} trailType
+ */
+export function spawnDiceTrailSpark(pos, trailType = 'trail_fire') {
+  if (!physicsSceneGroup && context.scene) {
+    initPhysicsEngine(context.scene);
+  }
+  if (!physicsSceneGroup || !pos) return;
+
+  if (!trailSparkGeo) {
+    trailSparkGeo = new THREE.DodecahedronGeometry(0.12, 0);
+  }
+
+  let color = 0xf97316;
+  let emissive = 0xef4444;
+  if (trailType === 'trail_gold') {
+    color = 0xfacc15;
+    emissive = 0xeab308;
+  } else if (trailType === 'trail_cyber') {
+    color = 0x06b6d4;
+    emissive = 0x0891b2;
+  }
+
+  const mat = new THREE.MeshStandardMaterial({
+    color,
+    emissive,
+    emissiveIntensity: 0.8,
+    roughness: 0.2,
+    metalness: 0.7,
+    transparent: true,
+    opacity: 0.95
+  });
+
+  const mesh = new THREE.Mesh(trailSparkGeo, mat);
+  mesh.position.set(
+    pos.x + (Math.random() - 0.5) * 0.22,
+    pos.y + (Math.random() - 0.5) * 0.22,
+    pos.z + (Math.random() - 0.5) * 0.22
+  );
+  physicsSceneGroup.add(mesh);
+
+  activeTrailSparks.push({
+    mesh,
+    mat,
+    vel: new THREE.Vector3((Math.random() - 0.5) * 0.5, 0.4 + Math.random() * 0.5, (Math.random() - 0.5) * 0.5),
+    life: 1.0,
+    decay: 1.8 + Math.random() * 0.6
+  });
 }

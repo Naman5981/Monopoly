@@ -25,6 +25,7 @@ import { checkNearMonopolyGroup, isTeammate } from '../../game/rules.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateBuyoutHostileStamp, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { checkHostileBuyout } from '../../game/achievements.js';
 
 let buyoutCountdownInterval = null;
 let buyoutCountdownTimer = null;
@@ -154,6 +155,7 @@ export function confirmBuyoutCity() {
   }
   st.owner = pIdx;
   st.takeoverCount = (st.takeoverCount || 0) + 1;
+  checkHostileBuyout(pIdx, tile.name);
 
   playSFX('takeover', 1.0, getTileWorldPosition(tile.id));
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.4, 45);

@@ -151,6 +151,34 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
 }
 
 /**
+ * Draws the persistent '🎪 2× FESTIVAL' capsule badge on boosted city/resort tiles.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} [badgeY=320]
+ */
+export function drawFestivalBadge(ctx, badgeY = 320) {
+  const badgeW = 220;
+  const badgeH = 38;
+  const badgeX = 256 - badgeW / 2;
+
+  ctx.save();
+  ctx.fillStyle = '#f59e0b';
+  ctx.shadowColor = 'rgba(245, 158, 11, 0.45)';
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 19);
+  else ctx.rect(badgeX, badgeY, badgeW, badgeH);
+  ctx.fill();
+
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#0b1120';
+  ctx.font = '900 18px Rubik, system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🎪 2× FESTIVAL', 256, badgeY + badgeH / 2 + 1);
+  ctx.restore();
+}
+
+/**
  * Backwards-compatible export for tests.
  */
 export function drawUnownedPill(ctx, isCyber) {
@@ -194,10 +222,15 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
   const valFontSize = valLen <= 4 ? 126 : (valLen <= 5 ? 114 : (valLen <= 6 ? 102 : 90));
   const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
+  const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
   const nameY = 270;
-  const valY = 415;
+  const valY = isFestivalBoost ? 425 : 415;
 
-  const rentColor = isOwned ? getOwnerThemeColor(propState) : '#b91c1c';
+  const rentColor = isFestivalBoost ? '#f59e0b' : (isOwned ? getOwnerThemeColor(propState) : '#b91c1c');
+
+  if (isFestivalBoost) {
+    drawFestivalBadge(ctx, 320);
+  }
 
   if (isOwned) {
     if (isNight || isSunset) {
@@ -307,10 +340,15 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
   const valFontSize = valLen <= 4 ? 126 : (valLen <= 5 ? 114 : (valLen <= 6 ? 102 : 90));
   const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
+  const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
   const nameY = 270;
-  const valY = 415;
+  const valY = isFestivalBoost ? 425 : 415;
 
-  const rentColor = isOwned ? getOwnerThemeColor(propState) : '#b91c1c';
+  const rentColor = isFestivalBoost ? '#f59e0b' : (isOwned ? getOwnerThemeColor(propState) : '#b91c1c');
+
+  if (isFestivalBoost) {
+    drawFestivalBadge(ctx, 320);
+  }
 
   if (isOwned) {
     if (isNight || isSunset) {

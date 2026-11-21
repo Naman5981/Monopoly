@@ -250,6 +250,14 @@ export function handleHostReceivedMessage(conn, msg) {
           setupPlayers[idx].pedestal = clean.pedestal;
           if (matchSettings.customPlayers[idx]) matchSettings.customPlayers[idx].pedestal = clean.pedestal;
         }
+        if (clean.buildingSkin) {
+          setupPlayers[idx].buildingSkin = clean.buildingSkin;
+          if (matchSettings.customPlayers[idx]) matchSettings.customPlayers[idx].buildingSkin = clean.buildingSkin;
+        }
+        if (clean.diceTrail) {
+          setupPlayers[idx].diceTrail = clean.diceTrail;
+          if (matchSettings.customPlayers[idx]) matchSettings.customPlayers[idx].diceTrail = clean.diceTrail;
+        }
         broadcastLobbySettings();
         if (networkCallbacks.onLobbyUpdate) networkCallbacks.onLobbyUpdate();
         if (gameState && gameState.gameStarted) {
