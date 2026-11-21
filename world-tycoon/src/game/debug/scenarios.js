@@ -113,13 +113,13 @@ export async function debugRunScenario(scenarioKey) {
 
     case 'pass-start': {
       // Player 0 placed at Monaco (Tile 30), forced roll lands on Mumbai (Tile 3)
-      // passing START (+300K) intermediate salary!
+      // passing START (+250K) intermediate salary!
       const p0 = gameState.players[0];
       if (!p0) return;
 
       await debugTeleport(0, 30, false, false);
       debugForceTurn(0);
-      showSpeechBubble('Passing START: Rolling 5 to cross START and collect 300K!', 2500);
+      showSpeechBubble('Passing START: Rolling 5 to cross START and collect 250K!', 2500);
       await debugRoll(2, 3, 0);
       break;
     }

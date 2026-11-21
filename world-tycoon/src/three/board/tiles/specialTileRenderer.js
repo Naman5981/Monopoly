@@ -156,7 +156,7 @@ export function drawCornerTile(ctx, tile, isCyber) {
 
     ctx.fillStyle = '#065f46';
     ctx.font = '900 26px Rubik, system-ui, sans-serif';
-    ctx.fillText('PASS: +300K • LAND: +400K', 256, 437);
+    ctx.fillText('PASS: +250K • LAND: +350K', 256, 437);
     return;
   }
 

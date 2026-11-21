@@ -197,7 +197,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       updatePlayerTokenPositions3D();
       playSFX('hop');
       setTimeout(() => setTileHighlightRing(0, false), 900);
-      const salary = 300000;
+      const salary = 350000;
       p.cash += salary;
       playSFX('cash');
       spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(salary)} START`, true);

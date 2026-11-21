@@ -28,7 +28,7 @@ const RAJASTHAN_GROUP_META = {
 
 const WORLD_BOARD_TILES = [
   // Bottom Corner (0)
-  { id: 0,  name: 'START',      subtitle: 'Pass +300K / Land +400K',        type: 'start'   },
+  { id: 0,  name: 'START',      subtitle: 'Pass +250K / Land +350K',        type: 'start'   },
 
   // Side 1: Bottom-Left (1..7)
   { id: 1,  name: 'CAIRO',      price: 120000, rent: [25000, 75000, 180000, 320000, 480000],  houseCost: 80000,  type: 'city',   group: 'brown'     },
@@ -78,7 +78,7 @@ const WORLD_BOARD_TILES = [
 
 const RAJASTHAN_BOARD_TILES = [
   // Bottom Corner (0)
-  { id: 0,  name: 'START',       subtitle: 'Pass +300K / Land +400K',        type: 'start'   },
+  { id: 0,  name: 'START',       subtitle: 'Pass +250K / Land +350K',        type: 'start'   },
 
   // Side 1: Bottom-Left (1..7)
   { id: 1,  name: 'ALWAR',       price: 120000, rent: [25000, 75000, 180000, 320000, 480000],  houseCost: 80000,  type: 'city',   group: 'brown'     },
@@ -128,7 +128,7 @@ const RAJASTHAN_BOARD_TILES = [
 
 const WORLD_CHANCE_WHEEL_PRIZES = [
   { label: '+400K Grant',  color: '#1e293b', themeColor: '#059669', type: 'cash',   amount: 400000, icon: '💰', sub: 'GRANT',   title: 'World Bank Grant',         desc: 'World Bank Development Grant! Collect 400K!'           },
-  { label: 'Fly to START', color: '#312e81', themeColor: '#0284c7', type: 'move',   target: 0,      icon: '🚀', sub: '+300K',   title: 'Express Jet to START',     desc: 'Express Jet to START! Collect +300K!'                  },
+  { label: 'Fly to START', color: '#312e81', themeColor: '#0284c7', type: 'move',   target: 0,      icon: '🚀', sub: '+350K',   title: 'Express Jet to START',     desc: 'Advance directly to GO & collect $350,000 salary!' },
   { label: '-200K Fine',   color: '#1e293b', themeColor: '#e11d48', type: 'tax',    amount: 200000, icon: '⚠️', sub: 'TAX',     title: 'Carbon Tax Audit',         desc: 'Global Carbon Tax Audit! Pay 200K into Festival Pool.' },
   { label: '+250K Bonus',  color: '#312e81', themeColor: '#d97706', type: 'cash',   amount: 250000, icon: '💎', sub: 'BONUS',   title: 'Unicorn Dividend',         desc: 'Tech Unicorn Dividend! Collect 250K!'                  },
   { label: 'Go to Island', color: '#1e293b', themeColor: '#ea580c', type: 'island',                 icon: '🏝️', sub: 'JAIL',    title: 'Tropical Island Arrest',   desc: 'Stormy Seas! Detained on Tropical Island!'              },
@@ -137,7 +137,7 @@ const WORLD_CHANCE_WHEEL_PRIZES = [
 
 const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
   { label: '+400K Grant',  color: '#1e293b', themeColor: '#059669', type: 'cash',   amount: 400000, icon: '💰', sub: 'GRANT',   title: 'Royal Heritage Grant',     desc: 'Royal Heritage Trust Grant! Collect 400K!'             },
-  { label: 'Fly to START', color: '#312e81', themeColor: '#0284c7', type: 'move',   target: 0,      icon: '🚀', sub: '+300K',   title: 'Royal Express to START',   desc: 'Royal Express to START! Collect +300K!'                },
+  { label: 'Fly to START', color: '#312e81', themeColor: '#0284c7', type: 'move',   target: 0,      icon: '🚀', sub: '+350K',   title: 'Royal Express to START',   desc: 'Royal Express to START! Collect +$350,000 salary!' },
   { label: '-200K Fine',   color: '#1e293b', themeColor: '#e11d48', type: 'tax',    amount: 200000, icon: '⚠️', sub: 'TAX',     title: 'Fort Preservation Audit',  desc: 'Fort Preservation Audit! Pay 200K into Festival Pool.' },
   { label: '+250K Bonus',  color: '#312e81', themeColor: '#d97706', type: 'cash',   amount: 250000, icon: '💎', sub: 'BONUS',   title: 'Syndicate Dividend',       desc: 'Marwar Trade Syndicate Dividend! Collect 250K!'        },
   { label: 'Go to Island', color: '#1e293b', themeColor: '#ea580c', type: 'island',                 icon: '🏝️', sub: 'JAIL',    title: 'Desert Retreat Arrest',    desc: 'Thar Dust Storm! Detained at Desert Retreat!'          },

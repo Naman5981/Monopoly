@@ -233,7 +233,7 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
     if (prize.target === 0) {
       icon = '🚀';
       title = 'EXPRESS JET TO START!';
-      actionText = isLocalUser ? 'Flying to START to collect +$300,000 salary!' : `${playerName} flying to START for +$300,000 salary!`;
+      actionText = isLocalUser ? 'Flying to START to collect +$350,000 salary!' : `${playerName} flying to START for +$350,000 salary!`;
       tag = 'BOARD WARP';
       tagClass = 'bg-sky-100 text-sky-900 border border-sky-300';
       iconBg = 'bg-sky-50 text-sky-600';
