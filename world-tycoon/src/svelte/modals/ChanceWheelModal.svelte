@@ -38,27 +38,83 @@
   }
 </script>
 
+<style>
+  /* ═══════════════════════════════════════════════════════════════════
+     SCOPED 3D PERSPECTIVE & SOLID CARD SURFACES
+     Eliminates transparent board bleed-through and backface mirroring
+     ═══════════════════════════════════════════════════════════════════ */
+  .perspective-viewport {
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+  }
+
+  .deck-track {
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+  }
+
+  .flipper-card {
+    position: absolute;
+    width: 135px;
+    height: 195px;
+    cursor: pointer;
+    transform-origin: center bottom;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, filter 0.3s ease;
+  }
+
+  .card-surface {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 14px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  /* Card Back: 100% Solid Opaque Gold/Bronze Gradient */
+  .card-surface-back {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 40%, #78350f 100%) !important;
+    border: 3px solid #fde047;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.88);
+  }
+
+  /* Card Front: 100% Solid Opaque Deep Obsidian Slate */
+  .card-surface-front {
+    background: #090d16 !important;
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.95);
+  }
+</style>
+
 <!-- ═══════════════════════════════════════════════════════════════════
      CONCEPT C: 3D MYSTERY CHANCE CARD FAN DECK
      Zero Box Slop, Authentic Tabletop Monopoly Lore, True 3D Card Flip
      ═══════════════════════════════════════════════════════════════════ -->
 <div
   id="modal-chance-wheel"
-  class="fixed inset-0 bg-slate-950/30 backdrop-blur-none z-50 flex-col items-center justify-center p-3 sm:p-4 overscroll-contain select-none {state.visible ? 'flex pointer-events-auto' : 'hidden pointer-events-none'}"
+  class="fixed inset-0 bg-slate-950/35 backdrop-blur-none z-50 flex-col items-center justify-center p-3 sm:p-4 overscroll-contain select-none {state.visible ? 'flex pointer-events-auto' : 'hidden pointer-events-none'}"
 >
   <div
     id="modal-chance-wheel-card"
     class="relative flex flex-col items-center justify-center pointer-events-auto max-w-xl w-full border-amber-400"
   >
     <!-- Deck Stage Header Tag -->
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider mb-2 shadow-lg">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-black uppercase tracking-wider mb-2 shadow-lg">
       <span class="text-sm">💎</span>
       <span>CHANCE CARD DECK</span>
     </div>
 
     <!-- 3D Perspective Card Fan Viewport -->
-    <div class="relative w-full max-w-lg h-64 sm:h-72 flex items-center justify-center [perspective:1000px] my-2">
-      <div class="relative w-full h-full flex items-center justify-center [transform-style:preserve-3d]">
+    <div class="perspective-viewport relative w-full max-w-lg h-64 sm:h-72 flex items-center justify-center my-2">
+      <div class="deck-track relative w-full h-full flex items-center justify-center">
         {#each CHANCE_WHEEL_PRIZES as prize, idx}
           {@const angle = (idx - 2.5) * 10}
           {@const xOffset = (idx - 2.5) * 52}
@@ -69,10 +125,10 @@
           <!-- Individual 3D Flipper Card -->
           <div
             id="f-card-{idx}"
-            class="absolute w-32 h-48 sm:w-36 sm:h-52 cursor-pointer origin-bottom transition-all duration-600 ease-out [transform-style:preserve-3d]"
+            class="flipper-card"
             style="
               transform: {isWinner
-                ? 'translate(0px, -20px) rotate(0deg) rotateY(180deg) scale(1.35)'
+                ? 'translate(0px, -24px) rotate(0deg) rotateY(180deg) scale(1.35)'
                 : `translateX(${xOffset}px) rotate(${angle}deg)`};
               z-index: {isWinner ? 50 : idx + 10};
               opacity: {isDimmed ? 0.22 : 1};
@@ -80,35 +136,33 @@
             "
           >
             <!-- ════ CARD BACK: Luxury Gold-Filigree Mystery Crest ════ -->
-            <div
-              class="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-600 via-amber-700 to-amber-950 border-2 sm:border-[2.5px] border-amber-300 shadow-[0_15px_35px_rgba(0,0,0,0.85)] flex flex-col items-center justify-between p-3.5 text-center [backface-visibility:hidden]"
-            >
-              <div class="w-full flex items-center justify-between text-amber-300 text-xs">
+            <div class="card-surface card-surface-back">
+              <div class="w-full flex items-center justify-between text-amber-300 text-xs font-black">
                 <span>💎</span>
-                <span class="font-mono text-[9px] font-black uppercase tracking-wider text-amber-200">CHANCE</span>
+                <span class="font-mono text-[9px] uppercase tracking-wider text-amber-200">CHANCE</span>
                 <span>💎</span>
               </div>
 
               <div class="my-auto flex flex-col items-center">
-                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-amber-400/20 border border-amber-300/50 flex items-center justify-center text-xl sm:text-2xl font-black text-amber-100 shadow-inner">
+                <div class="w-12 h-12 rounded-full bg-amber-400/25 border-2 border-amber-300/60 flex items-center justify-center text-2xl font-black text-amber-100 shadow-inner">
                   ?
                 </div>
-                <div class="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-amber-200 mt-2">
+                <div class="text-[11px] font-black uppercase tracking-widest text-amber-200 mt-2">
                   MYSTERY
                 </div>
               </div>
 
-              <div class="text-[8px] sm:text-[9px] font-mono text-amber-300/75 tracking-widest uppercase">
+              <div class="text-[9px] font-mono font-bold text-amber-300/80 tracking-widest uppercase">
                 &bull; WORLD TYCOON &bull;
               </div>
             </div>
 
             <!-- ════ CARD FRONT: Revealed High-Contrast Reward ════ -->
             <div
-              class="absolute inset-0 rounded-2xl bg-slate-950 border-2 sm:border-[3px] shadow-[0_20px_45px_rgba(0,0,0,0.95)] flex flex-col items-center justify-between p-3.5 text-center [backface-visibility:hidden] [transform:rotateY(180deg)]"
-              style="border-color: {prize.themeColor || prize.color || '#f59e0b'};"
+              class="card-surface card-surface-front"
+              style="border: 3px solid {prize.themeColor || prize.color || '#f59e0b'};"
             >
-              <div class="w-full flex items-center justify-between text-xs" style="color: {prize.themeColor || prize.color || '#f59e0b'};">
+              <div class="w-full flex items-center justify-between text-xs font-bold" style="color: {prize.themeColor || prize.color || '#f59e0b'};">
                 <span class="text-base">{prize.icon || '🎁'}</span>
                 <span class="font-mono text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-white">
                   {prize.sub || 'CHANCE'}
@@ -116,11 +170,11 @@
               </div>
 
               <div class="my-auto flex flex-col items-center w-full px-1">
-                <div class="text-3xl sm:text-4xl leading-none">{prize.icon || '🎁'}</div>
-                <div class="text-base sm:text-lg font-black text-white mt-1.5 leading-tight tracking-tight">
+                <div class="text-4xl leading-none">{prize.icon || '🎁'}</div>
+                <div class="text-base sm:text-lg font-black text-white mt-2 leading-tight tracking-tight">
                   {prize.label}
                 </div>
-                <div class="text-[10px] sm:text-[11px] font-bold text-slate-300 mt-1 line-clamp-2 leading-tight">
+                <div class="text-[11px] font-bold text-slate-300 mt-1 line-clamp-2 leading-tight">
                   {prize.title || prize.desc}
                 </div>
               </div>

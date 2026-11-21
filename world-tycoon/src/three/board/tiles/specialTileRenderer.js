@@ -7,58 +7,79 @@ import { fmtMoney } from '../../../game/utils.js';
 import { ICON_PATHS, fillRoundRect } from './canvasUtils.js';
 
 export function drawChanceTile(ctx, isCyber) {
-  const colors = ['#ef4444', '#facc15', '#22c55e', '#38bdf8', '#a855f7', '#fb923c'];
   const cx = 256;
-  const cy = 190;
-  const r = 105;
+  const cy = 175;
+  const tw = 160;
+  const th = 220;
 
-  for (let i = 0; i < 6; i++) {
-    const a1 = (i * Math.PI) / 3;
-    const a2 = ((i + 1) * Math.PI) / 3;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, a1, a2);
-    ctx.closePath();
-    ctx.fillStyle = colors[i];
-    ctx.fill();
-    ctx.strokeStyle = isCyber ? '#00f5ff' : '#ffffff';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-  }
-
-  // Wheel Center Hub
+  // 1. Radiant Gold / Cyber Aura behind the card
+  const aura = ctx.createRadialGradient(cx, cy, 35, cx, cy, 145);
+  aura.addColorStop(0, isCyber ? 'rgba(0, 245, 255, 0.4)' : 'rgba(245, 158, 11, 0.35)');
+  aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.beginPath();
-  ctx.arc(cx, cy, 32, 0, Math.PI * 2);
-  ctx.fillStyle = '#ffffff';
+  ctx.arc(cx, cy, 145, 0, Math.PI * 2);
+  ctx.fillStyle = aura;
   ctx.fill();
-  ctx.strokeStyle = isCyber ? '#00f5ff' : '#0f172a';
-  ctx.lineWidth = 4;
-  ctx.stroke();
 
-  // Star Icon
+  // 2. Card Body Drop Shadow
   ctx.save();
-  ctx.translate(cx - 16, cy - 16);
-  ctx.scale(1.3, 1.3);
-  ctx.fillStyle = '#f59e0b';
-  ctx.fill(new Path2D(ICON_PATHS.sparkle));
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+  ctx.shadowBlur = 24;
+  ctx.shadowOffsetY = 12;
+
+  // 3. Card Body Surface (Deep Cosmic Slate or Cyber Black)
+  ctx.fillStyle = isCyber ? '#030712' : '#090d16';
+  fillRoundRect(ctx, cx - tw / 2, cy - th / 2, tw, th, 16, true, false);
   ctx.restore();
 
-  // Chance Header Pill
-  ctx.fillStyle = '#0284c7';
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 3;
-  fillRoundRect(ctx, 36, 350, 440, 74, 20, true, true);
+  // 4. Outer Metallic Bezel
+  ctx.strokeStyle = isCyber ? '#00f5ff' : '#f59e0b';
+  ctx.lineWidth = 4;
+  fillRoundRect(ctx, cx - tw / 2, cy - th / 2, tw, th, 16, false, true);
+
+  // 5. Inner Gilded Arch Frame
+  ctx.strokeStyle = isCyber ? '#a855f7' : '#fde047';
+  ctx.lineWidth = 2;
+  fillRoundRect(ctx, cx - tw / 2 + 8, cy - th / 2 + 8, tw - 16, th - 16, 12, false, true);
+
+  // 6. Starry Constellation Dots
+  ctx.fillStyle = isCyber ? '#00f5ff' : '#fef08a';
+  [[-40, -60], [45, -55], [-50, 60], [48, 65], [-55, 0], [55, 5]].forEach(([ox, oy]) => {
+    ctx.beginPath();
+    ctx.arc(cx + ox, cy + oy, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // 7. Central Golden 3D Mystery Crest "?"
+  ctx.fillStyle = isCyber ? '#00f5ff' : '#fde047';
+  ctx.font = '900 68px Rubik, system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = isCyber ? 'rgba(0, 245, 255, 0.8)' : 'rgba(245, 158, 11, 0.75)';
+  ctx.shadowBlur = 14;
+  ctx.fillText('?', cx, cy - 6);
+  ctx.shadowColor = 'transparent';
+
+  // 8. Card Top/Bottom Labels
+  ctx.font = '900 12px Rubik, monospace';
+  ctx.fillStyle = isCyber ? '#38bdf8' : '#fef08a';
+  ctx.fillText('FORTUNE', cx, cy - th / 2 + 22);
+  ctx.fillText('• DECK •', cx, cy + th / 2 - 22);
+
+  // 9. Chance Header Pill (Deep Slate with Gold / Neon Border)
+  ctx.fillStyle = isCyber ? '#0f172a' : '#0f172a';
+  ctx.strokeStyle = isCyber ? '#00f5ff' : '#f59e0b';
+  ctx.lineWidth = 3.5;
+  fillRoundRect(ctx, 36, 348, 440, 74, 20, true, true);
 
   ctx.fillStyle = '#ffffff';
   ctx.font = '900 46px Rubik, system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('CHANCE', 256, 387);
+  ctx.fillText('CHANCE', 256, 385);
 
-  // Subtitle
+  // 10. Subtitle
   ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
   ctx.font = '800 22px Rubik, system-ui, sans-serif';
-  ctx.fillText('SPIN WHEEL FOR PRIZES', 256, 468);
+  ctx.fillText('6 FORTUNE CARDS', 256, 468);
 }
 
 export function drawTaxTile(ctx, tile, isCyber) {

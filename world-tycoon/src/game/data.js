@@ -32,7 +32,7 @@ const WORLD_BOARD_TILES = [
 
   // Side 1: Bottom-Left (1..7)
   { id: 1,  name: 'CAIRO',      price: 120000, rent: [25000, 75000, 180000, 320000, 480000],  houseCost: 80000,  type: 'city',   group: 'brown'     },
-  { id: 2,  name: 'CHANCE',     type: 'chance' },
+  { id: 2,  name: 'CHANCE',     subtitle: '6 Fortune Cards', type: 'chance' },
   { id: 3,  name: 'MUMBAI',     price: 140000, rent: [30000, 90000, 210000, 360000, 540000],  houseCost: 80000,  type: 'city',   group: 'brown'     },
   { id: 4,  name: 'BENGALURU',  price: 180000, rent: [40000, 110000, 260000, 440000, 650000], houseCost: 100000, type: 'city',   group: 'lightblue' },
   { id: 5,  name: 'BANGKOK',    price: 190000, rent: [45000, 120000, 280000, 470000, 700000], houseCost: 100000, type: 'city',   group: 'lightblue' },
@@ -46,7 +46,7 @@ const WORLD_BOARD_TILES = [
   { id: 9,  name: 'TORONTO',    price: 240000, rent: [55000, 150000, 350000, 580000, 850000],   houseCost: 130000, type: 'city', group: 'pink'   },
   { id: 10, name: 'MADRID',     price: 250000, rent: [60000, 160000, 370000, 610000, 900000],   houseCost: 130000, type: 'city', group: 'pink'   },
   { id: 11, name: 'SEOUL',      price: 260000, rent: [65000, 175000, 400000, 650000, 950000],   houseCost: 130000, type: 'city', group: 'pink'   },
-  { id: 12, name: 'CHANCE',     type: 'chance' },
+  { id: 12, name: 'CHANCE',     subtitle: '6 Fortune Cards', type: 'chance' },
   { id: 13, name: 'SYDNEY',     price: 300000, rent: [75000, 200000, 450000, 740000, 1080000],  houseCost: 160000, type: 'city', group: 'orange' },
   { id: 14, name: 'BERLIN',     price: 310000, rent: [80000, 210000, 470000, 770000, 1120000],  houseCost: 160000, type: 'city', group: 'orange' },
   { id: 15, name: 'AMSTERDAM',  price: 330000, rent: [85000, 225000, 500000, 820000, 1200000],  houseCost: 160000, type: 'city', group: 'orange' },
@@ -56,7 +56,7 @@ const WORLD_BOARD_TILES = [
 
   // Side 3: Top-Right (17..23)
   { id: 17, name: 'DUBAI',      price: 350000, rent: [90000, 240000, 540000, 880000, 1280000],   houseCost: 190000, type: 'city', group: 'red'    },
-  { id: 18, name: 'CHANCE',     type: 'chance' },
+  { id: 18, name: 'CHANCE',     subtitle: '6 Fortune Cards', type: 'chance' },
   { id: 19, name: 'SINGAPORE',  price: 360000, rent: [95000, 250000, 560000, 920000, 1340000],   houseCost: 190000, type: 'city', group: 'red'    },
   { id: 20, name: 'HONG KONG',  price: 390000, rent: [105000, 270000, 600000, 980000, 1420000],  houseCost: 190000, type: 'city', group: 'red'    },
   { id: 21, name: 'ROME',       price: 400000, rent: [110000, 285000, 630000, 1020000, 1500000], houseCost: 220000, type: 'city', group: 'yellow' },
@@ -82,7 +82,7 @@ const RAJASTHAN_BOARD_TILES = [
 
   // Side 1: Bottom-Left (1..7)
   { id: 1,  name: 'ALWAR',       price: 120000, rent: [25000, 75000, 180000, 320000, 480000],  houseCost: 80000,  type: 'city',   group: 'brown'     },
-  { id: 2,  name: 'CHANCE',      type: 'chance' },
+  { id: 2,  name: 'CHANCE',      subtitle: '6 Fortune Cards', type: 'chance' },
   { id: 3,  name: 'BHARATPUR',   price: 140000, rent: [30000, 90000, 210000, 360000, 540000],  houseCost: 80000,  type: 'city',   group: 'brown'     },
   { id: 4,  name: 'BUNDI',       price: 180000, rent: [40000, 110000, 260000, 440000, 650000], houseCost: 100000, type: 'city',   group: 'lightblue' },
   { id: 5,  name: 'KOTA',        price: 190000, rent: [45000, 120000, 280000, 470000, 700000], houseCost: 100000, type: 'city',   group: 'lightblue' },
@@ -96,7 +96,7 @@ const RAJASTHAN_BOARD_TILES = [
   { id: 9,  name: 'SIKAR',       price: 240000, rent: [55000, 150000, 350000, 580000, 850000],   houseCost: 130000, type: 'city', group: 'pink'   },
   { id: 10, name: 'JHUNJHUNU',   price: 250000, rent: [60000, 160000, 370000, 610000, 900000],   houseCost: 130000, type: 'city', group: 'pink'   },
   { id: 11, name: 'BHILWARA',    price: 260000, rent: [65000, 175000, 400000, 650000, 950000],   houseCost: 130000, type: 'city', group: 'pink'   },
-  { id: 12, name: 'CHANCE',      type: 'chance' },
+  { id: 12, name: 'CHANCE',      subtitle: '6 Fortune Cards', type: 'chance' },
   { id: 13, name: 'PUSHKAR',     price: 300000, rent: [75000, 200000, 450000, 740000, 1080000],  houseCost: 160000, type: 'city', group: 'orange' },
   { id: 14, name: 'RANTHAMBORE', price: 310000, rent: [80000, 210000, 470000, 770000, 1120000],  houseCost: 160000, type: 'city', group: 'orange' },
   { id: 15, name: 'CHITTORGARH', price: 330000, rent: [85000, 225000, 500000, 820000, 1200000],  houseCost: 160000, type: 'city', group: 'orange' },
@@ -106,7 +106,7 @@ const RAJASTHAN_BOARD_TILES = [
 
   // Side 3: Top-Right (17..23)
   { id: 17, name: 'BARMER',      price: 350000, rent: [90000, 240000, 540000, 880000, 1280000],   houseCost: 190000, type: 'city', group: 'red'    },
-  { id: 18, name: 'CHANCE',      type: 'chance' },
+  { id: 18, name: 'CHANCE',      subtitle: '6 Fortune Cards', type: 'chance' },
   { id: 19, name: 'NAGAUR',      price: 360000, rent: [95000, 250000, 560000, 920000, 1340000],   houseCost: 190000, type: 'city', group: 'red'    },
   { id: 20, name: 'BIKANER',     price: 390000, rent: [105000, 270000, 600000, 980000, 1420000],  houseCost: 190000, type: 'city', group: 'red'    },
   { id: 21, name: 'KUMBHALGARH', price: 400000, rent: [110000, 285000, 630000, 1020000, 1500000], houseCost: 220000, type: 'city', group: 'yellow' },
