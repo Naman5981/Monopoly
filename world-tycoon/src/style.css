@@ -1272,41 +1272,6 @@ body {
   font-weight: 700;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   CASUAL GAME-STYLE ACTIVITY ALERT MODAL / PLACARD
-   ══════════════════════════════════════════════════════════════════════════════ */
-.rent-transfer-banner {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.65);
-  opacity: 0;
-  z-index: 95;
-  width: clamp(380px, 90vw, 460px);
-  border-radius: 28px;
-  background: #ffffff;
-  border: 3.5px solid #f59e0b;
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.35),
-    0 0 35px rgba(245, 158, 11, 0.25);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  font-family: var(--font-ui);
-  pointer-events: none;
-  visibility: hidden;
-  transition: opacity 0.25s ease;
-  user-select: none;
-}
-
-.rent-transfer-banner.active {
-  visibility: visible;
-  animation: gameAlertSlamIn 0.44s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-.rent-transfer-banner.exit {
-  animation: gameAlertSlamOut 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    BETTER-UI ENHANCEMENTS: CONTAINMENT, OPTICAL ALIGNMENT & ACCESSIBILITY

@@ -152,6 +152,40 @@
             <span class="text-xs font-semibold text-sky-100">Direct Express Flight</span>
           </div>
         </div>
+
+      <!-- 5. Rent Settlement Pill (Option 1A) -->
+      {:else if banner.activeBanner === 'rentTransfer'}
+        <div
+          id="rent-transfer-banner"
+          style="display: flex;"
+          class="relative rounded-full bg-slate-950/92 backdrop-blur-xl border-2 border-amber-400/60 px-6 py-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.7),0_0_24px_rgba(245,158,11,0.3)] flex items-center gap-4 text-white transform -translate-y-12 select-none"
+          transition:scale={{ duration: 380, start: 0.6, easing: backOut }}
+        >
+          <!-- City Group Tag -->
+          <div class="flex items-center gap-2 border-r border-white/20 pr-4">
+            <span class="w-2.5 h-2.5 rounded-full shadow-xs inline-block shrink-0" style="background-color: {banner.data.groupColor || '#f43f5e'};"></span>
+            <span class="font-black text-xs uppercase tracking-wider text-white">{banner.data.cityName || 'CITY'}</span>
+          </div>
+
+          <!-- Rent Value -->
+          <div class="flex items-center gap-1.5 font-black text-emerald-400 text-lg tracking-tight">
+            <span class="text-xs text-slate-400 font-extrabold uppercase tracking-wider">RENT</span>
+            <span>{banner.data.amountFormatted || ('$' + (banner.data.amount || 0))}</span>
+          </div>
+
+          <!-- Player Transfer Flow -->
+          <div class="flex items-center gap-2 border-l border-white/20 pl-4 text-xs font-black">
+            <span class="flex items-center gap-1.5 text-rose-400">
+              <span class="w-2 h-2 rounded-full inline-block border border-black/10 shrink-0" style="background-color: {banner.data.fromColor || '#f43f5e'};"></span>
+              {banner.data.fromName}
+            </span>
+            <span class="text-amber-400 text-xs">➔</span>
+            <span class="flex items-center gap-1.5 text-emerald-400">
+              <span class="w-2 h-2 rounded-full inline-block border border-black/10 shrink-0" style="background-color: {banner.data.toColor || '#10b981'};"></span>
+              {banner.data.toName}
+            </span>
+          </div>
+        </div>
       {/if}
 
     </div>

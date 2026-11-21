@@ -3,7 +3,8 @@
  * Corner player HUD cards rendering, cash displays, asset property badges, and rent transfer placards.
  */
 
-import { PLAYER_THEMES, GROUP_META, TEAM_META } from '../../game/data.js';
+import { PLAYER_THEMES, GROUP_META, TEAM_META, BOARD_TILES } from '../../game/data.js';
+import { triggerBanner } from '../../svelte/stores/bannerStore.js';
 import { gameState, displayedCash, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { ownsFullColorGroup, calculateTeamNetWorth, isTeammate } from '../../game/rules.js';
@@ -198,7 +199,7 @@ export function spawnFloatingCashOnHUD(playerIdx, text, isGain = true) {
  * Animate cash deduction on payer HUD card, streaming flying bills across screen,
  * and cash receipt pulse on receiver HUD card.
  */
-export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
+export function animateRentTransferOnHUD(fromIdx, toIdx, amount, tileObj = null) {
   return new Promise(resolve => {
     const fromCard = document.getElementById(`hud-card-${fromIdx}`);
     const toCard = document.getElementById(`hud-card-${toIdx}`);
@@ -230,8 +231,12 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
     // Update bottom-center status pill in real-time
     setStatusPill(`💸 <strong>${fromPlayer.name}</strong> transferred <strong>${fmtMoney(amount)}</strong> rent to <strong>${toPlayer.name}</strong>`, { isThinking: false, durationMs: 4500 });
 
-    // 2. Display rent payment game placard at center
-    showRentTransferBanner(fromPlayer.name, toPlayer.name, amount, fromIdx, toIdx);
+    const tile = tileObj || (fromPlayer && typeof fromPlayer.position === 'number' ? BOARD_TILES[fromPlayer.position] : null);
+    const cityName = tile?.name || 'CITY';
+    const groupColor = (tile?.group && GROUP_META[tile.group]) ? GROUP_META[tile.group].colorHex : '#f59e0b';
+
+    // 2. Display declarative Svelte rent settlement pill
+    showRentTransferBanner(fromPlayer.name, toPlayer.name, amount, fromIdx, toIdx, cityName, groupColor);
 
     // 3. Staggered flying cash bills & coins with multi-particle ballistic spring physics
     const billCount = 16;
@@ -330,89 +335,20 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount) {
   });
 }
 
-export function showRentTransferBanner(fromName, toName, amount, fromIdx = null, toIdx = null) {
-  let banner = document.getElementById('rent-transfer-banner');
-  if (!banner) {
-    banner = document.createElement('div');
-    banner.id = 'rent-transfer-banner';
-    banner.className = 'rent-transfer-banner';
-    document.body.appendChild(banner);
-  }
-
+export function showRentTransferBanner(fromName, toName, amount, fromIdx = null, toIdx = null, cityName = 'CITY', groupColor = '#f59e0b') {
   const fromTheme = (fromIdx !== null && PLAYER_THEMES[fromIdx]) ? PLAYER_THEMES[fromIdx] : { colorHex: '#f43f5e' };
   const toTheme = (toIdx !== null && PLAYER_THEMES[toIdx]) ? PLAYER_THEMES[toIdx] : { colorHex: '#10b981' };
 
-  banner.innerHTML = `
-    <!-- Top Header Ribbon with Warm Amber Gradient -->
-    <div class="bg-gradient-to-r from-amber-500 to-amber-700 py-3 px-4 text-white text-center font-rounded font-black text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 border-b-2 border-amber-300 shadow-xs">
-      <i class="fa-solid fa-coins text-amber-200"></i>
-      <span>RENT SETTLEMENT</span>
-      <i class="fa-solid fa-coins text-amber-200"></i>
-    </div>
-
-    <!-- Body Container -->
-    <div class="p-5 flex flex-col items-center gap-3.5 bg-white">
-      <!-- Big Hero Amount Display -->
-      <div class="flex flex-col items-center">
-        <div class="font-rounded font-black text-4xl sm:text-5xl text-emerald-600 tracking-tight drop-shadow-xs">
-          ${fmtMoney(amount)}
-        </div>
-        <div class="mt-1 px-3 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-black uppercase text-slate-600 tracking-wider flex items-center gap-1.5">
-          <i class="fa-solid fa-receipt text-slate-400"></i> Rent Paid
-        </div>
-      </div>
-
-      <!-- Player Transfer Matchup Bar -->
-      <div class="flex items-center justify-between w-full gap-2.5 mt-1">
-        <!-- Payer Card -->
-        <div class="bg-rose-50 border-2 border-rose-200 rounded-2xl p-2.5 flex-1 text-center shadow-xs">
-          <div class="text-xs font-black uppercase tracking-wider text-rose-600 mb-0.5 flex items-center justify-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full inline-block border border-black/10 shrink-0" style="background-color: ${fromTheme.colorHex};"></span>
-            PAYER
-          </div>
-          <div class="font-rounded font-black text-sm text-slate-900 truncate" title="${fromName}">
-            ${fromName}
-          </div>
-          <div class="font-rounded font-black text-xs text-rose-600 mt-0.5">
-            -${fmtMoney(amount)}
-          </div>
-        </div>
-
-        <!-- Center Transfer Arrow -->
-        <div class="w-9 h-9 rounded-full bg-gradient-to-b from-amber-400 to-amber-600 text-white flex items-center justify-center shadow-md border-2 border-white text-xs font-black shrink-0">
-          <i class="fa-solid fa-arrow-right"></i>
-        </div>
-
-        <!-- Collector Card -->
-        <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-2.5 flex-1 text-center shadow-xs">
-          <div class="text-xs font-black uppercase tracking-wider text-emerald-700 mb-0.5 flex items-center justify-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full inline-block border border-black/10 shrink-0" style="background-color: ${toTheme.colorHex};"></span>
-            COLLECTOR
-          </div>
-          <div class="font-rounded font-black text-sm text-slate-900 truncate" title="${toName}">
-            ${toName}
-          </div>
-          <div class="font-rounded font-black text-xs text-emerald-600 mt-0.5">
-            +${fmtMoney(amount)}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  banner.classList.remove('exit');
-  banner.classList.add('active');
-
-  if (banner._hideTimer) clearTimeout(banner._hideTimer);
-  if (banner._exitTimer) clearTimeout(banner._exitTimer);
-
-  banner._exitTimer = setTimeout(() => {
-    banner.classList.add('exit');
-  }, 3100);
-
-  banner._hideTimer = setTimeout(() => {
-    banner.classList.remove('active', 'exit');
-  }, 3450);
+  triggerBanner('rentTransfer', {
+    fromName,
+    toName,
+    amount,
+    amountFormatted: fmtMoney(amount),
+    fromColor: fromTheme.colorHex,
+    toColor: toTheme.colorHex,
+    cityName,
+    groupColor
+  }, 2800);
 }
 
 if (typeof window !== 'undefined') {

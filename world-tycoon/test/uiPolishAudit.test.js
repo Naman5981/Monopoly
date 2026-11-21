@@ -9,7 +9,9 @@ import { openPortfolioModal, closePortfolioModal } from '../src/ui/modals/inspec
 import { openRulesModal, closeRulesModal, toggleEventLogDrawer } from '../src/ui/modals/system.js';
 import { modalStore } from '../src/svelte/stores/modalStore.js';
 import { hudStore } from '../src/svelte/stores/hudStore.js';
+import { bannerStore, dismissBanner } from '../src/svelte/stores/bannerStore.js';
 import { revealGameHud, hideGameHud } from '../src/ui/hud/controls.js';
+import { showRentTransferBanner } from '../src/ui/hud/cards.js';
 
 describe('UI Polish & Design Gaps Audit (/better-ui /anti-ui-slop)', () => {
   beforeEach(() => {
@@ -93,5 +95,25 @@ describe('UI Polish & Design Gaps Audit (/better-ui /anti-ui-slop)', () => {
 
     hideGameHud();
     assert.equal(container.classList.contains('hidden'), true);
+  });
+
+  it('showRentTransferBanner dispatches rentTransfer event to Svelte bannerStore', () => {
+    showRentTransferBanner('Naman', 'Baron', 55000, 0, 1, 'Tokyo', '#ef4444');
+
+    let banner = null;
+    const unsub = bannerStore.subscribe(val => { banner = val; });
+    unsub();
+
+    assert.equal(banner.activeBanner, 'rentTransfer');
+    assert.equal(banner.data.fromName, 'Naman');
+    assert.equal(banner.data.toName, 'Baron');
+    assert.equal(banner.data.amount, 55000);
+    assert.equal(banner.data.cityName, 'Tokyo');
+    assert.equal(banner.data.groupColor, '#ef4444');
+
+    dismissBanner();
+    const unsub2 = bannerStore.subscribe(val => { banner = val; });
+    unsub2();
+    assert.equal(banner.activeBanner, null);
   });
 });

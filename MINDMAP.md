@@ -262,7 +262,7 @@ sequenceDiagram
 - **Svelte 5 Declarative Architecture (`src/svelte/`) (MANDATORY STANDARD: Always code in Svelte, minimize JS to non-DOM core logic, code in least code)**:
   - **Rule**: Every screen, card, modal, button, and banner is authored in `.svelte`. Zero innerHTML strings, zero direct DOM creation in JS. Svelte reactive stores (`modalStore`, `hudStore`, `lobbyStore`, `bannerStore`) hold the state; Svelte components handle the rendering with minimum code.
   - `stores/hudStore.js`: Central reactive store for turn phases, timer, roll states, game speed, toasts, and audio volume.
-  - `stores/bannerStore.js`: Central reactive store for declarative in-game event banners (Player Eliminated, Hostile Takeover, Doubles, Boarding Pass, Monopoly Complete, Monopoly Threat).
+  - `stores/bannerStore.js`: Central reactive store for declarative in-game event banners (Player Eliminated, Hostile Takeover, Doubles, Boarding Pass, Monopoly Complete, Monopoly Threat, Rent Transfer Settlement Pill).
   - `stores/debugStore.js`: Reactive Developer & QA Testing Suite store for forced dice, tile teleports, player finances, event triggers, and automated test scenarios.
   - `stores/modalStore.js`: Reactive state slices for all 20 Svelte game modals with synchronous `isAnyModalOpen` predicate for global hotkey gating (Space to roll); a legacy `syncModalDom` bridge remains for visibility and transition compatibility.
   - `stores/lobbyStore.js`: Pre-game match setup and room-status store for player slots, host/peer roles, connection states, match parameters, and selected character data.

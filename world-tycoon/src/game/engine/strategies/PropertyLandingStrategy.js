@@ -275,7 +275,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     // Solvency confirmed: Transfer rent
     showSpeechBubble(`Ouch! Paying ${fmtMoney(rent)} rent to ${owner.name}!`, 3000);
     logEvent(`💸 <strong>${player.name}</strong> landed on <strong>${tile.name}</strong> and transferred <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
-    await animateRentTransferOnHUD(playerIdx, st.owner, rent);
+    await animateRentTransferOnHUD(playerIdx, st.owner, rent, tile);
 
     player.cash -= rent;
     owner.cash += rent;
