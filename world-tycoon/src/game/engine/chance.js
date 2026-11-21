@@ -36,8 +36,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
 
   if (prize.type === 'cash') {
     p.cash += prize.amount;
-    playSFX('cash');
-    playSFX('win');
+    playSFX('jackpot');
     showSpeechBubble(`🎉 +${fmtMoney(prize.amount)}!`, 2200);
     spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(prize.amount)}`, true);
     renderCornerHUDs();
@@ -168,7 +167,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
   } else if (prize.type === 'island') {
     const fromPos = p.position;
     gameState.phase = 'MOVING';
-    playSFX('jail');
+    playSFX('island');
     setTileHighlightRing(8, true);
     showSpeechBubble('🏝️ Detained on Tropical Island!', 2800);
     await flyPlayerDirectFlightAnimation(playerIdx, fromPos, 8);

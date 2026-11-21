@@ -113,6 +113,11 @@ export const gameState = {
 };
 
 export function cycleGameSpeed() {
+  if (networkState && networkState.isMultiplayer) {
+    matchSettings.gameSpeed = 1;
+    if (typeof window !== 'undefined' && window.updateGameSpeedUI) window.updateGameSpeedUI();
+    return 1;
+  }
   const speeds = [1, 2, 4];
   const curIdx = speeds.indexOf(matchSettings.gameSpeed || 1);
   const nextSpeed = speeds[(curIdx + 1) % speeds.length];

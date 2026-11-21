@@ -247,7 +247,7 @@ export async function settlePendingRentAndCloseModal() {
     } else if (debt.isTax) {
       gameState.festivalPot += debt.rentOwed;
     }
-    playSFX('cash');
+    playSFX('payRent');
     if (engineCallbacks.spawnFloatingCash) {
       engineCallbacks.spawnFloatingCash(pIdx, `-${fmtMoney(debt.rentOwed)}`, false);
       if (creditor && debt.creditorIdx !== undefined) {

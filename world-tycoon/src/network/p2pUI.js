@@ -3,7 +3,7 @@
  * Multiplayer UI state indicators, badges, invite link copying, and disconnect handlers.
  */
 
-import { gameState, setupPlayers, setLocalPlayerIdx } from '../game/state.js';
+import { gameState, setupPlayers, setLocalPlayerIdx, matchSettings } from '../game/state.js';
 import { logEvent } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { networkState, networkCallbacks, stopHostHeartbeat } from './p2pState.js';
@@ -107,12 +107,17 @@ export function copyRoomCodeOnly() {
 }
 
 export function updateMultiplayerUI() {
+  if (networkState.isMultiplayer) {
+    matchSettings.gameSpeed = 1;
+  }
+
   // Sync multiplayer status to reactive Svelte HUD
   updateHudState({
     isMultiplayer: Boolean(networkState.isMultiplayer),
     roomCode: networkState.roomCode || '',
     isHost: Boolean(networkState.isHost),
-    localPlayerIdx: networkState.localPlayerIdx ?? 0
+    localPlayerIdx: networkState.localPlayerIdx ?? 0,
+    gameSpeed: networkState.isMultiplayer ? 1 : (matchSettings.gameSpeed || 1)
   });
 
   const isRoomActive = networkState.isMultiplayer && Boolean(

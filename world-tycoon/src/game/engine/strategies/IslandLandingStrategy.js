@@ -17,7 +17,7 @@ export class IslandLandingStrategy extends ITileLandingStrategy {
     player.inIsland = true;
     player.islandTurns = 0;
 
-    playSFX('jail');
+    playSFX('island');
     setPlayerPortraitMood(playerIdx, 'shocked', 3500);
     showSpeechBubble('Detained on Tropical Island! 🏝️', 2200);
     logEvent(`🏝️ <strong>${player.name}</strong> landed on the <strong>ISLAND</strong>!`);

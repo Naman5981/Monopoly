@@ -129,7 +129,7 @@ export function createSafeLobbyStatePacket(matchSettings, setupPlayers, lobbyPla
       monopolySetsToWin: matchSettings.monopolySetsToWin || 3,
       lineMonopolyEnabled: Boolean(matchSettings.lineMonopolyEnabled),
       matchDurationMinutes: matchSettings.matchDurationMinutes || 15,
-      gameSpeed: matchSettings.gameSpeed || 1,
+      gameSpeed: 1,
       teamMode: Boolean(matchSettings.teamMode)
     },
     setupPlayers: setupPlayers.slice(0, count).map((p, idx) => {

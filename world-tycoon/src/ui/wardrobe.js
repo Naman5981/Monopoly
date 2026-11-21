@@ -302,7 +302,7 @@ export function equipItem(category, itemId) {
   previewState[category] = itemId;
   saveTycoonProfile(profile);
 
-  playSFX('hop');
+  playSFX('uiTap');
   applyEquippedCosmeticsToPlayer();
   updateWardrobeItems();
 }
@@ -346,7 +346,7 @@ export function previewWardrobeItem(category, itemId) {
     });
   }
 
-  playSFX('hop');
+  playSFX('uiTap');
   updateWardrobeItems();
 }
 
@@ -576,7 +576,7 @@ export function openWardrobeModal() {
 export function closeWardrobeModal() {
   const landingScreen = document.getElementById('landing-setup-screen');
   window.removeEventListener('keydown', handleWardrobeKeyDown);
-  playSFX('hop');
+  playSFX('uiTap');
 
   // Svelte owns drawer visibility. Restore the lobby view alongside it.
   if (landingScreen) {

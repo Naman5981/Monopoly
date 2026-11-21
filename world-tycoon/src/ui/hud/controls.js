@@ -15,7 +15,9 @@ import { updateHudState } from '../../svelte/stores/hudStore.js';
 let turnLockToastTimer = null;
 
 export function updateGameSpeedUI() {
-  const speed = matchSettings.gameSpeed || 1;
+  const isMulti = Boolean(networkState && networkState.isMultiplayer);
+  const speed = isMulti ? 1 : (matchSettings.gameSpeed || 1);
+  if (isMulti) matchSettings.gameSpeed = 1;
   updateHudState({ gameSpeed: speed });
   const label = document.getElementById('game-speed-label');
   const btn = document.getElementById('btn-game-speed');

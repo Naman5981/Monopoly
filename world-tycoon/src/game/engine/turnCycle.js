@@ -150,6 +150,7 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
       p.islandTurns = 0;
       setPlayerPortraitMood(pIdx, 'smug', 3000);
       animateIslandJailbreak(pIdx);
+      playSFX('jailbreak', 1.0, getTileWorldPosition(8));
       logEvent(`🏝️ <strong>${p.name}</strong> rolled doubles and escaped the Island!`);
       showSpeechBubble('Rolled doubles & escaped! 🏝️', 2000);
       renderCornerHUDs();
@@ -157,6 +158,7 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
       updateRollButtonsUI(isHumanTurnActionable());
     } else {
       p.islandTurns++;
+      playSFX('jailRattle', 1.0, getTileWorldPosition(8));
       if (p.islandTurns >= 3) {
         // Player has served 3 chances on Island; now forced to pay 150K bail!
         const bailAmt = 150000;
@@ -292,6 +294,7 @@ export function concludeActionPhase(isDoubles) {
   saveCurrentMatchToStorage();
 
   if (isDoubles && !p.inIsland && !p.bankrupt && gameState.doublesCount < 2) {
+    playSFX('doubles');
     gameState.doublesCount++;
     gameState.phase = 'ROLL';
     gameState.turnTimeLeft = 15;
@@ -456,7 +459,8 @@ export function handlePayIslandBail() {
   gameState.festivalPot += 150000;
   p.inIsland = false;
   p.islandTurns = 0;
-  playSFX('cash', 1.0, getTileWorldPosition(8));
+  playSFX('payRent', 1.0, getTileWorldPosition(8));
+  playSFX('jailbreak', 0.8, getTileWorldPosition(8));
   spawnFloatingCashOnHUD(pIdx, '-150K Bail', false);
   animateIslandJailbreak(pIdx);
   triggerTokenHurtAnimation(pIdx);

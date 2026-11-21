@@ -8,7 +8,7 @@ import { getCtx, getAudioDestination, createSpatialPanner } from './context.js';
 
 /**
  * Play a synthesized SFX.
- * @param {'gameStart'|'click'|'dice'|'diceShuffle'|'diceBounce'|'hop'|'cash'|'build'|'monopoly'|'monopolyThreat'|'festivalBoost'|'festival'|'bankrupt'|'gavel'|'win'|'victory'|'flight'|'whoosh'|'hurt'|'flinch'|'wheelTick'|'jail'|'jailDoor'|'pop'|'fireworkLaunch'|'fireworkBoom'|'takeover'|'buyout'} type
+ * @param {'gameStart'|'click'|'dice'|'diceShuffle'|'diceBounce'|'hop'|'cash'|'build'|'monopoly'|'monopolyThreat'|'festivalBoost'|'festival'|'bankrupt'|'gavel'|'win'|'victory'|'flight'|'whoosh'|'hurt'|'flinch'|'wheelTick'|'wheelLock'|'jail'|'jailDoor'|'island'|'islandDetained'|'jailbreak'|'jailRattle'|'jackpot'|'chanceReward'|'payRent'|'receiveRent'|'auctionWon'|'doubles'|'uiTap'|'pop'|'fireworkLaunch'|'fireworkBoom'|'takeover'|'buyout'} type
  * @param {number} [volumeMultiplier=1.0]
  * @param {{x: number, y?: number, z: number}|null} [worldPos=null] Optional 3D emitter coordinates for spatial audio
  */
@@ -656,24 +656,57 @@ export function playSFX(type, volumeMultiplier = 1.0, worldPos = null) {
       osc.start(now);
       osc.stop(now + 0.022);
 
-    // ═══ 17. JAIL DOOR / DETENTION ═══
-    } else if (type === 'jail' || type === 'jailDoor') {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(160, now);
-      osc.frequency.exponentialRampToValueAtTime(35, now + 0.30);
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(480, now);
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(0.18 * vol, now + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.30);
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(soundOutput);
-      osc.start(now);
-      osc.stop(now + 0.30);
+    // ═══ 17. TROPICAL ISLAND DETENTION / IRON CELL SLAM ═══
+    } else if (type === 'island' || type === 'islandDetained' || type === 'jail' || type === 'jailDoor') {
+      const islandVol = 0.95 * vol;
+
+      // 1. Heavy iron prison door slam (low resonant impact)
+      const barOsc = ctx.createOscillator();
+      const barGain = ctx.createGain();
+      const barFilter = ctx.createBiquadFilter();
+      barOsc.type = 'sawtooth';
+      barOsc.frequency.setValueAtTime(140, now);
+      barOsc.frequency.exponentialRampToValueAtTime(32, now + 0.40);
+      barFilter.type = 'lowpass';
+      barFilter.frequency.setValueAtTime(420, now);
+      barGain.gain.setValueAtTime(0.0001, now);
+      barGain.gain.linearRampToValueAtTime(0.38 * islandVol, now + 0.015);
+      barGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+      barOsc.connect(barFilter);
+      barFilter.connect(barGain);
+      barGain.connect(soundOutput);
+      barOsc.start(now);
+      barOsc.stop(now + 0.45);
+
+      // 2. High metal ring dissonance (880Hz & 1180Hz)
+      [880, 1180].forEach(f => {
+        const m = ctx.createOscillator();
+        const mg = ctx.createGain();
+        m.type = 'triangle';
+        m.frequency.setValueAtTime(f, now);
+        m.frequency.exponentialRampToValueAtTime(f * 0.6, now + 0.22);
+        mg.gain.setValueAtTime(0.0001, now);
+        mg.gain.linearRampToValueAtTime(0.16 * islandVol, now + 0.005);
+        mg.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+        m.connect(mg);
+        mg.connect(soundOutput);
+        m.start(now);
+        m.stop(now + 0.25);
+      });
+
+      // 3. Comical tropical marimba downward slide whistle (detained on island!)
+      const slide = ctx.createOscillator();
+      const sg = ctx.createGain();
+      slide.type = 'sine';
+      slide.frequency.setValueAtTime(380, now + 0.12);
+      slide.frequency.exponentialRampToValueAtTime(95, now + 0.55);
+      sg.gain.setValueAtTime(0.0001, now + 0.12);
+      sg.gain.linearRampToValueAtTime(0.22 * islandVol, now + 0.16);
+      sg.gain.exponentialRampToValueAtTime(0.0001, now + 0.58);
+      slide.connect(sg);
+      sg.connect(soundOutput);
+      slide.start(now + 0.12);
+      slide.stop(now + 0.58);
 
     // ═══ 18. HOSTILE TAKEOVER / BUYOUT: DRAMATIC IMPACT & BRASS POWER STING ═══
     } else if (type === 'takeover' || type === 'buyout') {
@@ -746,6 +779,272 @@ export function playSFX(type, volumeMultiplier = 1.0, worldPos = null) {
         coin.start(now + delay);
         coin.stop(now + delay + 0.06);
       });
+
+    // ═══ 19. JAILBREAK (ESCAPING ISLAND ON DOUBLES) ═══
+    } else if (type === 'jailbreak') {
+      const jbVol = 0.9 * vol;
+
+      // Lock tumbler release click
+      const click = ctx.createOscillator();
+      const cg = ctx.createGain();
+      click.type = 'triangle';
+      click.frequency.setValueAtTime(1600, now);
+      click.frequency.exponentialRampToValueAtTime(450, now + 0.035);
+      cg.gain.setValueAtTime(0.0001, now);
+      cg.gain.linearRampToValueAtTime(0.25 * jbVol, now + 0.004);
+      cg.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+      click.connect(cg);
+      cg.connect(soundOutput);
+      click.start(now);
+      click.stop(now + 0.035);
+
+      // Triumphant breakout brass arpeggio (C5 -> E5 -> G5 -> C6)
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((f, i) => {
+        const t = now + 0.04 + i * 0.07;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        const filt = ctx.createBiquadFilter();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(f, t);
+        filt.type = 'lowpass';
+        filt.frequency.setValueAtTime(f * 2.8, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(0.20 * jbVol, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+        o.connect(filt);
+        filt.connect(g);
+        g.connect(soundOutput);
+        o.start(t);
+        o.stop(t + 0.28);
+      });
+
+    // ═══ 20. FAILED ISLAND ESCAPE (BAR RATTLE) ═══
+    } else if (type === 'jailRattle') {
+      const rattleVol = 0.85 * vol;
+      // Low disappointed thud
+      const thud = ctx.createOscillator();
+      const tg = ctx.createGain();
+      thud.type = 'triangle';
+      thud.frequency.setValueAtTime(130, now);
+      thud.frequency.exponentialRampToValueAtTime(45, now + 0.22);
+      tg.gain.setValueAtTime(0.0001, now);
+      tg.gain.linearRampToValueAtTime(0.22 * rattleVol, now + 0.01);
+      tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+      thud.connect(tg);
+      tg.connect(soundOutput);
+      thud.start(now);
+      thud.stop(now + 0.22);
+
+      // Rattle noise
+      try {
+        const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.16), ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04));
+        }
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const filt = ctx.createBiquadFilter();
+        filt.type = 'bandpass';
+        filt.frequency.setValueAtTime(750, now);
+        filt.Q.value = 2.4;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.18 * rattleVol, now);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+        src.connect(filt);
+        filt.connect(g);
+        g.connect(soundOutput);
+        src.start(now);
+      } catch (_) {}
+
+    // ═══ 21. CHANCE JACKPOT / REWARD ═══
+    } else if (type === 'jackpot' || type === 'chanceReward') {
+      const jpVol = 0.85 * vol;
+      const starNotes = [659.25, 830.61, 987.77, 1318.51, 1567.98];
+      starNotes.forEach((f, i) => {
+        const t = now + i * 0.07;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(0.22 * jpVol, t + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+        o.connect(g);
+        g.connect(soundOutput);
+        o.start(t);
+        o.stop(t + 0.55);
+      });
+
+    // ═══ 22. PAY RENT (RELUCTANT LOSS / EXPENSE) ═══
+    } else if (type === 'payRent') {
+      const rentVol = 0.9 * vol;
+
+      // Reluctant sub-bass drop thud
+      const thud = ctx.createOscillator();
+      const tg = ctx.createGain();
+      thud.type = 'sine';
+      thud.frequency.setValueAtTime(95, now);
+      thud.frequency.exponentialRampToValueAtTime(42, now + 0.35);
+      tg.gain.setValueAtTime(0.0001, now);
+      tg.gain.linearRampToValueAtTime(0.32 * rentVol, now + 0.015);
+      tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.40);
+      thud.connect(tg);
+      tg.connect(soundOutput);
+      thud.start(now);
+      thud.stop(now + 0.40);
+
+      // Downward coin slip
+      [880, 659.25, 493.88].forEach((f, idx) => {
+        const c = ctx.createOscillator();
+        const cg = ctx.createGain();
+        c.type = 'triangle';
+        c.frequency.setValueAtTime(f, now + 0.05 + idx * 0.06);
+        c.frequency.exponentialRampToValueAtTime(f * 0.75, now + 0.05 + idx * 0.06 + 0.08);
+        cg.gain.setValueAtTime(0.0001, now + 0.05 + idx * 0.06);
+        cg.gain.linearRampToValueAtTime(0.14 * rentVol, now + 0.05 + idx * 0.06 + 0.005);
+        cg.gain.exponentialRampToValueAtTime(0.0001, now + 0.05 + idx * 0.06 + 0.10);
+        c.connect(cg);
+        cg.connect(soundOutput);
+        c.start(now + 0.05 + idx * 0.06);
+        c.stop(now + 0.05 + idx * 0.06 + 0.10);
+      });
+
+    // ═══ 23. RECEIVE RENT (LANDLORD INCOME) ═══
+    } else if (type === 'receiveRent') {
+      const recVol = 0.85 * vol;
+
+      // Crisp cash register double-ring (B5 -> E6)
+      [987.77, 1318.51].forEach((f, idx) => {
+        const bell = ctx.createOscillator();
+        const bg = ctx.createGain();
+        bell.type = 'sine';
+        bell.frequency.setValueAtTime(f, now + idx * 0.08);
+        bg.gain.setValueAtTime(0.0001, now + idx * 0.08);
+        bg.gain.linearRampToValueAtTime(0.22 * recVol, now + idx * 0.08 + 0.01);
+        bg.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.45);
+        bell.connect(bg);
+        bg.connect(soundOutput);
+        bell.start(now + idx * 0.08);
+        bell.stop(now + idx * 0.08 + 0.45);
+      });
+
+      // Coins settle
+      [1400, 1750].forEach((f, idx) => {
+        const coin = ctx.createOscillator();
+        const cg = ctx.createGain();
+        coin.type = 'triangle';
+        coin.frequency.setValueAtTime(f, now + 0.16 + idx * 0.05);
+        cg.gain.setValueAtTime(0.0001, now + 0.16 + idx * 0.05);
+        cg.gain.linearRampToValueAtTime(0.12 * recVol, now + 0.16 + idx * 0.05 + 0.005);
+        cg.gain.exponentialRampToValueAtTime(0.0001, now + 0.16 + idx * 0.05 + 0.08);
+        coin.connect(cg);
+        cg.connect(soundOutput);
+        coin.start(now + 0.16 + idx * 0.05);
+        coin.stop(now + 0.16 + idx * 0.05 + 0.08);
+      });
+
+    // ═══ 24. AUCTION PROPERTY WON ═══
+    } else if (type === 'auctionWon') {
+      const aucVol = 0.9 * vol;
+
+      // Double gavel strike ("knock-knock")
+      [0, 0.13].forEach((tOff) => {
+        const gOsc = ctx.createOscillator();
+        const gGain = ctx.createGain();
+        const gFilt = ctx.createBiquadFilter();
+        gOsc.type = 'triangle';
+        gOsc.frequency.setValueAtTime(260, now + tOff);
+        gOsc.frequency.exponentialRampToValueAtTime(75, now + tOff + 0.06);
+        gFilt.type = 'lowpass';
+        gFilt.frequency.setValueAtTime(700, now + tOff);
+        gGain.gain.setValueAtTime(0.0001, now + tOff);
+        gGain.linearRampToValueAtTime(0.32 * aucVol, now + tOff + 0.003);
+        gGain.exponentialRampToValueAtTime(0.0001, now + tOff + 0.06);
+        gOsc.connect(gFilt);
+        gFilt.connect(gGain);
+        gGain.connect(soundOutput);
+        gOsc.start(now + tOff);
+        gOsc.stop(now + tOff + 0.06);
+      });
+
+      // Triumphant quick brass triad (0.28s)
+      [392.00, 523.25, 659.25].forEach((f) => {
+        const b = ctx.createOscillator();
+        const bg = ctx.createGain();
+        b.type = 'sawtooth';
+        b.frequency.setValueAtTime(f, now + 0.28);
+        bg.gain.setValueAtTime(0.0001, now + 0.28);
+        bg.gain.linearRampToValueAtTime(0.18 * aucVol, now + 0.30);
+        bg.gain.exponentialRampToValueAtTime(0.0001, now + 0.70);
+        b.connect(bg);
+        bg.connect(soundOutput);
+        b.start(now + 0.28);
+        b.stop(now + 0.70);
+      });
+
+    // ═══ 25. ROLLING DOUBLES (EXTRA TURN CELEBRATION) ═══
+    } else if (type === 'doubles' || type === 'doublesRoll') {
+      const dblVol = 0.85 * vol;
+
+      // Twin star chime (A5 -> D6)
+      [880.00, 1174.66].forEach((f, idx) => {
+        const ch = ctx.createOscillator();
+        const chG = ctx.createGain();
+        ch.type = 'sine';
+        ch.frequency.setValueAtTime(f, now + idx * 0.09);
+        chG.gain.setValueAtTime(0.0001, now + idx * 0.09);
+        chG.gain.linearRampToValueAtTime(0.22 * dblVol, now + idx * 0.09 + 0.01);
+        chG.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.09 + 0.40);
+        ch.connect(chG);
+        chG.connect(soundOutput);
+        ch.start(now + idx * 0.09);
+        ch.stop(now + idx * 0.09 + 0.40);
+      });
+
+    // ═══ 26. MODERN UI GLASS TAP ═══
+    } else if (type === 'uiTap') {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(1400, now);
+      o.frequency.exponentialRampToValueAtTime(650, now + 0.024);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.linearRampToValueAtTime(0.18 * vol, now + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.024);
+      o.connect(g);
+      g.connect(soundOutput);
+      o.start(now);
+      o.stop(now + 0.024);
+
+    // ═══ 27. CHANCE WHEEL NEEDLE LOCK / STOP ═══
+    } else if (type === 'wheelLock') {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(1800, now);
+      o.frequency.exponentialRampToValueAtTime(320, now + 0.035);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.linearRampToValueAtTime(0.24 * vol, now + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+      o.connect(g);
+      g.connect(soundOutput);
+      o.start(now);
+      o.stop(now + 0.035);
+
+      // Resonant ting
+      const bell = ctx.createOscillator();
+      const bg = ctx.createGain();
+      bell.type = 'sine';
+      bell.frequency.setValueAtTime(1244.51, now + 0.01);
+      bg.gain.setValueAtTime(0.0001, now + 0.01);
+      bg.gain.linearRampToValueAtTime(0.16 * vol, now + 0.02);
+      bg.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+      bell.connect(bg);
+      bg.connect(soundOutput);
+      bell.start(now + 0.01);
+      bell.stop(now + 0.35);
     }
   } catch (_) { /* silently ignore audio errors */ }
 }

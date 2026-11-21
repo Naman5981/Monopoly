@@ -473,7 +473,7 @@ export function concludeCurrentAuction() {
       propState.mortgaged = false;
       winner.cash -= a.currentBid;
 
-      playSFX('win');
+      playSFX('auctionWon');
       logEvent(`🏆 <strong>${winner.name}</strong> won the auction for <strong>${tile.name}</strong> at <strong>${fmtMoney(a.currentBid)}</strong>!`);
 
       if (engineCallbacks.spawnFloatingCash) {
@@ -612,7 +612,7 @@ export function applyAuctionConcludeFromHost(msg) {
       propState.mortgaged = false;
       winner.cash -= (msg.winningBid || 0);
 
-      playSFX('win');
+      playSFX('auctionWon');
       logEvent(`🏆 <strong>${winner.name}</strong> won the auction for <strong>${tile ? tile.name : 'Property'}</strong> at <strong>${fmtMoney(msg.winningBid || 0)}</strong>!`);
 
       if (engineCallbacks.spawnFloatingCash) {

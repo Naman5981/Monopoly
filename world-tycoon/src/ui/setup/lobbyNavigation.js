@@ -67,7 +67,7 @@ export function setLobbyView(viewName, triggerSound = true) {
   animateLobbyViewTransition(viewName);
 
   if (triggerSound) {
-    playSFX('hop');
+    playSFX('uiTap');
   }
 }
 
@@ -116,6 +116,6 @@ export function selectMatchMode(mode, triggerLeave = true) {
     showLocalSetup();
   }
   if (triggerLeave) {
-    playSFX('hop');
+    playSFX('uiTap');
   }
 }

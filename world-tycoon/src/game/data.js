@@ -127,21 +127,21 @@ const RAJASTHAN_BOARD_TILES = [
 ];
 
 const WORLD_CHANCE_WHEEL_PRIZES = [
-  { label: '+400K Grant',  color: '#1e293b', type: 'cash',   amount: 400000, desc: 'World Bank Development Grant! Collect 400K!'           },
-  { label: 'Fly to START', color: '#312e81', type: 'move',   target: 0,      desc: 'Express Jet to START! Collect +300K!'                  },
-  { label: '-200K Fine',   color: '#1e293b', type: 'tax',    amount: 200000, desc: 'Global Carbon Tax Audit! Pay 200K into Festival Pool.' },
-  { label: '+250K Bonus',  color: '#312e81', type: 'cash',   amount: 250000, desc: 'Tech Unicorn Dividend! Collect 250K!'                  },
-  { label: 'Go to Island', color: '#1e293b', type: 'island',                 desc: 'Stormy Seas! Detained on Tropical Island!'              },
-  { label: 'World Tour!',  color: '#312e81', type: 'move',   target: 24,     desc: 'VIP Ticket to World Tour Airport!'                     },
+  { label: '+400K Grant',  color: '#1e293b', themeColor: '#059669', type: 'cash',   amount: 400000, icon: '💰', sub: 'GRANT',   title: 'World Bank Grant',         desc: 'World Bank Development Grant! Collect 400K!'           },
+  { label: 'Fly to START', color: '#312e81', themeColor: '#0284c7', type: 'move',   target: 0,      icon: '🚀', sub: '+300K',   title: 'Express Jet to START',     desc: 'Express Jet to START! Collect +300K!'                  },
+  { label: '-200K Fine',   color: '#1e293b', themeColor: '#e11d48', type: 'tax',    amount: 200000, icon: '⚠️', sub: 'TAX',     title: 'Carbon Tax Audit',         desc: 'Global Carbon Tax Audit! Pay 200K into Festival Pool.' },
+  { label: '+250K Bonus',  color: '#312e81', themeColor: '#d97706', type: 'cash',   amount: 250000, icon: '💎', sub: 'BONUS',   title: 'Unicorn Dividend',         desc: 'Tech Unicorn Dividend! Collect 250K!'                  },
+  { label: 'Go to Island', color: '#1e293b', themeColor: '#ea580c', type: 'island',                 icon: '🏝️', sub: 'JAIL',    title: 'Tropical Island Arrest',   desc: 'Stormy Seas! Detained on Tropical Island!'              },
+  { label: 'World Tour!',  color: '#312e81', themeColor: '#7c3aed', type: 'move',   target: 24,     icon: '✈️', sub: 'AIRPORT', title: 'World Tour Flight',        desc: 'VIP Ticket to World Tour Airport!'                     },
 ];
 
 const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
-  { label: '+400K Grant',  color: '#1e293b', type: 'cash',   amount: 400000, desc: 'Royal Heritage Trust Grant! Collect 400K!'             },
-  { label: 'Fly to START', color: '#312e81', type: 'move',   target: 0,      desc: 'Royal Express to START! Collect +300K!'                },
-  { label: '-200K Fine',   color: '#1e293b', type: 'tax',    amount: 200000, desc: 'Fort Preservation Audit! Pay 200K into Festival Pool.' },
-  { label: '+250K Bonus',  color: '#312e81', type: 'cash',   amount: 250000, desc: 'Marwar Trade Syndicate Dividend! Collect 250K!'        },
-  { label: 'Go to Island', color: '#1e293b', type: 'island',                 desc: 'Thar Dust Storm! Detained at Desert Retreat!'          },
-  { label: 'World Tour!',  color: '#312e81', type: 'move',   target: 24,     desc: 'VIP Ticket to Royal Express Station!'                   },
+  { label: '+400K Grant',  color: '#1e293b', themeColor: '#059669', type: 'cash',   amount: 400000, icon: '💰', sub: 'GRANT',   title: 'Royal Heritage Grant',     desc: 'Royal Heritage Trust Grant! Collect 400K!'             },
+  { label: 'Fly to START', color: '#312e81', themeColor: '#0284c7', type: 'move',   target: 0,      icon: '🚀', sub: '+300K',   title: 'Royal Express to START',   desc: 'Royal Express to START! Collect +300K!'                },
+  { label: '-200K Fine',   color: '#1e293b', themeColor: '#e11d48', type: 'tax',    amount: 200000, icon: '⚠️', sub: 'TAX',     title: 'Fort Preservation Audit',  desc: 'Fort Preservation Audit! Pay 200K into Festival Pool.' },
+  { label: '+250K Bonus',  color: '#312e81', themeColor: '#d97706', type: 'cash',   amount: 250000, icon: '💎', sub: 'BONUS',   title: 'Syndicate Dividend',       desc: 'Marwar Trade Syndicate Dividend! Collect 250K!'        },
+  { label: 'Go to Island', color: '#1e293b', themeColor: '#ea580c', type: 'island',                 icon: '🏝️', sub: 'JAIL',    title: 'Desert Retreat Arrest',    desc: 'Thar Dust Storm! Detained at Desert Retreat!'          },
+  { label: 'World Tour!',  color: '#312e81', themeColor: '#7c3aed', type: 'move',   target: 24,     icon: '✈️', sub: 'AIRPORT', title: 'Royal Express Station',    desc: 'VIP Ticket to Royal Express Station!'                   },
 ];
 
 const BOARD_EDITIONS = {

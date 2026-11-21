@@ -84,13 +84,15 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
     isAI,
     hasWon: false,
     wonPrize: null,
-    cardText: isLocalUser ? 'Click Spin to test your luck!' : `${playerName} is testing their luck on the Wheel!`
+    drawingIdx: -1,
+    winnerIdx: -1,
+    cardText: isLocalUser ? 'Draw a card to test your luck!' : `${playerName} is testing their luck on Chance!`
   });
 
   const resText = document.getElementById('chance-result-text');
   if (resText) {
     resText.textContent = isLocalUser
-      ? 'Click Spin to test your luck!'
+      ? 'Draw a card to test your luck!'
       : `${playerName} is testing their luck on the Wheel!`;
   }
 
@@ -98,9 +100,9 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
   if (btn) {
     if (isAI) {
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-robot mr-2"></i> ${playerName.toUpperCase()} IS SPINNING...`;
-      setStatusPill(`🎡 <strong>${playerName}</strong> is spinning the Chance Wheel...`, { isThinking: true, playerIdx: pIdx });
-      // If offline or Host, auto-trigger spin after 800ms pause so players see the wheel
+      btn.innerHTML = `<i class="fa-solid fa-robot mr-2"></i> ${playerName.toUpperCase()} IS DRAWING & BOT-${pIdx} IS SPINNING...`;
+      setStatusPill(`🃏 <strong>${playerName}</strong> is drawing & spinning the Chance Wheel...`, { isThinking: true, playerIdx: pIdx });
+      // If offline or Host, auto-trigger draw after 800ms pause so players see the deck
       if (!networkState.isMultiplayer || networkState.isHost) {
         chanceCountdownTimer = setTimeout(() => {
           if (!isWheelSpinning) {
@@ -111,14 +113,14 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
     } else if (isLocalUser) {
       btn.disabled = false;
       let secondsLeft = 10;
-      btn.innerHTML = `<i class="fa-solid fa-arrows-spin mr-2"></i> SPIN WHEEL (${secondsLeft}s)`;
-      setStatusPill(`🎡 Spin the wheel to test your luck on Chance!`, { isThinking: false, playerIdx: pIdx });
+      btn.innerHTML = `<i class="fa-solid fa-sparkles mr-2"></i> DRAW CHANCE CARD (${secondsLeft}s)`;
+      setStatusPill(`🃏 Draw a Chance Card! Spin the wheel to test your luck on Chance!`, { isThinking: false, playerIdx: pIdx });
 
       chanceCountdownInterval = setInterval(() => {
         secondsLeft--;
         if (secondsLeft > 0) {
           if (btn && !isWheelSpinning) {
-            btn.innerHTML = `<i class="fa-solid fa-arrows-spin mr-2"></i> SPIN WHEEL (${secondsLeft}s)`;
+            btn.innerHTML = `<i class="fa-solid fa-sparkles mr-2"></i> DRAW CHANCE CARD (${secondsLeft}s)`;
           }
         } else {
           clearChanceTimers();
@@ -131,7 +133,7 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
       // Remote player in multiplayer
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-hourglass-half mr-2"></i> WAITING FOR ${playerName.toUpperCase()}...`;
-      setStatusPill(`⏳ Waiting for <strong>${playerName}</strong> to spin the Chance Wheel...`, { isThinking: true, playerIdx: pIdx });
+      setStatusPill(`⏳ Waiting for <strong>${playerName}</strong> to draw a Chance Card...`, { isThinking: true, playerIdx: pIdx });
 
       // Safety timeout: If remote peer does not spin within 14 seconds, Host resolves
       if (networkState.isHost) {
@@ -276,7 +278,15 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
 
   // Synchronized status pill and sound effect
   setStatusPill(`🌈 <strong>${playerName}</strong> drew Chance: <strong>${prize.label}</strong>!`, { isThinking: false, playerIdx: pIdx });
-  playSFX('win', 0.8);
+  if (prize.type === 'island') {
+    playSFX('island');
+  } else if (prize.type === 'tax') {
+    playSFX('payRent');
+  } else if (prize.type === 'cash') {
+    playSFX('jackpot');
+  } else {
+    playSFX('jackpot', 0.8);
+  }
 
   // Synchronized emotional portrait mood
   if (prize.type === 'tax') {
@@ -314,7 +324,7 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
   if (isWheelSpinning) return;
   isWheelSpinning = true;
   clearChanceTimers();
-  updateModalSlice('chanceWheel', { isSpinning: true });
+  updateModalSlice('chanceWheel', { isSpinning: true, drawingIdx: 0, winnerIdx: -1, wonPrize: null, hasWon: false });
 
   const activePIdx = (pIdx !== null && pIdx !== undefined)
     ? pIdx
@@ -324,27 +334,23 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
   const btn = document.getElementById('btn-spin-wheel');
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> SPINNING...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> REVEALING CARD (SPINNING)...`;
   }
 
   const prizeIdx = forcedPrizeIdx !== null ? forcedPrizeIdx : Math.floor(Math.random() * CHANCE_WHEEL_PRIZES.length);
   const prize = CHANCE_WHEEL_PRIZES[prizeIdx];
 
-  // N slices. Slice 0 is centered at 12 o'clock.
-  // Slice i is at (i * 60) degrees clockwise from 12 o'clock.
-  // To bring slice i to 12 o'clock under the needle, target rotation mod 360 is:
+  // N slices for angle calculations (if canvas is inspected)
   const N = CHANCE_WHEEL_PRIZES.length;
   const sliceDeg = 360 / N;
   const targetOffset = (360 - (prizeIdx * sliceDeg)) % 360;
-
-  // Add 5-6 full spins
   const fullSpins = forcedSpins !== null ? forcedSpins : (5 + Math.floor(Math.random() * 2));
   const currentMod = wheelAngle % 360;
   let forwardDelta = targetOffset - currentMod;
   if (forwardDelta <= 0) forwardDelta += 360;
   wheelAngle += (fullSpins * 360) + forwardDelta;
 
-  // Broadcast spin initiation in multiplayer so all peers see the exact same rotation!
+  // Broadcast draw initiation in multiplayer so all peers see the exact same card sweep and reveal!
   if (networkState.isMultiplayer && forcedPrizeIdx === null) {
     broadcastAction('ACTION_CHANCE_SPIN', {
       playerIdx: activePIdx,
@@ -356,50 +362,52 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
 
   const canvas = document.getElementById('chance-wheel-canvas') || document.getElementById('canvas-chance-wheel');
   if (canvas) {
-    canvas.style.transition = 'transform 2600ms cubic-bezier(0.12, 0.9, 0.25, 1)';
+    canvas.style.transition = 'transform 2000ms cubic-bezier(0.12, 0.9, 0.25, 1)';
     canvas.style.transform = `rotate(${wheelAngle}deg)`;
   }
 
-  // Dynamic ticker needle deflection and synchronized audio ticks
-  const totalSpinMs = 2600;
-  let tickInterval = 60;
-  const startSpinTime = Date.now();
-  const tickerPin = document.getElementById('chance-wheel-ticker-pin') || document.getElementById('chance-wheel-ticker');
+  // Animate spotlight sweep across cards in fan deck
+  const totalSweepMs = 2000;
+  const startTime = Date.now();
+  let sweepStep = 0;
 
-  function scheduleNextTick() {
-    const elapsed = Date.now() - startSpinTime;
-    if (elapsed >= totalSpinMs - 120) {
-      if (tickerPin) tickerPin.style.transform = 'translate(-50%, 0) rotate(0deg)';
-      return;
-    }
-    playSFX('wheelTick', 0.7);
+  function scheduleNextSweep() {
+    const elapsed = Date.now() - startTime;
+    if (elapsed >= totalSweepMs - 100) return;
 
-    // Spring deflection simulating sector peg collisions
-    if (tickerPin) {
-      const deflectDeg = -(12 + Math.random() * 8);
-      tickerPin.style.transform = `translate(-50%, 0) rotate(${deflectDeg}deg)`;
-      setTimeout(() => {
-        if (tickerPin) tickerPin.style.transform = 'translate(-50%, 0) rotate(0deg)';
-      }, Math.min(55, tickInterval * 0.45));
-    }
+    sweepStep++;
+    const curIdx = sweepStep % N;
+    updateModalSlice('chanceWheel', { drawingIdx: curIdx });
+    playSFX('wheelTick', 0.6);
 
-    const progress = elapsed / totalSpinMs;
-    tickInterval = 55 + Math.pow(progress, 2.5) * 320;
-    setTimeout(scheduleNextTick, tickInterval);
+    const progress = elapsed / totalSweepMs;
+    const interval = 65 + Math.pow(progress, 2.2) * 200;
+    setTimeout(scheduleNextSweep, interval);
   }
-  scheduleNextTick();
+  scheduleNextSweep();
 
   setTimeout(async () => {
     isWheelSpinning = false;
     if (isLobbyScreenActive()) return;
-    playSFX('win');
 
-    // Spring landing micro-bounce on wheel canvas
-    if (canvas) {
-      canvas.style.transform = `rotate(${wheelAngle}deg) scale(1.035)`;
-      setTimeout(() => {
-        if (canvas) canvas.style.transform = `rotate(${wheelAngle}deg) scale(1)`;
-      }, 160);
+    // Lock in the winner card and trigger 3D Flip in Svelte
+    updateModalSlice('chanceWheel', {
+      isSpinning: false,
+      drawingIdx: -1,
+      winnerIdx: prizeIdx
+    });
+
+    playSFX('wheelLock');
+
+    // Trigger outcome sound
+    if (prize.type === 'island') {
+      playSFX('island');
+    } else if (prize.type === 'tax') {
+      playSFX('payRent');
+    } else if (prize.type === 'cash') {
+      playSFX('jackpot');
+    } else {
+      playSFX('jackpot', 0.8);
     }
 
     // Trigger emotional reaction on active player's portrait
@@ -413,10 +421,10 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
       setPlayerPortraitMood(activePIdx, 'cheering', 3500);
     }
 
-    // Format prize details clearly for the on-wheel winning banner (Idea 3)
-    let icon = '🎁';
+    // Format prize details clearly for the outcome banner
+    let icon = prize.icon || '🎁';
     let title = prize.label.toUpperCase();
-    let tag = 'CHANCE REWARD';
+    let tag = prize.sub || 'CHANCE';
     if (prize.type === 'cash') {
       icon = prize.amount >= 300000 ? '💰' : '💎';
       title = `+${fmtMoney(prize.amount)} CASH!`;
@@ -435,9 +443,8 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
       tag = 'BOARD WARP';
     }
 
-    // 1. Immediately highlight the result on the wheel
+    // Highlight the result in modalStore
     updateModalSlice('chanceWheel', {
-      isSpinning: false,
       hasWon: true,
       wonPrize: {
         icon,
@@ -466,18 +473,18 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
       });
     }
 
-    // 2. Wait 1.8s so user can clearly see and read the winning prize details on the wheel!
-    await new Promise(r => setTimeout(r, 1800));
+    // Wait 2.0s so player can comfortably read and appreciate the revealed card
+    await new Promise(r => setTimeout(r, 2000));
     if (isLobbyScreenActive()) return;
 
-    // 3. Smoothly close the wheel and transition directly into in-game 3D action!
+    // Smoothly close the card deck and transition to gameplay
     animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card', async () => {
-      updateModalSlice('chanceWheel', { visible: false, isSpinning: false, hasWon: false, wonPrize: null });
+      updateModalSlice('chanceWheel', { visible: false, isSpinning: false, hasWon: false, wonPrize: null, drawingIdx: -1, winnerIdx: -1 });
       if (engineCallbacks.applyChancePrize) {
         await engineCallbacks.applyChancePrize(activePIdx, prize, isDoub, false, false);
       }
     });
-  }, 2650);
+  }, 2050);
 }
 
 export function executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles) {

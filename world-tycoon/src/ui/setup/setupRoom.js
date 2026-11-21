@@ -267,6 +267,11 @@ export function startGameFromLandingPage() {
     }
   }
 
+  // Enforce standard 1x speed in multiplayer
+  if (networkState.isMultiplayer) {
+    matchSettings.gameSpeed = 1;
+  }
+
   // If in P2P multiplayer as host, broadcast match start to all connected clients!
   if (networkState.isMultiplayer && networkState.isHost) {
     broadcastStartOnlineMatch();

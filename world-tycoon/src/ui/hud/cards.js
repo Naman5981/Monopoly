@@ -223,6 +223,7 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount, tileObj = null)
 
     // 1. Shake payer card, trigger 3D token hurt recoil, set mood reactions, and pop deduction text
     fromCard.classList.add('hud-card-deduct');
+    playSFX('payRent');
     setPlayerPortraitMood(fromIdx, 'crying', 3500);
     setPlayerPortraitMood(toIdx, 'smug', 3500);
     spawnFloatingCashOnHUD(fromIdx, `-${fmtMoney(amount)} Rent`, false);
@@ -299,7 +300,7 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount, tileObj = null)
 
             if (landedCount === 1) {
               toCard.classList.add('hud-card-receive');
-              playSFX('cash');
+              playSFX('receiveRent');
               animateHUDCardSpringAbsorb(toIdx);
             } else if (landedCount % 4 === 0) {
               playSFX('hop', 0.25);

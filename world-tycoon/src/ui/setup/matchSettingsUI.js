@@ -19,7 +19,7 @@ export function setStartingCash(amt) {
   if (networkState.isMultiplayer && !networkState.isHost) return;
   matchSettings.startingCash = amt;
   renderMatchSettingButtons();
-  playSFX('hop');
+  playSFX('uiTap');
   if (networkState.isMultiplayer && networkState.isHost) {
     broadcastLobbySettings();
   }
@@ -30,7 +30,7 @@ export function stepDecisionTime(delta) {
   const cur = matchSettings.turnDuration || 20;
   matchSettings.turnDuration = Math.max(10, Math.min(60, cur + delta * 5));
   renderMatchSettingButtons();
-  playSFX('hop');
+  playSFX('uiTap');
   if (networkState.isMultiplayer && networkState.isHost) {
     broadcastLobbySettings();
   }
@@ -43,7 +43,7 @@ export function stepMatchDuration(delta) {
   const nextIdx = Math.max(0, Math.min(MATCH_DURATION_OPTIONS.length - 1, (idx === -1 ? 0 : idx) + delta));
   matchSettings.matchDurationMinutes = MATCH_DURATION_OPTIONS[nextIdx];
   renderMatchSettingButtons();
-  playSFX('hop');
+  playSFX('uiTap');
   if (networkState.isMultiplayer && networkState.isHost) {
     broadcastLobbySettings();
   }
@@ -64,7 +64,7 @@ export function setTurnTimerDuration(sec) {
   if (networkState.isMultiplayer && !networkState.isHost) return;
   matchSettings.turnDuration = sec;
   renderMatchSettingButtons();
-  playSFX('hop');
+  playSFX('uiTap');
   if (networkState.isMultiplayer && networkState.isHost) {
     broadcastLobbySettings();
   }
@@ -78,7 +78,7 @@ export function setAtmosphereMode(mode) {
   matchSettings.lightingTheme = mode;
   applyLightingMode(mode, getSceneLighting());
   renderMatchSettingButtons();
-  playSFX('hop');
+  playSFX('uiTap');
   if (networkState.isMultiplayer && networkState.isHost) {
     broadcastLobbySettings();
   }
@@ -93,7 +93,7 @@ export function setBoardStyle(style) {
     }
     applyBoardStyle(style);
     renderMatchSettingButtons();
-    playSFX('hop');
+    playSFX('uiTap');
     if (networkState.isMultiplayer && networkState.isHost) {
       broadcastLobbySettings();
     }
@@ -115,7 +115,7 @@ export function setBoardEdition(edition) {
     applyBoardEdition(edition);
     refreshAllTileTexturesAndMaterials();
     renderMatchSettingButtons();
-    playSFX('hop');
+    playSFX('uiTap');
     if (networkState.isMultiplayer && networkState.isHost) {
       broadcastLobbySettings();
       broadcastAction('ACTION_SYNC_BOARD_EDITION', { boardEdition: edition });
@@ -159,7 +159,7 @@ export function setTeamMode(enabled) {
   if (curP) {
     updateLobbyHeroAvatar(curP.hatStyle || 0, curP.colorHex || '#3b82f6', curP.charColor || 0x3b82f6);
   }
-  playSFX('hop');
+  playSFX('uiTap');
   renderMatchSettingButtons();
   if (typeof window !== 'undefined' && window.renderPlayerCards) {
     window.renderPlayerCards();
