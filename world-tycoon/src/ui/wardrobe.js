@@ -421,6 +421,11 @@ function applyEquippedCosmeticsToPlayer() {
   if (context?.playerMeshes?.length > 0 || gameState?.gameStarted) {
     spawnAllPlayerTokens3D();
   }
+
+  const landingScreen = (typeof document !== 'undefined') ? document.getElementById('landing-setup-screen') : null;
+  if (!landingScreen || !landingScreen.classList.contains('wardrobe-mode-active')) {
+    setLobbyHeroShowcaseMode('avatar');
+  }
 }
 
 /**
@@ -578,6 +583,9 @@ export function closeWardrobeModal() {
     landingScreen.classList.remove('wardrobe-mode-active');
   }
   updateModalSlice('wardrobe', { isClosing: true });
+
+  // Revert stage back to avatar for main landing screen
+  setLobbyHeroShowcaseMode('avatar');
 
   // 2. Revert any unequipped preview back to equipped loadout
   applyEquippedCosmeticsToPlayer();

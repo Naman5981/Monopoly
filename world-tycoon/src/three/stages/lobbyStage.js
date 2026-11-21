@@ -728,6 +728,15 @@ export function updateLobbyHeroAvatar(hatStyle = 0, colorHex = '#6c5ce7', charCo
   avatarMesh.scale.setScalar(1.02);
   lobbyHeroAvatarGroup.add(avatarMesh);
 
+  const landingScreen = (typeof document !== 'undefined') ? document.getElementById('landing-setup-screen') : null;
+  if (!landingScreen || !landingScreen.classList.contains('wardrobe-mode-active')) {
+    currentShowcaseMode = 'avatar';
+    if (lobbyHeroAvatarGroup) lobbyHeroAvatarGroup.visible = true;
+    if (lobbyHeroPodiumGroup) lobbyHeroPodiumGroup.visible = true;
+    if (lobbyHeroTileGroup) lobbyHeroTileGroup.visible = false;
+    if (lobbyHeroDiceStageGroup) lobbyHeroDiceStageGroup.visible = false;
+  }
+
   if (lobbyHeroRenderer && lobbyHeroScene && lobbyHeroCamera) {
     resizeLobbyHeroStage();
     try {

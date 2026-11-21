@@ -285,15 +285,17 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
   const resortColor = '#0ea5e9';
 
   if (!isCyber) {
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, 512);
-    bgGrad.addColorStop(0, '#f0fdfa');
-    bgGrad.addColorStop(0.35, '#f8fafc');
-    bgGrad.addColorStop(1, '#fefce8');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, 512, 512);
+    if (!isOwned) {
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, 512);
+      bgGrad.addColorStop(0, '#f0fdfa');
+      bgGrad.addColorStop(0.35, '#f8fafc');
+      bgGrad.addColorStop(1, '#fefce8');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 512, 512);
+    }
 
     // Subtle tropical wave contours along upper margin
-    ctx.strokeStyle = 'rgba(14, 165, 233, 0.22)';
+    ctx.strokeStyle = isOwned ? 'rgba(255, 255, 255, 0.45)' : 'rgba(14, 165, 233, 0.22)';
     ctx.lineWidth = 3;
     for (let w = 0; w < 3; w++) {
       ctx.beginPath();

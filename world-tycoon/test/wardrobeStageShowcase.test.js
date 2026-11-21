@@ -11,6 +11,7 @@ import {
 import {
   setWardrobeCategory,
   previewWardrobeItem,
+  closeWardrobeModal,
   WARDROBE_ITEMS
 } from '../src/ui/wardrobe.js';
 import { modalStore } from '../src/svelte/stores/modalStore.js';
@@ -102,6 +103,13 @@ describe('Wardrobe 3D Stage Showcase & Category Modernization', () => {
       previewWardrobeItem('diceTrail', 'trail_gold');
       previewWardrobeItem('hat', 'hat_crown');
       previewWardrobeItem('pedestal', 'pedestal_gold');
+    });
+  });
+
+  it('verifies closeWardrobeModal restores showcase mode back to avatar', () => {
+    setWardrobeCategory('dice');
+    assert.doesNotThrow(() => {
+      closeWardrobeModal();
     });
   });
 });

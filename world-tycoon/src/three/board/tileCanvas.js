@@ -20,6 +20,7 @@ import { currentBulbMode } from '../core/lighting.js';
 
 import { drawCityTile, drawResortTile } from './tiles/cityTileRenderer.js';
 import { drawChanceTile, drawTaxTile, drawCornerTile } from './tiles/specialTileRenderer.js';
+import { hexToRgb } from './tiles/canvasUtils.js';
 
 export * from './tiles/canvasUtils.js';
 export * from './tiles/cityTileRenderer.js';
@@ -82,6 +83,23 @@ export function drawTileToCanvas(canvas, tile, propState, isUpright = false) {
     ctx.fillStyle = 'rgba(15, 23, 42, 0.22)';
     ctx.fillRect(29, 477, 454, 6);
     ctx.fillRect(477, 29, 6, 454);
+
+    // 3. Subtle Player Color Wash for Owned Properties (Clearly visible territory tint)
+    if (tile.type === 'city' || tile.type === 'resort') {
+      const rgb = hexToRgb(ownerTheme.colorHex);
+      const tintGrad = ctx.createLinearGradient(0, 76, 0, 480);
+      if (isCyber || isNight) {
+        tintGrad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.26)`);
+        tintGrad.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.16)`);
+        tintGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.08)`);
+      } else {
+        tintGrad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.18)`);
+        tintGrad.addColorStop(0.45, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.10)`);
+        tintGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.04)`);
+      }
+      ctx.fillStyle = tintGrad;
+      ctx.fillRect(29, 76, 454, 404);
+    }
   } else {
     if (isCyber) {
       ctx.strokeStyle = '#00f5ff';

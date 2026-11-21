@@ -1,3 +1,14 @@
+export function hexToRgb(hex) {
+  const clean = (hex || '#3b82f6').replace('#', '');
+  const num = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);
+  if (isNaN(num)) return { r: 59, g: 130, b: 246 };
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255
+  };
+}
+
 /**
  * three/board/tiles/canvasUtils.js
  * Low-level vector paths, neon typography rendering, and cadastral grid utilities for 2D tile canvas.
