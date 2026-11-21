@@ -4,6 +4,7 @@
  */
 
 import { isReducedMotion } from './common.js';
+import { triggerBanner } from '../../svelte/stores/bannerStore.js';
 
 /**
  * Animated tally reveal for match victory rewards breakdown.
@@ -97,34 +98,8 @@ export function animateGoSalaryStream(targetPlayerIdx = 0, amountLabel = '+300K'
   const targetCard = document.getElementById(`hud-card-${targetPlayerIdx}`);
   const targetRect = targetCard ? targetCard.getBoundingClientRect() : { left: window.innerWidth / 2, top: 120 };
 
-  // 1. Center burst banner
-  let banner = document.getElementById('go-salary-burst-banner');
-  if (!banner) {
-    banner = document.createElement('div');
-    banner.id = 'go-salary-burst-banner';
-    banner.className = 'fixed top-[24%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] pointer-events-none flex flex-col items-center select-none';
-    document.body.appendChild(banner);
-  }
-
-  banner.innerHTML = `
-    <div class="salary-badge px-6 py-2.5 rounded-3xl bg-gradient-to-r from-emerald-500 to-teal-700 border-3 border-white text-white font-display font-black text-xl sm:text-2xl tracking-wider uppercase shadow-[0_12px_40px_rgba(16,185,129,0.6)] flex items-center gap-2 transform">
-      <span>💰</span>
-      <span>${amountLabel} SALARY!</span>
-      <span>🚩</span>
-    </div>
-  `;
-
-  banner.style.display = 'flex';
-  banner.style.opacity = '1';
-
-  const badge = banner.querySelector('.salary-badge');
-  anime.remove(badge);
-  anime({
-    targets: badge,
-    scale: [0.3, 1.15, 1],
-    duration: 480,
-    easing: 'spring(1, 85, 9, 0)'
-  });
+  // 1. Declarative Svelte 5 Center burst banner
+  triggerBanner('salary', { amountLabel }, 1500);
 
   // 2. Flying cash bills stream from center to target player HUD
   const container = document.createElement('div');
@@ -172,17 +147,4 @@ export function animateGoSalaryStream(targetPlayerIdx = 0, amountLabel = '+300K'
       }
     }
   });
-
-  setTimeout(() => {
-    anime({
-      targets: banner,
-      opacity: [1, 0],
-      translateY: [0, -20],
-      duration: 300,
-      easing: 'easeInQuad',
-      complete: () => {
-        banner.style.display = 'none';
-      }
-    });
-  }, 1200);
 }

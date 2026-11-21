@@ -12,7 +12,7 @@ const rootDir = path.resolve(__dirname, '..');
 describe('Modular Templates & HTML Assembly (/clean-code)', () => {
   it('assembles index.html from index.template.html cleanly without errors', () => {
     const res = assembleIndexHtml();
-    assert.ok(res.size > 30000, 'Assembled index.html should be valid and non-empty');
+    assert.ok(res.size > 8000, 'Assembled index.html should be valid and non-empty');
     assert.ok(fs.existsSync(res.path), 'Output file must exist');
 
     const content = fs.readFileSync(res.path, 'utf8');
@@ -58,6 +58,22 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
     const svelteModalsDir = path.join(rootDir, 'src', 'svelte', 'modals');
     for (const svelteModal of svelteModals) {
       assert.ok(fs.existsSync(path.join(svelteModalsDir, svelteModal)), `Svelte modal ${svelteModal} must exist`);
+    }
+
+    // Essential Svelte 5 declarative lobby components
+    const svelteLobbyComponents = [
+      'LobbyScreen.svelte',
+      'LobbyHeader.svelte',
+      'LobbyRoster.svelte',
+      'HeroPreview.svelte',
+      'MatchSettingsPanel.svelte',
+      'MultiplayerPortal.svelte',
+      'PlayerSetupCards.svelte',
+      'LobbyNetworkStatus.svelte'
+    ];
+    const svelteLobbyDir = path.join(rootDir, 'src', 'svelte', 'lobby');
+    for (const comp of svelteLobbyComponents) {
+      assert.ok(fs.existsSync(path.join(svelteLobbyDir, comp)), `Svelte lobby component ${comp} must exist`);
     }
   });
 

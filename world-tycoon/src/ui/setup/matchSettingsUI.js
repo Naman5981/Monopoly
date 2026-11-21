@@ -217,9 +217,10 @@ export function renderMatchSettingButtons() {
     monopolySetsToWin: matchSettings.monopolySetsToWin || (isTeamMode ? 4 : 3)
   });
 
-  // Color Swatches - reflects the player currently selected on the podium
+  // Color Swatches - fallback builder only when Svelte is not mounted (headless test environments)
+  const isSvelteMounted = typeof document !== 'undefined' && Boolean(document.getElementById('svelte-lobby-mount')?.firstElementChild);
   const colorContainer = document.getElementById('setup-color-swatches');
-  if (colorContainer) {
+  if (!isSvelteMounted && colorContainer) {
     const curIdx = (selectedSetupPlayerIdx < lobbyPlayerCount) ? selectedSetupPlayerIdx : 0;
     const curPlayer = matchSettings.customPlayers[curIdx];
     const curHex = (curPlayer?.colorHex || '#3b82f6').toLowerCase();

@@ -13,10 +13,7 @@ import { isAnyModalOpen } from './svelte/stores/modalStore.js';
 import { mount } from 'svelte';
 import ModalsRoot from './svelte/modals/ModalsRoot.svelte';
 import GameHud from './svelte/hud/GameHud.svelte';
-import PlayerSetupCards from './svelte/lobby/PlayerSetupCards.svelte';
-import LobbyNetworkStatus from './svelte/lobby/LobbyNetworkStatus.svelte';
-import MatchSettingsPanel from './svelte/lobby/MatchSettingsPanel.svelte';
-import MultiplayerPortal from './svelte/lobby/MultiplayerPortal.svelte';
+import LobbyScreen from './svelte/lobby/LobbyScreen.svelte';
 import DebugDrawer from './svelte/debug/DebugDrawer.svelte';
 import { initThreeScene, initTheatreSuite, resetCameraView, rotateBoardLeft, rotateBoardRight, getSceneLighting, triggerTileButtonPress } from './three/scene.js';
 import { context } from './three/core/context.js';
@@ -684,41 +681,15 @@ function initApp() {
     }
   }, 1000);
 
-  // Mount Svelte 5 Declarative Overlays (HUD, Modals & Lobby Roster)
+  // Mount Svelte 5 Declarative Overlays (Lobby, HUD & Modals)
   if (typeof document !== 'undefined') {
-    const rosterContainer = document.getElementById('setup-players-roster');
-    if (rosterContainer) {
+    const lobbyMount = document.getElementById('svelte-lobby-mount') || document.getElementById('landing-setup-screen');
+    if (lobbyMount) {
       try {
-        rosterContainer.innerHTML = '';
-        mount(PlayerSetupCards, { target: rosterContainer });
+        lobbyMount.innerHTML = '';
+        mount(LobbyScreen, { target: lobbyMount });
       } catch (err) {
-        console.warn('[Svelte] PlayerSetupCards mounting deferred:', err);
-      }
-    }
-
-    try { mountLobbyNetworkStatus('lobby-room-status-mount', 'room'); } catch (e) { console.warn('[Svelte] mount room status failed:', e); }
-    try { mountLobbyNetworkStatus('lobby-network-badge-mount', 'badge'); } catch (e) { console.warn('[Svelte] mount badge status failed:', e); }
-    try { mountLobbyNetworkStatus('lobby-network-status-mount', 'status'); } catch (e) { console.warn('[Svelte] mount status failed:', e); }
-    try { mountLobbyNetworkStatus('lobby-portal-status-mount', 'portal'); } catch (e) { console.warn('[Svelte] mount portal status failed:', e); }
-    try { mountLobbyNetworkStatus('lobby-play-button-mount', 'play'); } catch (e) { console.warn('[Svelte] mount play button failed:', e); }
-
-    const settingsMount = document.getElementById('lobby-settings-mount');
-    if (settingsMount) {
-      try {
-        settingsMount.innerHTML = '';
-        mount(MatchSettingsPanel, { target: settingsMount });
-      } catch (err) {
-        console.warn('[Svelte] MatchSettingsPanel mounting deferred:', err);
-      }
-    }
-
-    const portalMount = document.getElementById('lobby-portal-mount');
-    if (portalMount) {
-      try {
-        portalMount.innerHTML = '';
-        mount(MultiplayerPortal, { target: portalMount });
-      } catch (err) {
-        console.warn('[Svelte] MultiplayerPortal mounting deferred:', err);
+        console.warn('[Svelte] LobbyScreen mounting deferred:', err);
       }
     }
 
@@ -800,17 +771,6 @@ function initApp() {
       }
     }
   });
-}
-
-function mountLobbyNetworkStatus(mountId, variant) {
-  const mountTarget = document.getElementById(mountId);
-  if (!mountTarget) return;
-  try {
-    mountTarget.innerHTML = '';
-    mount(LobbyNetworkStatus, { target: mountTarget, props: { variant } });
-  } catch (err) {
-    console.warn(`[Svelte] mountLobbyNetworkStatus(${mountId}) error:`, err);
-  }
 }
 
 if (document.readyState === 'loading') {

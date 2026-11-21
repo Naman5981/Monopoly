@@ -186,6 +186,19 @@
             </span>
           </div>
         </div>
+
+      <!-- 6. Go Salary Burst Banner -->
+      {:else if banner.activeBanner === 'salary'}
+        <div
+          id="go-salary-burst-banner"
+          style="display: flex;"
+          class="relative px-6 py-2.5 rounded-3xl bg-gradient-to-r from-emerald-500 to-teal-700 border-3 border-white text-white font-display font-black text-xl sm:text-2xl tracking-wider uppercase shadow-[0_12px_40px_rgba(16,185,129,0.6)] flex items-center gap-2 transform -translate-y-16 select-none"
+          transition:scale={{ duration: 420, start: 0.3, easing: backOut }}
+        >
+          <span>💰</span>
+          <span>{banner.data.amountLabel || '$200K'} SALARY!</span>
+          <span>🚩</span>
+        </div>
       {/if}
 
     </div>
