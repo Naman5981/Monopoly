@@ -126,42 +126,6 @@ export function showVictoryModal(winner, victoryDetails = null) {
     playAgainDisabled: false
   });
 
-  // Calculate and award Tycoon Stars for match completion
-  try {
-    const humanPlayer = gameState.players?.find(p => !p.isAI) || gameState.players?.[0];
-    const humanIdx = humanPlayer ? (humanPlayer.id !== undefined ? humanPlayer.id : gameState.players.indexOf(humanPlayer)) : 0;
-    const isHumanWinner = winnerObj && (winnerObj.id === humanIdx || winnerObj === humanPlayer);
-
-    let humanOwnedCities = 0;
-    let humanMonopolies = 0;
-    if (humanPlayer && gameState.properties) {
-      humanOwnedCities = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === humanIdx).length;
-      const checkedGroups = new Set();
-      BOARD_TILES.forEach(t => {
-        if (t.type === 'city' && t.group && !checkedGroups.has(t.group)) {
-          checkedGroups.add(t.group);
-          if (ownsFullColorGroup(humanIdx, t.group)) {
-            humanMonopolies++;
-          }
-        }
-      });
-    }
-
-    const rewardResult = awardMatchPoints({
-      isWinner: isHumanWinner,
-      propertiesOwned: humanOwnedCities,
-      monopoliesCount: humanMonopolies
-    });
-
-    updateModalSlice('victory', {
-      starsEarned: `+${rewardResult.totalEarned.toLocaleString()} ⭐`,
-      totalBalanceStars: `${rewardResult.newBalance.toLocaleString()} ⭐`,
-      rewardBreakdown: rewardResult.breakdown
-    });
-  } catch (err) {
-    console.warn('Failed to calculate victory rewards:', err);
-  }
-
   try {
     updateModalSlice('victory', { historyChart: buildNetWorthChartData() });
   } catch (chartErr) {

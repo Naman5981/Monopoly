@@ -59,6 +59,11 @@ const initialModalState = {
     resultTitle: 'CHANCE CARD',
     resultDesc: ''
   },
+  editName: {
+    visible: false,
+    currentName: '',
+    playerIdx: 0
+  },
   festivalBoost: {
     visible: false,
     noPropertiesVisible: false,
@@ -371,5 +376,21 @@ function syncModalDom(modalKey, slice) {
       toggleElementVisibility('modal-monopoly-celebration', slice.visible);
       break;
     }
+    case 'editName': {
+      toggleElementVisibility('modal-edit-name', slice.visible);
+      break;
+    }
   }
+}
+
+export function openEditNameModal(initialName = '', playerIdx = 0) {
+  updateModalSlice('editName', {
+    visible: true,
+    currentName: initialName || '',
+    playerIdx
+  });
+}
+
+export function closeEditNameModal() {
+  updateModalSlice('editName', { visible: false });
 }

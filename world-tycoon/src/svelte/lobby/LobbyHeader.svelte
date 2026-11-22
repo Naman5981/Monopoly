@@ -22,10 +22,6 @@
     }
   }
 
-  function checkUpdate() {
-    window.checkGameUpdateManually?.();
-  }
-
   function toggleDebug() {
     window.toggleDebugPanel?.();
   }
@@ -71,12 +67,6 @@
           <svg class="ui-icon w-3 h-3 text-amber-500 flex-shrink-0" aria-hidden="true"><use href="#icon-crown"></use></svg>
           <i id="setup-profile-edit-icon" class="fa-solid {isTitle ? 'fa-pen text-amber-500' : 'fa-lock text-slate-400'} text-[8px] ml-0.5 flex-shrink-0"></i>
         </div>
-        <span class="w-px h-3.5 bg-slate-200"></span>
-        <div class="inline-flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[11px] shadow-xs border border-amber-300" title="Your Tycoon Stars">
-          <svg class="ui-icon w-3 h-3 text-slate-950 flex-shrink-0" aria-hidden="true"><use href="#icon-star"></use></svg>
-          <span id="setup-profile-stars" class="font-mono tabular-nums text-[11px] font-black">{state.profileStars ?? 500}</span>
-          <span class="hidden sm:inline text-[9px] uppercase tracking-wider font-extrabold text-amber-950">STARS</span>
-        </div>
       </div>
     </div>
   </div>
@@ -92,10 +82,6 @@
       <div class="logo-edition-pill text-[9px] sm:text-[10px]">
         GLOBAL EDITION
       </div>
-      <button id="btn-version-pill" onclick={checkUpdate} class="logo-edition-pill !bg-slate-800/80 hover:!bg-slate-700/90 text-sky-300 border border-sky-400/30 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-mono cursor-pointer transition-all flex items-center gap-1 active:scale-95" title="Game Version — Click to check for updates" aria-label="Game Version and Update Status">
-        <span id="version-pill-dot" class="w-1.5 h-1.5 rounded-full {state.hasUpdate ? 'bg-amber-400 animate-ping' : 'bg-slate-400'}"></span>
-        <span id="version-pill-text">{state.gameVersion || 'v2.0.1'}</span>
-      </button>
     </div>
   </div>
 

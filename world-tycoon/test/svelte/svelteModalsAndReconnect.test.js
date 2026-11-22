@@ -7,7 +7,13 @@ import { fileURLToPath } from 'url';
 import { setupBrowserMocks } from '../setup.js';
 setupBrowserMocks();
 
-import { modalStore, updateModalSlice, closeAllModalsInStore } from '../../src/svelte/stores/modalStore.js';
+import {
+  modalStore,
+  updateModalSlice,
+  closeAllModalsInStore,
+  openEditNameModal,
+  closeEditNameModal
+} from '../../src/svelte/stores/modalStore.js';
 import { gameState, resetGameStateForNewMatch, isHumanTurnActionable, setLocalPlayerIdx } from '../../src/game/state.js';
 import { networkState } from '../../src/network/p2pState.js';
 import { convertRemotePlayersToBots, startGuestReconnectGracePeriod, cancelGuestReconnectGracePeriod } from '../../src/network/p2pReconnect.js';
@@ -92,6 +98,26 @@ describe('Svelte Modals & P2P Reconnect State Freeze (/bug-hunter)', () => {
 
     networkState.isReconnecting = false;
     assert.equal(isHumanTurnActionable(), true, 'Actionability restored when reconnecting ends');
+  });
+
+  test('verifies EditNameModal exists and opens/closes via modalStore', () => {
+    const rootPath = path.join(srcDir, 'svelte/modals/ModalsRoot.svelte');
+    const content = fs.readFileSync(rootPath, 'utf8');
+
+    assert.ok(content.includes('EditNameModal'), 'ModalsRoot imports EditNameModal');
+    assert.ok(fs.existsSync(path.join(srcDir, 'svelte/modals/EditNameModal.svelte')));
+
+    let currentStore;
+    const unsub = modalStore.subscribe(val => { currentStore = val; });
+
+    openEditNameModal('TYCOON_BOSS', 1);
+    assert.equal(currentStore.editName?.visible, true);
+    assert.equal(currentStore.editName?.currentName, 'TYCOON_BOSS');
+    assert.equal(currentStore.editName?.playerIdx, 1);
+
+    closeEditNameModal();
+    assert.equal(currentStore.editName?.visible, false);
+    unsub();
   });
 
   test('convertRemotePlayersToBots unfreezes state and converts other players to AI', () => {

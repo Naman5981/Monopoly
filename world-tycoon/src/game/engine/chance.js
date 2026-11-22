@@ -4,7 +4,7 @@
  */
 
 import { BOARD_TILES, CHANCE_WHEEL_PRIZES } from '../data.js';
-import { gameState, displayedCash } from '../state.js';
+import { gameState, matchSettings, displayedCash } from '../state.js';
 import { fmtMoney } from '../utils.js';
 import { playSFX } from '../audio.js';
 import { checkAndHandleNegativeCash } from '../rules.js';
@@ -173,12 +173,43 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
         }
       }
     }
+  } else if (prize.type === 'upgrade') {
+    const owned = BOARD_TILES.filter(t => t.type === 'city' && gameState.properties[t.id]?.owner === playerIdx);
+    const upgradeable = owned.filter(t => (gameState.properties[t.id]?.level || 0) < 4);
+
+    if (upgradeable.length > 0) {
+      upgradeable.sort((a, b) => {
+        const lvlA = gameState.properties[a.id]?.level || 0;
+        const lvlB = gameState.properties[b.id]?.level || 0;
+        return lvlA - lvlB;
+      });
+      const targetTile = upgradeable[0];
+      const st = gameState.properties[targetTile.id];
+      st.level = (st.level || 0) + 1;
+      refreshTileTextureAndBuildings(targetTile.id);
+      playSFX('build');
+      showSpeechBubble(`🏛️ Free Haveli on ${targetTile.name}!`, 2500);
+      logEvent(`🏛️ <strong>${p.name}</strong> received a free Haveli upgrade on <strong>${targetTile.name}</strong> (now Level ${st.level})!`);
+    } else {
+      const grant = prize.amount || 250000;
+      p.cash += grant;
+      if (displayedCash) displayedCash[playerIdx] = p.cash;
+      playSFX('jackpot');
+      showSpeechBubble(`💰 +${fmtMoney(grant)} Architect Grant!`, 2500);
+      spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(grant)}`, true);
+      logEvent(`💰 <strong>${p.name}</strong> received <strong>${fmtMoney(grant)}</strong> Royal Architect Grant.`);
+    }
+    renderCornerHUDs();
+    if (networkState.isMultiplayer && networkState.isHost) {
+      broadcastFullGameState();
+    }
   } else if (prize.type === 'island') {
     const fromPos = p.position;
     gameState.phase = 'MOVING';
     playSFX('island');
     setTileHighlightRing(8, true);
-    showSpeechBubble('🏝️ Detained on Tropical Island!', 2800);
+    const isRajasthan = matchSettings?.boardEdition === 'rajasthan';
+    showSpeechBubble(isRajasthan ? '🏜️ Detained in Thar Desert Jail!' : '🏝️ Detained on Tropical Island!', 2800);
     await flyPlayerDirectFlightAnimation(playerIdx, fromPos, 8);
     p.position = 8;
     p.inIsland = true;
@@ -203,8 +234,10 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
     playSFX('flight');
     setTileHighlightRing(dest, true);
 
+    const isRajasthan = matchSettings?.boardEdition === 'rajasthan';
+
     if (dest === 0) {
-      showSpeechBubble('🚀 Express Jet to START!', 2500);
+      showSpeechBubble(isRajasthan ? '🚂 Palace on Wheels Express to START!' : '🚀 Express Jet to START!', 2500);
       await flyPlayerDirectFlightAnimation(playerIdx, fromPos, 0);
       p.position = 0;
       resetTokenAfterHop(playerIdx);
@@ -224,6 +257,23 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       }
       if (!isRemote && window.concludeActionPhase) {
         window.concludeActionPhase(isDoubles);
+      }
+    } else if (dest === 16) {
+      showSpeechBubble(isRajasthan ? '🐪 Royal Caravan to Pushkar Fair!' : '🎪 Flying to World Festival!', 2500);
+      await flyPlayerDirectFlightAnimation(playerIdx, fromPos, dest);
+      p.position = dest;
+      resetTokenAfterHop(playerIdx);
+      updatePlayerTokenPositions3D();
+      playSFX('hop');
+      setTimeout(() => setTileHighlightRing(dest, false), 900);
+      showSpeechBubble(isRajasthan ? '🎪 Arrived at Pushkar Fair Mela!' : '🎪 Landed on World Festival!', 2200);
+      await new Promise(r => setTimeout(r, 650));
+      renderCornerHUDs();
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
+      }
+      if (window.evaluateTileLanding) {
+        await window.evaluateTileLanding(playerIdx, isDoubles);
       }
     } else {
       showSpeechBubble(`✈️ Flying to ${BOARD_TILES[dest]?.name || 'Destination'}!`, 2500);

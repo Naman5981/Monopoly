@@ -136,12 +136,12 @@ const WORLD_CHANCE_WHEEL_PRIZES = [
 ];
 
 const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
-  { label: '+400K Grant',    color: '#1e293b', themeColor: '#059669', type: 'cash',   amount: 400000, icon: '💰', sub: 'GRANT',   title: 'Royal Heritage Grant',     desc: 'Royal Heritage Trust Grant! Collect 400K!'             },
-  { label: 'Train to START', color: '#312e81', themeColor: '#0284c7', type: 'move',   target: 0,      icon: '🚂', sub: '+350K',   title: 'Royal Express to START',   desc: 'Royal Express to START! Collect +$350,000 salary!' },
-  { label: '-200K Fine',     color: '#1e293b', themeColor: '#e11d48', type: 'tax',    amount: 200000, icon: '⚠️', sub: 'TAX',     title: 'Fort Preservation Audit',  desc: 'Fort Preservation Audit! Pay 200K into Festival Pool.' },
-  { label: '+250K Bonus',    color: '#312e81', themeColor: '#d97706', type: 'cash',   amount: 250000, icon: '💎', sub: 'BONUS',   title: 'Syndicate Dividend',       desc: 'Marwar Trade Syndicate Dividend! Collect 250K!'        },
-  { label: 'Desert Jail',    color: '#1e293b', themeColor: '#ea580c', type: 'island',                 icon: '🏜️', sub: 'JAIL',    title: 'Desert Retreat Arrest',    desc: 'Thar Dust Storm! Detained at Desert Retreat!'          },
-  { label: 'Royal Express!', color: '#312e81', themeColor: '#7c3aed', type: 'move',   target: 24,     icon: '🚂', sub: 'TRAIN',   title: 'Royal Express Station',    desc: 'VIP Ticket to Palace on Wheels Station!'               },
+  { label: '+400K Vault',    color: '#1e293b', themeColor: '#059669', type: 'cash',    amount: 400000, icon: '👑', sub: 'VAULT',   title: 'Amber Fort Vault',         desc: 'Discovered hidden royal treasury in Amber Fort! Collect 400K!' },
+  { label: 'Pushkar Fair!',  color: '#312e81', themeColor: '#d97706', type: 'move',    target: 16,     icon: '🎪', sub: 'MELA',    title: 'Pushkar Fair Caravan',     desc: 'Ride royal caravan to Pushkar Fair (Tile 16)! Collect pot & boost rent 2x!' },
+  { label: '-200K Cess',     color: '#1e293b', themeColor: '#e11d48', type: 'tax',     amount: 200000, icon: '⚠️', sub: 'CESS',    title: 'Heritage Trust Audit',      desc: 'Archaeological Conservation Cess! Pay 200K into Pushkar Fair Pool.' },
+  { label: 'Royal Haveli',   color: '#312e81', themeColor: '#d97706', type: 'upgrade', amount: 250000, icon: '🏛️', sub: 'HAVELI',  title: "Maharaja's Architect",     desc: 'Free Haveli upgrade on your estate, or collect 250K grant!' },
+  { label: 'Desert Jail',    color: '#1e293b', themeColor: '#ea580c', type: 'island',                  icon: '🏜️', sub: 'JAIL',    title: 'Thar Dust Storm',          desc: 'Blinding Thar sandstorm! Detained at Desert Retreat!' },
+  { label: 'Train to START', color: '#312e81', themeColor: '#0284c7', type: 'move',    target: 0,      icon: '🚂', sub: '+350K',   title: 'Palace on Wheels Express', desc: 'Royal luxury express to START! Collect +$350,000 salary!' },
 ];
 
 export const BOARD_EDITIONS = {

@@ -11,10 +11,6 @@
   function onPlayAgain() {
     window.handlePlayAgainAction?.();
   }
-
-  function onOpenWardrobe() {
-    window.openWardrobeModal?.();
-  }
 </script>
 
 <div id="modal-victory" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[9999] items-center justify-center p-3 sm:p-5 overflow-y-auto overscroll-contain {state.visible ? 'flex' : 'hidden'}">
@@ -108,28 +104,6 @@
               </div>
             </div>
           {/each}
-        </div>
-      </div>
-
-      <!-- Tycoon Star Rewards Pill Card -->
-      <div id="victory-reward-card" class="bg-gradient-to-r from-amber-50/90 to-yellow-50/90 border border-amber-300/80 rounded-2xl p-2.5 px-3 flex items-center justify-between shadow-2xs">
-        <div class="flex items-center gap-2">
-          <span class="text-xl select-none">⭐</span>
-          <div>
-            <div class="text-[10px] font-black text-amber-950 uppercase tracking-wider">Tycoon Stars</div>
-            <div class="text-xs font-extrabold text-amber-900">
-              Total: <span class="font-black text-slate-900 tabular-nums">{state.totalBalanceStars || '500 ⭐'}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <span class="font-rounded font-black text-base text-amber-600 tabular-nums">
-            {state.starsEarned || '+0 ⭐'}
-          </span>
-          <button onclick={onOpenWardrobe} class="px-2.5 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] shadow-2xs border border-amber-500/30 flex items-center gap-1 cursor-pointer transition-transform active:scale-95" title="Open Wardrobe & customize character">
-            <span>👔 Wardrobe</span>
-          </button>
         </div>
       </div>
 

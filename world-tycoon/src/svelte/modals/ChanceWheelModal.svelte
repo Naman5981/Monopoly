@@ -1,6 +1,7 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
   import { CHANCE_WHEEL_PRIZES } from '../../game/data.js';
+  import { matchSettings } from '../../game/state.js';
   import { drawChanceWheelCanvas } from '../../ui/modals/chanceCanvas.js';
 
   let state = $state({});
@@ -171,15 +172,15 @@
         color: {state.wonPrize ? '#6ee7b7' : '#fde047'};
       "
     >
-      <span class="text-sm">💎</span>
-      <span>{state.wonPrize ? 'FORTUNE UNLOCKED' : 'CHANCE CARD DECK'}</span>
+      <span class="text-sm">{matchSettings?.boardEdition === 'rajasthan' ? '👑' : '💎'}</span>
+      <span>{state.wonPrize ? (matchSettings?.boardEdition === 'rajasthan' ? 'ROYAL DECREE REVEALED' : 'FORTUNE UNLOCKED') : (matchSettings?.boardEdition === 'rajasthan' ? 'ROYAL CHANCE DECK' : 'CHANCE CARD DECK')}</span>
     </div>
 
     <!-- Title -->
     <div class="text-lg sm:text-xl font-black text-white tracking-tight mb-2 drop-shadow-md">
       {state.wonPrize
-        ? (state.isSpectator ? `${state.playerName || 'Player'}'s Fortune Card` : 'Your Fortune Card')
-        : (state.isSpectator ? `${state.playerName || 'Player'} is picking a card...` : 'Pick Your Fortune Card')}
+        ? (state.isSpectator ? `${state.playerName || 'Player'}'s Fortune Card` : (matchSettings?.boardEdition === 'rajasthan' ? 'Your Royal Decree' : 'Your Fortune Card'))
+        : (state.isSpectator ? `${state.playerName || 'Player'} is picking a card...` : (matchSettings?.boardEdition === 'rajasthan' ? 'Draw Your Royal Decree' : 'Pick Your Fortune Card'))}
     </div>
 
     <!-- 3D Perspective Card Fan Viewport -->
@@ -270,19 +271,19 @@
 
                 <!-- Header -->
                 <div class="font-mono text-[10px] font-black text-amber-200 tracking-widest uppercase z-10">
-                  FORTUNE
+                  {matchSettings?.boardEdition === 'rajasthan' ? 'ROYAL DECREE' : 'FORTUNE'}
                 </div>
 
                 <!-- Golden 3D Question Mark Crest -->
                 <div class="my-auto flex flex-col items-center z-10">
                   <div class="text-4xl sm:text-5xl font-black text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.85)] leading-none">
-                    ?
+                    {matchSettings?.boardEdition === 'rajasthan' ? '👑' : '?'}
                   </div>
                 </div>
 
                 <!-- Footer -->
                 <div class="font-mono text-[9px] font-black text-amber-300/80 tracking-widest uppercase z-10">
-                  &bull; DECK &bull;
+                  {matchSettings?.boardEdition === 'rajasthan' ? '• PALACE •' : '• DECK •'}
                 </div>
               </div>
             {/if}
@@ -309,7 +310,7 @@
               <i class="fa-solid fa-eye text-slate-950 text-base"></i>
               <span>WATCHING {state.playerName ? state.playerName.toUpperCase() : 'DRAW'}...</span>
             {:else}
-              <span>✨ DRAW CHANCE CARD</span>
+              <span>{matchSettings?.boardEdition === 'rajasthan' ? '👑 DRAW ROYAL DECREE' : '✨ DRAW CHANCE CARD'}</span>
             {/if}
           </span>
         </button>

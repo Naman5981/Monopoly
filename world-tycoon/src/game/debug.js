@@ -107,7 +107,6 @@ export function initDebugSuite() {
     leaderboard: () => window.toggleLeaderboardModal?.(),
     scenario: (key) => debugRunScenario(key),
     toggleUI: () => toggleDebugPanel(),
-    checkUpdate: () => window.checkGameUpdateManually?.(),
     state: () => ({ gameState, debugState, matchSettings })
   };
 

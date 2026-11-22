@@ -116,10 +116,15 @@ test('Rajasthan Edition - Data Integrity & Balance Verification', async (t) => {
     const prizes = CHANCE_WHEEL_PRIZES;
     assert.equal(prizes.length, 6);
 
-    const expressPrize = prizes.find(p => p.target === 24);
-    assert.ok(expressPrize, 'Must have Royal Express prize for target 24');
-    assert.equal(expressPrize.icon, '🚂');
-    assert.equal(expressPrize.label, 'Royal Express!');
+    const pushkarPrize = prizes.find(p => p.target === 16);
+    assert.ok(pushkarPrize, 'Must have Pushkar Fair Caravan prize for target 16');
+    assert.equal(pushkarPrize.icon, '🎪');
+    assert.equal(pushkarPrize.label, 'Pushkar Fair!');
+
+    const haveliPrize = prizes.find(p => p.type === 'upgrade');
+    assert.ok(haveliPrize, 'Must have Maharaja Architect free Haveli upgrade prize');
+    assert.equal(haveliPrize.icon, '🏛️');
+    assert.equal(haveliPrize.label, 'Royal Haveli');
 
     const startPrize = prizes.find(p => p.target === 0);
     assert.ok(startPrize, 'Must have train to START prize');
@@ -129,6 +134,14 @@ test('Rajasthan Edition - Data Integrity & Balance Verification', async (t) => {
     assert.ok(jailPrize, 'Must have desert jail prize');
     assert.equal(jailPrize.icon, '🏜️');
     assert.equal(jailPrize.label, 'Desert Jail');
+
+    const vaultPrize = prizes.find(p => p.type === 'cash');
+    assert.ok(vaultPrize, 'Must have Amber Fort Vault cash prize');
+    assert.equal(vaultPrize.amount, 400000);
+
+    const cessPrize = prizes.find(p => p.type === 'tax');
+    assert.ok(cessPrize, 'Must have Fort Heritage Cess tax prize');
+    assert.equal(cessPrize.amount, 200000);
   });
 
   await t.test('can switch back to world edition seamlessly', () => {

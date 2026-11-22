@@ -9,7 +9,7 @@ import { gameState, debugState, incrementMatchSeconds, matchSeconds, soundEnable
 import { updateMasterVolume, playSFX, initAudioUnlock, startAdaptiveMusic, stopAdaptiveMusic } from './game/audio.js';
 import { updateGameSpeedUI, showTurnLockToast, initFastHUDButtonInteractions, updateSoundUI, handleSetGameVolume, handleToggleSound } from './ui/hud.js';
 import { updateHudState } from './svelte/stores/hudStore.js';
-import { isAnyModalOpen } from './svelte/stores/modalStore.js';
+import { isAnyModalOpen, openEditNameModal } from './svelte/stores/modalStore.js';
 import { mount } from 'svelte';
 import ModalsRoot from './svelte/modals/ModalsRoot.svelte';
 import GameHud from './svelte/hud/GameHud.svelte';
@@ -276,11 +276,7 @@ export function promptEditPlayerName() {
   const current = (matchSettings.customPlayers[myIdx] && matchSettings.customPlayers[myIdx].name)
     ? matchSettings.customPlayers[myIdx].name
     : getSavedPlayerName();
-  const next = window.prompt('Enter your Tycoon Name (max 14 characters):', current);
-  if (next !== null && next.trim()) {
-    setPlayerSetupName(myIdx, next.trim());
-    dismissNameHeadsUp(true);
-  }
+  openEditNameModal(current, myIdx);
 }
 
 window.getNetworkLocalPlayerIdx = getNetworkLocalPlayerIdx;

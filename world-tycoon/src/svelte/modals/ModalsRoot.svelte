@@ -16,6 +16,7 @@
   import ReconnectGraceModal from './ReconnectGraceModal.svelte';
   import LeaderboardModal from './LeaderboardModal.svelte';
   import MonopolyCelebrationModal from './MonopolyCelebrationModal.svelte';
+  import EditNameModal from './EditNameModal.svelte';
 </script>
 
 <div class="game-modals-svelte-root">
@@ -36,4 +37,5 @@
   <ReconnectGraceModal />
   <LeaderboardModal />
   <MonopolyCelebrationModal />
+  <EditNameModal />
 </div>
