@@ -51,28 +51,6 @@ export function animateLobbyEntrance() {
 }
 
 /**
- * Staggers wardrobe item cards when opening or switching category tabs.
- * @param {string} gridSelector - Default '#wardrobe-items-grid > div'
- */
-export function animateWardrobeGridCascade(gridSelector = '#wardrobe-items-grid > div') {
-  if (typeof anime === 'undefined' || isReducedMotion()) return;
-
-  const cards = document.querySelectorAll(gridSelector);
-  if (!cards.length) return;
-
-  anime.remove(cards);
-  anime({
-    targets: cards,
-    translateY: [24, 0],
-    scale: [0.94, 1],
-    opacity: [0, 1],
-    delay: anime.stagger(30),
-    duration: 380,
-    easing: 'cubicBezier(0.2, 0, 0, 1)'
-  });
-}
-
-/**
  * P2P Multiplayer Join Radar Ping
  * @param {number} slotIndex - Roster slot index
  */

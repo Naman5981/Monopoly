@@ -6,7 +6,6 @@
 
 import { context } from './context.js';
 import { updateCameraDamping, cameraState } from './camera.js';
-import { updateRoadCarsAnimation } from '../environment/cars.js';
 import { updateCloudsAndBalloons } from '../environment/clouds.js';
 import { updateAvatarIdleAnimations, renderLive3DHUDPortraits, updatePlayerTokenPositions3D } from '../pawns/tokens.js';
 import { renderCityPreviewStage } from '../stages/cityPreview.js';
@@ -92,7 +91,6 @@ export function animateThreeLoop() {
 
   // 2. Roadway traffic simulation & clouds (Interleaved to balance CPU load)
   if (shadowTick % 2 === 0) {
-    updateRoadCarsAnimation();
     updateCloudsAndBalloons(t);
   }
 

@@ -1,7 +1,6 @@
 /**
  * test/svelte/wardrobeAndLayoutUi.test.js
- * Verification of Wardrobe modal visibility contracts, 3D character preview positioning,
- * and TopBar / StatusPill defensive layout positioning (/better-interface /bug-hunter /game-art).
+ * Verification of TopBar / StatusPill defensive layout positioning (/better-interface /bug-hunter /game-art).
  */
 
 import { describe, it, beforeEach } from 'node:test';
@@ -13,9 +12,7 @@ import { setupBrowserMocks } from '../setup.js';
 
 setupBrowserMocks();
 
-import { modalStore, updateModalSlice, closeAllModalsInStore } from '../../src/svelte/stores/modalStore.js';
-import { closeAllGameModals } from '../../src/ui/modals/common.js';
-import { WARDROBE_ITEMS, openWardrobeModal, closeWardrobeModal, previewWardrobeItem, setWardrobeCategory } from '../../src/ui/wardrobe.js';
+import { closeAllModalsInStore } from '../../src/svelte/stores/modalStore.js';
 import { matchSettings, lobbyPlayerCount, setLobbyPlayerCount } from '../../src/game/state.js';
 import { CANDY_PALETTE, setPlayerColor, setLocalPlayerColor, ensureBotsHaveUniqueColors, setSelectedSetupPlayerIdx } from '../../src/ui/setup/playerCustomization.js';
 import { renderMatchSettingButtons } from '../../src/ui/setup/matchSettingsUI.js';
@@ -25,7 +22,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..', '..');
 
-describe('Wardrobe & HUD Layout Verification (/better-interface /game-art /bug-hunter)', () => {
+describe('HUD & Chance Wheel Layout Verification (/better-interface /game-art /bug-hunter)', () => {
   beforeEach(() => {
     closeAllModalsInStore();
     document.body.innerHTML = `
@@ -33,14 +30,7 @@ describe('Wardrobe & HUD Layout Verification (/better-interface /game-art /bug-h
         <div id="lobby-hero-column">
           <div id="title-menu-actions"></div>
           <div class="lobby-hero-default-controls"></div>
-          <div class="lobby-hero-wardrobe-controls"></div>
         </div>
-      </div>
-      <div id="modal-wardrobe" class="hidden wardrobe-panel-hidden">
-        <div id="wardrobe-backdrop"></div>
-        <div id="wardrobe-panel-card"></div>
-        <div id="wardrobe-items-grid"></div>
-        <span id="wardrobe-stars-balance">150</span>
       </div>
       <header id="main-game-hud-bar" class="hidden"></header>
       <div id="hud-bottom-status-wrap" class="hidden"></div>
@@ -51,35 +41,6 @@ describe('Wardrobe & HUD Layout Verification (/better-interface /game-art /bug-h
         <div class="ticker-pin-needle"></div>
       </div>
     `;
-  });
-
-  it('verifies WardrobeModal contains wardrobe-panel-visible when state.visible is true', () => {
-    updateModalSlice('wardrobe', { visible: true, activeCategory: 'hat', starsBalance: 300 });
-
-    let state;
-    const unsub = modalStore.subscribe(val => { state = val.wardrobe; });
-    unsub();
-
-    assert.equal(state.visible, true);
-    assert.equal(state.activeCategory, 'hat');
-    assert.equal(state.starsBalance, 300);
-
-    const svelteSrc = fs.readFileSync(path.join(rootDir, 'src', 'svelte', 'modals', 'WardrobeModal.svelte'), 'utf8');
-    assert.ok(
-      svelteSrc.includes("state.visible ? 'flex wardrobe-panel-visible pointer-events-auto' : 'hidden wardrobe-panel-hidden pointer-events-none'"),
-      'WardrobeModal.svelte must bind wardrobe-panel-visible and pointer-events-auto reactively'
-    );
-  });
-
-  it('removes inline display: none and restores wardrobe drawer visibility when opening wardrobe modal after closeAllGameModals (/bug-hunter)', () => {
-    closeAllGameModals();
-    const modalEl = document.getElementById('modal-wardrobe');
-    assert.equal(modalEl.style.display, 'none', 'Modal wardrobe must have display: none after closeAllGameModals');
-
-    openWardrobeModal();
-    assert.equal(modalEl.style.display, '', 'Modal wardrobe must have display property removed on open');
-    assert.ok(modalEl.classList.contains('wardrobe-panel-visible'), 'Modal wardrobe must have wardrobe-panel-visible class');
-    assert.ok(!modalEl.classList.contains('hidden'), 'Modal wardrobe must not have hidden class');
   });
 
   it('verifies style.css contains defensive layout for main-game-hud-bar and hud-bottom-status-wrap', () => {
@@ -94,22 +55,6 @@ describe('Wardrobe & HUD Layout Verification (/better-interface /game-art /bug-h
     assert.ok(styleCss.includes('#hud-bottom-status-wrap {'), 'hud-bottom-status-wrap must be defined in style.css');
     assert.ok(styleCss.includes('bottom: 16px !important;'), 'hud-bottom-status-wrap must be anchored to bottom');
     assert.ok(styleCss.includes('transform: translateX(-50%) !important;'), 'hud-bottom-status-wrap must be centered');
-  });
-
-  it('verifies 3D hero stage shifts left without flying offscreen in wardrobe mode', () => {
-    const styleCss = fs.readFileSync(path.join(rootDir, 'src', 'style.css'), 'utf8');
-
-    // Hero column transform should shift to left stage (-18vw / -260px), NOT -100%
-    assert.ok(
-      styleCss.includes('transform: translate3d(min(-18vw, -260px), 0, 0) !important;'),
-      'Hero column must shift to center of left stage instead of translating offscreen'
-    );
-
-    // Title menu actions must be hidden during wardrobe mode
-    assert.ok(
-      styleCss.includes('.wardrobe-mode-active #title-menu-actions,'),
-      'Title menu actions must be cleanly hidden during wardrobe mode'
-    );
   });
 
   it('verifies Chance Wheel ticker needle CSS classes exist and render golden 3D pin', () => {

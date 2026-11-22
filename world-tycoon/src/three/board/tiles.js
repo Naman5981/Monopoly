@@ -45,7 +45,7 @@ export function createTileTexture(tile, propState, isUpright = false) {
   return tex;
 }
 
-export function createTileBorderFrame(colorHex) {
+export function createTileBorderFrame(colorHex, rimW = 2.96, rimD = 3.60) {
   const frameGroup = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({
     color: new THREE.Color(colorHex),
@@ -57,17 +57,16 @@ export function createTileBorderFrame(colorHex) {
     opacity: 0.96
   });
 
-  const rimW = 2.96;
   const rimThick = 0.14;
   const rimH = 0.045;
 
   const barNSGeo = new THREE.BoxGeometry(rimW, rimH, rimThick);
   const barN = new THREE.Mesh(barNSGeo, mat);
-  barN.position.set(0, 0.125, -(rimW - rimThick) / 2);
+  barN.position.set(0, 0.125, -(rimD - rimThick) / 2);
   const barS = new THREE.Mesh(barNSGeo, mat);
-  barS.position.set(0, 0.125, (rimW - rimThick) / 2);
+  barS.position.set(0, 0.125, (rimD - rimThick) / 2);
 
-  const barEWGeo = new THREE.BoxGeometry(rimThick, rimH, rimW - rimThick * 2);
+  const barEWGeo = new THREE.BoxGeometry(rimThick, rimH, Math.max(0.1, rimD - rimThick * 2));
   const barE = new THREE.Mesh(barEWGeo, mat);
   barE.position.set((rimW - rimThick) / 2, 0.125, 0);
   const barW = new THREE.Mesh(barEWGeo, mat);
@@ -124,14 +123,20 @@ export function buildAllBoardTiles3D(boardGroup) {
       roughness: isCyber ? 0.20 : (isElegant ? 0.15 : 0.28),
       metalness: isCyber ? 0.15 : (isElegant ? 0.08 : 0.02)
     });
+    const isCorner = [0, 8, 16, 24].includes(tile.id);
+    const tileW = isCorner ? 3.60 : 2.96;
+    const tileD = 3.60;
+    const geoW = (pos.side === 1 || pos.side === 3) && !isCorner ? tileD : tileW;
+    const geoD = (pos.side === 1 || pos.side === 3) && !isCorner ? tileW : tileD;
+
     const materials = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
-    const tileMesh = new THREE.Mesh(new THREE.BoxGeometry(2.96, 0.24, 2.96), materials);
+    const tileMesh = new THREE.Mesh(new THREE.BoxGeometry(geoW, 0.24, geoD), materials);
     tileMesh.position.set(pos.x, BASE_TILE_Y, pos.z);
     tileMesh.receiveShadow = true;
     tileMesh.castShadow = true;
     tileMesh.userData = { tileId: tile.id, topMat, sideMat };
 
-    const borderFrame = createTileBorderFrame(ownerTheme ? ownerTheme.colorHex : '#e2e8f0');
+    const borderFrame = createTileBorderFrame(ownerTheme ? ownerTheme.colorHex : '#e2e8f0', geoW, geoD);
     borderFrame.visible = !!isOwned;
     if (isOwned && ownerTheme) {
       const isLocalPlayer = Boolean(propState?.owner != null && propState.owner === gameState?.localPlayerIdx);
@@ -143,7 +148,7 @@ export function buildAllBoardTiles3D(boardGroup) {
     boardGroup.add(tileMesh);
     context.tilesMeshMap[tile.id] = tileMesh;
 
-    const poolGeo = new THREE.PlaneGeometry(2.92, 2.92);
+    const poolGeo = new THREE.PlaneGeometry(geoW - 0.04, geoD - 0.04);
     const poolMat = new THREE.MeshBasicMaterial({
       map: getGroundPoolTexture(),
       color: ownerTheme ? new THREE.Color(ownerTheme.colorHex) : 0xffeedd,
@@ -307,7 +312,7 @@ export function refreshTileTextureAndBuildings(tileId) {
     const isOwned = Boolean(propState && propState.owner !== null);
     const resortOwnerColor = isOwned ? ownerColor : null;
     const resortMesh = createDetailedResortMesh(resortOwnerColor, isOwned);
-    resortMesh.position.set(0, 0, -1.02);
+    resortMesh.position.set(0, 0, -1.35);
     bGroup.add(resortMesh);
     if (isOwned) {
       animatedBuildingPopups.push({ mesh: resortMesh, startTime: performance.now(), duration: 420, targetScale: 1.0 });
@@ -324,21 +329,21 @@ export function refreshTileTextureAndBuildings(tileId) {
   if (lvl === 0) {
     const flagMesh = createDetailedFlagMesh(ownerColor);
     // Flag placed cleanly at top-left rim so pole plinth never encroaches on owner ribbon
-    flagMesh.position.set(-0.48, 0, -1.06);
+    flagMesh.position.set(-0.48, 0, -1.35);
     flagMesh.scale.set(0.01, 0.01, 0.01);
     bGroup.add(flagMesh);
     animatedBuildingPopups.push({ mesh: flagMesh, startTime: performance.now(), duration: 400, targetScale: 1.05 });
   } else if (lvl >= 1 && lvl <= 3) {
     const hGroup = createDetailedHouseMesh(ownerColor, lvl - 1, buildingSkin);
     // House sits comfortably on upper rim of tile with generous margin
-    hGroup.position.set(0, 0, -1.02);
+    hGroup.position.set(0, 0, -1.35);
     hGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(hGroup);
     animatedBuildingPopups.push({ mesh: hGroup, startTime: performance.now(), duration: 420, targetScale: 0.92 });
   } else if (lvl >= 4) {
     const towerGroup = createDetailedSkyscraperMesh(ownerColor, buildingSkin);
     // Skyscraper sits at upper rim with balanced height that leaves city name fully clear
-    towerGroup.position.set(0, 0, -1.02);
+    towerGroup.position.set(0, 0, -1.35);
     towerGroup.scale.set(0.01, 0.01, 0.01);
     bGroup.add(towerGroup);
     animatedBuildingPopups.push({ mesh: towerGroup, startTime: performance.now(), duration: 480, targetScale: 0.85 });

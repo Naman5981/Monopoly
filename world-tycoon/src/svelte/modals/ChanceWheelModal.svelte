@@ -177,7 +177,9 @@
 
     <!-- Title -->
     <div class="text-lg sm:text-xl font-black text-white tracking-tight mb-2 drop-shadow-md">
-      {state.wonPrize ? 'Your Fortune Card' : 'Pick Your Fortune Card'}
+      {state.wonPrize
+        ? (state.isSpectator ? `${state.playerName || 'Player'}'s Fortune Card` : 'Your Fortune Card')
+        : (state.isSpectator ? `${state.playerName || 'Player'} is picking a card...` : 'Pick Your Fortune Card')}
     </div>
 
     <!-- 3D Perspective Card Fan Viewport -->
@@ -305,7 +307,7 @@
               <span>REVEALING CARD...</span>
             {:else if state.isSpectator}
               <i class="fa-solid fa-eye text-slate-950 text-base"></i>
-              <span>WATCHING DRAW...</span>
+              <span>WATCHING {state.playerName ? state.playerName.toUpperCase() : 'DRAW'}...</span>
             {:else}
               <span>✨ DRAW CHANCE CARD</span>
             {/if}

@@ -15,7 +15,8 @@ import { setupBrowserMocks } from './setup.js';
 setupBrowserMocks();
 
 import { gameState } from '../src/game/state.js';
-import { networkState } from '../src/network/p2pState.js';
+import { networkState, networkCallbacks } from '../src/network/p2pState.js';
+import { initEngine } from '../src/game/engine.js';
 import { BOARD_TILES } from '../src/game/data.js';
 import {
   calculateAuctionReservePrice,
@@ -41,6 +42,7 @@ describe('Multiplayer Public Auction Synchronization (/bug-hunter)', () => {
   let concludedDoubles;
 
   beforeEach(() => {
+    initEngine();
     broadcastedActions = [];
     concludedPhaseCount = 0;
     concludedDoubles = null;
@@ -237,10 +239,70 @@ describe('Multiplayer Public Auction Synchronization (/bug-hunter)', () => {
     });
 
     assert.equal(gameState.auction, null);
+    assert.equal(gameState.phase, 'END');
 
     let modal;
     const unsub = modalStore.subscribe(val => { modal = val.auction; });
     unsub();
     assert.equal(modal.visible, false);
+  });
+
+  it('Client peer receiving ACTION_AUCTION_START transitions gameState.phase to AUCTION', () => {
+    networkState.isHost = false;
+    networkState.localPlayerIdx = 1;
+    gameState.phase = 'MODAL';
+
+    applyAuctionStartFromHost({
+      type: 'ACTION_AUCTION_START',
+      tileId: cairoTile.id,
+      sellerIdx: 0,
+      currentBid: 60000,
+      increments: [10000, 25000, 50000],
+      secondsLeft: 5.0
+    });
+
+    assert.equal(gameState.phase, 'AUCTION');
+    assert.ok(gameState.auction);
+    assert.equal(gameState.auction.active, true);
+  });
+
+  it('FULL_STATE_SYNC preserves active auction on guest and updates phase to AUCTION', () => {
+    networkState.isHost = false;
+    networkState.localPlayerIdx = 1;
+    gameState.phase = 'ROLL';
+    gameState.auction = null;
+
+    networkCallbacks.onSyncState({
+      phase: 'AUCTION',
+      currentPlayerIdx: 0,
+      festivalPot: 0,
+      auction: {
+        active: true,
+        tileId: cairoTile.id,
+        sellerIdx: 0,
+        currentBid: 70000,
+        hasBids: true,
+        highBidderIdx: 2,
+        isDoubles: false,
+        increments: [10000, 25000, 50000],
+        secondsLeft: 4.5,
+        passedPlayerIndices: [0]
+      },
+      auctionQueueMeta: {
+        sellerIdx: 0,
+        isDoubles: false,
+        totalCount: 1
+      },
+      pendingAuctionsCount: 0,
+      players: gameState.players,
+      properties: {}
+    });
+
+    assert.equal(gameState.phase, 'AUCTION');
+    assert.ok(gameState.auction);
+    assert.equal(gameState.auction.active, true);
+    assert.equal(gameState.auction.tile.id, cairoTile.id);
+    assert.equal(gameState.auction.currentBid, 70000);
+    assert.equal(gameState.auction.highBidderIdx, 2);
   });
 });

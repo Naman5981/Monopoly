@@ -28,7 +28,6 @@ import { concludeActionPhase } from '../turnCycle.js';
 import { animateFestivalPotGoldenRain } from '../../../ui/anim.js';
 import { openFestivalBoostModal, showFestivalNoPropertiesModal } from '../../../ui/modals/festivalBoost.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
-import { checkFestivalBoost } from '../../achievements.js';
 import { triggerBanner } from '../../../svelte/stores/bannerStore.js';
 
 export class FestivalLandingStrategy extends ITileLandingStrategy {
@@ -110,7 +109,6 @@ export class FestivalLandingStrategy extends ITileLandingStrategy {
       setTileHighlightRing(target.id, true);
       setTimeout(() => setTileHighlightRing(target.id, false), 2200);
 
-      checkFestivalBoost(playerIdx, target.name);
       const newRent = calculateTileRent(target.id);
       triggerBanner('festival', {
         cityName: target.name,

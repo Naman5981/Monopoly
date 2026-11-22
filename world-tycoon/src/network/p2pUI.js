@@ -65,7 +65,7 @@ export function returnToLobbyFromDisconnect() {
     window.openLandingSetupScreen();
   } else {
     // Fallback: Close modals and open landing
-    ['modal-tile-inspector', 'modal-buy-city', 'modal-trade', 'modal-portfolio', 'modal-monopoly-celebration', 'modal-rules'].forEach(id => {
+    ['modal-tile-inspector', 'modal-buy-city', 'modal-trade', 'modal-monopoly-celebration', 'modal-rules'].forEach(id => {
       const el = document.getElementById(id);
       if (el) {
         el.classList.add('hidden');

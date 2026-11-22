@@ -5,7 +5,7 @@
  */
 
 import { context } from '../core/context.js';
-import { getTileFacingAngle, getTileWorldPosition, BASE_BUILDING_Y } from '../board/coords.js';
+import { getTileFacingAngle, getTileWorldPosition, BASE_BUILDING_Y, getPawnTileOffset } from '../board/coords.js';
 import { triggerTileButtonPress, setMovingHopDestTileId } from '../board/tilePress.js';
 import { updateSpeechBubbleScreenPosition } from './speech.js';
 import { matchSettings } from '../../game/state.js';
@@ -24,15 +24,7 @@ import { triggerBoardShockwave } from '../physics/physicsEngine.js';
 export function hopPlayerStepAnimation(playerIdx, startPos, endPos, step, totalSteps, destTileId) {
   return new Promise(resolveHop => {
     const mesh = context.playerMeshes[playerIdx];
-    const offsets = [
-      { x: -0.48, z: 0.45 },
-      { x: 0.48, z: 0.45 },
-      { x: -0.48, z: -0.45 },
-      { x: 0.48, z: -0.45 },
-      { x: -0.52, z: 0.0 },
-      { x: 0.52, z: 0.0 }
-    ];
-    const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
+    const off = getPawnTileOffset(destTileId, playerIdx);
     const speed = matchSettings.gameSpeed || 1;
     const hopDuration = Math.max(85, Math.round(340 / speed));
     const hopStart = performance.now();
@@ -134,19 +126,14 @@ export function resetTokenAfterHop(playerIdx) {
  * @returns {Promise<void>}
  */
 export function flyPlayerDirectFlightAnimation(playerIdx, startTileId, destTileId, onCrossStartCb) {
+  if (globalThis.__WT_TEST__) {
+    return Promise.resolve();
+  }
   return new Promise(resolveFly => {
     const mesh = context.playerMeshes[playerIdx];
     const startPos = getTileWorldPosition(startTileId);
     const endPos = getTileWorldPosition(destTileId);
-    const offsets = [
-      { x: -0.48, z: 0.45 },
-      { x: 0.48, z: 0.45 },
-      { x: -0.48, z: -0.45 },
-      { x: 0.48, z: -0.45 },
-      { x: -0.52, z: 0.0 },
-      { x: 0.52, z: 0.0 }
-    ];
-    const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
+    const off = getPawnTileOffset(destTileId, playerIdx);
 
     const totalSteps = (destTileId - startTileId + 32) % 32;
     const speed = matchSettings.gameSpeed || 1;
@@ -261,15 +248,7 @@ export function flyPlayerDirectFlightAnimation(playerIdx, startTileId, destTileI
 export function flyPlayerStepAnimation(playerIdx, startPos, endPos, step, totalSteps, destTileId) {
   return new Promise(resolveFly => {
     const mesh = context.playerMeshes[playerIdx];
-    const offsets = [
-      { x: -0.48, z: 0.45 },
-      { x: 0.48, z: 0.45 },
-      { x: -0.48, z: -0.45 },
-      { x: 0.48, z: -0.45 },
-      { x: -0.52, z: 0.0 },
-      { x: 0.52, z: 0.0 }
-    ];
-    const off = offsets[playerIdx % offsets.length] || { x: 0, z: 0 };
+    const off = getPawnTileOffset(destTileId, playerIdx);
     const speed = matchSettings.gameSpeed || 1;
     const baseDuration = totalSteps > 14 ? 120 : (totalSteps > 7 ? 150 : 190);
     const flyDuration = Math.max(50, Math.round(baseDuration / speed));

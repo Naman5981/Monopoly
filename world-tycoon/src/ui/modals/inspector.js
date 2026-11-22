@@ -13,14 +13,14 @@ import {
   populateCityPreview3DScene,
   clearCityPreview,
   setTileHighlightRing,
-  refreshTileTextureAndBuildings
+  refreshTileTextureAndBuildings,
+  showSpeechBubble
 } from '../../three/scene.js';
 import { renderCornerHUDs, showTurnLockToast, logEvent, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
 import { saveCurrentMatchToStorage } from '../../game/persistence.js';
 import { engineCallbacks, isLobbyScreenActive, getTierBadgeHTML, closeOtherInformationalModals } from './common.js';
 import { animateTileInspectorSpringOpen, animateTileInspectorSpringClose, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
-import { checkSkyscraperBuilt } from '../../game/achievements.js';
 
 export function buildInspectorSliceData(tileId) {
   const tile = BOARD_TILES[tileId];
@@ -224,8 +224,6 @@ export function upgradeCityLevel(tileId, isForcedAI = false) {
   renderCornerHUDs();
   saveCurrentMatchToStorage();
   if (gameState.activeInspectorTile === tileId) openInspectorModal(tileId);
-  const portModal = document.getElementById('modal-portfolio');
-  if (portModal && !portModal.classList.contains('hidden')) renderPortfolioGrid();
 }
 
 export function downgradeCityLevel(tileId, isAutoLiquidation = false) {
@@ -257,8 +255,6 @@ export function downgradeCityLevel(tileId, isAutoLiquidation = false) {
   renderCornerHUDs();
   saveCurrentMatchToStorage();
   if (gameState.activeInspectorTile === tileId) openInspectorModal(tileId);
-  const portModal = document.getElementById('modal-portfolio');
-  if (portModal && !portModal.classList.contains('hidden')) renderPortfolioGrid();
 }
 
 export function toggleCityMortgage(tileId, isAutoLiquidation = false) {
@@ -267,64 +263,18 @@ export function toggleCityMortgage(tileId, isAutoLiquidation = false) {
 
 export function openPortfolioModal() {
   if (isLobbyScreenActive()) return;
-  const m = document.getElementById('modal-portfolio');
-  if (m && m.classList.contains('flex') && !m.classList.contains('hidden')) {
-    closePortfolioModal();
-    return;
+  const myIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : localPlayerIdx;
+  const owned = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === myIdx);
+  if (owned.length > 0) {
+    if (typeof window !== 'undefined' && typeof window.setEmpireSpotlight === 'function') {
+      window.setEmpireSpotlight(myIdx);
+    }
+    openInspectorModal(owned[0].id);
+  } else {
+    showSpeechBubble('No cities owned yet!', 2000);
   }
-  closeOtherInformationalModals('modal-portfolio');
-  updateModalSlice('portfolio', { visible: true });
-  renderPortfolioGrid();
-  if (m) {
-    m.style.removeProperty('display');
-    m.style.removeProperty('pointer-events');
-    animateModalSpringOpen(m, '#modal-portfolio .game-modal-shell');
-  }
-  playSFX('hop');
 }
 
 export function closePortfolioModal() {
-  updateModalSlice('portfolio', { visible: false });
-  const m = document.getElementById('modal-portfolio');
-  if (m) {
-    animateModalSpringClose(m, '#modal-portfolio .game-modal-shell', () => {
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-      m.style.setProperty('display', 'none', 'important');
-    });
-  }
-  if (gameState.gameStarted && gameState.phase !== 'SETUP') {
-    renderCornerHUDs();
-    refreshActivePlayerTurnStatus();
-    updateRollButtonsUI(isHumanTurnActionable());
-  }
-}
-
-export function renderPortfolioGrid() {
-  const grid = document.getElementById('portfolio-grid');
-  const myIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : localPlayerIdx;
-  const owned = BOARD_TILES.filter(t => gameState.properties[t.id] && gameState.properties[t.id].owner === myIdx);
-  const totalCities = owned.length;
-  const totalRent = owned.reduce((sum, t) => sum + calculateTileRent(t.id), 0);
-  const totalRentFormatted = fmtMoney(totalRent);
-
-  const formattedProps = owned.map(t => {
-    const st = gameState.properties[t.id];
-    const color = t.group ? GROUP_META[t.group].hex : '#0284c7';
-    const meta = getPropertyLevelMetadata(st ? st.level : 0);
-    return {
-      id: t.id,
-      name: t.name,
-      color,
-      levelDesc: meta.label,
-      rentFormatted: fmtMoney(calculateTileRent(t.id))
-    };
-  });
-
-  updateModalSlice('portfolio', {
-    visible: true,
-    totalCities,
-    totalRentFormatted,
-    properties: formattedProps
-  });
+  closeInspectorModal();
 }

@@ -138,11 +138,13 @@ export function registerEngineCallbacks(cbs) {
  */
 export function isLobbyScreenActive() {
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return true;
-  const landingScreen = document.getElementById('landing-setup-screen');
-  if (landingScreen && !landingScreen.classList.contains('hidden') && landingScreen.style.display !== 'none') {
-    landingScreen.classList.add('hidden');
-    landingScreen.classList.remove('flex');
-    landingScreen.style.setProperty('display', 'none', 'important');
+  if (typeof document !== 'undefined') {
+    const landingScreen = document.getElementById('landing-setup-screen');
+    if (landingScreen && !landingScreen.classList.contains('hidden') && landingScreen.style.display !== 'none') {
+      landingScreen.classList.add('hidden');
+      landingScreen.classList.remove('flex');
+      landingScreen.style.setProperty('display', 'none', 'important');
+    }
   }
   return false;
 }
@@ -273,7 +275,6 @@ export function closeAllGameModals() {
     'modal-chance-wheel',
     'modal-chance-result',
     'modal-tile-inspector',
-    'modal-portfolio',
     'modal-trade',
     'modal-incoming-trade',
     'modal-rules',
@@ -282,8 +283,6 @@ export function closeAllGameModals() {
     'modal-disconnect-notice',
     'modal-confirm-exit-lobby',
     'modal-leaderboard',
-    'modal-wardrobe',
-    'modal-update-alert',
     'screen-dice-overlay',
     'landing-setup-screen'
   ];
@@ -314,7 +313,7 @@ export function closeAllGameModals() {
       }
 
       // Reset nested card elements so they don't remain scale(0) or opacity(0)
-      const cards = el.querySelectorAll('.game-modal-shell, .modal-card, [id$="-card"], #victory-card, #modal-monopoly-card, #wardrobe-panel-card');
+      const cards = el.querySelectorAll('.game-modal-shell, .modal-card, [id$="-card"], #victory-card, #modal-monopoly-card');
       cards.forEach(card => {
         if (typeof anime !== 'undefined') anime.remove(card);
         card.style.removeProperty('transform');
@@ -323,8 +322,7 @@ export function closeAllGameModals() {
       });
 
       el.classList.add('hidden');
-      el.classList.remove('flex', 'wardrobe-panel-visible');
-      if (id === 'modal-wardrobe') el.classList.add('wardrobe-panel-hidden');
+      el.classList.remove('flex');
       el.style.setProperty('display', 'none', 'important');
       el.style.removeProperty('opacity');
       el.style.removeProperty('pointer-events');

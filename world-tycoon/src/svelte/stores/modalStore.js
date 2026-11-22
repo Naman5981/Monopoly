@@ -114,10 +114,6 @@ const initialModalState = {
     highBidder: 'Leading: YOU',
     activeBidder: 'YOU'
   },
-  portfolio: {
-    visible: false,
-    properties: []
-  },
   rules: {
     visible: false
   },
@@ -137,13 +133,6 @@ const initialModalState = {
     playAgainText: 'PLAY AGAIN',
     playAgainDisabled: false,
     historyChart: { empty: true, gridLines: [], series: [] }
-  },
-  wardrobe: {
-    visible: false,
-    isClosing: false,
-    activeCategory: 'hat',
-    starsBalance: 500,
-    items: []
   },
   resumeMatch: {
     visible: false,
@@ -188,12 +177,6 @@ const initialModalState = {
     avatarIcon: '🎩',
     deedCards: []
   },
-  updateAlert: {
-    visible: false,
-    clientVersion: 'v2.0.0',
-    remoteVersion: 'v2.0.0',
-    downloadUrl: 'https://github.com/Naman5981/Monopoly/releases/latest'
-  },
   setup: {
     visible: false
   }
@@ -203,6 +186,14 @@ export const modalStore = writable(initialModalState);
 
 let currentModalState = initialModalState;
 modalStore.subscribe(val => { currentModalState = val; });
+
+export function getModalState() {
+  return currentModalState;
+}
+
+export function getModalSlice(modalKey) {
+  return currentModalState?.[modalKey] || null;
+}
 
 /**
  * Returns true if any game modal, confirmation dialog, or action chip is actively open.
@@ -255,17 +246,14 @@ export function closeAllModalsInStore() {
       upgradeCity: { ...state.upgradeCity, visible: false },
       sellCities: { ...state.sellCities, visible: false },
       auction: { ...state.auction, visible: false },
-      portfolio: { ...state.portfolio, visible: false },
       rules: { ...state.rules, visible: false },
       victory: { ...state.victory, visible: false },
-      wardrobe: { ...state.wardrobe, visible: false },
       resumeMatch: { ...state.resumeMatch, visible: false },
       disconnectNotice: { ...state.disconnectNotice, visible: false },
       confirmExitLobby: { ...state.confirmExitLobby, visible: false },
       reconnectGrace: { ...state.reconnectGrace, visible: false },
       leaderboard: { ...state.leaderboard, visible: false },
       monopolyCelebration: { ...state.monopolyCelebration, visible: false },
-      updateAlert: { ...state.updateAlert, visible: false },
       setup: { ...state.setup, visible: false }
     };
     for (const key of Object.keys(nextState)) {
@@ -351,31 +339,12 @@ function syncModalDom(modalKey, slice) {
       toggleElementVisibility('modal-auction', slice.visible);
       break;
     }
-    case 'portfolio': {
-      toggleElementVisibility('modal-portfolio', slice.visible);
-      break;
-    }
     case 'rules': {
       toggleElementVisibility('modal-rules', slice.visible);
       break;
     }
     case 'victory': {
       toggleElementVisibility('modal-victory', slice.visible);
-      break;
-    }
-    case 'wardrobe': {
-      const el = document.getElementById('modal-wardrobe');
-      if (el) {
-        if (slice.visible) {
-          el.style.removeProperty('display');
-          el.style.removeProperty('pointer-events');
-          el.classList.remove('hidden', 'wardrobe-panel-hidden');
-          el.classList.add('flex', 'wardrobe-panel-visible');
-        } else {
-          el.classList.add('hidden', 'wardrobe-panel-hidden');
-          el.classList.remove('flex', 'wardrobe-panel-visible');
-        }
-      }
       break;
     }
     case 'resumeMatch': {
@@ -400,10 +369,6 @@ function syncModalDom(modalKey, slice) {
     }
     case 'monopolyCelebration': {
       toggleElementVisibility('modal-monopoly-celebration', slice.visible);
-      break;
-    }
-    case 'updateAlert': {
-      toggleElementVisibility('modal-update-alert', slice.visible);
       break;
     }
   }

@@ -6,15 +6,16 @@
  */
 
 import { GROUP_META, BOARD_TILES } from '../data.js';
-import { gameState, localPlayerIdx } from '../state.js';
+import { gameState, localPlayerIdx, displayedCash } from '../state.js';
 import { fmtMoney } from '../utils.js';
 import { playSFX } from '../audio.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { refreshTileTextureAndBuildings } from '../../three/scene.js';
-import { renderCornerHUDs, logEvent } from '../../ui/hud.js';
+import { renderCornerHUDs, logEvent, updateRollButtonsUI, setStatusPill } from '../../ui/hud.js';
 import { checkAndTriggerMonopoly } from '../../ui/modals/victory.js';
 import { engineCallbacks } from '../../ui/modals/common.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { cancelAllGameTimers } from './turnCycle.js';
 
 let auctionTimerInterval = null;
 let botBidTimeouts = [];
@@ -73,7 +74,11 @@ export function clearAuctionTimers() {
 export function startSoldPropertiesAuctionSequence(soldTiles, sellerIdx, isDoubles = false) {
   if (!soldTiles || soldTiles.length === 0) return;
 
+  cancelAllGameTimers();
   clearAuctionTimers();
+  gameState.phase = 'AUCTION';
+  updateRollButtonsUI(false);
+  setStatusPill('🔨 Property Auction in Progress...', { isThinking: false });
 
   gameState.pendingAuctions = [...soldTiles];
   gameState.auctionQueueMeta = {
@@ -98,6 +103,7 @@ export function startNextAuctionFromQueue() {
     const meta = gameState.auctionQueueMeta;
     gameState.auction = null;
     gameState.auctionQueueMeta = null;
+    gameState.phase = 'END';
 
     if (networkState.isMultiplayer && networkState.isHost) {
       broadcastAction('ACTION_AUCTION_CONCLUDE', {
@@ -111,6 +117,10 @@ export function startNextAuctionFromQueue() {
     }
     return;
   }
+
+  cancelAllGameTimers();
+  gameState.phase = 'AUCTION';
+  updateRollButtonsUI(false);
 
   const tile = gameState.pendingAuctions.shift();
   const meta = gameState.auctionQueueMeta || { sellerIdx: -1, isDoubles: false, totalCount: 1 };
@@ -170,14 +180,15 @@ export function syncAuctionModalUI() {
   const myPlayer = gameState.players ? gameState.players[myIdx] : null;
   const isSeller = myIdx === a.sellerIdx;
   const isLeading = highBidder && (myIdx === a.highBidderIdx);
+  const hasPassed = Boolean(a.passedPlayerIndices && a.passedPlayerIndices.has(myIdx));
 
   const opt1 = a.currentBid + a.increments[0];
   const opt2 = a.currentBid + a.increments[1];
   const opt3 = a.currentBid + a.increments[2];
 
-  const canAffordOpt1 = Boolean(myPlayer && myPlayer.cash >= opt1 && !myPlayer.bankrupt && !isSeller && !isLeading);
-  const canAffordOpt2 = Boolean(myPlayer && myPlayer.cash >= opt2 && !myPlayer.bankrupt && !isSeller && !isLeading);
-  const canAffordOpt3 = Boolean(myPlayer && myPlayer.cash >= opt3 && !myPlayer.bankrupt && !isSeller && !isLeading);
+  const canAffordOpt1 = Boolean(myPlayer && myPlayer.cash >= opt1 && !myPlayer.bankrupt && !isSeller && !isLeading && !hasPassed);
+  const canAffordOpt2 = Boolean(myPlayer && myPlayer.cash >= opt2 && !myPlayer.bankrupt && !isSeller && !isLeading && !hasPassed);
+  const canAffordOpt3 = Boolean(myPlayer && myPlayer.cash >= opt3 && !myPlayer.bankrupt && !isSeller && !isLeading && !hasPassed);
 
   const meta = gameState.auctionQueueMeta;
   const queueRemaining = gameState.pendingAuctions ? gameState.pendingAuctions.length : 0;
@@ -200,6 +211,7 @@ export function syncAuctionModalUI() {
     highBidderBadge: highBidder ? (isLeading ? 'YOU' : highBidder.name) : 'RESERVE',
     isLeading,
     isSeller,
+    hasPassed,
     sellerName: seller ? seller.name : 'Bank',
     secondsLeft: Math.max(0, a.secondsLeft),
     timerPercent: Math.max(0, Math.min(100, (a.secondsLeft / 5.0) * 100)),
@@ -216,7 +228,7 @@ export function syncAuctionModalUI() {
       fmtMoney(opt3)
     ],
     optionsAffordable: [canAffordOpt1, canAffordOpt2, canAffordOpt3],
-    canBid: !isSeller && !isLeading && (canAffordOpt1 || canAffordOpt2 || canAffordOpt3),
+    canBid: !isSeller && !isLeading && !hasPassed && (canAffordOpt1 || canAffordOpt2 || canAffordOpt3),
     queueProgress: queueProgressText
   });
 }
@@ -353,8 +365,17 @@ export function passAuctionBid(playerIdx = null) {
     });
   }
 
-  const activePlayers = (gameState.players || []).filter(p => !p.bankrupt && p.id !== a.sellerIdx);
-  const allPassed = activePlayers.every(p => a.passedPlayerIndices.has(p.id !== undefined ? p.id : gameState.players.indexOf(p)));
+  const eligibleBidders = (gameState.players || []).filter((p, idx) => {
+    const pId = p.id !== undefined ? p.id : idx;
+    if (p.bankrupt || pId === a.sellerIdx) return false;
+    if (a.hasBids && pId === a.highBidderIdx) return false;
+    return true;
+  });
+
+  const allPassed = eligibleBidders.length > 0 && eligibleBidders.every((p, idx) => {
+    const pId = p.id !== undefined ? p.id : idx;
+    return a.passedPlayerIndices.has(pId);
+  });
 
   if (allPassed) {
     clearAuctionTimers();
@@ -442,6 +463,8 @@ function scheduleBotAuctionBids() {
       const chosenBid = evaluateBotAuctionBid(p, idx);
       if (chosenBid !== null && chosenBid > gameState.auction.currentBid) {
         placeAuctionBid(chosenBid, idx);
+      } else {
+        passAuctionBid(idx);
       }
     }, jitterMs);
 
@@ -472,6 +495,9 @@ export function concludeCurrentAuction() {
       propState.level = 0;
       propState.mortgaged = false;
       winner.cash -= a.currentBid;
+      if (displayedCash) {
+        displayedCash[a.highBidderIdx] = winner.cash;
+      }
 
       playSFX('auctionWon');
       logEvent(`🏆 <strong>${winner.name}</strong> won the auction for <strong>${tile.name}</strong> at <strong>${fmtMoney(a.currentBid)}</strong>!`);
@@ -522,7 +548,11 @@ export function applyAuctionStartFromHost(msg) {
   const tile = BOARD_TILES[msg.tileId];
   if (!tile) return;
 
+  cancelAllGameTimers();
   clearAuctionTimers();
+  gameState.phase = 'AUCTION';
+  updateRollButtonsUI(false);
+  setStatusPill('🔨 Property Auction in Progress...', { isThinking: false });
 
   const reservePrice = typeof msg.currentBid === 'number' ? msg.currentBid : calculateAuctionReservePrice(tile.price);
   const increments = msg.increments || calculateAuctionBidIncrements(tile.price);
@@ -589,6 +619,8 @@ export function applyAuctionConcludeFromHost(msg) {
     updateModalSlice('auction', { visible: false });
     gameState.auction = null;
     gameState.auctionQueueMeta = null;
+    gameState.phase = 'END';
+    renderCornerHUDs();
     return;
   }
 
@@ -611,6 +643,9 @@ export function applyAuctionConcludeFromHost(msg) {
       propState.level = 0;
       propState.mortgaged = false;
       winner.cash -= (msg.winningBid || 0);
+      if (displayedCash) {
+        displayedCash[msg.winnerIdx] = winner.cash;
+      }
 
       playSFX('auctionWon');
       logEvent(`🏆 <strong>${winner.name}</strong> won the auction for <strong>${tile ? tile.name : 'Property'}</strong> at <strong>${fmtMoney(msg.winningBid || 0)}</strong>!`);

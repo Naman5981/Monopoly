@@ -19,7 +19,6 @@ import {
   updateMultiplayerUI
 } from '../../network/p2p.js';
 import { closeAllGameModals } from '../modals/common.js';
-import { updateAllPointsBadges } from '../wardrobe.js';
 import { animateLobbyEntrance } from '../anim.js';
 import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
 
@@ -422,7 +421,6 @@ export function openLandingSetupScreen() {
 
   renderPlayerCards();
   renderMatchSettingButtons();
-  updateAllPointsBadges();
 
   const p0 = matchSettings.customPlayers[selectedSetupPlayerIdx || 0] || matchSettings.customPlayers[0];
   if (p0) {

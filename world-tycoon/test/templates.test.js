@@ -38,10 +38,8 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
       'UpgradeCityModal.svelte',
       'SellCitiesModal.svelte',
       'AuctionModal.svelte',
-      'PortfolioModal.svelte',
       'RulesModal.svelte',
       'VictoryModal.svelte',
-      'WardrobeModal.svelte',
       'BuyoutModal.svelte',
       'TradeModal.svelte',
       'ChanceWheelModal.svelte',
@@ -49,7 +47,6 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
       'FestivalBoostModal.svelte',
       'LeaderboardModal.svelte',
       'MonopolyCelebrationModal.svelte',
-      'UpdateAlertModal.svelte',
       'ResumeMatchModal.svelte',
       'DisconnectNoticeModal.svelte',
       'ConfirmExitLobbyModal.svelte',
@@ -104,7 +101,6 @@ describe('Modular Templates & HTML Assembly (/clean-code)', () => {
   it('ensures Svelte ModalsRoot cleanly mounts all active dialogs', () => {
     const modalRoot = fs.readFileSync(path.join(rootDir, 'src', 'svelte', 'modals', 'ModalsRoot.svelte'), 'utf8');
     assert.ok(modalRoot.includes('<RulesModal />'));
-    assert.ok(modalRoot.includes('<PortfolioModal />'));
     assert.ok(modalRoot.includes('<LeaderboardModal />'));
     assert.ok(modalRoot.includes('<MonopolyCelebrationModal />'));
   });

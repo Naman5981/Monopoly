@@ -100,7 +100,8 @@ export function drawTaxTile(ctx, tile, isCyber) {
   // Title
   ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
   ctx.font = '900 56px Rubik, system-ui, sans-serif';
-  ctx.fillText('WORLD TAX', 256, 340);
+  const taxTitle = tile.name && tile.name !== 'TAX' ? tile.name : 'WORLD TAX';
+  ctx.fillText(taxTitle, 256, 340);
 
   // Amount Pill
   ctx.fillStyle = '#fef2f2';
@@ -115,7 +116,7 @@ export function drawTaxTile(ctx, tile, isCyber) {
   // Subtitle
   ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
   ctx.font = '800 20px Rubik, system-ui, sans-serif';
-  ctx.fillText('FEES FUND THE FESTIVAL POOL', 256, 488);
+  ctx.fillText((tile.subtitle || 'FEES FUND THE FESTIVAL POOL').toUpperCase(), 256, 488);
 }
 
 export function drawCornerTile(ctx, tile, isCyber) {
@@ -155,17 +156,21 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 404, 440, 66, 18, true, true);
 
     ctx.fillStyle = '#065f46';
-    ctx.font = '900 26px Rubik, system-ui, sans-serif';
-    ctx.fillText('PASS: +250K • LAND: +350K', 256, 437);
+    ctx.font = '900 24px Rubik, system-ui, sans-serif';
+    ctx.fillText(tile.subtitle ? tile.subtitle.toUpperCase() : 'PASS: +250K • LAND: +350K', 256, 437);
     return;
   }
 
   if (tileId === 8) {
-    // ISLAND JAIL
+    // ISLAND JAIL / DESERT JAIL
+    const isDesert = tile.name === 'DESERT JAIL' || tile.name === 'DESERT RETREAT';
+    const jailTitle = isDesert ? 'DESERT JAIL' : 'ISLAND JAIL';
+    const jailIconPath = isDesert ? (ICON_PATHS.fort || ICON_PATHS.palm) : ICON_PATHS.palm;
+
     ctx.save();
     ctx.beginPath();
     ctx.arc(256, 175, 92, 0, Math.PI * 2);
-    ctx.fillStyle = '#d97706';
+    ctx.fillStyle = isDesert ? '#b45309' : '#d97706';
     ctx.fill();
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 4;
@@ -174,17 +179,17 @@ export function drawCornerTile(ctx, tile, isCyber) {
     ctx.translate(256 - 36, 175 - 36);
     ctx.scale(3.0, 3.0);
     ctx.fillStyle = '#fef3c7';
-    ctx.fill(new Path2D(ICON_PATHS.palm));
+    ctx.fill(new Path2D(jailIconPath));
     ctx.restore();
 
-    ctx.fillStyle = '#b45309';
+    ctx.fillStyle = isDesert ? '#92400e' : '#b45309';
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 3;
     fillRoundRect(ctx, 36, 310, 440, 74, 20, true, true);
 
     ctx.fillStyle = '#ffffff';
     ctx.font = '900 46px Rubik, system-ui, sans-serif';
-    ctx.fillText('ISLAND JAIL', 256, 347);
+    ctx.fillText(jailTitle, 256, 347);
 
     ctx.fillStyle = '#fffbeb';
     ctx.strokeStyle = '#f59e0b';
@@ -193,12 +198,14 @@ export function drawCornerTile(ctx, tile, isCyber) {
 
     ctx.fillStyle = '#92400e';
     ctx.font = '900 24px Rubik, system-ui, sans-serif';
-    ctx.fillText('ROLL DOUBLES OR 150K BAIL', 256, 437);
+    ctx.fillText(tile.subtitle ? tile.subtitle.toUpperCase() : 'ROLL DOUBLES OR 150K BAIL', 256, 437);
     return;
   }
 
   if (tileId === 16) {
-    // FESTIVAL
+    // FESTIVAL / PUSHKAR FAIR
+    const festTitle = tile.name === 'PUSHKAR FAIR' ? 'PUSHKAR FAIR' : 'FESTIVAL';
+
     ctx.save();
     ctx.beginPath();
     ctx.arc(256, 175, 92, 0, Math.PI * 2);
@@ -220,8 +227,8 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 310, 440, 74, 20, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 48px Rubik, system-ui, sans-serif';
-    ctx.fillText('FESTIVAL', 256, 347);
+    ctx.font = '900 46px Rubik, system-ui, sans-serif';
+    ctx.fillText(festTitle, 256, 347);
 
     ctx.fillStyle = '#faf5ff';
     ctx.strokeStyle = '#a855f7';
@@ -229,45 +236,49 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 404, 440, 66, 18, true, true);
 
     ctx.fillStyle = '#581c87';
-    ctx.font = '900 25px Rubik, system-ui, sans-serif';
-    ctx.fillText('2X CITY RENT & TAX JACKPOT', 256, 437);
+    ctx.font = '900 24px Rubik, system-ui, sans-serif';
+    ctx.fillText(tile.subtitle ? tile.subtitle.toUpperCase() : '2X CITY RENT & TAX JACKPOT', 256, 437);
     return;
   }
 
   if (tileId === 24) {
-    // WORLD TOUR
+    // WORLD TOUR / ROYAL EXPRESS
+    const isRoyal = tile.name === 'ROYAL EXPRESS';
+    const tourTitle = isRoyal ? 'ROYAL EXPRESS' : 'WORLD TOUR';
+    const tourIconPath = isRoyal ? (ICON_PATHS.train || ICON_PATHS.airplane) : ICON_PATHS.airplane;
+
     ctx.save();
     ctx.beginPath();
     ctx.arc(256, 175, 92, 0, Math.PI * 2);
-    ctx.fillStyle = '#0284c7';
+    ctx.fillStyle = isRoyal ? '#b45309' : '#0284c7';
     ctx.fill();
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    ctx.translate(256 - 44, 175 - 44);
-    ctx.scale(3.6, 3.6);
+    ctx.translate(256 - (isRoyal ? 40 : 44), 175 - (isRoyal ? 40 : 44));
+    ctx.scale(isRoyal ? 3.4 : 3.6, isRoyal ? 3.4 : 3.6);
     ctx.fillStyle = '#ffffff';
-    ctx.fill(new Path2D(ICON_PATHS.airplane));
+    ctx.fill(new Path2D(tourIconPath));
     ctx.restore();
 
-    ctx.fillStyle = '#0369a1';
+    ctx.fillStyle = isRoyal ? '#92400e' : '#0369a1';
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 3;
     fillRoundRect(ctx, 36, 310, 440, 74, 20, true, true);
 
     ctx.fillStyle = '#ffffff';
     ctx.font = '900 46px Rubik, system-ui, sans-serif';
-    ctx.fillText('WORLD TOUR', 256, 347);
+    ctx.fillText(tourTitle, 256, 347);
 
     ctx.fillStyle = '#f0f9ff';
-    ctx.strokeStyle = '#0ea5e9';
+    ctx.strokeStyle = isRoyal ? '#f59e0b' : '#0ea5e9';
     ctx.lineWidth = 2.5;
     fillRoundRect(ctx, 36, 404, 440, 66, 18, true, true);
 
-    ctx.fillStyle = '#075985';
-    ctx.font = '900 25px Rubik, system-ui, sans-serif';
-    ctx.fillText('DIRECT FLIGHT TO ANY TILE', 256, 437);
+    ctx.fillStyle = isRoyal ? '#78350f' : '#075985';
+    ctx.font = '900 23px Rubik, system-ui, sans-serif';
+    ctx.fillText(isRoyal ? 'PALACE ON WHEELS • ANY TILE' : 'DIRECT FLIGHT TO ANY TILE', 256, 437);
     return;
   }
 

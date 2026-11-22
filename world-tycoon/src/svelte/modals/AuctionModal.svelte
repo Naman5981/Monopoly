@@ -2,17 +2,24 @@
   import { modalStore } from '../stores/modalStore.js';
 
   let state = $state({});
+  let isSubmitting = $state(false);
   modalStore.subscribe(val => { state = val.auction || {}; });
 
   function onBid(amt) {
+    if (isSubmitting) return;
     if (typeof window !== 'undefined' && typeof window.placeAuctionBid === 'function') {
+      isSubmitting = true;
       window.placeAuctionBid(amt);
+      setTimeout(() => { isSubmitting = false; }, 400);
     }
   }
 
   function onPass() {
+    if (isSubmitting || state.hasPassed) return;
     if (typeof window !== 'undefined' && typeof window.passAuctionBid === 'function') {
+      isSubmitting = true;
       window.passAuctionBid();
+      setTimeout(() => { isSubmitting = false; }, 400);
     }
   }
 </script>
@@ -93,7 +100,7 @@
         <!-- Option 1: Minimum / Tactical Increment -->
         <button
           onclick={() => onBid(state.bidOptions[0])}
-          disabled={!state.optionsAffordable?.[0] || state.isLeading || state.isSeller}
+          disabled={!state.optionsAffordable?.[0] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
           class="game-btn game-btn-green py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 disabled:opacity-35 disabled:cursor-not-allowed disabled:grayscale"
           title="Raise by {state.incrementsFormatted?.[0] || ''}"
         >
@@ -104,7 +111,7 @@
         <!-- Option 2: Standard Increment -->
         <button
           onclick={() => onBid(state.bidOptions[1])}
-          disabled={!state.optionsAffordable?.[1] || state.isLeading || state.isSeller}
+          disabled={!state.optionsAffordable?.[1] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
           class="game-btn game-btn-green py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 disabled:opacity-35 disabled:cursor-not-allowed disabled:grayscale"
           title="Raise by {state.incrementsFormatted?.[1] || ''}"
         >
@@ -115,7 +122,7 @@
         <!-- Option 3: Aggressive Power Bid Increment -->
         <button
           onclick={() => onBid(state.bidOptions[2])}
-          disabled={!state.optionsAffordable?.[2] || state.isLeading || state.isSeller}
+          disabled={!state.optionsAffordable?.[2] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
           class="game-btn game-btn-amber py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 disabled:opacity-35 disabled:cursor-not-allowed disabled:grayscale"
           title="Raise by {state.incrementsFormatted?.[2] || ''}"
         >
@@ -127,12 +134,12 @@
       <!-- Pass Button -->
       <button
         onclick={onPass}
-        disabled={state.isLeading}
-        class="game-btn game-btn-slate py-2 px-2 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 disabled:opacity-35 disabled:cursor-not-allowed"
-        title="Pass on this property auction"
+        disabled={state.isLeading || state.hasPassed || isSubmitting}
+        class="game-btn {state.hasPassed ? 'bg-slate-900 border-white/10 text-slate-500' : 'game-btn-slate'} py-2 px-2 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 disabled:opacity-35 disabled:cursor-not-allowed"
+        title={state.hasPassed ? 'You have passed on this property auction' : 'Pass on this property auction'}
       >
-        <span class="text-[11px] sm:text-xs font-black text-slate-300">PASS</span>
-        <span class="text-[10px] text-slate-400 leading-tight">✕</span>
+        <span class="text-[11px] sm:text-xs font-black {state.hasPassed ? 'text-slate-500' : 'text-slate-300'}">{state.hasPassed ? 'PASSED' : 'PASS'}</span>
+        <span class="text-[10px] {state.hasPassed ? 'text-slate-600' : 'text-slate-400'} leading-tight">✕</span>
       </button>
     </div>
 
@@ -145,6 +152,11 @@
       <p class="text-xs text-emerald-300/90 text-center font-bold animate-pulse flex items-center justify-center gap-1.5">
         <i class="fa-solid fa-crown text-amber-400" aria-hidden="true"></i>
         <span>You currently hold the highest bid! Property is yours if timer expires.</span>
+      </p>
+    {:else if state.hasPassed}
+      <p class="text-xs text-slate-400 text-center font-bold flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-ban text-slate-500" aria-hidden="true"></i>
+        <span>You passed on this property. Waiting for other bidders...</span>
       </p>
     {/if}
   </div>

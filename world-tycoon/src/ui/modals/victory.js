@@ -7,7 +7,7 @@ import { BOARD_TILES, GROUP_META, PLAYER_THEMES } from '../../game/data.js';
 import { gameState, localPlayerIdx, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX, stopAdaptiveMusic } from '../../game/audio.js';
-import { ownsFullColorGroup, checkNearMonopolyGroup, calculatePlayerNetWorth } from '../../game/rules.js';
+import { ownsFullColorGroup, checkNearMonopolyGroup, calculatePlayerNetWorth, calculateBaseTileRent } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastReturnToLobby, broadcastStartOnlineMatch } from '../../network/p2p.js';
 import { setMonopolyTileHighlights, setMonopolyThreatBeacon, resetCameraView } from '../../three/scene.js';
 import { fireConfettiBurst, spawnAnimatedReaction, startVictoryCelebration, stopVictoryCelebration } from '../../three/effects.js';
@@ -15,7 +15,6 @@ import { logEvent } from '../hud.js';
 import { buildNetWorthChartData } from './leaderboard.js';
 import { engineCallbacks, closeAllGameModals, isLobbyScreenActive } from './common.js';
 import { ARCHETYPES } from '../setup.js';
-import { awardMatchPoints } from '../wardrobe.js';
 import { animateModalPunchIn } from '../anim.js';
 import { playVictoryCinematicOrbit, playIntroCinematicFlyIn, playMonopolyThreatCinematic, cancelActiveCutscene } from '../../three/theatre.js';
 import { getTileWorldPosition } from '../../three/board/coords.js';
@@ -24,7 +23,6 @@ import { setPlayerPortraitMood } from '../portraitRenderer.js';
 import { get } from 'svelte/store';
 import { modalStore, updateModalSlice } from '../../svelte/stores/modalStore.js';
 import { triggerBanner } from '../../svelte/stores/bannerStore.js';
-import { checkMonopolyBuilt } from '../../game/achievements.js';
 
 let monopolyCloseTimer = null;
 
@@ -270,14 +268,20 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
   const avatarIcon = arch?.icon || '🎩';
   const avatarInitial = p.name || 'YOU';
 
-  // 2. Deed Cards Data for Svelte 5 MonopolyCelebrationModal
+  // 2. Authoritative Deed Cards Data for Svelte 5 MonopolyCelebrationModal
   const groupTiles = BOARD_TILES.filter(t => t.type === 'city' && t.group === groupKey);
   const deedCards = groupTiles.map(t => {
-    const baseRent = t.rent ? (Array.isArray(t.rent) ? t.rent[0] : t.rent) : (t.price ? Math.round(t.price * 0.1) : 50000);
-    const boostedRent = (baseRent || 50000) * 2;
+    let effectiveRent = 0;
+    if (typeof calculateBaseTileRent === 'function') {
+      effectiveRent = calculateBaseTileRent(t.id);
+    }
+    if (!effectiveRent) {
+      const baseRent = t.rent ? (Array.isArray(t.rent) ? t.rent[0] : t.rent) : (t.price ? Math.round(t.price * 0.1) : 50000);
+      effectiveRent = (baseRent || 50000) * 2;
+    }
     return {
       name: t.name,
-      rentFormatted: `${fmtMoney(boostedRent)} / visit`,
+      rentFormatted: fmtMoney(effectiveRent),
       colorHex: group.hex
     };
   });
@@ -294,8 +298,10 @@ export function openMonopolyCelebrationModal(playerIdx, groupKey) {
   });
 
   playSFX('win');
-  fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.45, 120);
-  spawnAnimatedReaction('money');
+  if (typeof window !== 'undefined') {
+    fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.45, 120);
+    spawnAnimatedReaction('money');
+  }
   setMonopolyTileHighlights(groupTiles.map(t => t.id), group.hex);
 
   clearTimeout(monopolyCloseTimer);

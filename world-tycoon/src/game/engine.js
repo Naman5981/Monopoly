@@ -23,7 +23,6 @@ import { fmtMoney } from './utils.js';
 import { playSFX, startAdaptiveMusic, stopAdaptiveMusic } from './audio.js';
 import { getTileWorldPosition } from '../three/board/coords.js';
 import {
-  resetLocalCarAnimationClock,
   refreshTileTextureAndBuildings,
   spawnAllPlayerTokens3D,
   showSpeechBubble,
@@ -65,6 +64,7 @@ import {
   closeTradeModal,
   handleTradeDeclined,
   showChanceAwardPopup,
+  handleRemoteChancePrize,
   executeRemoteChanceSpin,
   calculateAuctionBidIncrements,
   syncAuctionModalUI,
@@ -386,9 +386,7 @@ export function initEngine() {
       executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles);
     },
     onChancePrize: (playerIdx, prize, isDoubles) => {
-      showChanceAwardPopup(prize, async () => {
-        await applyChancePrize(playerIdx, prize, isDoubles, true, false);
-      }, playerIdx);
+      handleRemoteChancePrize(playerIdx, prize, isDoubles);
     },
     onFestivalBoost: (playerIdx, tileId, isDoubles) => {
       if (networkState.isMultiplayer && networkState.isHost) {
@@ -481,12 +479,37 @@ export function initEngine() {
         gameState.festivalPot = incomingState.festivalPot;
       }
 
+      if (incomingState.auction && incomingState.auction.active && !networkState.isHost) {
+        if (!gameState.auction || !gameState.auction.active) {
+          applyAuctionStartFromHost({
+            tileId: incomingState.auction.tileId,
+            sellerIdx: incomingState.auction.sellerIdx,
+            currentBid: incomingState.auction.currentBid,
+            increments: incomingState.auction.increments,
+            secondsLeft: incomingState.auction.secondsLeft,
+            totalCount: incomingState.auctionQueueMeta?.totalCount || 1,
+            queueRemaining: incomingState.pendingAuctionsCount || 0,
+            isDoubles: incomingState.auction.isDoubles
+          });
+        }
+        if (gameState.auction) {
+          gameState.auction.hasBids = Boolean(incomingState.auction.hasBids);
+          gameState.auction.highBidderIdx = incomingState.auction.highBidderIdx;
+          gameState.auction.currentBid = incomingState.auction.currentBid;
+          if (Array.isArray(incomingState.auction.passedPlayerIndices)) {
+            gameState.auction.passedPlayerIndices = new Set(incomingState.auction.passedPlayerIndices);
+          }
+          syncAuctionModalUI();
+        }
+      }
+
       const curIdx = gameState.currentPlayerIdx;
       const incomingIdx = incomingState.currentPlayerIdx;
       const turnIdxChanged = typeof incomingIdx === 'number' && incomingIdx !== curIdx;
       const stuckInEndPhase = gameState.phase === 'END' && incomingState.phase === 'ROLL';
+      const isAuctionActive = (gameState.phase === 'AUCTION' || Boolean(gameState.auction?.active) || incomingState.phase === 'AUCTION');
 
-      if ((turnIdxChanged || stuckInEndPhase) && gameState.gameStarted && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
+      if (!isAuctionActive && (turnIdxChanged || stuckInEndPhase) && gameState.gameStarted && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
         advanceTurn(true, typeof incomingIdx === 'number' ? incomingIdx : curIdx);
       } else {
         if (typeof incomingIdx === 'number' && gameState.phase !== 'SETUP') {
@@ -501,7 +524,9 @@ export function initEngine() {
             gameState.pendingBuyoutTile ||
             gameState.pendingUpgradeTile
           ));
-          if (!isCurrentlyMoving && (!isLocalPlayerInModal || incomingState.phase === 'MODAL')) {
+          if (isAuctionActive) {
+            gameState.phase = 'AUCTION';
+          } else if (!isCurrentlyMoving && (!isLocalPlayerInModal || incomingState.phase === 'MODAL')) {
             gameState.phase = incomingState.phase;
           }
         }
@@ -540,7 +565,6 @@ export function startNewMatch() {
   clearSavedMatch();
   resetStateSequenceTracker();
   resetGameStateForNewMatch(lobbyPlayerCount);
-  resetLocalCarAnimationClock();
   startAdaptiveMusic();
 
   gameState.netWorthHistory = [];

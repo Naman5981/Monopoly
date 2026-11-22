@@ -6,7 +6,6 @@
 import { matchSettings, lobbyPlayerCount, setupPlayers, gameState, savePlayerName, getSavedPlayerName } from '../../game/state.js';
 import { PLAYER_THEMES } from '../../game/data.js';
 import { playSFX } from '../../game/audio.js';
-import { updateAllPointsBadges } from '../wardrobe.js';
 import { renderCornerHUDs, showTurnLockToast } from '../hud.js';
 import { updateLobbyHeroAvatar } from '../../three/scene.js';
 import { networkState, broadcastLobbySettings, sendClientProfileUpdate, broadcastFullGameState, broadcastAction } from '../../network/p2p.js';
@@ -136,7 +135,6 @@ export function renderPlayerCards() {
     portalAvatar.textContent = (activeDisplayName || 'T')[0].toUpperCase();
   }
 
-  updateAllPointsBadges();
 
   // Sync state into reactive Svelte lobbyStore
   const lobbyPlayersList = [];
@@ -197,7 +195,6 @@ export function renderPlayerCards() {
   const archEl = document.getElementById('setup-character-archetype-name');
   const prevBtn = document.querySelector('button[onclick*="cycleAvatarPrev"]');
   const nextBtn = document.querySelector('button[onclick*="cycleAvatarNext"]');
-  const wardrobeBtn = document.getElementById('btn-open-wardrobe');
   const canEditCurrent = canCurrentPlayerEditSlot(selectedSetupPlayerIdx);
 
   if (prevBtn) {
@@ -211,16 +208,6 @@ export function renderPlayerCards() {
     nextBtn.classList.toggle('opacity-30', !canEditCurrent);
     nextBtn.classList.toggle('cursor-not-allowed', !canEditCurrent);
     nextBtn.classList.toggle('pointer-events-none', !canEditCurrent);
-  }
-  if (wardrobeBtn) {
-    wardrobeBtn.disabled = !canEditCurrent;
-    if (!canEditCurrent) {
-      wardrobeBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
-      wardrobeBtn.title = `Wardrobe locked - viewing ${curPlayer?.name || 'player'}`;
-    } else {
-      wardrobeBtn.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
-      wardrobeBtn.title = "Customize Outfits, Hats, Dice & Pedestals";
-    }
   }
 
   if (archEl && curPlayer) {

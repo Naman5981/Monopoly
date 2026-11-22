@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { gameState } from '../../game/state.js';
-import { getTileWorldPosition, getTileFacingAngle, BASE_BUILDING_Y } from '../board/coords.js';
+import { getTileWorldPosition, getTileFacingAngle, BASE_BUILDING_Y, getPawnTileOffset } from '../board/coords.js';
 import { createDetailed3DAvatarMesh } from '../assets/avatars.js';
 import { updateAvatarLightingForCurrentMode } from '../core/lighting.js';
 import { disposeHierarchy } from '../core/dispose.js';
@@ -119,15 +119,6 @@ export function spawnAllPlayerTokens3D(boardGroup = context.boardGroup) {
  * Repositions all player tokens with offset spacing when multiple players occupy the same tile.
  */
 export function updatePlayerTokenPositions3D() {
-  const offsets = [
-    { x: -0.48, z: 0.45 },
-    { x: 0.48, z: 0.45 },
-    { x: -0.48, z: -0.45 },
-    { x: 0.48, z: -0.45 },
-    { x: -0.52, z: 0.0 },
-    { x: 0.52, z: 0.0 }
-  ];
-
   gameState.players.forEach((p, idx) => {
     const mesh = context.playerMeshes[idx];
     if (!mesh) return;
@@ -138,7 +129,7 @@ export function updatePlayerTokenPositions3D() {
     mesh.visible = true;
     const pos = getTileWorldPosition(p.position);
     const tilePress = context.activeTileDepressions[p.position]?.currentOffset ?? 0;
-    const off = offsets[idx % offsets.length];
+    const off = getPawnTileOffset(p.position, idx);
     mesh.position.set(pos.x + off.x, BASE_BUILDING_Y + tilePress, pos.z + off.z);
     mesh.rotation.y = getTileFacingAngle(p.position);
   });

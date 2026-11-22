@@ -498,6 +498,24 @@ export function broadcastFullGameState() {
       turnTimeLeft: gameState.turnTimeLeft || 15,
       matchSeconds: typeof matchSeconds === 'number' ? matchSeconds : (gameState.matchSeconds || 0),
       festivalPot: gameState.festivalPot,
+      auction: (gameState.auction && gameState.auction.active && gameState.auction.tile) ? {
+        active: true,
+        tileId: gameState.auction.tile.id,
+        sellerIdx: gameState.auction.sellerIdx,
+        currentBid: gameState.auction.currentBid,
+        hasBids: gameState.auction.hasBids,
+        highBidderIdx: gameState.auction.highBidderIdx,
+        isDoubles: Boolean(gameState.auction.isDoubles),
+        increments: gameState.auction.increments,
+        secondsLeft: gameState.auction.secondsLeft,
+        passedPlayerIndices: Array.from(gameState.auction.passedPlayerIndices || [])
+      } : null,
+      auctionQueueMeta: gameState.auctionQueueMeta ? {
+        sellerIdx: gameState.auctionQueueMeta.sellerIdx,
+        isDoubles: Boolean(gameState.auctionQueueMeta.isDoubles),
+        totalCount: gameState.auctionQueueMeta.totalCount
+      } : null,
+      pendingAuctionsCount: gameState.pendingAuctions ? gameState.pendingAuctions.length : 0,
       players: gameState.players.map((p, idx) => ({
         id: p.id,
         name: p.name,

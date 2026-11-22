@@ -40,7 +40,6 @@ import {
   checkAndTriggerMonopoly
 } from '../../../ui/modals.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
-import { checkMegaRent, checkOpponentBankrupted } from '../../achievements.js';
 
 let autoEndTurnTimer = null;
 
@@ -280,7 +279,6 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
 
     player.cash -= rent;
     owner.cash += rent;
-    checkMegaRent(st.owner, rent, tile.name);
     renderCornerHUDs();
 
     // Hostile Buyout check
@@ -406,7 +404,6 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     }
     player.bankrupt = true;
     if (resolvedOwnerIdx !== null && resolvedOwnerIdx >= 0) {
-      checkOpponentBankrupted(resolvedOwnerIdx, player.name);
     }
 
     playSFX('bankrupt', 1.0, tile ? getTileWorldPosition(tile.id) : null);

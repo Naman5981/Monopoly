@@ -197,6 +197,7 @@ describe('Sold Property Public Auction System (/bug-hunter /web-games)', () => {
 
     it('processes queued properties in order before concluding action phase', () => {
       startSoldPropertiesAuctionSequence([cairoTile, madridTile], 0, true);
+      assert.equal(gameState.phase, 'AUCTION');
       assert.equal(gameState.auction.tile.id, cairoTile.id);
 
       // Conclude first auction
@@ -204,6 +205,7 @@ describe('Sold Property Public Auction System (/bug-hunter /web-games)', () => {
 
       // Immediate transition or next in queue
       startNextAuctionFromQueue();
+      assert.equal(gameState.phase, 'AUCTION');
       assert.equal(gameState.auction.tile.id, madridTile.id);
 
       // Conclude second auction
@@ -214,6 +216,35 @@ describe('Sold Property Public Auction System (/bug-hunter /web-games)', () => {
       assert.equal(gameState.auction, null);
       assert.equal(concludedPhaseCount, 1);
       assert.equal(concludedDoubles, true);
+    });
+
+    it('triggers early conclusion when all non-leading eligible bidders pass', () => {
+      startSoldPropertiesAuctionSequence([cairoTile], 0, false);
+      assert.equal(gameState.phase, 'AUCTION');
+
+      // Player 1 places a bid
+      const bidAmount = gameState.auction.currentBid + 10000;
+      placeAuctionBid(bidAmount, 1);
+      assert.equal(gameState.auction.highBidderIdx, 1);
+
+      // Bot (Player 2) passes
+      passAuctionBid(2);
+
+      // Since Player 1 is leading, and Player 0 is seller (excluded), all eligible bidders have passed!
+      // Auction should have concluded early!
+      assert.equal(gameState.auction.active, false);
+      assert.equal(gameState.properties[cairoTile.id].owner, 1);
+    });
+
+    it('updates displayedCash immediately when auction is won', () => {
+      startSoldPropertiesAuctionSequence([cairoTile], 0, false);
+      const bidAmount = gameState.auction.currentBid + 10000;
+      placeAuctionBid(bidAmount, 1);
+
+      const preCash = gameState.players[1].cash;
+      concludeCurrentAuction();
+
+      assert.equal(gameState.players[1].cash, preCash - bidAmount);
     });
   });
 

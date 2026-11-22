@@ -69,44 +69,9 @@ export function closeRulesModal() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   TOMATO / EMOTES
+   QUICK EMOTES & SPEECH
 ───────────────────────────────────────────────────────────────────────────── */
-let tomatoThrows = 0;
-
-export function throwTomatoAtOpponent() {
-  tomatoThrows++;
-  const elCounter = document.getElementById('tomato-counter');
-  if (elCounter) elCounter.textContent = tomatoThrows;
-
-  const tomato = document.createElement('div');
-  tomato.className = 'flying-tomato';
-  tomato.textContent = '🍅';
-  tomato.style.left = '120px';
-  tomato.style.top = '90px';
-  document.body.appendChild(tomato);
-
-  requestAnimationFrame(() => {
-    tomato.style.left = `${window.innerWidth - 160}px`;
-    tomato.style.top = '95px';
-    tomato.style.transform = 'rotate(360deg) scale(1.35)';
-  });
-
-  setTimeout(() => {
-    tomato.textContent = '💥';
-    playSFX('hop');
-    setTimeout(() => tomato.remove(), 350);
-  }, 550);
-}
-
-export function toggleEmotePopover() {
-  const p = document.getElementById('emote-popover');
-  p.classList.toggle('hidden');
-  p.classList.toggle('flex');
-}
-
 export function sendQuickEmote(text) {
-  toggleEmotePopover();
-  if (text.includes('🍅')) throwTomatoAtOpponent();
   showSpeechBubble(text, 2500);
   if (networkState && networkState.isMultiplayer) {
     broadcastAction('ACTION_CHAT_EMOTE', {

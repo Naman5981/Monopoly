@@ -274,7 +274,7 @@ export async function hopPlayerSteps3D(playerIdx, steps) {
 }
 
 export function concludeActionPhase(isDoubles) {
-  if (gameState.phase === 'VICTORY') return;
+  if (gameState.phase === 'VICTORY' || gameState.phase === 'AUCTION' || gameState.auction) return;
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
 
@@ -366,6 +366,7 @@ export function concludeActionPhase(isDoubles) {
 }
 
 export function advanceTurn(isRemote = false, forcedNextIdx = null) {
+  if (gameState.phase === 'AUCTION' || gameState.auction) return;
   hideDiceSumBadge();
   closeTurnActionModals();
   if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') {

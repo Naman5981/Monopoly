@@ -219,17 +219,17 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
   }
 
   const valLen = valStr.length;
-  const valFontSize = valLen <= 4 ? 126 : (valLen <= 5 ? 114 : (valLen <= 6 ? 102 : 90));
+  const valFontSize = valLen <= 4 ? 148 : (valLen <= 5 ? 134 : (valLen <= 6 ? 120 : 106));
   const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
   const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
-  const nameY = 270;
-  const valY = isFestivalBoost ? 425 : 415;
+  const nameY = isOwned ? 245 : 220;
+  const valY = isFestivalBoost ? 395 : 365;
 
   const rentColor = isFestivalBoost ? '#f59e0b' : (isOwned ? getOwnerThemeColor(propState) : '#b91c1c');
 
   if (isFestivalBoost) {
-    drawFestivalBadge(ctx, 320);
+    drawFestivalBadge(ctx, 305);
   }
 
   if (isOwned) {
@@ -339,17 +339,17 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
   }
 
   const valLen = valStr.length;
-  const valFontSize = valLen <= 4 ? 126 : (valLen <= 5 ? 114 : (valLen <= 6 ? 102 : 90));
+  const valFontSize = valLen <= 4 ? 148 : (valLen <= 5 ? 134 : (valLen <= 6 ? 120 : 106));
   const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
 
   const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
-  const nameY = 270;
-  const valY = isFestivalBoost ? 425 : 415;
+  const nameY = isOwned ? 245 : 220;
+  const valY = isFestivalBoost ? 395 : 365;
 
   const rentColor = isFestivalBoost ? '#f59e0b' : (isOwned ? getOwnerThemeColor(propState) : '#b91c1c');
 
   if (isFestivalBoost) {
-    drawFestivalBadge(ctx, 320);
+    drawFestivalBadge(ctx, 305);
   }
 
   if (isOwned) {

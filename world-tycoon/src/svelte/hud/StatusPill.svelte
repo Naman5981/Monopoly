@@ -1,5 +1,6 @@
 <script>
   import { hudStore } from '../stores/hudStore.js';
+  import { isAnyModalOpen } from '../stores/modalStore.js';
 
   let state = $state({});
   hudStore.subscribe(val => { state = val; });
@@ -25,6 +26,7 @@
   function handleWindowKeydown(e) {
     if (e.target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable)) return;
     if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32) {
+      if (isAnyModalOpen()) return;
       if (state.rollButton?.visible && state.rollButton?.enabled) {
         e.preventDefault();
         onRoll();

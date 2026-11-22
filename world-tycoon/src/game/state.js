@@ -5,8 +5,6 @@
 
 import { PLAYER_THEMES, BOARD_TILES } from './data.js';
 import { networkState } from '../network/p2pState.js';
-import { resetMatchAchievements } from './achievements.js';
-import { resetMatchLiveAchievements } from '../ui/wardrobe.js';
 
 export const PLAYER_NAME_STORAGE_KEY = 'WORLD_TYCOON_PLAYER_NAME';
 
@@ -292,7 +290,5 @@ export function resetGameStateForNewMatch(count) {
   gameState.activeInspectorTile = null;
   gameState.achievedMonopolies = {};
   gameState.gameStarted = true;
-  resetMatchAchievements();
-  resetMatchLiveAchievements();
   matchSeconds = 0;
 }

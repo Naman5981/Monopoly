@@ -44,7 +44,6 @@ export function animateModalSpringOpen(modalTarget, cardTarget = null, originCoo
   modalEl._openedAt = performance.now();
 
   const isUserInformationalModal = Boolean(modalEl.id && [
-    'modal-portfolio',
     'modal-trade',
     'modal-rules',
     'modal-leaderboard',

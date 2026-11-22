@@ -50,9 +50,11 @@ export function setStatusPill(htmlContent, options = {}) {
     }
   });
 
-  const textEl = document.getElementById('hud-status-pill-text');
-  if (textEl) {
-    textEl.innerHTML = formatActivityEmoji(htmlContent);
+  if (typeof document !== 'undefined') {
+    const textEl = document.getElementById('hud-status-pill-text');
+    if (textEl) {
+      textEl.innerHTML = formatActivityEmoji(htmlContent);
+    }
   }
 
   if (statusPillResetTimer) {
@@ -137,13 +139,15 @@ export function formatActivityEmoji(html) {
 
 /** Log an event to the event log drawer and display on real-time bottom-center pill. */
 export function logEvent(html) {
-  const log = document.getElementById('activity-log');
-  if (log) {
-    const div = document.createElement('div');
-    div.className = 'border-l-2 border-indigo-400 pl-2 py-0.5';
-    div.innerHTML = formatActivityEmoji(html);
-    log.prepend(div);
-    animateToastAccordionPush(div);
+  if (typeof document !== 'undefined') {
+    const log = document.getElementById('activity-log');
+    if (log) {
+      const div = document.createElement('div');
+      div.className = 'border-l-2 border-indigo-400 pl-2 py-0.5';
+      div.innerHTML = formatActivityEmoji(html);
+      log.prepend(div);
+      animateToastAccordionPush(div);
+    }
   }
   setStatusPill(html, { isThinking: false, durationMs: 4200 });
 }

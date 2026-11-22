@@ -368,5 +368,82 @@ describe('P2P Host-Guest Lifecycle & State Sync', () => {
       assert.equal(guestExecutedDebt.debtorIdx, 1);
       assert.equal(guestExecutedDebt.rentOwed, 250000);
     });
+
+    it('relays ACTION_CHANCE_SPIN across peers and invokes onChanceSpin with exact prizeIdx', () => {
+      let relayedMsg = null;
+      let executedChanceSpin = null;
+
+      const mockGuest1 = { peer: 'guest-1', open: true, send: () => {} };
+      const mockGuest2 = { peer: 'guest-2', open: true, send: (msg) => { relayedMsg = msg; } };
+
+      networkState.connections.set('guest-1', mockGuest1);
+      networkState.connections.set('guest-2', mockGuest2);
+
+      networkCallbacks.onChanceSpin = (playerIdx, prizeIdx, fullSpins, isDoubles) => {
+        executedChanceSpin = { playerIdx, prizeIdx, fullSpins, isDoubles };
+      };
+
+      const spinPacket = {
+        type: 'ACTION_CHANCE_SPIN',
+        senderIdx: 1,
+        playerIdx: 1,
+        prizeIdx: 3,
+        fullSpins: 6,
+        isDoubles: false
+      };
+
+      handleHostReceivedMessage(mockGuest1, spinPacket);
+
+      // 1. Relayed to other peers
+      assert.notEqual(relayedMsg, null, 'Host must relay ACTION_CHANCE_SPIN to other peers');
+      assert.equal(relayedMsg.type, 'ACTION_CHANCE_SPIN');
+      assert.equal(relayedMsg.prizeIdx, 3);
+      assert.equal(relayedMsg.playerIdx, 1);
+
+      // 2. Executed on host
+      assert.deepEqual(executedChanceSpin, { playerIdx: 1, prizeIdx: 3, fullSpins: 6, isDoubles: false });
+    });
+
+    it('relays ACTION_CHANCE_PRIZE, updates displayedCash, and preserves full state sync', () => {
+      let relayedMsg = null;
+      let executedChancePrize = null;
+
+      const mockGuest1 = { peer: 'guest-1', open: true, send: () => {} };
+      const mockGuest2 = { peer: 'guest-2', open: true, send: (msg) => { relayedMsg = msg; } };
+
+      networkState.connections.set('guest-1', mockGuest1);
+      networkState.connections.set('guest-2', mockGuest2);
+
+      const cashPrize = {
+        label: '+250K Bonus',
+        type: 'cash',
+        amount: 250000,
+        desc: 'Bonus cash'
+      };
+
+      networkCallbacks.onChancePrize = (playerIdx, prize, isDoubles) => {
+        executedChancePrize = { playerIdx, prize, isDoubles };
+      };
+
+      const prizePacket = {
+        type: 'ACTION_CHANCE_PRIZE',
+        senderIdx: 1,
+        playerIdx: 1,
+        prize: cashPrize,
+        isDoubles: false
+      };
+
+      handleHostReceivedMessage(mockGuest1, prizePacket);
+
+      // 1. Relayed to other peers
+      assert.notEqual(relayedMsg, null, 'Host must relay ACTION_CHANCE_PRIZE');
+      assert.equal(relayedMsg.type, 'ACTION_CHANCE_PRIZE');
+      assert.equal(relayedMsg.playerIdx, 1);
+
+      // 2. Executed on host
+      assert.notEqual(executedChancePrize, null);
+      assert.equal(executedChancePrize.playerIdx, 1);
+      assert.equal(executedChancePrize.prize.amount, 250000);
+    });
   });
 });

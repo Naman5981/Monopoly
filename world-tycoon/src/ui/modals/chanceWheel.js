@@ -11,7 +11,7 @@ import { setStatusPill } from '../hud.js';
 import { getTileScreenPosition } from '../../three/scene.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateChanceDeckDraw, animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
-import { updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { updateModalSlice, getModalSlice } from '../../svelte/stores/modalStore.js';
 import { setPlayerPortraitMood } from '../portraitRenderer.js';
 import { networkState, broadcastAction } from '../../network/p2p.js';
 
@@ -27,6 +27,7 @@ let chanceCountdownInterval = null;
 let isWheelSpinning = false;
 
 export function clearChanceTimers() {
+  isWheelSpinning = false;
   if (chanceCountdownTimer) {
     clearTimeout(chanceCountdownTimer);
     chanceCountdownTimer = null;
@@ -86,6 +87,7 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
     wonPrize: null,
     drawingIdx: -1,
     winnerIdx: -1,
+    playerName,
     cardText: isLocalUser ? 'Draw a card to test your luck!' : `${playerName} is testing their luck on Chance!`
   });
 
@@ -163,161 +165,39 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
 
 export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
   clearChanceTimers();
-  updateModalSlice('chanceWheel', { visible: false, isSpinning: false });
-  const wheelModal = document.getElementById('modal-chance-wheel');
-  if (wheelModal && !wheelModal.classList.contains('hidden')) {
-    animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card');
-  }
+  handleRemoteChancePrize(playerIdx, prize, false);
+  if (onDone) onDone();
+}
 
-  const m = document.getElementById('modal-chance-result');
-  if (!m) {
-    if (onDone) onDone();
+/**
+ * Handles incoming ACTION_CHANCE_PRIZE on remote multiplayer peers.
+ * If wheel is already spinning or card is already revealed, lets the in-flight
+ * animation complete gracefully without killing the modal.
+ * If peer missed ACTION_CHANCE_SPIN, displays the revealed won card for 2s.
+ */
+export function handleRemoteChancePrize(playerIdx, prize, isDoubles = false) {
+  if (!prize) return;
+  const pIdx = (playerIdx !== null && playerIdx !== undefined) ? playerIdx : (gameState.currentPlayerIdx ?? 0);
+
+  // If already spinning or card already flipped, in-flight revealChanceWinnerCard will finish cleanly
+  if (isWheelSpinning) return;
+
+  const currentSlice = getModalSlice('chanceWheel');
+  if (currentSlice?.isSpinning || (currentSlice?.visible && currentSlice?.hasWon)) {
+    // If modal is spinning or already showing the won card, let it finish its display timer
     return;
   }
 
-  // Dismiss any overlapping tile inspector drawer
-  const inspModal = document.getElementById('modal-tile-inspector');
-  if (inspModal && !inspModal.classList.contains('hidden')) {
-    if (window.closeInspectorModal) window.closeInspectorModal();
+  // Fallback: If spectator missed ACTION_CHANCE_SPIN, open modal directly onto the revealed card
+  let prizeIdx = CHANCE_WHEEL_PRIZES.findIndex(p => p.label === prize.label && p.type === prize.type);
+  if (prizeIdx === -1) {
+    prizeIdx = CHANCE_WHEEL_PRIZES.findIndex(p => p.type === prize.type);
   }
+  const resolvedIdx = prizeIdx >= 0 ? prizeIdx : 0;
+  const resolvedPrize = CHANCE_WHEEL_PRIZES[resolvedIdx] || prize;
 
-  const pIdx = (playerIdx !== null && playerIdx !== undefined) ? playerIdx : gameState.currentPlayerIdx;
-  const player = (gameState.players && gameState.players[pIdx]) || null;
-  const isLocalUser = !networkState.isMultiplayer || pIdx === networkState.localPlayerIdx;
-  const playerName = player ? player.name : `Player ${pIdx + 1}`;
-  const playerColor = (player && player.colorHex) || (PLAYER_THEMES[pIdx] && PLAYER_THEMES[pIdx].colorHex) || '#f59e0b';
-
-  let badgeText = 'CHANCE CARD';
-  let badgeClass = 'bg-amber-100 text-amber-800 border border-amber-200';
-  if (player?.isAI) {
-    badgeText = 'AI BOT';
-    badgeClass = 'bg-indigo-100 text-indigo-800 border border-indigo-200';
-  } else if (isLocalUser) {
-    badgeText = 'YOUR CARD';
-    badgeClass = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-  }
-
-  let icon = '🎁';
-  let title = prize.label.toUpperCase();
-  let actionText = isLocalUser ? 'Applying rewards to your empire...' : `Applying rewards to ${playerName}...`;
-  let tag = 'CHANCE REWARD';
-  let tagClass = 'bg-amber-100 text-amber-900 border border-amber-300';
-  let iconBg = 'bg-amber-50 text-amber-600';
-  let actionClass = 'bg-slate-50 border border-slate-200 text-slate-800';
-
-  if (prize.type === 'cash') {
-    icon = prize.amount >= 300000 ? '💰' : '💎';
-    title = `+${fmtMoney(prize.amount)} CASH!`;
-    actionText = isLocalUser ? 'Cash deposited directly into your treasury!' : `Cash deposited into ${playerName}'s treasury!`;
-    tag = 'CASH GRANT';
-    tagClass = 'bg-emerald-100 text-emerald-900 border border-emerald-300';
-    iconBg = 'bg-emerald-50 text-emerald-600';
-    actionClass = 'bg-emerald-50 border border-emerald-200 text-emerald-900';
-  } else if (prize.type === 'tax') {
-    icon = '⚠️';
-    title = `TAX AUDIT: -${fmtMoney(prize.amount)}`;
-    actionText = isLocalUser ? 'Fine transferred directly into Festival Pool!' : `Fine transferred from ${playerName} to Festival Pool!`;
-    tag = 'LUXURY TAX AUDIT';
-    tagClass = 'bg-rose-100 text-rose-900 border border-rose-300';
-    iconBg = 'bg-rose-50 text-rose-600';
-    actionClass = 'bg-rose-50 border border-rose-200 text-rose-900';
-  } else if (prize.type === 'island') {
-    icon = '🏝️';
-    title = 'DETAINED ON ISLAND!';
-    actionText = isLocalUser ? 'Flying to Island! Roll doubles or pay bail to escape.' : `${playerName} detained! Roll doubles or pay bail to escape.`;
-    tag = 'DETENTION SURPRISE';
-    tagClass = 'bg-orange-100 text-orange-900 border border-orange-300';
-    iconBg = 'bg-orange-50 text-orange-600';
-    actionClass = 'bg-orange-50 border border-orange-200 text-orange-900';
-  } else if (prize.type === 'move') {
-    if (prize.target === 0) {
-      icon = '🚀';
-      title = 'EXPRESS JET TO START!';
-      actionText = isLocalUser ? 'Flying to START to collect +$350,000 salary!' : `${playerName} flying to START for +$350,000 salary!`;
-      tag = 'BOARD WARP';
-      tagClass = 'bg-sky-100 text-sky-900 border border-sky-300';
-      iconBg = 'bg-sky-50 text-sky-600';
-      actionClass = 'bg-sky-50 border border-sky-200 text-sky-900';
-    } else {
-      icon = '✈️';
-      title = 'WORLD TOUR FLIGHT!';
-      actionText = isLocalUser ? 'Flying to Airport for VIP world travel!' : `${playerName} flying to Airport for VIP world travel!`;
-      tag = 'BOARD WARP';
-      tagClass = 'bg-purple-100 text-purple-900 border border-purple-300';
-      iconBg = 'bg-purple-50 text-purple-600';
-      actionClass = 'bg-purple-50 border border-purple-200 text-purple-900';
-    }
-  }
-
-  const rawDesc = prize.desc || '';
-  const flavorText = rawDesc
-    .replace(/! Collect.*$/i, '')
-    .replace(/! Pay.*$/i, '')
-    .replace(/! Detained.*$/i, '')
-    .trim()
-    .replace(/!$/, '');
-
-  updateModalSlice('chanceWheel', {
-    resultVisible: true,
-    result: {
-      playerName: isLocalUser ? `${playerName} (YOU)` : playerName,
-      playerColor,
-      badgeText,
-      badgeClass,
-      icon,
-      iconBg,
-      title,
-      flavorText,
-      desc: flavorText || prize.desc,
-      actionText,
-      tag,
-      tagClass,
-      actionClass
-    }
-  });
-
-  // Synchronized status pill and sound effect
-  setStatusPill(`🌈 <strong>${playerName}</strong> drew Chance: <strong>${prize.label}</strong>!`, { isThinking: false, playerIdx: pIdx });
-  if (prize.type === 'island') {
-    playSFX('island');
-  } else if (prize.type === 'tax') {
-    playSFX('payRent');
-  } else if (prize.type === 'cash') {
-    playSFX('jackpot');
-  } else {
-    playSFX('jackpot', 0.8);
-  }
-
-  // Synchronized emotional portrait mood
-  if (prize.type === 'tax') {
-    setPlayerPortraitMood(pIdx, 'crying', 3500);
-  } else if (prize.type === 'island') {
-    setPlayerPortraitMood(pIdx, 'shocked', 3500);
-  } else if (prize.type === 'cash' && prize.amount >= 300000) {
-    setPlayerPortraitMood(pIdx, 'smug', 3500);
-  } else {
-    setPlayerPortraitMood(pIdx, 'cheering', 3500);
-  }
-
-  const popupDuration = 2200;
-  const timerBar = document.getElementById('chance-result-timer-bar');
-  if (timerBar) {
-    timerBar.style.transition = 'none';
-    timerBar.style.width = '100%';
-    void timerBar.offsetWidth;
-    timerBar.style.transition = `width ${popupDuration}ms linear`;
-    timerBar.style.width = '0%';
-  }
-
-  const currentTileId = player?.position ?? 2;
-  const origin = getTileScreenPosition(currentTileId);
-  animateModalSpringOpen(m, '#modal-chance-result .game-modal-shell', origin);
-  animateChanceDeckDraw('#modal-chance-result .game-modal-shell', origin);
-
-  // Exactly 2200ms
-  setTimeout(() => {
-    animateModalSpringClose(m, '#modal-chance-result .game-modal-shell', onDone);
-  }, popupDuration);
+  openChanceWheelModal(isDoubles, pIdx);
+  revealChanceWinnerCard(resolvedIdx, resolvedPrize, pIdx, isDoubles, true);
 }
 
 export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx = null, isDoubles = null, isRemote = false) {
@@ -387,111 +267,119 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
   scheduleNextSweep();
 
   setTimeout(async () => {
-    isWheelSpinning = false;
-    if (isLobbyScreenActive()) return;
-
-    // Lock in the winner card and trigger 3D Flip in Svelte
-    updateModalSlice('chanceWheel', {
-      isSpinning: false,
-      drawingIdx: -1,
-      winnerIdx: prizeIdx
-    });
-
-    playSFX('wheelLock');
-
-    // Trigger outcome sound
-    if (prize.type === 'island') {
-      playSFX('island');
-    } else if (prize.type === 'tax') {
-      playSFX('payRent');
-    } else if (prize.type === 'cash') {
-      playSFX('jackpot');
-    } else {
-      playSFX('jackpot', 0.8);
-    }
-
-    // Trigger emotional reaction on active player's portrait
-    if (prize.type === 'tax') {
-      setPlayerPortraitMood(activePIdx, 'crying', 3500);
-    } else if (prize.type === 'island') {
-      setPlayerPortraitMood(activePIdx, 'shocked', 3500);
-    } else if (prize.type === 'cash' && prize.amount >= 300000) {
-      setPlayerPortraitMood(activePIdx, 'smug', 3500);
-    } else {
-      setPlayerPortraitMood(activePIdx, 'cheering', 3500);
-    }
-
-    // Format prize details clearly for the outcome banner
-    let icon = prize.icon || '🎁';
-    let title = prize.label.toUpperCase();
-    let tag = prize.sub || 'CHANCE';
-    if (prize.type === 'cash') {
-      icon = prize.amount >= 300000 ? '💰' : '💎';
-      title = `+${fmtMoney(prize.amount)} CASH!`;
-      tag = 'CASH GRANT';
-    } else if (prize.type === 'tax') {
-      icon = '⚠️';
-      title = `TAX AUDIT: -${fmtMoney(prize.amount)}`;
-      tag = 'LUXURY TAX AUDIT';
-    } else if (prize.type === 'island') {
-      icon = '🏝️';
-      title = 'DETAINED ON ISLAND!';
-      tag = 'DETENTION SURPRISE';
-    } else if (prize.type === 'move') {
-      icon = prize.target === 0 ? '🚀' : '✈️';
-      title = prize.target === 0 ? 'EXPRESS JET TO START!' : 'WORLD TOUR FLIGHT!';
-      tag = 'BOARD WARP';
-    }
-
-    // Highlight the result in modalStore
-    updateModalSlice('chanceWheel', {
-      hasWon: true,
-      wonPrize: {
-        icon,
-        tag,
-        title,
-        desc: prize.desc || prize.label
-      }
-    });
-
-    const resultText = document.getElementById('chance-result-text');
-    if (resultText) {
-      resultText.innerHTML = `<strong>${prize.label}</strong>: ${prize.desc}`;
-    }
-
-    // In multiplayer spectator mode (isRemote === true), return early so host/primary runs prize logic
-    if (networkState.isMultiplayer && isRemote) {
-      return;
-    }
-
-    // Broadcast immediately so ALL peers in multiplayer see the exact same result
-    if (networkState.isMultiplayer && !isRemote) {
-      broadcastAction('ACTION_CHANCE_PRIZE', {
-        playerIdx: activePIdx,
-        prize,
-        isDoubles: isDoub
-      });
-    }
-
-    // Wait 2.0s so player can comfortably read and appreciate the revealed card
-    await new Promise(r => setTimeout(r, 2000));
-    if (isLobbyScreenActive()) return;
-
-    // Smoothly close the card deck and transition to gameplay
-    animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card', async () => {
-      updateModalSlice('chanceWheel', { visible: false, isSpinning: false, hasWon: false, wonPrize: null, drawingIdx: -1, winnerIdx: -1 });
-      if (engineCallbacks.applyChancePrize) {
-        await engineCallbacks.applyChancePrize(activePIdx, prize, isDoub, false, false);
-      }
-    });
+    await revealChanceWinnerCard(prizeIdx, prize, activePIdx, isDoub, isRemote);
   }, 2050);
 }
 
-export function executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles) {
-  const modal = document.getElementById('modal-chance-wheel');
-  if (!modal || modal.classList.contains('hidden') || modal.style.display === 'none') {
-    openChanceWheelModal(isDoubles, playerIdx);
+/**
+ * Reveals the won Chance card with 3D flip, outcome audio, and status pill.
+ * Synchronized across active player and remote multiplayer spectators.
+ */
+export async function revealChanceWinnerCard(prizeIdx, prize, activePIdx, isDoubles, isRemote = false) {
+  isWheelSpinning = false;
+  if (isLobbyScreenActive()) return;
+
+  const player = (gameState.players && gameState.players[activePIdx]) || null;
+  const playerName = player ? player.name : `Player ${activePIdx + 1}`;
+
+  // Lock in the winner card and trigger 3D Flip in Svelte
+  updateModalSlice('chanceWheel', {
+    isSpinning: false,
+    drawingIdx: -1,
+    winnerIdx: prizeIdx
+  });
+
+  playSFX('wheelLock');
+
+  // Trigger outcome sound
+  if (prize.type === 'island') {
+    playSFX('island');
+  } else if (prize.type === 'tax') {
+    playSFX('payRent');
+  } else if (prize.type === 'cash') {
+    playSFX('jackpot');
+  } else {
+    playSFX('jackpot', 0.8);
   }
+
+  // Trigger emotional reaction on active player's portrait
+  if (prize.type === 'tax') {
+    setPlayerPortraitMood(activePIdx, 'crying', 3500);
+  } else if (prize.type === 'island') {
+    setPlayerPortraitMood(activePIdx, 'shocked', 3500);
+  } else if (prize.type === 'cash' && prize.amount >= 300000) {
+    setPlayerPortraitMood(activePIdx, 'smug', 3500);
+  } else {
+    setPlayerPortraitMood(activePIdx, 'cheering', 3500);
+  }
+
+  // Format prize details clearly for the outcome banner
+  let icon = prize.icon || '🎁';
+  let title = prize.label.toUpperCase();
+  let tag = prize.sub || 'CHANCE';
+  if (prize.type === 'cash') {
+    icon = prize.amount >= 300000 ? '💰' : '💎';
+    title = `+${fmtMoney(prize.amount)} CASH!`;
+    tag = 'CASH GRANT';
+  } else if (prize.type === 'tax') {
+    icon = '⚠️';
+    title = `TAX AUDIT: -${fmtMoney(prize.amount)}`;
+    tag = 'LUXURY TAX AUDIT';
+  } else if (prize.type === 'island') {
+    icon = '🏝️';
+    title = 'DETAINED ON ISLAND!';
+    tag = 'DETENTION SURPRISE';
+  } else if (prize.type === 'move') {
+    icon = prize.target === 0 ? '🚀' : '✈️';
+    title = prize.target === 0 ? 'EXPRESS JET TO START!' : 'WORLD TOUR FLIGHT!';
+    tag = 'BOARD WARP';
+  }
+
+  // Highlight the result in modalStore
+  updateModalSlice('chanceWheel', {
+    hasWon: true,
+    playerName,
+    wonPrize: {
+      icon,
+      tag,
+      title,
+      desc: prize.desc || prize.label,
+      themeColor: prize.themeColor || prize.color || '#f59e0b'
+    }
+  });
+
+  setStatusPill(`🌈 <strong>${playerName}</strong> drew Chance: <strong>${prize.label}</strong>!`, { isThinking: false, playerIdx: activePIdx });
+
+  const resultText = document.getElementById('chance-result-text');
+  if (resultText) {
+    resultText.innerHTML = `<strong>${prize.label}</strong>: ${prize.desc}`;
+  }
+
+  // Broadcast outcome in multiplayer if this is the active local player's action
+  if (networkState.isMultiplayer && !isRemote) {
+    broadcastAction('ACTION_CHANCE_PRIZE', {
+      playerIdx: activePIdx,
+      prize,
+      prizeIdx,
+      isDoubles
+    });
+  }
+
+  // Wait 2.0s so all players can comfortably read and appreciate the revealed card
+  await new Promise(r => setTimeout(r, 2000));
+  if (isLobbyScreenActive()) return;
+
+  // Smoothly close the card deck and transition to gameplay
+  animateModalSpringClose('#modal-chance-wheel', '#modal-chance-wheel-card', async () => {
+    updateModalSlice('chanceWheel', { visible: false, isSpinning: false, hasWon: false, wonPrize: null, drawingIdx: -1, winnerIdx: -1 });
+    if (engineCallbacks.applyChancePrize) {
+      await engineCallbacks.applyChancePrize(activePIdx, prize, isDoubles, isRemote, false);
+    }
+  });
+}
+
+export function executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles) {
+  openChanceWheelModal(isDoubles, playerIdx);
   spinChanceWheel(prizeIdx, fullSpins, playerIdx, isDoubles, true);
 }
 
@@ -499,6 +387,8 @@ if (typeof window !== 'undefined') {
   window.openChanceWheelModal = openChanceWheelModal;
   window.spinChanceWheel = spinChanceWheel;
   window.showChanceAwardPopup = showChanceAwardPopup;
+  window.handleRemoteChancePrize = handleRemoteChancePrize;
+  window.revealChanceWinnerCard = revealChanceWinnerCard;
   window.drawChanceWheelCanvas = drawChanceWheelCanvas;
   window.executeRemoteChanceSpin = executeRemoteChanceSpin;
   window.clearChanceTimers = clearChanceTimers;

@@ -24,7 +24,7 @@ describe('UI Polish & Design Gaps Audit (/better-ui /anti-ui-slop)', () => {
     ];
   });
 
-  it('openPortfolioModal populates owned cities and rent yields in modalStore', () => {
+  it('openPortfolioModal delegates to inspector modal for owned cities', () => {
     // Give player 0 Bangkok (id: 5) and Cairo (id: 1)
     gameState.properties[5].owner = 0;
     gameState.properties[5].level = 2;
@@ -33,22 +33,18 @@ describe('UI Polish & Design Gaps Audit (/better-ui /anti-ui-slop)', () => {
 
     openPortfolioModal();
 
-    let portfolioState = null;
-    const unsub = modalStore.subscribe(val => { portfolioState = val.portfolio; });
+    let inspState = null;
+    const unsub = modalStore.subscribe(val => { inspState = val.inspector; });
     unsub();
 
-    assert.equal(portfolioState.visible, true);
-    assert.equal(portfolioState.totalCities, 2);
-    assert.equal(portfolioState.properties.length, 2);
-    assert.equal(portfolioState.properties[0].name, 'CAIRO');
-    assert.equal(portfolioState.properties[1].name, 'BANGKOK');
+    assert.equal(inspState.visible, true);
+    assert.equal(inspState.tileId, 1);
 
     closePortfolioModal();
 
-    unsub();
-    const unsub2 = modalStore.subscribe(val => { portfolioState = val.portfolio; });
+    const unsub2 = modalStore.subscribe(val => { inspState = val.inspector; });
     unsub2();
-    assert.equal(portfolioState.visible, false);
+    assert.equal(inspState.visible, false);
   });
 
   it('openRulesModal and closeRulesModal cleanly toggle modalStore.rules', () => {

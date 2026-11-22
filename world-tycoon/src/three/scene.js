@@ -21,7 +21,6 @@ import { buildLowPolyFloatingClouds3D } from './environment/clouds.js';
 import { buildAllBoardTiles3D } from './board/tiles.js';
 import { buildFourCornerLandmarks3D } from './assets/landmarks.js';
 import { buildStreetLampsAndBulbs3D } from './core/lighting.js';
-import { buildAnimatedRoadCars3D } from './environment/cars.js';
 import { build3DDicePair } from './assets/dice.js';
 import { buildTileHighlightRing3D, buildActivePlayerHighlightSystem, setEmpireSpotlight } from './board/highlights.js';
 import { ensure3DPortraitSystemInitialized } from './pawns/tokens.js';
@@ -29,7 +28,6 @@ import { applyBoardStyle, BOARD_STYLES } from './board/skins.js';
 import { initInputHandlers } from './core/input.js';
 import { startRenderLoop } from './core/loop.js';
 import { initPhysicsEngine, spawnShatterDebris, spawnGoldCoinShower, triggerBoardShockwave } from './physics/physicsEngine.js';
-import { initPostProcessingPipeline, postProcessingState } from './postprocessing/pipeline.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Scene Initialization Facade & GPU Detection
@@ -174,7 +172,6 @@ export function initThreeScene(onTileClickCb) {
   buildAllBoardTiles3D(context.boardGroup);
   buildFourCornerLandmarks3D(context.boardGroup);
   buildStreetLampsAndBulbs3D(context.boardGroup);
-  buildAnimatedRoadCars3D(context.boardGroup);
   build3DDicePair(context.boardGroup);
   buildTileHighlightRing3D(context.boardGroup);
   buildActivePlayerHighlightSystem(context.boardGroup);
@@ -188,7 +185,6 @@ export function initThreeScene(onTileClickCb) {
 
   // 8C. Initialize 3D Rigid-Body Physics Simulation & Post-Processing Pipeline
   initPhysicsEngine(context.scene);
-  initPostProcessingPipeline();
 
   // 9. Input & interaction listeners (raycast, hover, drag-orbit, wheel zoom)
   initInputHandlers(context.renderer.domElement, onTileClickCb);
@@ -308,7 +304,6 @@ export {
   updateLobbyHeroDiceTrail,
   triggerLobbyHeroDiceRoll
 } from './stages/lobbyStage.js';
-export { resetLocalCarAnimationClock } from './environment/cars.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Re-exports: 3D Physics Engine & Post-Processing Shaders
@@ -318,7 +313,6 @@ export {
   spawnGoldCoinShower,
   triggerBoardShockwave
 } from './physics/physicsEngine.js';
-export { postProcessingState } from './postprocessing/pipeline.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Re-exports: Theatre.js Cinematics & Motion Design

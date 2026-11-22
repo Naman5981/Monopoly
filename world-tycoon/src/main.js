@@ -141,7 +141,6 @@ import {
   closeIncomingTradeModal,
   openRulesModal,
   closeRulesModal,
-  toggleEmotePopover,
   sendQuickEmote,
   toggleEventLogDrawer,
   closeMonopolyModal,
@@ -174,16 +173,6 @@ import {
   stopVictoryCelebration
 } from './three/effects.js';
 import { initDebugSuite } from './game/debug.js';
-import { initVersionChecker } from './game/versionCheck.js';
-import {
-  initWardrobeSystem,
-  openWardrobeModal,
-  closeWardrobeModal,
-  setWardrobeCategory,
-  equipItem as equipWardrobeItem,
-  unlockItem as unlockWardrobeItem,
-  previewWardrobeItem
-} from './ui/wardrobe.js';
 
 // Register core services in IoC container for dependency inversion (DIP)
 container
@@ -323,7 +312,6 @@ window.rotateBoardRight = rotateBoardRight;
 window.openRulesModal = openRulesModal;
 window.closeRulesModal = closeRulesModal;
 window.toggleEventLogDrawer = toggleEventLogDrawer;
-window.toggleEmotePopover = toggleEmotePopover;
 window.sendQuickEmote = sendQuickEmote;
 window.openBuyCityModal = openBuyCityModal;
 window.confirmBuyCity = confirmBuyCity;
@@ -360,13 +348,6 @@ window.openFestivalBoostModal = openFestivalBoostModal;
 window.closeFestivalBoostModal = closeFestivalBoostModal;
 window.chooseFestivalBoostCity = chooseFestivalBoostCity;
 
-// Wardrobe & Cosmetics System
-window.openWardrobeModal = openWardrobeModal;
-window.closeWardrobeModal = closeWardrobeModal;
-window.setWardrobeCategory = setWardrobeCategory;
-window.equipWardrobeItem = equipWardrobeItem;
-window.unlockWardrobeItem = unlockWardrobeItem;
-window.previewWardrobeItem = previewWardrobeItem;
 
 // Resume & Disconnect Handlers
 window.resumeLastSavedMatch = () => {
@@ -519,10 +500,8 @@ function initApp() {
   initEngine();
   initThreeScene(onTileClick);
   initLandingSetup();
-  initWardrobeSystem();
   initDebugSuite();
   initTheatreSuite();
-  initVersionChecker();
 
   // Initialize Vercel Web Analytics
   try {
@@ -633,6 +612,13 @@ function initApp() {
       renderLeaderboardModal();
     }
 
+    if (gameState.phase === 'AUCTION' || gameState.auction) {
+      modalAfkSeconds = 0;
+      phaseEndStallSeconds = 0;
+      hostRemoteRollGraceSeconds = 0;
+      return;
+    }
+
     const currentPlayer = gameState.players && gameState.players[gameState.currentPlayerIdx];
     if (gameState.phase === 'ROLL' && currentPlayer) {
       modalAfkSeconds = 0;
@@ -740,6 +726,7 @@ function initApp() {
   window.addEventListener('keydown', (e) => {
     if (e.target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable)) return;
     if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32) {
+      if (gameState.phase === 'AUCTION' || gameState.auction || isAnyModalOpen()) return;
       const rollBtn = document.getElementById('btn-bottom-roll') || document.getElementById('btn-center-roll');
       if (rollBtn && !rollBtn.classList.contains('hidden') && rollBtn.style.display !== 'none' && !rollBtn.disabled) {
         e.preventDefault();
@@ -757,8 +744,6 @@ function initApp() {
         closeConfirmExitLobbyModal();
       } else if (!document.getElementById('modal-leaderboard')?.classList.contains('hidden')) {
         closeLeaderboardModal();
-      } else if (!document.getElementById('modal-wardrobe')?.classList.contains('hidden')) {
-        closeWardrobeModal();
       } else if (!document.getElementById('modal-rules')?.classList.contains('hidden')) {
         closeRulesModal();
       } else if (!document.getElementById('modal-portfolio')?.classList.contains('hidden')) {

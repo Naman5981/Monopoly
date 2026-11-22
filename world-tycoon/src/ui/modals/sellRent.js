@@ -9,7 +9,7 @@ import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { refreshTileTextureAndBuildings, spawnShatterDebris, triggerBoardShockwave } from '../../three/scene.js';
-import { renderCornerHUDs, logEvent } from '../hud.js';
+import { renderCornerHUDs, logEvent, updateRollButtonsUI } from '../hud.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateBankruptcyQuake, animateModalSpringOpen, animateModalSpringClose, animatePlayerEliminatedBanner } from '../anim.js';
@@ -277,6 +277,10 @@ export async function settlePendingRentAndCloseModal() {
   }
 
   if (soldTiles.length > 0) {
+    cancelAllGameTimers();
+    clearAuctionTimers();
+    gameState.phase = 'AUCTION';
+    updateRollButtonsUI(false);
     if (!networkState.isMultiplayer || networkState.isHost) {
       // Grace period in browser: allows rent settlement cash floating text to settle before starting auction
       const delay = globalThis.__WT_TEST__ ? 0 : 700;
@@ -361,6 +365,10 @@ export function settleDebtDeficitWithoutProperties() {
   }
 
   if (soldTiles.length > 0) {
+    cancelAllGameTimers();
+    clearAuctionTimers();
+    gameState.phase = 'AUCTION';
+    updateRollButtonsUI(false);
     if (!networkState.isMultiplayer || networkState.isHost) {
       // 2850ms delay in browser: allows 2.8s player-eliminated banner & quake to conclude completely before auction timer starts!
       const delay = globalThis.__WT_TEST__ ? 0 : 2850;

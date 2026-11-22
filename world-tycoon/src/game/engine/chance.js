@@ -4,7 +4,7 @@
  */
 
 import { BOARD_TILES, CHANCE_WHEEL_PRIZES } from '../data.js';
-import { gameState } from '../state.js';
+import { gameState, displayedCash } from '../state.js';
 import { fmtMoney } from '../utils.js';
 import { playSFX } from '../audio.js';
 import { checkAndHandleNegativeCash } from '../rules.js';
@@ -36,19 +36,27 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
 
   if (prize.type === 'cash') {
     p.cash += prize.amount;
+    if (displayedCash) displayedCash[playerIdx] = p.cash;
     playSFX('jackpot');
     showSpeechBubble(`🎉 +${fmtMoney(prize.amount)}!`, 2200);
     spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(prize.amount)}`, true);
     renderCornerHUDs();
+    if (networkState.isMultiplayer && networkState.isHost) {
+      broadcastFullGameState();
+    }
   } else if (prize.type === 'tax') {
     if (p.cash >= prize.amount) {
       p.cash -= prize.amount;
+      if (displayedCash) displayedCash[playerIdx] = p.cash;
       gameState.festivalPot += prize.amount;
       showSpeechBubble(`💸 -${fmtMoney(prize.amount)} Tax!`, 2200);
       spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(prize.amount)} Tax`, false);
       triggerTokenHurtAnimation(playerIdx);
       playSFX('hurt');
       renderCornerHUDs();
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
+      }
     } else {
       const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
       if (owned.length > 0) {
@@ -73,6 +81,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
 
           if (p.cash >= prize.amount) {
             p.cash -= prize.amount;
+            if (displayedCash) displayedCash[playerIdx] = p.cash;
             gameState.festivalPot += prize.amount;
             playSFX('cash');
             logEvent(`🏛️ <strong>${p.name}</strong> paid <strong>${fmtMoney(prize.amount)}</strong> Chance fine into the Festival Pool.`);
@@ -179,7 +188,12 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
     playSFX('hop');
     setTimeout(() => setTileHighlightRing(8, false), 900);
     renderCornerHUDs();
-    if (window.concludeActionPhase) window.concludeActionPhase(false);
+    if (networkState.isMultiplayer && networkState.isHost) {
+      broadcastFullGameState();
+    }
+    if (!isRemote && window.concludeActionPhase) {
+      window.concludeActionPhase(false);
+    }
     return;
   } else if (prize.type === 'move') {
     const fromPos = p.position;
@@ -199,11 +213,18 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       setTimeout(() => setTileHighlightRing(0, false), 900);
       const salary = 350000;
       p.cash += salary;
+      if (displayedCash) displayedCash[playerIdx] = p.cash;
       playSFX('cash');
       spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(salary)} START`, true);
       animateGoSalaryStream(playerIdx, fmtMoney(salary));
       logEvent(`💰 <strong>${p.name}</strong> landed on <strong>START</strong> and collected <strong>${fmtMoney(salary)}</strong> salary.`);
       renderCornerHUDs();
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
+      }
+      if (!isRemote && window.concludeActionPhase) {
+        window.concludeActionPhase(isDoubles);
+      }
     } else {
       showSpeechBubble(`✈️ Flying to ${BOARD_TILES[dest]?.name || 'Destination'}!`, 2500);
       await flyPlayerDirectFlightAnimation(playerIdx, fromPos, dest);
@@ -215,13 +236,21 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       showSpeechBubble(`🛬 Landed on ${BOARD_TILES[dest]?.name || 'Destination'}!`, 2200);
       // Give the player a clear visual pause to witness the avatar landing on World Tour before opening flight selection mode
       await new Promise(r => setTimeout(r, 650));
-    }
-    renderCornerHUDs();
-    if (window.evaluateTileLanding) {
-      await window.evaluateTileLanding(playerIdx, isDoubles);
+      renderCornerHUDs();
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
+      }
+      if (window.evaluateTileLanding) {
+        await window.evaluateTileLanding(playerIdx, isDoubles);
+      }
     }
     return;
   }
   renderCornerHUDs();
-  if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
+  if (networkState.isMultiplayer && networkState.isHost) {
+    broadcastFullGameState();
+  }
+  if (!isRemote && window.concludeActionPhase) {
+    window.concludeActionPhase(isDoubles);
+  }
 }

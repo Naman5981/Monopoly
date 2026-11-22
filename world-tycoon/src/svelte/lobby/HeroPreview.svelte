@@ -65,10 +65,6 @@
     window.setLocalPlayerColor?.(hex, parsed);
   }
 
-  function openWardrobe() {
-    window.openWardrobeModal?.();
-  }
-
   function editName() {
     window.promptEditPlayerName?.();
   }
@@ -116,15 +112,6 @@
   <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-2 sm:gap-2.5 2xl:gap-3 w-full">
     <!-- Customization Row: Wardrobe & Colors Unified Capsule Dock -->
     <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center bg-white/80 backdrop-blur-md p-1.5 rounded-full border-2 border-white/90 shadow-md">
-      <!-- Wardrobe & Outfits Button -->
-      <button id="btn-open-wardrobe" onclick={openWardrobe} class="px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-xs border border-amber-300 flex items-center gap-1.5 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.96]" title="Customize Outfits, Hats, Dice & Pedestals" aria-label="Open Wardrobe Customization">
-        <svg class="ui-icon w-3.5 h-3.5 text-slate-950 flex-shrink-0" aria-hidden="true"><use href="#icon-wardrobe"></use></svg>
-        <span class="tracking-wide text-[11px] font-black uppercase">WARDROBE</span>
-        <span class="ml-0.5 px-1.5 py-0.2 rounded-full bg-slate-950 text-amber-300 font-black text-[10px] tabular-nums inline-flex items-center gap-1 shadow-inner">
-          <svg class="ui-icon w-2.5 h-2.5 text-amber-300" aria-hidden="true"><use href="#icon-star"></use></svg>
-          <span id="wardrobe-button-stars-badge" class="font-mono tabular-nums text-[10px] font-black">{state.profileStars ?? 500}</span>
-        </span>
-      </button>
 
       <!-- Color Swatches Bar: Hidden in Team Mode (strictly Red & Blue) -->
       {#if !state.isTeamMode}
