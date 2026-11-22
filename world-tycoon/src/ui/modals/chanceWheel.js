@@ -4,6 +4,7 @@
  */
 
 import { CHANCE_WHEEL_PRIZES, PLAYER_THEMES } from '../../game/data.js';
+import { getActiveChancePrizes } from '../../game/engine/chance.js';
 import { gameState } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
@@ -175,7 +176,7 @@ export function showChanceAwardPopup(prize, onDone, playerIdx = null) {
  * animation complete gracefully without killing the modal.
  * If peer missed ACTION_CHANCE_SPIN, displays the revealed won card for 2s.
  */
-export function handleRemoteChancePrize(playerIdx, prize, isDoubles = false) {
+export function handleRemoteChancePrize(playerIdx, prize, isDoubles = false, forcedPrizeIdx = null) {
   if (!prize) return;
   const pIdx = (playerIdx !== null && playerIdx !== undefined) ? playerIdx : (gameState.currentPlayerIdx ?? 0);
 
@@ -189,12 +190,15 @@ export function handleRemoteChancePrize(playerIdx, prize, isDoubles = false) {
   }
 
   // Fallback: If spectator missed ACTION_CHANCE_SPIN, open modal directly onto the revealed card
-  let prizeIdx = CHANCE_WHEEL_PRIZES.findIndex(p => p.label === prize.label && p.type === prize.type);
+  const prizes = getActiveChancePrizes();
+  let prizeIdx = (forcedPrizeIdx !== null && forcedPrizeIdx !== undefined && forcedPrizeIdx >= 0)
+    ? forcedPrizeIdx
+    : prizes.findIndex(p => p.label === prize.label && p.type === prize.type);
   if (prizeIdx === -1) {
-    prizeIdx = CHANCE_WHEEL_PRIZES.findIndex(p => p.type === prize.type);
+    prizeIdx = prizes.findIndex(p => p.type === prize.type);
   }
   const resolvedIdx = prizeIdx >= 0 ? prizeIdx : 0;
-  const resolvedPrize = CHANCE_WHEEL_PRIZES[resolvedIdx] || prize;
+  const resolvedPrize = prizes[resolvedIdx] || prize;
 
   openChanceWheelModal(isDoubles, pIdx);
   revealChanceWinnerCard(resolvedIdx, resolvedPrize, pIdx, isDoubles, true);
@@ -217,11 +221,12 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> REVEALING CARD (SPINNING)...`;
   }
 
-  const prizeIdx = forcedPrizeIdx !== null ? forcedPrizeIdx : Math.floor(Math.random() * CHANCE_WHEEL_PRIZES.length);
-  const prize = CHANCE_WHEEL_PRIZES[prizeIdx];
+  const prizes = getActiveChancePrizes();
+  const prizeIdx = forcedPrizeIdx !== null ? forcedPrizeIdx : Math.floor(Math.random() * prizes.length);
+  const prize = prizes[prizeIdx] || prizes[0];
 
   // N slices for angle calculations (if canvas is inspected)
-  const N = CHANCE_WHEEL_PRIZES.length;
+  const N = prizes.length;
   const sliceDeg = 360 / N;
   const targetOffset = (360 - (prizeIdx * sliceDeg)) % 360;
   const fullSpins = forcedSpins !== null ? forcedSpins : (5 + Math.floor(Math.random() * 2));
@@ -380,6 +385,9 @@ export async function revealChanceWinnerCard(prizeIdx, prize, activePIdx, isDoub
 
 export function executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles) {
   openChanceWheelModal(isDoubles, playerIdx);
+  const player = (gameState.players && gameState.players[playerIdx]) || null;
+  const playerName = player ? player.name : `Player ${playerIdx + 1}`;
+  setStatusPill(`🃏 <strong>${playerName}</strong> is drawing a Chance Card...`, { isThinking: true, playerIdx });
   spinChanceWheel(prizeIdx, fullSpins, playerIdx, isDoubles, true);
 }
 

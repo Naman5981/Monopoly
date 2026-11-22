@@ -303,7 +303,7 @@ export function executeIncomingNetworkAction(msg) {
 
     case 'ACTION_CHANCE_PRIZE':
       if (networkCallbacks.onChancePrize) {
-        networkCallbacks.onChancePrize(msg.playerIdx, msg.prize, msg.isDoubles);
+        networkCallbacks.onChancePrize(msg.playerIdx, msg.prize, msg.isDoubles, msg.prizeIdx);
       }
       break;
 

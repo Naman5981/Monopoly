@@ -148,6 +148,7 @@ describe('Island Detention Bail UI & Lifecycle (/bug-hunter)', () => {
     gameState.players[0].inIsland = true;
     gameState.players[0].islandTurns = 1;
     gameState.players[0].cash = 250000;
+    gameState.phase = 'ROLL';
 
     refreshActivePlayerTurnStatus();
     assert.ok(statusPillText.innerHTML.includes('Island Detention (1/3)'));
@@ -156,5 +157,16 @@ describe('Island Detention Bail UI & Lifecycle (/bug-hunter)', () => {
     gameState.players[0].cash = 50000;
     refreshActivePlayerTurnStatus();
     assert.ok(statusPillText.innerHTML.includes('Need $150K for bail'));
+  });
+
+  it('does NOT display bail or doubles prompts when player is in island during END phase', () => {
+    gameState.players[0].inIsland = true;
+    gameState.players[0].cash = 300000;
+    gameState.phase = 'END';
+
+    refreshActivePlayerTurnStatus();
+    assert.equal(statusPillText.innerHTML.includes('Pay $150K bail'), false, 'Must not prompt to pay bail on arrival during END phase');
+    assert.equal(statusPillText.innerHTML.includes('roll doubles to escape'), false, 'Must not prompt to roll doubles during END phase');
+    assert.ok(statusPillText.innerHTML.includes('Turn ending'), 'Must cleanly state that turn is ending');
   });
 });

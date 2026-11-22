@@ -192,4 +192,44 @@ describe('Multiplayer Chance Card Reveal & State Transfer (/bug-hunter)', () => 
     assert.equal(gameState.players[0].cash, initialCash + 350000, 'START bonus salary (+350k) must be awarded');
     assert.equal(displayedCash[0], initialCash + 350000, 'displayedCash must reflect START salary');
   });
+
+  it('handleRemoteChancePrize resolves Rajasthan edition prizes without throwing ReferenceError', () => {
+    networkState.isHost = false;
+    networkState.localPlayerIdx = 1;
+
+    const rajasthanJailPrize = {
+      label: 'Desert Jail',
+      type: 'island',
+      desc: 'Detained in Thar Desert outpost. Miss turns unless bail is paid or doubles rolled.',
+      themeColor: '#ef4444'
+    };
+
+    // Must not throw ReferenceError: pIdx is not defined or array lookup failure
+    assert.doesNotThrow(() => {
+      handleRemoteChancePrize(0, rajasthanJailPrize, false, 4);
+    });
+
+    const state = getModalSlice('chanceWheel');
+    assert.equal(state.visible, true, 'Modal should be visible displaying the resolved prize');
+  });
+
+  it('concludes action phase and broadcasts full state after player sent to Island', async () => {
+    networkState.isHost = true;
+    networkState.localPlayerIdx = 0;
+
+    let concludedPhase = false;
+    globalThis.window.concludeActionPhase = (doubles) => {
+      concludedPhase = true;
+      gameState.phase = 'END';
+    };
+
+    const islandPrize = { type: 'island', label: 'Go to Island', desc: 'Detained' };
+    await applyChancePrize(0, islandPrize, false, false, false);
+
+    assert.equal(concludedPhase, true, 'Must conclude action phase on Island detention');
+    const syncAction = broadcastedActions.find(a => a.type === 'FULL_STATE_SYNC');
+    assert.notEqual(syncAction, undefined, 'Host must broadcast FULL_STATE_SYNC after concluding');
+    assert.equal(gameState.players[0].inIsland, true);
+    assert.equal(gameState.players[0].position, 8);
+  });
 });

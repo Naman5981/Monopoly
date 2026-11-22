@@ -92,30 +92,41 @@ export function refreshActivePlayerTurnStatus() {
 
   if (isLocalHuman) {
     currentThinkingState = null;
-    if (p.inIsland) {
-      if (p.cash >= 150000) {
-        setStatusPill(`🏝️ <strong>Island Detention (${p.islandTurns || 0}/3)</strong> — Pay $150K bail or roll doubles to escape!`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
+    if (gameState.phase === 'ROLL') {
+      if (p.inIsland) {
+        if (p.cash >= 150000) {
+          setStatusPill(`🏝️ <strong>Island Detention (${p.islandTurns || 0}/3)</strong> — Pay $150K bail or roll doubles to escape!`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
+        } else {
+          setStatusPill(`🏝️ <strong>Island Detention (${p.islandTurns || 0}/3)</strong> — Need $150K for bail! Roll doubles to escape!`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
+        }
       } else {
-        setStatusPill(`🏝️ <strong>Island Detention (${p.islandTurns || 0}/3)</strong> — Need $150K for bail! Roll doubles to escape!`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
+        const isDoublesReRoll = (gameState.doublesCount || 0) > 0;
+        const rollPrompt = isDoublesReRoll
+          ? `🎲 <strong>Doubles Re-Roll!</strong> — Roll the dice or press Space!`
+          : `🎲 <strong>Your Turn</strong> — Roll the dice or press Space!`;
+        setStatusPill(rollPrompt, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
       }
-    } else if (gameState.phase === 'ROLL') {
-      const isDoublesReRoll = (gameState.doublesCount || 0) > 0;
-      const rollPrompt = isDoublesReRoll
-        ? `🎲 <strong>Doubles Re-Roll!</strong> — Roll the dice or press Space!`
-        : `🎲 <strong>Your Turn</strong> — Roll the dice or press Space!`;
-      setStatusPill(rollPrompt, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
     } else if (gameState.phase === 'END') {
-      setStatusPill(`✨ <strong>Turn ending</strong>...`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
+      if (p.inIsland) {
+        const isRajasthan = matchSettings?.boardEdition === 'rajasthan';
+        setStatusPill(`🏝️ <strong>${isRajasthan ? 'Desert Jail' : 'Island Detention'}</strong> — Turn ending...`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
+      } else {
+        setStatusPill(`✨ <strong>Turn ending</strong>...`, { isThinking: false, playerIdx: curIdx, durationMs: 0 });
+      }
     }
   } else if (p.isAI) {
-    if (p.inIsland) {
+    if (p.inIsland && gameState.phase === 'ROLL') {
       setStatusPill(`🤔 <strong>${p.name}</strong> is rolling for doubles to leave the Island...`, { isThinking: true, playerIdx: curIdx });
+    } else if (gameState.phase === 'END') {
+      setStatusPill(`⏳ <strong>${p.name}</strong>'s turn is concluding...`, { isThinking: true, playerIdx: curIdx });
     } else {
       setStatusPill(`🤔 <strong>${p.name}</strong> is thinking...`, { isThinking: true, playerIdx: curIdx });
     }
   } else {
     if (gameState.phase === 'END') {
       setStatusPill(`⏳ <strong>${p.name}</strong>'s turn is concluding...`, { isThinking: true, playerIdx: curIdx });
+    } else if (p.inIsland && gameState.phase === 'ROLL') {
+      setStatusPill(`🏝️ <strong>${p.name}</strong> is in Island Detention (${p.islandTurns || 0}/3)...`, { isThinking: true, playerIdx: curIdx });
     } else if ((gameState.doublesCount || 0) > 0 && gameState.phase === 'ROLL') {
       setStatusPill(`🎲 <strong>${p.name}</strong> rolled doubles! Waiting for their extra roll...`, { isThinking: true, playerIdx: curIdx });
     } else {

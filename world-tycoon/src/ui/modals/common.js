@@ -227,8 +227,19 @@ export function closeTurnActionModals() {
   updateModalSlice('buyCity', { visible: false });
   updateModalSlice('upgradeCity', { visible: false });
   updateModalSlice('buyout', { visible: false });
-  updateModalSlice('chanceWheel', { visible: false, resultVisible: false });
+  updateModalSlice('chanceWheel', {
+    visible: false,
+    resultVisible: false,
+    isSpinning: false,
+    hasWon: false,
+    wonPrize: null,
+    drawingIdx: -1,
+    winnerIdx: -1
+  });
   updateModalSlice('festivalBoost', { visible: false, noPropertiesVisible: false });
+  if (typeof window !== 'undefined' && typeof window.clearChanceTimers === 'function') {
+    window.clearChanceTimers();
+  }
   TURN_ACTION_MODAL_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (el) {

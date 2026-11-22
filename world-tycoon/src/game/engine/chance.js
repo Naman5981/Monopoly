@@ -3,7 +3,7 @@
  * Chance wheel prize resolution: cash rewards, tax deductions, island detention, and express jet flights.
  */
 
-import { BOARD_TILES, CHANCE_WHEEL_PRIZES } from '../data.js';
+import { BOARD_TILES, CHANCE_WHEEL_PRIZES, BOARD_EDITIONS } from '../data.js';
 import { gameState, matchSettings, displayedCash } from '../state.js';
 import { fmtMoney } from '../utils.js';
 import { playSFX } from '../audio.js';
@@ -23,6 +23,14 @@ import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setStatusPill } fro
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { animateGoSalaryStream, animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../../ui/anim.js';
 import { openSellCitiesModal, calculatePropertySaleValue } from '../../ui/modals.js';
+
+export function getActiveChancePrizes() {
+  const editionKey = matchSettings?.boardEdition;
+  if (editionKey && BOARD_EDITIONS[editionKey]?.chancePrizes) {
+    return BOARD_EDITIONS[editionKey].chancePrizes;
+  }
+  return CHANCE_WHEEL_PRIZES;
+}
 
 export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = false, shouldBroadcast = false) {
   const p = gameState.players[playerIdx];
@@ -219,11 +227,12 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
     playSFX('hop');
     setTimeout(() => setTileHighlightRing(8, false), 900);
     renderCornerHUDs();
+    setStatusPill(`🏝️ <strong>${p.name}</strong> sent to <strong>${isRajasthan ? 'Desert Jail' : 'Island Detention'}</strong>! Turn ending...`, { isThinking: false, playerIdx });
+    if (window.concludeActionPhase) {
+      window.concludeActionPhase(false);
+    }
     if (networkState.isMultiplayer && networkState.isHost) {
       broadcastFullGameState();
-    }
-    if (!isRemote && window.concludeActionPhase) {
-      window.concludeActionPhase(false);
     }
     return;
   } else if (prize.type === 'move') {
@@ -252,11 +261,11 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       animateGoSalaryStream(playerIdx, fmtMoney(salary));
       logEvent(`💰 <strong>${p.name}</strong> landed on <strong>START</strong> and collected <strong>${fmtMoney(salary)}</strong> salary.`);
       renderCornerHUDs();
+      if (window.concludeActionPhase) {
+        window.concludeActionPhase(isDoubles);
+      }
       if (networkState.isMultiplayer && networkState.isHost) {
         broadcastFullGameState();
-      }
-      if (!isRemote && window.concludeActionPhase) {
-        window.concludeActionPhase(isDoubles);
       }
     } else if (dest === 16) {
       showSpeechBubble(isRajasthan ? '🐪 Royal Caravan to Pushkar Fair!' : '🎪 Flying to World Festival!', 2500);
@@ -297,10 +306,10 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
     return;
   }
   renderCornerHUDs();
+  if (window.concludeActionPhase) {
+    window.concludeActionPhase(isDoubles);
+  }
   if (networkState.isMultiplayer && networkState.isHost) {
     broadcastFullGameState();
-  }
-  if (!isRemote && window.concludeActionPhase) {
-    window.concludeActionPhase(isDoubles);
   }
 }

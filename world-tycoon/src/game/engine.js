@@ -385,8 +385,8 @@ export function initEngine() {
     onChanceSpin: (playerIdx, prizeIdx, fullSpins, isDoubles) => {
       executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles);
     },
-    onChancePrize: (playerIdx, prize, isDoubles) => {
-      handleRemoteChancePrize(playerIdx, prize, isDoubles);
+    onChancePrize: (playerIdx, prize, isDoubles, prizeIdx) => {
+      handleRemoteChancePrize(playerIdx, prize, isDoubles, prizeIdx);
     },
     onFestivalBoost: (playerIdx, tileId, isDoubles) => {
       if (networkState.isMultiplayer && networkState.isHost) {
@@ -528,6 +528,9 @@ export function initEngine() {
             gameState.phase = 'AUCTION';
           } else if (!isCurrentlyMoving && (!isLocalPlayerInModal || incomingState.phase === 'MODAL')) {
             gameState.phase = incomingState.phase;
+          }
+          if (!isAuctionActive && incomingState.phase && incomingState.phase !== 'MODAL' && !isLocalPlayerInModal) {
+            closeTurnActionModals();
           }
         }
       }

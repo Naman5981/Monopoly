@@ -1,12 +1,18 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
-  import { CHANCE_WHEEL_PRIZES } from '../../game/data.js';
+  import { CHANCE_WHEEL_PRIZES, BOARD_EDITIONS } from '../../game/data.js';
   import { matchSettings } from '../../game/state.js';
   import { drawChanceWheelCanvas } from '../../ui/modals/chanceCanvas.js';
 
   let state = $state({});
   let canvasEl = $state(null);
   modalStore.subscribe(val => { state = val.chanceWheel || {}; });
+
+  const activePrizes = $derived(
+    (matchSettings?.boardEdition && BOARD_EDITIONS[matchSettings.boardEdition]?.chancePrizes)
+      ? BOARD_EDITIONS[matchSettings.boardEdition].chancePrizes
+      : CHANCE_WHEEL_PRIZES
+  );
 
   function renderWheel() {
     try {
@@ -186,8 +192,8 @@
     <!-- 3D Perspective Card Fan Viewport -->
     <div class="perspective-viewport relative w-full h-[300px] flex items-center justify-center">
       <div class="deck-track">
-        {#each CHANCE_WHEEL_PRIZES as prize, idx}
-          {@const centerOffset = idx - 2.5}
+        {#each activePrizes as prize, idx}
+          {@const centerOffset = idx - ((activePrizes.length - 1) / 2)}
           {@const angle = centerOffset * 8.5}
           {@const xOffset = centerOffset * 48}
           {@const yOffset = Math.abs(centerOffset) * 8}
