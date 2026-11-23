@@ -44,9 +44,22 @@ import {
   animateIslandJailbreak
 } from '../../ui/anim.js';
 import { evaluateTileLanding } from './landings.js';
+import { modalStore } from '../../svelte/stores/modalStore.js';
+import { bannerStore } from '../../svelte/stores/bannerStore.js';
+import { get } from 'svelte/store';
 
 let autoEndTurnTimer = null;
 let observerEndTurnWatchdog = null;
+
+function isCelebrationOrThreatActive() {
+  try {
+    const modals = get(modalStore);
+    if (modals?.monopolyCelebration?.visible) return true;
+    const banner = get(bannerStore);
+    if (banner?.active && banner?.type === 'monopolyThreat') return true;
+  } catch (_) {}
+  return false;
+}
 
 function clearObserverEndTurnWatchdog() {
   if (observerEndTurnWatchdog) {
@@ -322,17 +335,20 @@ export function concludeActionPhase(isDoubles) {
 
   cancelAllGameTimers();
 
+  const celebrationDelay = isCelebrationOrThreatActive() ? 3500 : 0;
+
   if (p.isAI) {
     if (networkState.isMultiplayer && !networkState.isHost) return;
     if (debugState?.freezeAI) {
       logEvent(`⏸️ <strong>[DEBUG]</strong> AI turn end paused for <strong>${p.name}</strong> (AI Frozen).`);
       return;
     }
+    const delay = celebrationDelay || 350;
     autoEndTurnTimer = setTimeout(() => {
       autoEndTurnTimer = null;
       if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
       advanceTurn();
-    }, getGameDelay(350));
+    }, getGameDelay(delay));
   } else {
     // In multiplayer, observers must NOT auto-advance someone else's turn immediately!
     if (networkState.isMultiplayer && pIdx !== networkState.localPlayerIdx) {
@@ -340,7 +356,7 @@ export function concludeActionPhase(isDoubles) {
       updateRollButtonsUI(false);
       refreshActivePlayerTurnStatus();
 
-      // Observer watchdog fallback: If active peer's ACTION_END_TURN does not arrive within 3.5s, auto-advance
+      // Observer watchdog fallback: If active peer's ACTION_END_TURN does not arrive within 3.5s (or 5s if celebration), auto-advance
       clearObserverEndTurnWatchdog();
       observerEndTurnWatchdog = setTimeout(() => {
         observerEndTurnWatchdog = null;
@@ -348,20 +364,21 @@ export function concludeActionPhase(isDoubles) {
         if (gameState.phase === 'END' && gameState.currentPlayerIdx === pIdx) {
           advanceTurn(true);
         }
-      }, 3500);
+      }, celebrationDelay ? 5500 : 3500);
       return;
     }
     clearObserverEndTurnWatchdog();
     gameState.phase = 'END';
     updateRollButtonsUI(isHumanTurnActionable());
     refreshActivePlayerTurnStatus();
+    const delay = celebrationDelay || 500;
     autoEndTurnTimer = setTimeout(() => {
       autoEndTurnTimer = null;
       if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
       if (gameState.phase === 'END') {
         advanceTurn();
       }
-    }, getGameDelay(500));
+    }, getGameDelay(delay));
   }
 }
 

@@ -190,7 +190,11 @@ export function confirmBuyoutCity() {
   refreshTileTextureAndBuildings(tile.id);
   renderCornerHUDs();
   if (tile.group) {
-    checkAndTriggerMonopoly(pIdx, tile.group);
+    try {
+      checkAndTriggerMonopoly(pIdx, tile.group);
+    } catch (err) {
+      console.error('[BuyoutCity] checkAndTriggerMonopoly error:', err);
+    }
   }
 
   const finish = () => {

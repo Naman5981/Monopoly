@@ -278,11 +278,11 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       showSpeechBubble(isRajasthan ? '🎪 Arrived at Pushkar Fair Mela!' : '🎪 Landed on World Festival!', 2200);
       await new Promise(r => setTimeout(r, 650));
       renderCornerHUDs();
-      if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastFullGameState();
-      }
       if (window.evaluateTileLanding) {
         await window.evaluateTileLanding(playerIdx, isDoubles);
+      }
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
       }
     } else {
       showSpeechBubble(`✈️ Flying to ${BOARD_TILES[dest]?.name || 'Destination'}!`, 2500);
@@ -296,11 +296,11 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       // Give the player a clear visual pause to witness the avatar landing on World Tour before opening flight selection mode
       await new Promise(r => setTimeout(r, 650));
       renderCornerHUDs();
-      if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastFullGameState();
-      }
       if (window.evaluateTileLanding) {
         await window.evaluateTileLanding(playerIdx, isDoubles);
+      }
+      if (networkState.isMultiplayer && networkState.isHost) {
+        broadcastFullGameState();
       }
     }
     return;

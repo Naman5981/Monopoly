@@ -105,7 +105,11 @@ export function confirmBuyCity() {
   refreshTileTextureAndBuildings(tile.id);
   renderCornerHUDs();
   if (tile.group) {
-    checkAndTriggerMonopoly(pIdx, tile.group);
+    try {
+      checkAndTriggerMonopoly(pIdx, tile.group);
+    } catch (err) {
+      console.error('[BuyCity] checkAndTriggerMonopoly error:', err);
+    }
   }
   if (engineCallbacks.concludeActionPhase) {
     engineCallbacks.concludeActionPhase(gameState.pendingDoubles);

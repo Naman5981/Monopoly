@@ -153,7 +153,11 @@ export function initEngine() {
         refreshTileTextureAndBuildings(tileId);
         renderCornerHUDs();
         if (tile.group) {
-          checkAndTriggerMonopoly(playerIdx, tile.group);
+          try {
+            checkAndTriggerMonopoly(playerIdx, tile.group);
+          } catch (err) {
+            console.error('[Engine onBuyCity] checkAndTriggerMonopoly error:', err);
+          }
         }
         saveCurrentMatchToStorage();
         if (networkState.isMultiplayer && networkState.isHost) {
@@ -177,10 +181,18 @@ export function initEngine() {
       }
     },
     onMonopoly: (playerIdx, groupKey) => {
-      openMonopolyCelebrationModal(playerIdx, groupKey);
+      try {
+        openMonopolyCelebrationModal(playerIdx, groupKey);
+      } catch (err) {
+        console.error('[Engine onMonopoly] error:', err);
+      }
     },
     onMonopolyThreat: (playerIdx, groupKey, missingTileId) => {
-      triggerMonopolyThreatAlert(playerIdx, groupKey, missingTileId);
+      try {
+        triggerMonopolyThreatAlert(playerIdx, groupKey, missingTileId);
+      } catch (err) {
+        console.error('[Engine onMonopolyThreat] error:', err);
+      }
     },
     onUpgradeCity: (playerIdx, tileId, count = 1) => {
       const st = gameState.properties[tileId];
@@ -516,20 +528,23 @@ export function initEngine() {
           gameState.currentPlayerIdx = incomingIdx;
         }
         if (incomingState.phase && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
-          // If local player is actively moving (hopping/flight) or in modal liquidation, protect local phase
-          const isCurrentlyMoving = (gameState.phase === 'MOVING');
+          // If local player is actively moving (hopping/flight), in modal liquidation, or selecting World Tour flight, protect local phase
+          const isLocalPlayerMoving = (gameState.phase === 'MOVING' && gameState.currentPlayerIdx === networkState.localPlayerIdx);
           const isLocalPlayerInModal = (gameState.phase === 'MODAL' && (
             (gameState.pendingRentDebt && gameState.pendingRentDebt.debtorIdx === networkState.localPlayerIdx) ||
             gameState.pendingBuyTile ||
             gameState.pendingBuyoutTile ||
             gameState.pendingUpgradeTile
           ));
+          const isLocalPlayerInWorldTour = (gameState.phase === 'WORLD_TOUR' && gameState.currentPlayerIdx === networkState.localPlayerIdx);
           if (isAuctionActive) {
             gameState.phase = 'AUCTION';
-          } else if (!isCurrentlyMoving && (!isLocalPlayerInModal || incomingState.phase === 'MODAL')) {
+          } else if (isLocalPlayerInWorldTour) {
+            gameState.phase = 'WORLD_TOUR';
+          } else if (!isLocalPlayerMoving && (!isLocalPlayerInModal || incomingState.phase === 'MODAL')) {
             gameState.phase = incomingState.phase;
           }
-          if (!isAuctionActive && incomingState.phase && incomingState.phase !== 'MODAL' && !isLocalPlayerInModal) {
+          if (!isAuctionActive && incomingState.phase && incomingState.phase !== 'MODAL' && !isLocalPlayerInModal && !isLocalPlayerInWorldTour) {
             closeTurnActionModals();
           }
         }

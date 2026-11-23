@@ -327,16 +327,20 @@ export async function triggerMonopolyThreatAlert(playerIdx, groupKey, missingTil
 }
 
 export function checkAndTriggerMonopolyThreat(playerIdx, groupKey) {
-  if (!groupKey || isLobbyScreenActive()) return;
+  if (!groupKey || isLobbyScreenActive()) return { triggered: false };
   if (!gameState.triggeredMonopolyThreats) gameState.triggeredMonopolyThreats = {};
 
   const threatKey = `${playerIdx}_${groupKey}`;
-  if (gameState.triggeredMonopolyThreats[threatKey]) return;
+  if (gameState.triggeredMonopolyThreats[threatKey]) return { triggered: false };
 
   const status = checkNearMonopolyGroup(playerIdx, groupKey);
   if (status.isNear && status.missingTile) {
     gameState.triggeredMonopolyThreats[threatKey] = true;
-    triggerMonopolyThreatAlert(playerIdx, groupKey, status.missingTile.id);
+    try {
+      triggerMonopolyThreatAlert(playerIdx, groupKey, status.missingTile.id);
+    } catch (err) {
+      console.warn('[MonopolyThreatAlert] Error triggering alert:', err);
+    }
 
     if (networkState.isMultiplayer) {
       broadcastAction('ACTION_MONOPOLY_THREAT', {
@@ -345,25 +349,32 @@ export function checkAndTriggerMonopolyThreat(playerIdx, groupKey) {
         missingTileId: status.missingTile.id
       });
     }
+    return { triggered: true, missingTileId: status.missingTile.id };
   }
+  return { triggered: false };
 }
 
 export function checkAndTriggerMonopoly(playerIdx, groupKey) {
-  if (!groupKey) return;
+  if (!groupKey) return { monopoly: false, threat: false };
   if (!gameState.achievedMonopolies) gameState.achievedMonopolies = {};
 
   const key = `${playerIdx}_${groupKey}`;
-  if (gameState.achievedMonopolies[key]) return;
+  if (gameState.achievedMonopolies[key]) return { monopoly: false, threat: false };
 
   if (ownsFullColorGroup(playerIdx, groupKey)) {
     gameState.achievedMonopolies[key] = true;
-    checkMonopolyBuilt(playerIdx, groupKey, GROUP_META[groupKey]?.name || groupKey);
-    openMonopolyCelebrationModal(playerIdx, groupKey);
+    try {
+      openMonopolyCelebrationModal(playerIdx, groupKey);
+    } catch (err) {
+      console.warn('[MonopolyCelebration] Error opening celebration modal:', err);
+    }
     if (networkState.isMultiplayer) {
       broadcastAction('ACTION_MONOPOLY', { playerIdx, groupKey });
     }
+    return { monopoly: true, threat: false };
   } else {
-    checkAndTriggerMonopolyThreat(playerIdx, groupKey);
+    const threatResult = checkAndTriggerMonopolyThreat(playerIdx, groupKey);
+    return { monopoly: false, threat: Boolean(threatResult?.triggered), missingTileId: threatResult?.missingTileId };
   }
 }
 

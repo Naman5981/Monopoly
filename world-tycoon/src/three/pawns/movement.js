@@ -246,6 +246,9 @@ export function flyPlayerDirectFlightAnimation(playerIdx, startTileId, destTileI
  * @returns {Promise<void>}
  */
 export function flyPlayerStepAnimation(playerIdx, startPos, endPos, step, totalSteps, destTileId) {
+  if (globalThis.__WT_TEST__) {
+    return Promise.resolve();
+  }
   return new Promise(resolveFly => {
     const mesh = context.playerMeshes[playerIdx];
     const off = getPawnTileOffset(destTileId, playerIdx);

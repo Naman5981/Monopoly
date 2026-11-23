@@ -455,12 +455,20 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       logEvent(`🤖 <strong>${player.name}</strong> bought <strong>${tile.name}</strong> for <strong>${fmtMoney(tile.price)}</strong>.`);
       refreshTileTextureAndBuildings(tile.id);
       renderCornerHUDs();
+      let monopolyEvent = null;
       if (tile.group) {
-        checkAndTriggerMonopoly(playerIdx, tile.group);
+        try {
+          monopolyEvent = checkAndTriggerMonopoly(playerIdx, tile.group);
+        } catch (err) {
+          console.error('[AI Buy City] checkAndTriggerMonopoly error:', err);
+        }
       }
       if (networkState.isMultiplayer && networkState.isHost) {
         broadcastAction('ACTION_BUY_CITY', { playerIdx, tileId: tile.id, isDoubles: Boolean(isDoubles) });
         broadcastFullGameState();
+      }
+      if (monopolyEvent && (monopolyEvent.monopoly || monopolyEvent.threat)) {
+        await new Promise(r => setTimeout(r, getGameDelay(3500)));
       }
     } else {
       showSpeechBubble(`Passed on ${tile.name}`, 1500);
@@ -511,8 +519,13 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       }
       refreshTileTextureAndBuildings(tile.id);
       renderCornerHUDs();
+      let buyoutMonopolyEvent = null;
       if (tile.group) {
-        checkAndTriggerMonopoly(playerIdx, tile.group);
+        try {
+          buyoutMonopolyEvent = checkAndTriggerMonopoly(playerIdx, tile.group);
+        } catch (err) {
+          console.error('[AI Buyout] checkAndTriggerMonopoly error:', err);
+        }
       }
       if (networkState.isMultiplayer && networkState.isHost) {
         broadcastAction('ACTION_BUYOUT_CITY', {
@@ -529,6 +542,9 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       }
       if (context.camera) {
         await playBuyoutCinematicFocus(tile.id, 1500);
+      }
+      if (buyoutMonopolyEvent && (buyoutMonopolyEvent.monopoly || buyoutMonopolyEvent.threat)) {
+        await new Promise(r => setTimeout(r, getGameDelay(3500)));
       }
     } else {
       showSpeechBubble(`Skipped buyout on ${tile.name}`, 1500);

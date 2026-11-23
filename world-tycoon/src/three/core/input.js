@@ -125,12 +125,16 @@ export function handleCanvasHover(event) {
     context.hoveredTileId = tileId;
     const tile = BOARD_TILES[tileId];
     if (tile) {
+      const flightBanner = document.getElementById('world-tour-banner');
+      const isFlightBannerActive = Boolean(flightBanner && !flightBanner.classList.contains('hidden'));
+      const isWorldTourActive = (gameState.phase === 'WORLD_TOUR') || isFlightBannerActive;
+
       // Tactile button hover response: elevate hovered tile (0.24 in World Tour, 0.08 in standard play)
       BOARD_TILES.forEach(t => {
         if (context.activeTileDepressions[t.id]) {
           const isTarget = (t.id === tileId);
           if (isTarget) {
-            const isElevated = (gameState.phase === 'WORLD_TOUR') ||
+            const isElevated = isWorldTourActive ||
               (gameState.phase === 'FESTIVAL_SELECT' && gameState.properties[t.id]?.owner === (typeof networkState !== 'undefined' && networkState.isMultiplayer ? networkState.localPlayerIdx : gameState.currentPlayerIdx));
             context.activeTileDepressions[t.id].targetOffset = isElevated ? 0.24 : 0.08;
           } else if (context.activeTileDepressions[t.id].targetOffset > 0) {
@@ -139,7 +143,7 @@ export function handleCanvasHover(event) {
         }
       });
 
-      if (gameState.phase === 'WORLD_TOUR') {
+      if (isWorldTourActive) {
         if (isNewHover) tooltip.innerHTML = `
           <div class="flex items-center gap-2 border-b border-indigo-400 pb-1.5">
             <span class="text-base">✈️</span>

@@ -29,6 +29,9 @@ export async function executeWorldTourFlight(destTileId, isRemote = false, expli
   setFlightModeHighlights(false);
   document.getElementById('world-tour-banner')?.classList.add('hidden');
   document.getElementById('world-tour-banner')?.classList.remove('flex');
+  if (typeof window !== 'undefined' && typeof window.closeInspectorModal === 'function') {
+    window.closeInspectorModal();
+  }
 
   const pIdx = explicitPlayerIdx !== null ? explicitPlayerIdx : gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];

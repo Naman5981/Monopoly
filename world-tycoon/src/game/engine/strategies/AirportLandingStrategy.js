@@ -7,8 +7,8 @@ import { ITileLandingStrategy } from './ITileLandingStrategy.js';
 import { BOARD_TILES } from '../../data.js';
 import { gameState, matchSettings, isHumanTurnActionable } from '../../state.js';
 import { showSpeechBubble, setFlightModeHighlights } from '../../../three/scene.js';
-import { updateRollButtonsUI } from '../../../ui/hud.js';
-import { networkState } from '../../../network/p2p.js';
+import { updateRollButtonsUI, setStatusPill } from '../../../ui/hud.js';
+import { networkState, broadcastFullGameState } from '../../../network/p2p.js';
 import { executeWorldTourFlight } from '../flight.js';
 
 export class AirportLandingStrategy extends ITileLandingStrategy {
@@ -33,16 +33,34 @@ export class AirportLandingStrategy extends ITileLandingStrategy {
       return;
     }
 
-    if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
-      showSpeechBubble(`${player.name} is choosing a flight destination...`, 3500);
-      return;
+    // Dismiss any open deed inspector so it never interferes with destination selection
+    if (typeof window !== 'undefined' && typeof window.closeInspectorModal === 'function') {
+      window.closeInspectorModal();
     }
 
+    // Synchronize WORLD_TOUR phase globally across Host, active player, and remote spectators
     gameState.phase = 'WORLD_TOUR';
-    setFlightModeHighlights(true);
-    document.getElementById('world-tour-banner')?.classList.remove('hidden');
-    document.getElementById('world-tour-banner')?.classList.add('flex');
-    showSpeechBubble('Click any tile to fly there!', 4000);
-    updateRollButtonsUI(isHumanTurnActionable());
+
+    if (networkState.isMultiplayer && networkState.isHost) {
+      broadcastFullGameState();
+    }
+
+    const isLocalHumanTurn = !networkState.isMultiplayer || (playerIdx === networkState.localPlayerIdx);
+
+    if (isLocalHumanTurn) {
+      setFlightModeHighlights(true);
+      document.getElementById('world-tour-banner')?.classList.remove('hidden');
+      document.getElementById('world-tour-banner')?.classList.add('flex');
+      showSpeechBubble('Click any tile to fly there!', 4000);
+      setStatusPill(`✈️ <strong>${player.name}</strong>: Click any tile on the board to fly immediately!`, { isThinking: false, playerIdx });
+      updateRollButtonsUI(isHumanTurnActionable());
+    } else {
+      setFlightModeHighlights(false);
+      document.getElementById('world-tour-banner')?.classList.add('hidden');
+      document.getElementById('world-tour-banner')?.classList.remove('flex');
+      showSpeechBubble(`${player.name} is choosing a flight destination...`, 3500);
+      setStatusPill(`✈️ Waiting for <strong>${player.name}</strong> to choose flight destination...`, { isThinking: true, playerIdx });
+      updateRollButtonsUI(false);
+    }
   }
 }

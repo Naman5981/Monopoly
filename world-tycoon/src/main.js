@@ -395,45 +395,9 @@ window.setGameVolume = handleSetGameVolume;
 window.toggleSound = handleToggleSound;
 
 // Tile click delegation from 3D scene
-function onTileClick(tileId) {
-  if (typeof tileId !== 'number' || tileId < 0 || tileId > 31) return;
-
-  const isHumanTurn = networkState.isMultiplayer
-    ? gameState.currentPlayerIdx === networkState.localPlayerIdx
-    : !gameState.players[gameState.currentPlayerIdx]?.isAI;
-
-  if (gameState.phase === 'WORLD_TOUR') {
-    if (isHumanTurn) {
-      executeWorldTourFlight(tileId);
-    }
-    return;
-  }
-
-  if (gameState.phase === 'FESTIVAL_SELECT') {
-    if (isHumanTurn) {
-      const activeIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : gameState.currentPlayerIdx;
-      const prop = gameState.properties[tileId];
-      if (prop && prop.owner === activeIdx) {
-        if (typeof window.chooseFestivalBoostCity === 'function') {
-          window.chooseFestivalBoostCity(tileId);
-        }
-        return;
-      } else {
-        showSpeechBubble('Click one of your highlighted properties! 🎪', 2500);
-        playSFX('deny');
-        return;
-      }
-    }
-    return;
-  }
-
-  const m = document.getElementById('modal-tile-inspector');
-  if (m && !m.classList.contains('hidden') && gameState.activeInspectorTile === tileId) {
-    closeInspectorModal();
-    return;
-  }
-  openInspectorModal(tileId);
-}
+import { handleTileClick } from './game/engine/tileClick.js';
+const onTileClick = handleTileClick;
+export { onTileClick };
 
 // Bootstrap
 function initApp() {
