@@ -104,8 +104,8 @@ export function simulateDicePhysicsToss(dieMesh1, dieMesh2, d1, d2, durationMs =
     const dice = [
       {
         mesh: dieMesh1,
-        pos: new THREE.Vector3(-1.15, 5.2, -0.35),
-        targetPos: new THREE.Vector3(-1.45, 1.02, -0.65),
+        pos: new THREE.Vector3(-1.4, 5.2, 3.7),
+        targetPos: new THREE.Vector3(-1.5, 1.02, 3.6),
         vel: new THREE.Vector3((Math.random() - 0.45) * 1.8, -1.2, (Math.random() - 0.5) * 1.5),
         angVel: new THREE.Vector3(
           12 + Math.random() * 8,
@@ -119,8 +119,8 @@ export function simulateDicePhysicsToss(dieMesh1, dieMesh2, d1, d2, durationMs =
       },
       {
         mesh: dieMesh2,
-        pos: new THREE.Vector3(1.15, 5.5, -1.35),
-        targetPos: new THREE.Vector3(0.75, 1.02, -1.75),
+        pos: new THREE.Vector3(0.8, 5.5, 3.7),
+        targetPos: new THREE.Vector3(0.7, 1.02, 3.6),
         vel: new THREE.Vector3((Math.random() - 0.55) * 1.8, -1.0, (Math.random() - 0.5) * 1.5),
         angVel: new THREE.Vector3(
           -14 - Math.random() * 7,

@@ -178,10 +178,10 @@ export function updateAvatarIdleAnimations(t) {
 export function renderLive3DHUDPortraits(t) {
   if (!portraitRenderer || portraitScenes.length === 0) return;
   const now = performance.now();
-  // Throttle 3D portrait rendering passes to ~180ms (~5.5 FPS) during normal play,
-  // and 90ms during damage/hurt recoil to eliminate GPU texture readback pipeline stalls.
+  // Render 3D HUD portraits at 60 FPS (~16ms) during active turn or hurt flinch,
+  // and 30 FPS (~33ms) for smooth natural idle breathing across the table.
   const isAnyHurt = portraitScenes.some(e => e.hurtUntil && e.hurtUntil > now);
-  const minInterval = isAnyHurt ? 90 : 180;
+  const minInterval = isAnyHurt ? 16 : 33;
   if (now - lastPortraitRenderTime < minInterval) return;
   lastPortraitRenderTime = now;
 

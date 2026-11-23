@@ -580,16 +580,41 @@ function initApp() {
   setInterval(() => {
     if (!gameState.gameStarted || gameState.phase === 'VICTORY' || gameState.phase === 'SETUP' || (networkState && networkState.isReconnecting)) return;
     incrementMatchSeconds();
-    const mins = String(Math.floor(matchSeconds / 60)).padStart(2, '0');
-    const secs = String(matchSeconds % 60).padStart(2, '0');
-    const clockText = `${mins}:${secs}`;
+    const maxMinutes = matchSettings.matchDurationMinutes || 0;
+    let clockText = '00:00';
+    let isUrgent = false;
+
+    if (maxMinutes > 0) {
+      const totalSeconds = maxMinutes * 60;
+      const remainingSeconds = Math.max(0, totalSeconds - matchSeconds);
+      const mins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+      const secs = String(remainingSeconds % 60).padStart(2, '0');
+      clockText = `${mins}:${secs}`;
+      isUrgent = remainingSeconds <= 60 && remainingSeconds > 0;
+    } else {
+      const mins = String(Math.floor(matchSeconds / 60)).padStart(2, '0');
+      const secs = String(matchSeconds % 60).padStart(2, '0');
+      clockText = `${mins}:${secs}`;
+    }
+
     const clockEl = document.getElementById('hud-game-clock');
-    if (clockEl) clockEl.textContent = clockText;
+    if (clockEl) {
+      clockEl.textContent = clockText;
+      if (isUrgent) {
+        clockEl.classList.add('text-rose-600', 'animate-pulse');
+        clockEl.classList.remove('text-slate-800');
+      } else {
+        clockEl.classList.remove('text-rose-600', 'animate-pulse');
+        clockEl.classList.add('text-slate-800');
+      }
+    }
     const turnMax = matchSettings.turnDuration || 15;
     const offset = 113 - (gameState.turnTimeLeft / turnMax) * 113;
 
     updateHudState({
       clock: clockText,
+      clockUrgent: isUrgent,
+      isCountdown: maxMinutes > 0,
       turnTimeLeft: gameState.turnTimeLeft,
       turnMax,
       turnTimerOffset: offset

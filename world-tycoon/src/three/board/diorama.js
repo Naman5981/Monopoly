@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { context } from '../core/context.js';
 import { buildFestivalBalloon3D } from '../environment/clouds.js';
 import { buildRajasthanCenterpiece3D, createRajasthanDesertTexture } from './rajasthanCenter.js';
+import { buildCenterpiece3D, setCenterpieceConcept } from './centerpiece.js';
 import { matchSettings } from '../../game/state.js';
 
 /**
@@ -353,10 +354,15 @@ export function buildDioramaBaseAndPark(boardGroup) {
     dioramaMeshes.treeClusters.push(cluster);
   });
 
-  const fountain = createParkFountain3D();
-  fountain.position.set(-3.6, 0.36, -3.2);
-  worldCenterGroup.add(fountain);
-  dioramaMeshes.fountain = fountain;
+  // Centerpiece: Grand Cascading Central Park Fountain at board center (0, 0)
+  const centerPiece = buildCenterpiece3D(worldCenterGroup);
+  dioramaMeshes.fountain = centerPiece;
+
+  // North-West garden corner trees to balance park quadrants
+  const nwGarden = createPineTreeCluster3D();
+  nwGarden.position.set(-3.6, 0.35, -3.2);
+  worldCenterGroup.add(nwGarden);
+  dioramaMeshes.treeClusters.push(nwGarden);
 }
 
 export function buildLowPolyParkDecor3D(boardGroup) {
@@ -456,3 +462,5 @@ export function updateDioramaCenterForEdition(editionId = 'world') {
     }
   }
 }
+
+export { setCenterpieceConcept } from './centerpiece.js';

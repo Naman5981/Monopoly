@@ -7,6 +7,7 @@
 import { context } from './context.js';
 import { updateCameraDamping, cameraState } from './camera.js';
 import { updateCloudsAndBalloons } from '../environment/clouds.js';
+import { updateCenterpieceAnimation } from '../board/centerpiece.js';
 import { updateAvatarIdleAnimations, renderLive3DHUDPortraits, updatePlayerTokenPositions3D } from '../pawns/tokens.js';
 import { renderCityPreviewStage } from '../stages/cityPreview.js';
 import { updateTileDepressionsAnimation } from '../board/tilePress.js';
@@ -93,6 +94,9 @@ export function animateThreeLoop() {
   if (shadowTick % 2 === 0) {
     updateCloudsAndBalloons(t);
   }
+
+  // 3. Central diorama centerpiece smooth animations (globe rings, fountain pulses)
+  updateCenterpieceAnimation(t, dt);
 
   // 4. Character head tracking, breathing, and blinking
   updateAvatarIdleAnimations(t);

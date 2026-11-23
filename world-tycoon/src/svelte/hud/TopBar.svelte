@@ -57,9 +57,9 @@
 
   <!-- Center Pod: Match Status Capsule -->
   <div id="hud-match-status-capsule" class="hud-glass-capsule pointer-events-auto md:flex items-center gap-2.5 px-3.5 shadow-sm flex-shrink-0">
-    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700" title="Elapsed Match Time">
-      <i class="fa-regular fa-clock text-slate-500"></i>
-      <span id="hud-game-clock" class="tabular-nums font-black text-slate-800">{state.clock || '00:00'}</span>
+    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700" title={state.isCountdown ? "Match Time Remaining" : "Elapsed Match Time"}>
+      <i class="fa-regular fa-clock {state.clockUrgent ? 'text-rose-500 animate-spin' : 'text-slate-500'}"></i>
+      <span id="hud-game-clock" class="tabular-nums font-black {state.clockUrgent ? 'text-rose-600 animate-pulse' : 'text-slate-800'}">{state.clock || '00:00'}</span>
     </div>
 
     {#if !state.isMultiplayer}

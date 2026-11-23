@@ -77,7 +77,7 @@ export function applyEquippedDiceSkin(skinId = 'dice_classic') {
 export function build3DDicePair(boardGroup) {
   const materials = createDiceMaterialsForSkin(activeDiceSkin);
 
-  const restingCoords = [{ x: -1.45, z: -0.65 }, { x: 0.75, z: -1.75 }];
+  const restingCoords = [{ x: -1.5, z: 3.6 }, { x: 0.7, z: 3.6 }];
   context.diceMeshes = [];
   for (let i = 0; i < 2; i++) {
     const dieGroup = new THREE.Group();
@@ -117,7 +117,7 @@ export function animate3DDiceTumble(d1, d2) {
     const speed = matchSettings?.gameSpeed || 1;
     const baseDuration = 1150;
     const duration = Math.max(220, Math.round(baseDuration / speed));
-    const startPos = [{ x: -1.25, z: -0.45 }, { x: 0.95, z: -1.55 }];
+    const startPos = [{ x: -1.4, z: 3.7 }, { x: 0.8, z: 3.7 }];
 
     const curP = (gameState?.players && typeof gameState?.currentPlayerIdx === 'number')
       ? gameState.players[gameState.currentPlayerIdx]
@@ -151,12 +151,12 @@ export function animate3DDiceTumble(d1, d2) {
       // Small shockwave pulse when dice hit the board
       if (progress > 0.45 && !bounced) {
         bounced = true;
-        playSFX('diceBounce', 1.0, { x: 0, y: 0.4, z: -1.2 });
-        triggerBoardShockwave(0, -1.2, 12, 22);
+        playSFX('diceBounce', 1.0, { x: -0.4, y: 0.4, z: 3.6 });
+        triggerBoardShockwave(-0.4, 3.6, 12, 22);
       }
       if (progress >= 1) {
         const resultStr = `🎲 ${d1} + ${d2} = ${d1 + d2}${d1 === d2 ? ' (DOUBLES!)' : ''}`;
-        playSFX('hop', 0.8, { x: 0, y: 0.4, z: -1.2 });
+        playSFX('hop', 0.8, { x: -0.4, y: 0.4, z: 3.6 });
         showDiceSumBadge(resultStr, 2000);
         setTimeout(resolve, Math.max(100, Math.round(260 / speed)));
       }

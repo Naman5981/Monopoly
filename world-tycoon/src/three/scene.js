@@ -238,7 +238,7 @@ export {
   applyBoardStyle,
   BOARD_STYLES
 } from './board/skins.js';
-export { updateDioramaCenterForEdition } from './board/diorama.js';
+export { updateDioramaCenterForEdition, setCenterpieceConcept } from './board/diorama.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Re-exports: Highlights, Beacons & Flight Rings

@@ -62,13 +62,13 @@
 </script>
 
 <!-- Left Players Column -->
-<div id="hud-left-players" class="fixed left-3 sm:left-5 z-30 hidden flex flex-col gap-2.5 sm:gap-3 pointer-events-auto">
+<div id="hud-left-players" class="fixed left-3 sm:left-5 z-30 hidden flex flex-col gap-4 sm:gap-4.5 pointer-events-auto">
   {#each state.leftPlayers || [] as player (player.id)}
     <div class="player-hud-wrapper flex items-center {player.bankrupt ? 'opacity-35 grayscale' : (player.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150">
       <div
         id="hud-card-{player.id}"
-        class="player-hud-card cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''} {activeSpotlightPlayerId === player.id ? 'ring-2 ring-white scale-105' : 'hover:scale-[1.02]'}"
-        style="--player-accent: {player.colorHex || '#3b82f6'};"
+        class="player-hud-card hud-ticket-c cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud is-turn' : ''} {player.inIsland ? 'in-island-detention is-jail' : ''} {activeSpotlightPlayerId === player.id ? 'is-spotlight scale-105' : 'hover:scale-[1.02]'}"
+        style="--player-accent: {player.colorHex || '#3b82f6'}; --player-color: {player.colorHex || '#3b82f6'};"
         onmouseenter={() => onEmpireHover(player.id)}
         onmouseleave={onEmpireLeave}
         onfocus={() => onEmpireHover(player.id)}
@@ -79,48 +79,53 @@
         tabindex="0"
         title="Click or hover to highlight {player.name}'s empire on the board"
       >
-        <div class="avatar-circle" style="box-shadow: 0 0 0 2.5px {player.colorHex || '#3b82f6'}, 0 4px 10px rgba(0,0,0,0.12);">
-          <canvas id="hud-avatar-canvas-{player.id}" width="104" height="104" class="w-full h-full block"></canvas>
-        </div>
-        <div class="hud-info-col">
-          <div class="hud-header-row">
-            <span class="hud-player-name">{player.name}</span>
-            <span class="hud-island-icon">
-              {#if player.inIsland}
-                <span class="hud-detention-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/50 text-amber-900 font-black text-[10px] tracking-wider shadow-2xs" title="In Island Detention (Turn {player.islandTurns || 0}/3)"><i class="fa-solid fa-lock text-[9px] text-amber-700"></i> JAIL {player.islandTurns || 0}/3</span>
-              {/if}
-            </span>
-            <span class="hud-turn-badge">
-              {#if player.isPartner}
-                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs mr-1">ALLY</span>
-              {/if}
-              {#if player.isCurrent}
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-xs tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>
-              {:else if player.isAI}
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">BOT</span>
-              {:else if player.isSelf}
-                <span class="text-[10px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200">YOU</span>
-              {:else if player.isHost}
-                <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">HOST</span>
-              {:else}
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">P{player.id + 1}</span>
-              {/if}
-            </span>
-          </div>
-          <div class="hud-cash-row">
-            <span id="hud-cash-val-{player.id}" class="hud-cash-amount">{player.cashFormatted ?? '0'}</span>
-            <span class="hud-cash-icon flex items-center" title="Cash"><i class="fa-solid fa-money-bill-wave text-emerald-500 text-xs" aria-hidden="true"></i></span>
+        <!-- Protruding 3D Avatar Coin Medallion -->
+        <div class="avatar-frame relative z-40">
+          <div class="avatar-inner clay-avatar">
+            <canvas id="hud-avatar-canvas-{player.id}" width="104" height="104" class="w-full h-full block rounded-full"></canvas>
           </div>
         </div>
 
-        {#if player.inIsland}
-          <div class="island-iron-bars">
-            <div class="island-bar-rod"></div>
-            <div class="island-bar-rod"></div>
-            <div class="island-bar-rod"></div>
-            <div class="island-bar-rod"></div>
+        <!-- Split-Deck Ticket Body -->
+        <div class="body-shell relative z-10">
+          <!-- Top Identity Deck (100% Flooded with Player Color) -->
+          <div class="deck-top hud-header-row">
+            <div class="name-col flex items-center gap-1.5 min-w-0 flex-shrink-0">
+              <span class="hud-player-name name-text font-black text-white text-xs sm:text-sm uppercase tracking-wide whitespace-nowrap">
+                {player.name}
+              </span>
+            </div>
+            <div class="hud-turn-badge flex items-center gap-1 flex-shrink-0">
+              {#if player.isCurrent}
+                <span class="turn-badge-live">TURN</span>
+              {:else if player.inIsland}
+                <span class="role-badge jail-badge" style="background: rgba(0,0,0,0.32);" title="Island Detention (Turn {player.islandTurns || 0}/3)">
+                  <i class="fa-solid fa-lock text-[8px] mr-0.5"></i>JAIL {player.islandTurns || 0}/3
+                </span>
+              {:else if player.isPartner}
+                <span class="role-badge" style="background: rgba(16, 185, 129, 0.85);">ALLY</span>
+              {:else if player.isSelf}
+                <span class="role-badge">YOU</span>
+              {:else if player.isHost}
+                <span class="role-badge" style="background: rgba(245, 158, 11, 0.85);">HOST</span>
+              {:else if player.isAI}
+                <span class="role-badge" style="background: rgba(0, 0, 0, 0.28);">BOT</span>
+              {:else}
+                <span class="role-badge">P{player.id + 1}</span>
+              {/if}
+            </div>
           </div>
-        {/if}
+
+          <!-- Bottom Economy Deck (High-Contrast Solid White Shelf) -->
+          <div class="deck-bottom hud-cash-row">
+            <div class="cash-block flex items-baseline gap-1">
+              <span id="hud-cash-val-{player.id}" class="hud-cash-amount cash-amount font-black font-brand text-slate-900 tracking-tight text-sm sm:text-base">
+                ${player.cashFormatted ?? '0'}
+              </span>
+            </div>
+            <span class="hud-cash-icon cash-bundle-icon flex items-center" title="Cash">💵</span>
+          </div>
+        </div>
       </div>
     </div>
   {/each}
@@ -141,13 +146,13 @@
 </div>
 
 <!-- Right Players Column -->
-<div id="hud-right-players" class="fixed right-3 sm:right-5 z-30 hidden flex flex-col gap-2.5 sm:gap-3 items-end pointer-events-auto">
+<div id="hud-right-players" class="fixed right-3 sm:right-5 z-30 hidden flex flex-col gap-4 sm:gap-4.5 items-end pointer-events-auto">
   {#each state.rightPlayers || [] as player (player.id)}
     <div class="player-hud-wrapper flex items-center {player.bankrupt ? 'opacity-35 grayscale' : (player.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150">
       <div
         id="hud-card-{player.id}"
-        class="player-hud-card cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud' : ''} {player.inIsland ? 'in-island-detention' : ''} {activeSpotlightPlayerId === player.id ? 'ring-2 ring-white scale-105' : 'hover:scale-[1.02]'}"
-        style="--player-accent: {player.colorHex || '#3b82f6'};"
+        class="player-hud-card hud-ticket-c mirrored cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud is-turn' : ''} {player.inIsland ? 'in-island-detention is-jail' : ''} {activeSpotlightPlayerId === player.id ? 'is-spotlight scale-105' : 'hover:scale-[1.02]'}"
+        style="--player-accent: {player.colorHex || '#3b82f6'}; --player-color: {player.colorHex || '#3b82f6'};"
         onmouseenter={() => onEmpireHover(player.id)}
         onmouseleave={onEmpireLeave}
         onfocus={() => onEmpireHover(player.id)}
@@ -158,48 +163,53 @@
         tabindex="0"
         title="Click or hover to highlight {player.name}'s empire on the board"
       >
-        <div class="hud-info-col items-end text-right">
-          <div class="hud-header-row justify-end">
-            <span class="hud-turn-badge">
-              {#if player.isPartner}
-                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs mr-1">ALLY</span>
-              {/if}
-              {#if player.isCurrent}
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-black text-xs tracking-wider shadow-2xs border border-amber-300 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> TURN</span>
-              {:else if player.isAI}
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">BOT</span>
-              {:else if player.isSelf}
-                <span class="text-[10px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200">YOU</span>
-              {:else if player.isHost}
-                <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">HOST</span>
-              {:else}
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200">P{player.id + 1}</span>
-              {/if}
-            </span>
-            <span class="hud-island-icon">
-              {#if player.inIsland}
-                <span class="hud-detention-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/50 text-amber-900 font-black text-[10px] tracking-wider shadow-2xs" title="In Island Detention (Turn {player.islandTurns || 0}/3)"><i class="fa-solid fa-lock text-[9px] text-amber-700"></i> JAIL {player.islandTurns || 0}/3</span>
-              {/if}
-            </span>
-            <span class="hud-player-name">{player.name}</span>
+        <!-- Protruding 3D Avatar Coin Medallion -->
+        <div class="avatar-frame relative z-40">
+          <div class="avatar-inner clay-avatar">
+            <canvas id="hud-avatar-canvas-{player.id}" width="104" height="104" class="w-full h-full block rounded-full"></canvas>
           </div>
-          <div class="hud-cash-row justify-end">
-            <span class="hud-cash-icon flex items-center" title="Cash"><i class="fa-solid fa-money-bill-wave text-emerald-500 text-xs" aria-hidden="true"></i></span>
-            <span id="hud-cash-val-{player.id}" class="hud-cash-amount">{player.cashFormatted ?? '0'}</span>
-          </div>
-        </div>
-        <div class="avatar-circle" style="box-shadow: 0 0 0 2.5px {player.colorHex || '#3b82f6'}, 0 4px 10px rgba(0,0,0,0.12);">
-          <canvas id="hud-avatar-canvas-{player.id}" width="104" height="104" class="w-full h-full block"></canvas>
         </div>
 
-        {#if player.inIsland}
-          <div class="island-iron-bars">
-            <div class="island-bar-rod"></div>
-            <div class="island-bar-rod"></div>
-            <div class="island-bar-rod"></div>
-            <div class="island-bar-rod"></div>
+        <!-- Split-Deck Ticket Body (Mirrored on Right Column) -->
+        <div class="body-shell relative z-10">
+          <!-- Top Identity Deck (100% Flooded with Player Color) -->
+          <div class="deck-top hud-header-row">
+            <div class="name-col flex items-center gap-1.5 min-w-0 flex-shrink-0">
+              <span class="hud-player-name name-text font-black text-white text-xs sm:text-sm uppercase tracking-wide whitespace-nowrap">
+                {player.name}
+              </span>
+            </div>
+            <div class="hud-turn-badge flex items-center gap-1 flex-shrink-0">
+              {#if player.isCurrent}
+                <span class="turn-badge-live">TURN</span>
+              {:else if player.inIsland}
+                <span class="role-badge jail-badge" style="background: rgba(0,0,0,0.32);" title="Island Detention (Turn {player.islandTurns || 0}/3)">
+                  <i class="fa-solid fa-lock text-[8px] mr-0.5"></i>JAIL {player.islandTurns || 0}/3
+                </span>
+              {:else if player.isPartner}
+                <span class="role-badge" style="background: rgba(16, 185, 129, 0.85);">ALLY</span>
+              {:else if player.isSelf}
+                <span class="role-badge">YOU</span>
+              {:else if player.isHost}
+                <span class="role-badge" style="background: rgba(245, 158, 11, 0.85);">HOST</span>
+              {:else if player.isAI}
+                <span class="role-badge" style="background: rgba(0, 0, 0, 0.28);">BOT</span>
+              {:else}
+                <span class="role-badge">P{player.id + 1}</span>
+              {/if}
+            </div>
           </div>
-        {/if}
+
+          <!-- Bottom Economy Deck (High-Contrast Solid White Shelf) -->
+          <div class="deck-bottom hud-cash-row">
+            <div class="cash-block flex items-baseline gap-1">
+              <span id="hud-cash-val-{player.id}" class="hud-cash-amount cash-amount font-black font-brand text-slate-900 tracking-tight text-sm sm:text-base">
+                ${player.cashFormatted ?? '0'}
+              </span>
+            </div>
+            <span class="hud-cash-icon cash-bundle-icon flex items-center" title="Cash">💵</span>
+          </div>
+        </div>
       </div>
     </div>
   {/each}

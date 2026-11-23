@@ -27,18 +27,18 @@ export function animateIslandDetentionBars(playerIdx = 0) {
     card.appendChild(bars);
   }
 
-  bars.style.display = 'flex';
-  bars.style.opacity = '1';
-
+  const avatar = card.querySelector('.avatar-frame') || card.querySelector('.avatar-circle');
   if (typeof anime === 'undefined' || isReducedMotion()) return;
 
-  anime.remove(bars);
-  anime({
-    targets: bars,
-    translateY: ['-100%', '0%'],
-    duration: 480,
-    easing: 'spring(1, 95, 8, 0)'
-  });
+  if (avatar) {
+    anime.remove(avatar);
+    anime({
+      targets: avatar,
+      scale: [1.18, 1],
+      duration: 480,
+      easing: 'spring(1, 95, 8, 0)'
+    });
+  }
 }
 
 /**
@@ -52,61 +52,26 @@ export function animateIslandJailbreak(playerIdx = 0) {
   card.classList.remove('in-island-detention');
 
   const allBars = card.querySelectorAll('.island-iron-bars');
-  if (allBars.length === 0) return;
+  allBars.forEach(b => b.remove());
 
-  if (typeof anime === 'undefined' || isReducedMotion()) {
-    allBars.forEach(b => b.remove());
-    return;
-  }
+  const avatar = card.querySelector('.avatar-frame') || card.querySelector('.avatar-circle');
+  if (typeof anime === 'undefined' || isReducedMotion()) return;
 
-  // Clean up any extra duplicate bar containers immediately
-  for (let i = 1; i < allBars.length; i++) {
-    allBars[i].remove();
-  }
-
-  const bars = allBars[0];
-  const children = Array.from(bars.children);
-  if (children.length >= 4) {
+  if (avatar) {
+    anime.remove(avatar);
     anime({
-      targets: [children[0], children[1]],
-      translateX: [-10, -90],
-      rotate: [0, -40],
-      opacity: [1, 0],
-      duration: 480,
-      easing: 'easeOutQuad'
-    });
-    anime({
-      targets: [children[2], children[3]],
-      translateX: [10, 90],
-      rotate: [0, 40],
-      opacity: [1, 0],
-      duration: 480,
-      easing: 'easeOutQuad',
-      complete: () => {
-        bars.remove();
-        card.classList.remove('in-island-detention');
-      }
-    });
-  } else {
-    anime({
-      targets: bars,
-      opacity: [1, 0],
-      scale: [1, 1.3],
-      duration: 400,
-      complete: () => {
-        bars.remove();
-        card.classList.remove('in-island-detention');
-      }
+      targets: avatar,
+      scale: [0.92, 1],
+      duration: 350,
+      easing: 'easeOutElastic(1, .6)'
     });
   }
 
   // Elastic celebration bounce on HUD card
-  if (typeof anime !== 'undefined' && !isReducedMotion()) {
-    anime({
-      targets: card,
-      scale: [0.93, 1.12, 1],
-      duration: 500,
-      easing: 'spring(1, 80, 10, 0)'
-    });
-  }
+  anime({
+    targets: card,
+    scale: [0.95, 1.05, 1],
+    duration: 500,
+    easing: 'spring(1, 80, 10, 0)'
+  });
 }
