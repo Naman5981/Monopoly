@@ -694,11 +694,13 @@ function initApp() {
       phaseEndStallSeconds++;
       if (phaseEndStallSeconds >= 4) {
         phaseEndStallSeconds = 0;
-        if (typeof window.advanceTurn === 'function') {
-          console.warn('[TurnTimer] Detected stale END phase for >4s. Auto-advancing turn.');
-          window.advanceTurn();
-        } else {
-          advanceTurn();
+        if (!networkState.isMultiplayer || networkState.isHost) {
+          if (typeof window.advanceTurn === 'function') {
+            console.warn('[TurnTimer] Detected stale END phase for >4s. Auto-advancing turn.');
+            window.advanceTurn(true);
+          } else {
+            advanceTurn(true);
+          }
         }
       }
     } else {

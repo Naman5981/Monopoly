@@ -346,14 +346,30 @@ export function handleHostReceivedMessage(conn, msg) {
         // Reassign any remaining bots with conflicting colors to random unused colors
         ensureBotsHaveUniqueColors();
 
+        const isMatchActive = Boolean(gameState && gameState.gameStarted);
+        if (isMatchActive && gameState.players && gameState.players[slotIdx]) {
+          gameState.players[slotIdx].isAI = false;
+          gameState.players[slotIdx].peerId = conn.peer;
+          gameState.players[slotIdx].isOnlinePeer = true;
+          gameState.players[slotIdx].name = setupPlayers[slotIdx].name;
+        }
+
         conn.send({
           type: 'JOIN_ACCEPTED',
           assignedSlot: slotIdx,
           roomCode: networkState.roomCode,
           matchSettings,
           setupPlayers,
-          lobbyPlayerCount
+          lobbyPlayerCount,
+          gameStarted: isMatchActive
         });
+
+        if (isMatchActive) {
+          setTimeout(() => {
+            broadcastFullGameState();
+            renderCornerHUDs();
+          }, 80);
+        }
 
         broadcastToAll({
           type: 'LOBBY_STATE',
@@ -384,6 +400,7 @@ export function handleHostReceivedMessage(conn, msg) {
     case 'ACTION_DOWNGRADE_CITY':
     case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
+    case 'ACTION_PAY_RENT':
     case 'ACTION_RENT_DEBT':
     case 'ACTION_SELL_CITY_FOR_RENT':
     case 'ACTION_SETTLE_RENT':
@@ -493,6 +510,7 @@ export function broadcastFullGameState() {
     timestamp: Date.now(),
     gameState: {
       currentPlayerIdx: gameState.currentPlayerIdx,
+      turnNumber: gameState.turnNumber || 1,
       phase: gameState.phase,
       doublesCount: gameState.doublesCount || 0,
       turnTimeLeft: gameState.turnTimeLeft || 15,

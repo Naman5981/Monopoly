@@ -61,7 +61,7 @@ function isCelebrationOrThreatActive() {
   return false;
 }
 
-function clearObserverEndTurnWatchdog() {
+export function clearObserverEndTurnWatchdog() {
   if (observerEndTurnWatchdog) {
     clearTimeout(observerEndTurnWatchdog);
     observerEndTurnWatchdog = null;
@@ -356,15 +356,19 @@ export function concludeActionPhase(isDoubles) {
       updateRollButtonsUI(false);
       refreshActivePlayerTurnStatus();
 
-      // Observer watchdog fallback: If active peer's ACTION_END_TURN does not arrive within 3.5s (or 5s if celebration), auto-advance
+      // Observer watchdog fallback: ONLY Host enforces watchdog for remote active peers!
+      // Spectator guests must wait for Host's FULL_STATE_SYNC or ACTION_END_TURN.
       clearObserverEndTurnWatchdog();
-      observerEndTurnWatchdog = setTimeout(() => {
-        observerEndTurnWatchdog = null;
-        if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
-        if (gameState.phase === 'END' && gameState.currentPlayerIdx === pIdx) {
-          advanceTurn(true);
-        }
-      }, celebrationDelay ? 5500 : 3500);
+      if (networkState.isHost) {
+        const capturedTurn = gameState.turnNumber || 0;
+        observerEndTurnWatchdog = setTimeout(() => {
+          observerEndTurnWatchdog = null;
+          if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
+          if (gameState.phase === 'END' && gameState.currentPlayerIdx === pIdx && (gameState.turnNumber || 0) === capturedTurn) {
+            advanceTurn(true);
+          }
+        }, celebrationDelay ? 5500 : 3500);
+      }
       return;
     }
     clearObserverEndTurnWatchdog();
@@ -382,7 +386,7 @@ export function concludeActionPhase(isDoubles) {
   }
 }
 
-export function advanceTurn(isRemote = false, forcedNextIdx = null) {
+export function advanceTurn(isRemote = false, forcedNextIdx = null, targetTurnNumber = null) {
   if (gameState.phase === 'AUCTION' || gameState.auction) return;
   hideDiceSumBadge();
   closeTurnActionModals();
@@ -390,6 +394,19 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
     cancelAllGameTimers();
     return;
   }
+
+  // Idempotency check: If an advance request is for an already-completed turn, reject
+  if (targetTurnNumber !== null && typeof targetTurnNumber === 'number') {
+    if (targetTurnNumber <= (gameState.turnNumber || 0)) {
+      return;
+    }
+  }
+
+  // If forcedNextIdx is already the current player and phase is already ROLL, do not duplicate turn start
+  if (isRemote && forcedNextIdx !== null && forcedNextIdx === gameState.currentPlayerIdx && gameState.phase === 'ROLL') {
+    return;
+  }
+
   const victory = checkVictoryConditions();
   if (victory) {
     clearSavedMatch();
@@ -405,6 +422,13 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
   while (gameState.players[next].bankrupt && guard < total) {
     next = (next + 1) % total;
     guard++;
+  }
+
+  // Advance turnNumber monotonically
+  if (targetTurnNumber !== null && typeof targetTurnNumber === 'number') {
+    gameState.turnNumber = targetTurnNumber;
+  } else {
+    gameState.turnNumber = (gameState.turnNumber || 0) + 1;
   }
 
   gameState.currentPlayerIdx = next;
@@ -424,7 +448,7 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null) {
 
   if (networkState.isMultiplayer) {
     if (!isRemote) {
-      broadcastAction('ACTION_END_TURN', { nextPlayerIdx: next });
+      broadcastAction('ACTION_END_TURN', { nextPlayerIdx: next, turnNumber: gameState.turnNumber });
     }
     if (networkState.isHost) {
       broadcastFullGameState();

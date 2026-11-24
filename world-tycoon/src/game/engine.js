@@ -17,7 +17,8 @@ import {
   lobbyPlayerCount,
   resetGameStateForNewMatch,
   isHumanTurnActionable,
-  setMatchSeconds
+  setMatchSeconds,
+  displayedCash
 } from './state.js';
 import { fmtMoney } from './utils.js';
 import { playSFX, startAdaptiveMusic, stopAdaptiveMusic } from './audio.js';
@@ -82,6 +83,7 @@ import { evaluateTileLanding } from './engine/landings.js';
 import { PlayerControllerFactory } from './controllers/PlayerControllerFactory.js';
 import {
   cancelAllGameTimers,
+  clearObserverEndTurnWatchdog,
   getGameDelay,
   recordNetWorthSnapshot,
   handleRollButtonClick,
@@ -342,6 +344,10 @@ export function initEngine() {
       }
     },
     onBuyoutCity: (playerIdx, tileId, prevOwnerIdx, buyoutCost, isDoubles) => {
+      if (gameState.buyoutWatchdogTimer) {
+        clearTimeout(gameState.buyoutWatchdogTimer);
+        gameState.buyoutWatchdogTimer = null;
+      }
       const st = gameState.properties[tileId];
       const buyer = gameState.players[playerIdx];
       const prevOwner = gameState.players[prevOwnerIdx];
@@ -384,6 +390,10 @@ export function initEngine() {
       }
     },
     onPassBuyout: (playerIdx, tileId, isDoubles) => {
+      if (gameState.buyoutWatchdogTimer) {
+        clearTimeout(gameState.buyoutWatchdogTimer);
+        gameState.buyoutWatchdogTimer = null;
+      }
       const buyer = gameState.players[playerIdx];
       const tileName = BOARD_TILES[tileId]?.name || 'City';
       logEvent(`🏷️ <strong>${buyer ? buyer.name : 'Player'}</strong> passed on hostile buyout of <strong>${tileName}</strong>.`);
@@ -408,8 +418,8 @@ export function initEngine() {
         }
       }
     },
-    onEndTurn: (nextPlayerIdx) => {
-      advanceTurn(true, nextPlayerIdx);
+    onEndTurn: (nextPlayerIdx, turnNumber) => {
+      advanceTurn(true, nextPlayerIdx, turnNumber);
     },
     onPlayerConvertedToAI: (leavingIdx) => {
       if (gameState.players && gameState.players[leavingIdx]) {
@@ -435,6 +445,7 @@ export function initEngine() {
     },
     onSyncState: (incomingState, stateSeq = null) => {
       if (!incomingState) return;
+      clearObserverEndTurnWatchdog();
       if (networkState && networkState.isReconnecting) {
         networkState.isReconnecting = false;
         if (typeof window !== 'undefined') {
@@ -470,7 +481,12 @@ export function initEngine() {
             p.id = srcP.id !== undefined ? srcP.id : idx;
             if (srcP.name) p.name = srcP.name;
             if (srcP.isAI !== undefined) p.isAI = Boolean(srcP.isAI);
-            p.cash = srcP.cash;
+            // Shield cash during local rent transfer animation to avoid double deductions
+            const isLocalDebtorTransferring = gameState.isRentTransferring && (idx === gameState.currentPlayerIdx || idx === gameState.pendingRentCreditor);
+            if (!isLocalDebtorTransferring) {
+              p.cash = srcP.cash;
+              if (displayedCash) displayedCash[idx] = p.cash;
+            }
             const isCurrentlyMoving = (gameState.phase === 'MOVING' && gameState.currentPlayerIdx === idx);
             if (!isCurrentlyMoving) {
               p.position = srcP.position;
@@ -517,13 +533,20 @@ export function initEngine() {
 
       const curIdx = gameState.currentPlayerIdx;
       const incomingIdx = incomingState.currentPlayerIdx;
+      const incomingTurnNumber = typeof incomingState.turnNumber === 'number' ? incomingState.turnNumber : null;
+      const curTurnNumber = typeof gameState.turnNumber === 'number' ? gameState.turnNumber : 1;
+
+      const turnNumberIncreased = incomingTurnNumber !== null && incomingTurnNumber > curTurnNumber;
       const turnIdxChanged = typeof incomingIdx === 'number' && incomingIdx !== curIdx;
       const stuckInEndPhase = gameState.phase === 'END' && incomingState.phase === 'ROLL';
       const isAuctionActive = (gameState.phase === 'AUCTION' || Boolean(gameState.auction?.active) || incomingState.phase === 'AUCTION');
 
-      if (!isAuctionActive && (turnIdxChanged || stuckInEndPhase) && gameState.gameStarted && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
-        advanceTurn(true, typeof incomingIdx === 'number' ? incomingIdx : curIdx);
+      if (!isAuctionActive && (turnNumberIncreased || (incomingTurnNumber === null && (turnIdxChanged || stuckInEndPhase))) && gameState.gameStarted && gameState.phase !== 'SETUP' && gameState.phase !== 'VICTORY') {
+        advanceTurn(true, typeof incomingIdx === 'number' ? incomingIdx : curIdx, incomingTurnNumber);
       } else {
+        if (incomingTurnNumber !== null) {
+          gameState.turnNumber = incomingTurnNumber;
+        }
         if (typeof incomingIdx === 'number' && gameState.phase !== 'SETUP') {
           gameState.currentPlayerIdx = incomingIdx;
         }
@@ -539,12 +562,12 @@ export function initEngine() {
           const isLocalPlayerInWorldTour = (gameState.phase === 'WORLD_TOUR' && gameState.currentPlayerIdx === networkState.localPlayerIdx);
           if (isAuctionActive) {
             gameState.phase = 'AUCTION';
-          } else if (isLocalPlayerInWorldTour) {
+          } else if (incomingState.phase === 'WORLD_TOUR' || isLocalPlayerInWorldTour) {
             gameState.phase = 'WORLD_TOUR';
           } else if (!isLocalPlayerMoving && (!isLocalPlayerInModal || incomingState.phase === 'MODAL')) {
             gameState.phase = incomingState.phase;
           }
-          if (!isAuctionActive && incomingState.phase && incomingState.phase !== 'MODAL' && !isLocalPlayerInModal && !isLocalPlayerInWorldTour) {
+          if (!isAuctionActive && incomingState.phase && incomingState.phase !== 'MODAL' && !isLocalPlayerInModal && !isLocalPlayerInWorldTour && !isLocalPlayerMoving) {
             closeTurnActionModals();
           }
         }

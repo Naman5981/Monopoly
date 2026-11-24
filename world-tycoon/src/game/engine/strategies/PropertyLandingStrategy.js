@@ -275,11 +275,29 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     // Solvency confirmed: Transfer rent
     showSpeechBubble(`Ouch! Paying ${fmtMoney(rent)} rent to ${owner.name}!`, 3000);
     logEvent(`💸 <strong>${player.name}</strong> landed on <strong>${tile.name}</strong> and transferred <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
-    await animateRentTransferOnHUD(playerIdx, st.owner, rent, tile);
+    gameState.isRentTransferring = true;
+    gameState.pendingRentCreditor = st.owner;
+    try {
+      await animateRentTransferOnHUD(playerIdx, st.owner, rent, tile);
+    } finally {
+      gameState.isRentTransferring = false;
+      gameState.pendingRentCreditor = null;
+    }
 
     player.cash -= rent;
     owner.cash += rent;
     renderCornerHUDs();
+
+    if (networkState.isMultiplayer) {
+      if (playerIdx === networkState.localPlayerIdx || (player.isAI && networkState.isHost)) {
+        broadcastAction('ACTION_PAY_RENT', {
+          playerIdx,
+          ownerIdx: st.owner,
+          rent,
+          tileId: tile.id
+        });
+      }
+    }
 
     // Hostile Buyout check
     const buyoutCost = calculateBuyoutCost(tile, st);
@@ -300,7 +318,12 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
           gameState.phase = 'MODAL';
           // Host safety fallback if remote peer disconnects or fails to respond
           if (networkState.isHost) {
-            setTimeout(() => {
+            if (gameState.buyoutWatchdogTimer) {
+              clearTimeout(gameState.buyoutWatchdogTimer);
+              gameState.buyoutWatchdogTimer = null;
+            }
+            gameState.buyoutWatchdogTimer = setTimeout(() => {
+              gameState.buyoutWatchdogTimer = null;
               if (gameState.phase === 'MODAL' && gameState.currentPlayerIdx === playerIdx) {
                 if (typeof window !== 'undefined' && window.passBuyoutCity) {
                   window.passBuyoutCity();
@@ -569,27 +592,40 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     await new Promise(r => setTimeout(r, getGameDelay(700)));
     if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
 
-    if (st && st.level < 4 && player.cash >= tile.houseCost + 200000) {
-      const canDoTwo = st.level <= 2 && player.cash >= (tile.houseCost * 2) + 400000;
-      const count = canDoTwo ? 2 : 1;
-      upgradeCityLevel(tile.id, true);
-      if (canDoTwo) upgradeCityLevel(tile.id, true);
-      showSpeechBubble(canDoTwo ? `Double Upgraded ${tile.name}! 🏗️🏗️` : `Upgraded ${tile.name}! 🏗️`, 1800);
-      logEvent(`🏗️ <strong>${player.name}</strong> upgraded estate in <strong>${tile.name}</strong> (+${count} Level${count > 1 ? 's' : ''}).`);
-      if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, count, levelsToAdd: count });
-        broadcastFullGameState();
+    let reachedMaxLevel = false;
+    try {
+      if (st && st.level < 4 && player.cash >= tile.houseCost + 200000) {
+        const canDoTwo = st.level <= 2 && player.cash >= (tile.houseCost * 2) + 400000;
+        const count = canDoTwo ? 2 : 1;
+        upgradeCityLevel(tile.id, true);
+        if (canDoTwo) upgradeCityLevel(tile.id, true);
+        reachedMaxLevel = Boolean(st.level >= 4);
+        const bubbleMsg = reachedMaxLevel
+          ? `Erected Landmark in ${tile.name}! 🏛️`
+          : (canDoTwo ? `Double Upgraded ${tile.name}! 🏗️🏗️` : `Upgraded ${tile.name}! 🏗️`);
+        showSpeechBubble(bubbleMsg, reachedMaxLevel ? 2200 : 1800);
+        logEvent(`🏗️ <strong>${player.name}</strong> upgraded estate in <strong>${tile.name}</strong> (+${count} Level${count > 1 ? 's' : ''}${reachedMaxLevel ? ' — Landmark Complete!' : ''}).`);
+        if (networkState.isMultiplayer && networkState.isHost) {
+          broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, count, levelsToAdd: count });
+          broadcastFullGameState();
+        }
+      } else {
+        showSpeechBubble(`Relaxing in ${tile.name}`, 1500);
+        logEvent(`✨ <strong>${player.name}</strong> passed on upgrading <strong>${tile.name}</strong>.`);
+        if (networkState.isMultiplayer && networkState.isHost) {
+          broadcastAction('ACTION_END_UPGRADE', { playerIdx, tileId: tile.id, isDoubles: Boolean(isDoubles) });
+          broadcastFullGameState();
+        }
       }
-    } else {
-      showSpeechBubble(`Relaxing in ${tile.name}`, 1500);
-      logEvent(`✨ <strong>${player.name}</strong> passed on upgrading <strong>${tile.name}</strong>.`);
-      if (networkState.isMultiplayer && networkState.isHost) {
-        broadcastAction('ACTION_END_UPGRADE', { playerIdx, tileId: tile.id, isDoubles: Boolean(isDoubles) });
-        broadcastFullGameState();
-      }
+    } catch (err) {
+      console.error('[handleAIOwnedCityLanding] Error upgrading estate:', err);
+    } finally {
+      clearThinkingState();
     }
 
-    clearThinkingState();
+    if (reachedMaxLevel) {
+      await new Promise(r => setTimeout(r, getGameDelay(1200)));
+    }
     if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
   }
 }

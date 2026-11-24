@@ -30,6 +30,10 @@ let buyoutCountdownInterval = null;
 let buyoutCountdownTimer = null;
 
 export function clearBuyoutTimers() {
+  if (gameState && gameState.buyoutWatchdogTimer) {
+    clearTimeout(gameState.buyoutWatchdogTimer);
+    gameState.buyoutWatchdogTimer = null;
+  }
   if (buyoutCountdownInterval) {
     clearInterval(buyoutCountdownInterval);
     buyoutCountdownInterval = null;

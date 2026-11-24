@@ -104,7 +104,11 @@ export function confirmUpgradeFromModal() {
 
   if (st.level >= 4 || p.cash < tile.houseCost) return;
 
-  upgradeCityLevel(tile.id, true);
+  try {
+    upgradeCityLevel(tile.id, true);
+  } catch (err) {
+    console.error('[confirmUpgradeFromModal] Error in upgradeCityLevel:', err);
+  }
   gameState.upgradesThisVisit = 1;
   const newLevel = gameState.properties[tile.id]?.level;
   if (newLevel >= 4) {
@@ -140,8 +144,12 @@ export function confirmUpgradeTwoLevelsFromModal() {
   const cost2 = tile.houseCost * 2;
   if (st.level > 2 || p.cash < cost2) return;
 
-  upgradeCityLevel(tile.id, true);
-  upgradeCityLevel(tile.id, true);
+  try {
+    upgradeCityLevel(tile.id, true);
+    upgradeCityLevel(tile.id, true);
+  } catch (err) {
+    console.error('[confirmUpgradeTwoLevelsFromModal] Error in upgradeCityLevel:', err);
+  }
   gameState.upgradesThisVisit = 2;
   const newLevel2 = gameState.properties[tile.id]?.level;
   if (newLevel2 >= 4) {

@@ -207,7 +207,7 @@ export function upgradeCityLevel(tileId, isForcedAI = false) {
   p.cash -= tile.houseCost;
   st.level++;
   if (st.level === 4) {
-    checkSkyscraperBuilt(st.owner, tile.name);
+    logEvent(`🏛️ <strong>${p.name}</strong> erected a luxury Skyscraper Landmark on <strong>${tile.name}</strong>!`);
   }
   if (!isForcedAI) {
     gameState.upgradesThisVisit = (gameState.upgradesThisVisit || 0) + 1;

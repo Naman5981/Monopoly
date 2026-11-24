@@ -206,7 +206,8 @@ export {
 // ──────────────────────────────────────────────────────────────────────────────
 // Re-exports: Board Geometry & Tile System
 // ──────────────────────────────────────────────────────────────────────────────
-export { getTileWorldPosition } from './board/coords.js';
+import { getTileWorldPosition } from './board/coords.js';
+export { getTileWorldPosition };
 
 /**
  * Projects a board tile coordinate to 2D screen coordinates { x, y } for UI FLIP springs.

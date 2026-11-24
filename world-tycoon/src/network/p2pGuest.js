@@ -297,7 +297,12 @@ export function handleGuestReceivedMessage(msg) {
       if (window.selectSetupPlayer) {
         window.selectSetupPlayer(msg.assignedSlot);
       }
-      if (window.setLobbyView) {
+      if (msg.gameStarted || (gameState && gameState.gameStarted)) {
+        if (typeof window !== 'undefined' && typeof window.closeAllGameModals === 'function') {
+          window.closeAllGameModals();
+        }
+        renderCornerHUDs();
+      } else if (window.setLobbyView) {
         window.setLobbyView('multiplayer-room');
       }
       logEvent(`✅ Joined room as <strong>Player ${networkState.localPlayerIdx + 1}</strong>!`);
@@ -516,6 +521,7 @@ export function handleGuestReceivedMessage(msg) {
     case 'ACTION_DOWNGRADE_CITY':
     case 'ACTION_END_UPGRADE':
     case 'ACTION_PAY_BAIL':
+    case 'ACTION_PAY_RENT':
     case 'ACTION_RENT_DEBT':
     case 'ACTION_SELL_CITY_FOR_RENT':
     case 'ACTION_AUCTION_START':

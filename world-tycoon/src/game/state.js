@@ -97,6 +97,8 @@ export const gameState = {
   /** tileId → { owner: idx|null, level: 0..4, festivalBoost: bool } */
   properties: {},
   currentPlayerIdx: 0,
+  /** Monotonically increasing turn counter to prevent duplicate/skipped turns in multiplayer */
+  turnNumber: 1,
   /** 'ROLL' | 'MOVING' | 'MODAL' | 'WORLD_TOUR' | 'END' */
   phase: 'ROLL',
   doublesCount: 0,
@@ -279,6 +281,7 @@ export function resetGameStateForNewMatch(count) {
   });
 
   gameState.currentPlayerIdx = 0;
+  gameState.turnNumber = 1;
   gameState.phase = 'ROLL';
   gameState.festivalPot = 0;
   gameState.turnTimeLeft = matchSettings.turnDuration || 15;

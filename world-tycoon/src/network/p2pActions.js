@@ -145,6 +145,24 @@ export function executeIncomingNetworkAction(msg) {
       break;
     }
 
+    case 'ACTION_PAY_RENT': {
+      const debtor = gameState.players ? gameState.players[msg.playerIdx] : null;
+      const creditor = gameState.players ? gameState.players[msg.ownerIdx] : null;
+      if (debtor && creditor && typeof msg.rent === 'number') {
+        debtor.cash -= msg.rent;
+        creditor.cash += msg.rent;
+        playSFX('cash');
+        spawnFloatingCashOnHUD(msg.playerIdx, `-${fmtMoney(msg.rent)}`, false);
+        spawnFloatingCashOnHUD(msg.ownerIdx, `+${fmtMoney(msg.rent)}`, true);
+        renderCornerHUDs();
+        refreshActivePlayerTurnStatus();
+      }
+      if (networkState.isHost) {
+        broadcastFullGameState();
+      }
+      break;
+    }
+
     case 'ACTION_SELL_CITY_FOR_RENT': {
       const p = gameState.players[msg.playerIdx];
       const t = BOARD_TILES[msg.tileId];
@@ -414,7 +432,7 @@ export function executeIncomingNetworkAction(msg) {
 
     case 'ACTION_END_TURN':
       if (networkCallbacks.onEndTurn) {
-        networkCallbacks.onEndTurn(msg.nextPlayerIdx);
+        networkCallbacks.onEndTurn(msg.nextPlayerIdx, msg.turnNumber);
       }
       break;
 

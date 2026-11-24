@@ -42,6 +42,7 @@ export function saveCurrentMatchToStorage() {
       gameState: {
         gameStarted: true,
         currentPlayerIdx: gameState.currentPlayerIdx,
+        turnNumber: gameState.turnNumber || 1,
         phase: gameState.phase,
         turnTimeLeft: gameState.turnTimeLeft,
         festivalPot: gameState.festivalPot,
@@ -121,6 +122,7 @@ export function resumeSavedMatch() {
     // 2. Restore game state
     gameState.gameStarted = true;
     gameState.currentPlayerIdx = data.gameState.currentPlayerIdx ?? 0;
+    gameState.turnNumber = data.gameState.turnNumber || 1;
     // Always sanitize phase to ROLL so match doesn't hang if previously saved mid-action/mid-hop
     gameState.phase = 'ROLL';
     gameState.turnTimeLeft = data.gameState.turnTimeLeft || 15;
