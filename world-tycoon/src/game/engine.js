@@ -479,6 +479,13 @@ export function initEngine() {
         if (stateSeq < lastProcessedStateSeq) return;
         lastProcessedStateSeq = stateSeq;
       }
+      if (Array.isArray(incomingState.netWorthHistory)) {
+        gameState.netWorthHistory = incomingState.netWorthHistory.map(pt => ({
+          turn: pt.turn,
+          time: pt.time,
+          values: [...(pt.values || [])]
+        }));
+      }
       if (incomingState.properties) {
         Object.keys(incomingState.properties).forEach(id => {
           const src = incomingState.properties[id];

@@ -74,6 +74,7 @@ export function renderLeaderboardModal() {
 
   const formattedStandings = standings.map((s, rankIdx) => ({
     rank: rankIdx + 1,
+    playerIdx: s.idx,
     name: s.player.name,
     colorHex: s.theme.colorHex,
     isLocal: s.isLocal,
@@ -81,7 +82,8 @@ export function renderLeaderboardModal() {
     netWorthFormatted: fmtMoney(s.netWorth),
     cashFormatted: fmtMoney(s.cash),
     citiesCount: s.ownedPropsCount,
-    setsCount: s.sets
+    setsCount: s.sets,
+    velocity: computePlayerVelocity(s.idx, gameState.netWorthHistory || [], s.netWorth)
   }));
 
   updateModalSlice('leaderboard', {
@@ -116,12 +118,73 @@ export function toggleLeaderboardModal() {
   }
 }
 
+const SERIES_SHAPES = ['circle', 'diamond', 'square', 'triangle', 'circle', 'diamond'];
+const SERIES_DASHES = ['none', 'none', '4,2', '2,2', '6,3', '3,3'];
+
+function computePlayerVelocity(playerIdx, history, currentNetWorth) {
+  if (!history || history.length < 2) {
+    return { delta: 0, formattedDelta: 'Steady', trend: 'flat' };
+  }
+  const lookbackIdx = Math.max(0, history.length - 4);
+  const pastVals = history[lookbackIdx]?.values || [];
+  const pastVal = pastVals[playerIdx] !== undefined ? pastVals[playerIdx] : currentNetWorth;
+  const delta = currentNetWorth - pastVal;
+
+  if (delta > 1000) {
+    return { delta, formattedDelta: `+${fmtMoney(delta)}`, trend: 'up' };
+  }
+  if (delta < -1000) {
+    return { delta, formattedDelta: `-${fmtMoney(Math.abs(delta))}`, trend: 'down' };
+  }
+  return { delta: 0, formattedDelta: 'Steady', trend: 'flat' };
+}
+
+function pointsToSmoothPath(coords) {
+  if (!coords || coords.length === 0) return '';
+  if (coords.length === 1) return `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
+  let d = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p0 = i > 0 ? coords[i - 1] : coords[i];
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+    const p3 = i < coords.length - 2 ? coords[i + 2] : p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
+function buildXAxisTicks(dataPoints, padLeft, plotW) {
+  const count = dataPoints.length;
+  if (count <= 1) return [{ x: padLeft.toFixed(1), label: 'Start', turn: 0 }];
+
+  const maxTicks = 5;
+  const step = count <= maxTicks ? 1 : Math.ceil((count - 1) / (maxTicks - 1));
+  const indices = new Set([0, count - 1]);
+  for (let i = step; i < count - 1; i += step) {
+    indices.add(i);
+  }
+
+  return Array.from(indices).sort((a, b) => a - b).map(idx => {
+    const x = padLeft + (idx / (count - 1)) * plotW;
+    const turn = dataPoints[idx]?.turn ?? idx;
+    let label = `T${turn}`;
+    if (idx === 0) label = 'Start';
+    else if (idx === count - 1) label = `T${turn} (Now)`;
+    return { x: x.toFixed(1), label, turn };
+  });
+}
+
 export function buildNetWorthChartData() {
   const history = gameState.netWorthHistory || [];
   const players = gameState.players || [];
-  if (players.length === 0) return { empty: true, gridLines: [], series: [] };
+  if (players.length === 0) return { empty: true, gridLines: [], series: [], xTicks: [], turns: [] };
 
-  // Ensure at least two timeline data points
   let dataPoints = history.length > 0 ? [...history] : [];
   if (dataPoints.length === 0) {
     const initialVals = players.map(p => calculatePlayerNetWorth(p.id !== undefined ? p.id : players.indexOf(p)));
@@ -131,12 +194,11 @@ export function buildNetWorthChartData() {
     ];
   } else if (dataPoints.length === 1) {
     dataPoints.push({
-      turn: dataPoints[0].turn + 1,
+      turn: (dataPoints[0].turn || 0) + 1,
       values: [...dataPoints[0].values]
     });
   }
 
-  // Calculate dynamic boundaries
   let minVal = Infinity;
   let maxVal = -Infinity;
   dataPoints.forEach(pt => {
@@ -155,50 +217,93 @@ export function buildNetWorthChartData() {
   maxVal = Math.ceil(maxVal * 1.1);
   if (maxVal <= minVal) maxVal = minVal + 1000000;
 
-  const width = 480;
-  const height = 120;
-  const padLeft = 52;
+  const width = 440;
+  const height = 132;
+  const padLeft = 50;
   const padRight = 16;
-  const padTop = 14;
-  const padBottom = 20;
+  const padTop = 16;
+  const padBottom = 26;
 
   const plotW = width - padLeft - padRight;
   const plotH = height - padTop - padBottom;
+  const bottomY = padTop + plotH;
 
-  // Horizontal Grid Lines & Formatted Values
   const gridSteps = 3;
   const gridLines = [];
   for (let g = 0; g <= gridSteps; g++) {
     const fraction = g / gridSteps;
     const yVal = minVal + fraction * (maxVal - minVal);
-    const yPos = padTop + plotH - (fraction * plotH);
+    const yPos = bottomY - (fraction * plotH);
     gridLines.push({ y: yPos.toFixed(1), labelY: (yPos + 3).toFixed(1), value: fmtMoney(yVal) });
   }
+
+  const localIdx = networkState.isMultiplayer ? networkState.localPlayerIdx : 0;
 
   const series = players.map((p, pIdx) => {
     const theme = PLAYER_THEMES[pIdx] || {};
     const color = theme.colorHex || p.colorHex || '#3b82f6';
+    const isLocal = pIdx === localIdx;
 
     const coords = dataPoints.map((pt, i) => {
-      const x = padLeft + (i / (dataPoints.length - 1)) * plotW;
+      let x = padLeft + (i / (dataPoints.length - 1)) * plotW;
+      if (i === 0) {
+        x += (pIdx - (players.length - 1) / 2) * 2;
+      }
       const val = pt.values && pt.values[pIdx] !== undefined ? pt.values[pIdx] : 0;
-      const y = padTop + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
-      return { x, y, val };
+      const y = bottomY - ((val - minVal) / (maxVal - minVal)) * plotH;
+      return { x, y, val, formatted: fmtMoney(val) };
     });
 
-    const pathD = coords.map((c, i) => (i === 0 ? `M ${c.x.toFixed(1)} ${c.y.toFixed(1)}` : `L ${c.x.toFixed(1)} ${c.y.toFixed(1)}`)).join(' ');
+    const pathD = pointsToSmoothPath(coords);
+    const firstCoord = coords[0];
     const lastCoord = coords[coords.length - 1];
+    const areaPath = `${pathD} L ${lastCoord.x.toFixed(1)} ${bottomY.toFixed(1)} L ${firstCoord.x.toFixed(1)} ${bottomY.toFixed(1)} Z`;
 
     return {
+      playerIdx: pIdx,
       name: p.name,
       color,
+      isLocal,
+      bankrupt: Boolean(p.bankrupt),
+      shape: SERIES_SHAPES[pIdx % SERIES_SHAPES.length],
+      dashArray: SERIES_DASHES[pIdx % SERIES_DASHES.length],
       opacity: p.bankrupt ? '0.35' : '0.95',
       path: pathD,
+      areaPath,
+      points: coords.map(c => ({
+        x: Number(c.x.toFixed(1)),
+        y: Number(c.y.toFixed(1)),
+        val: c.val,
+        formatted: c.formatted
+      })),
+      firstX: firstCoord.x.toFixed(1),
+      firstY: firstCoord.y.toFixed(1),
       lastX: lastCoord.x.toFixed(1),
       lastY: lastCoord.y.toFixed(1),
-      lastValue: fmtMoney(lastCoord.val)
+      lastValue: lastCoord.formatted
     };
   });
 
-  return { empty: false, width, height, padLeft, right: width - padRight, gridLines, series };
+  const turns = dataPoints.map((pt, i) => ({
+    index: i,
+    turn: pt.turn ?? i,
+    x: Number((padLeft + (i / (dataPoints.length - 1)) * plotW).toFixed(1))
+  }));
+
+  const xTicks = buildXAxisTicks(dataPoints, padLeft, plotW);
+
+  return {
+    empty: false,
+    width,
+    height,
+    padLeft,
+    padTop,
+    bottomY,
+    plotW,
+    right: width - padRight,
+    gridLines,
+    xTicks,
+    turns,
+    series
+  };
 }

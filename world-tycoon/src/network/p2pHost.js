@@ -534,6 +534,9 @@ export function broadcastFullGameState() {
         totalCount: gameState.auctionQueueMeta.totalCount
       } : null,
       pendingAuctionsCount: gameState.pendingAuctions ? gameState.pendingAuctions.length : 0,
+      netWorthHistory: Array.isArray(gameState.netWorthHistory)
+        ? gameState.netWorthHistory.map(pt => ({ turn: pt.turn, time: pt.time, values: [...(pt.values || [])] }))
+        : [],
       players: gameState.players.map((p, idx) => ({
         id: p.id,
         name: p.name,

@@ -3,7 +3,12 @@
   import NetWorthChart from '../components/NetWorthChart.svelte';
 
   let state = $state({});
-  modalStore.subscribe(val => { state = val.leaderboard || {}; });
+  let spotlightIdx = $state(null);
+
+  modalStore.subscribe(val => {
+    state = val.leaderboard || {};
+    if (!state.visible) spotlightIdx = null;
+  });
 
   function onClose() {
     if (typeof window !== 'undefined' && typeof window.closeLeaderboardModal === 'function') {
@@ -99,7 +104,12 @@
       <div id="leaderboard-players-list" class="space-y-1.5">
         {#if state.standings && state.standings.length > 0}
           {#each state.standings as s}
-            <div class="p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-white/10 shadow-xs flex items-center justify-between gap-2 transition-all hover:border-amber-400/50 hover:bg-slate-900">
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div
+              onmouseenter={() => { spotlightIdx = s.playerIdx; }}
+              onmouseleave={() => { spotlightIdx = null; }}
+              class="p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-white/10 shadow-xs flex items-center justify-between gap-2 transition-all cursor-pointer hover:border-amber-400/60 hover:bg-slate-900 {spotlightIdx !== null && spotlightIdx !== s.playerIdx ? 'opacity-40' : 'opacity-100'}"
+            >
               <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-6 h-6 rounded-lg font-mono font-black flex items-center justify-center text-[11px] shadow-inner shrink-0 {s.rank === 1 ? 'bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 text-slate-950 border border-amber-200' : s.rank === 2 ? 'bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 text-slate-950 border border-white' : s.rank === 3 ? 'bg-gradient-to-br from-amber-700 via-amber-800 to-amber-900 text-amber-100 border border-amber-600/50' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
                   #{s.rank}
@@ -130,6 +140,18 @@
               <div class="text-right shrink-0">
                 <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Net Worth</div>
                 <div class="font-mono font-black text-sm sm:text-base text-amber-300 drop-shadow-xs">{s.netWorthFormatted}</div>
+                {#if s.velocity}
+                  <div class="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1 rounded border mt-0.5 {s.velocity.trend === 'up' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : s.velocity.trend === 'down' ? 'text-rose-400 bg-rose-500/10 border-rose-500/30' : 'text-slate-400 bg-slate-800 border-slate-700'}">
+                    {#if s.velocity.trend === 'up'}
+                      <i class="fa-solid fa-arrow-trend-up text-[8px]" aria-hidden="true"></i>
+                    {:else if s.velocity.trend === 'down'}
+                      <i class="fa-solid fa-arrow-trend-down text-[8px]" aria-hidden="true"></i>
+                    {:else}
+                      <i class="fa-solid fa-minus text-[8px]" aria-hidden="true"></i>
+                    {/if}
+                    <span>{s.velocity.formattedDelta}</span>
+                  </div>
+                {/if}
               </div>
             </div>
           {/each}
@@ -140,10 +162,10 @@
       <div class="mt-2.5 pt-2 border-t border-white/10">
         <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
           <span class="flex items-center gap-1 text-amber-300/90"><i class="fa-solid fa-chart-line text-amber-400"></i> Trajectory</span>
-          <span class="text-[9px] text-slate-500 font-normal">Turn history</span>
+          <span class="text-[9px] text-slate-500 font-normal">Hover / drag to inspect turns</span>
         </div>
         <div id="leaderboard-timeline-chart" class="w-full bg-slate-900/90 rounded-xl border border-white/10 p-2 overflow-hidden flex items-center justify-center">
-          <NetWorthChart chart={state.historyChart} />
+          <NetWorthChart chart={state.historyChart} {spotlightIdx} />
         </div>
       </div>
     </div>
