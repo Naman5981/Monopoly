@@ -4,17 +4,20 @@
  */
 
 import { BOARD_TILES, GROUP_META } from '../../game/data.js';
-import { gameState, isHumanTurnActionable, localPlayerIdx } from '../../game/state.js';
+import { gameState, isHumanTurnActionable, localPlayerIdx, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
-import { calculateTileRent, getPropertyLevelMetadata } from '../../game/rules.js';
+import { calculateTileRent, getPropertyLevelMetadata, isTeammate } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import {
   populateCityPreview3DScene,
   clearCityPreview,
   setTileHighlightRing,
   refreshTileTextureAndBuildings,
-  showSpeechBubble
+  showSpeechBubble,
+  getTileWorldPosition,
+  spawnGoldCoinShower,
+  triggerBoardShockwave
 } from '../../three/scene.js';
 import { renderCornerHUDs, showTurnLockToast, logEvent, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
 import { saveCurrentMatchToStorage } from '../../game/persistence.js';
@@ -82,9 +85,15 @@ export function buildInspectorSliceData(tileId) {
     }
   }
 
+  const isTeammateOwner = Boolean(
+    matchSettings?.teamMode &&
+    st && st.owner !== null && st.owner !== undefined &&
+    isTeammate(myIdx, st.owner)
+  );
+
   const canUpgrade = Boolean(
     tile.type === 'city' &&
-    isOwner &&
+    (isOwner || isTeammateOwner) &&
     curLevel < 4 &&
     isStandingOnTile &&
     isTurnActionable &&
@@ -185,45 +194,96 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export function upgradeCityLevel(tileId, isForcedAI = false) {
+export function upgradeCityLevel(tileId, isForcedAI = false, payerPlayerIdx = null, levelsToAdd = 1) {
   const st = gameState.properties[tileId];
   const tile = BOARD_TILES[tileId];
-  if (!st || st.owner === null || st.level >= 4) return;
-  const p = gameState.players[st.owner];
-  if (!isForcedAI && p.position !== tileId) {
-    showTurnLockToast("You can only upgrade the property you are standing on!");
-    return;
-  }
-  if (st.owner === localPlayerIdx && !isForcedAI && !isHumanTurnActionable()) {
-    showTurnLockToast("Wait for your turn to upgrade cities!");
-    return;
-  }
-  if (!isForcedAI && (gameState.upgradesThisVisit || 0) >= 2) {
-    showTurnLockToast("You can only upgrade at most 2 levels at one time!");
-    return;
-  }
-  if (p.cash < tile.houseCost) return;
+  if (!st || st.owner === null || st.owner === undefined || st.level >= 4) return false;
 
-  p.cash -= tile.houseCost;
-  st.level++;
+  const payerIdx = (payerPlayerIdx !== null && payerPlayerIdx !== undefined)
+    ? payerPlayerIdx
+    : (gameState.currentPlayerIdx !== undefined && gameState.currentPlayerIdx !== null ? gameState.currentPlayerIdx : st.owner);
+
+  const payer = gameState.players[payerIdx];
+  const owner = gameState.players[st.owner];
+  if (!payer || !owner) return false;
+
+  const isOwner = (payerIdx === st.owner);
+  const isAlly = isTeammate(payerIdx, st.owner);
+  if (!isOwner && !isAlly) {
+    showTurnLockToast("You can only upgrade your own or your teammate's city!");
+    return false;
+  }
+
+  if (!isForcedAI && payer.position !== tileId) {
+    showTurnLockToast("You can only upgrade the property you are standing on!");
+    return false;
+  }
+
+  const mySlot = networkState.isMultiplayer ? networkState.localPlayerIdx : localPlayerIdx;
+  if (payerIdx === mySlot && !isForcedAI && !isHumanTurnActionable()) {
+    showTurnLockToast("Wait for your turn to upgrade cities!");
+    return false;
+  }
+
+  const levelsRequested = Math.max(1, levelsToAdd || 1);
+  if (!isForcedAI && ((gameState.upgradesThisVisit || 0) + levelsRequested) > 2) {
+    showTurnLockToast("You can only upgrade at most 2 levels at one time!");
+    return false;
+  }
+
+  const actualLevels = Math.min(levelsRequested, 4 - st.level);
+  if (actualLevels <= 0) return false;
+
+  const totalCost = tile.houseCost * actualLevels;
+  if (payer.cash < totalCost) {
+    if (!isForcedAI) showTurnLockToast("Insufficient funds to upgrade this city!");
+    return false;
+  }
+
+  payer.cash -= totalCost;
+  st.level += actualLevels;
+
   if (st.level === 4) {
-    logEvent(`🏛️ <strong>${p.name}</strong> erected a luxury Skyscraper Landmark on <strong>${tile.name}</strong>!`);
+    if (isAlly) {
+      logEvent(`🏛️ <strong>${payer.name}</strong> erected a luxury Skyscraper Landmark in teammate <strong>${owner.name}</strong>'s city <strong>${tile.name}</strong>!`);
+    } else {
+      logEvent(`🏛️ <strong>${payer.name}</strong> erected a luxury Skyscraper Landmark on <strong>${tile.name}</strong>!`);
+    }
+  } else {
+    if (isAlly) {
+      logEvent(`🏗️ <strong>${payer.name}</strong> upgraded teammate <strong>${owner.name}</strong>'s city <strong>${tile.name}</strong> to Level ${st.level}!`);
+    } else {
+      logEvent(`🏗️ <strong>${payer.name}</strong> upgraded <strong>${tile.name}</strong> to Level ${st.level}!`);
+    }
   }
+
   if (!isForcedAI) {
-    gameState.upgradesThisVisit = (gameState.upgradesThisVisit || 0) + 1;
+    gameState.upgradesThisVisit = (gameState.upgradesThisVisit || 0) + actualLevels;
   }
+
   playSFX('build');
-  if (engineCallbacks.spawnFloatingCash) engineCallbacks.spawnFloatingCash(st.owner, `-${fmtMoney(tile.houseCost)}`, false);
-  logEvent(`🏗️ <strong>${p.name}</strong> upgraded <strong>${tile.name}</strong> to Level ${st.level}!`);
+  const cashLabel = isAlly ? `-${fmtMoney(totalCost)} (Ally Upgrade)` : `-${fmtMoney(totalCost)}`;
+  if (engineCallbacks.spawnFloatingCash) {
+    engineCallbacks.spawnFloatingCash(payerIdx, cashLabel, false);
+  }
+
+  const tilePos = getTileWorldPosition(tileId);
+  if (tilePos) {
+    const coinCount = actualLevels > 1 ? 36 : 20;
+    spawnGoldCoinShower(tilePos.x, tilePos.z, coinCount);
+    triggerBoardShockwave(tilePos.x, tilePos.z, actualLevels > 1 ? 24 : 18, actualLevels > 1 ? 30 : 26);
+  }
 
   if (networkState.isMultiplayer && !isForcedAI) {
-    broadcastAction('ACTION_UPGRADE_CITY', { playerIdx: st.owner, tileId });
+    broadcastAction('ACTION_UPGRADE_CITY', { playerIdx: payerIdx, tileId, count: actualLevels });
   }
 
   refreshTileTextureAndBuildings(tileId);
   renderCornerHUDs();
   saveCurrentMatchToStorage();
   if (gameState.activeInspectorTile === tileId) openInspectorModal(tileId);
+
+  return true;
 }
 
 export function downgradeCityLevel(tileId, isAutoLiquidation = false) {

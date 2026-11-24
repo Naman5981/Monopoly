@@ -29,7 +29,10 @@ import {
   showSpeechBubble,
   setTileHighlightRing,
   updatePlayerTokenPositions3D,
-  playBuyoutCinematicFocus
+  playBuyoutCinematicFocus,
+  spawnGoldCoinShower,
+  triggerBoardShockwave,
+  playLandmarkCinematicReveal
 } from '../three/scene.js';
 import { context } from '../three/core/context.js';
 import {
@@ -40,7 +43,8 @@ import {
   logEvent,
   refreshActivePlayerTurnStatus,
   setStatusPill,
-  spawnFloatingCashOnHUD
+  spawnFloatingCashOnHUD,
+  setPlayerPortraitMood
 } from '../ui/hud.js';
 import { stopVictoryCelebration } from '../three/effects.js';
 import { animateDoublesBurstBanner, animateBuyoutHostileStamp } from '../ui/anim.js';
@@ -204,9 +208,26 @@ export function initEngine() {
         const upgradeTimes = count || 1;
         p.cash -= tile.houseCost * upgradeTimes;
         st.level += upgradeTimes;
-        playSFX('build', 1.0, getTileWorldPosition(tileId));
+        const tilePos = getTileWorldPosition(tileId);
+        playSFX('build', 1.0, tilePos);
         spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(tile.houseCost * upgradeTimes)}`, false);
-        logEvent(`🏗️ <strong>${p.name}</strong> upgraded <strong>${tile.name}</strong> to level ${st.level}!`);
+        if (tilePos) {
+          const coinCount = upgradeTimes > 1 ? 36 : 20;
+          spawnGoldCoinShower(tilePos.x, tilePos.z, coinCount);
+          triggerBoardShockwave(tilePos.x, tilePos.z, upgradeTimes > 1 ? 24 : 18, upgradeTimes > 1 ? 30 : 26);
+        }
+        if (st.level >= 4) {
+          setPlayerPortraitMood(playerIdx, 'cheering', 4500);
+          if (typeof playLandmarkCinematicReveal === 'function') {
+            playLandmarkCinematicReveal(tileId);
+          }
+        }
+        const owner = (st.owner !== null && st.owner !== undefined) ? gameState.players[st.owner] : null;
+        if (owner && owner !== p) {
+          logEvent(`🏗️ <strong>${p.name}</strong> upgraded teammate <strong>${owner.name}</strong>'s city <strong>${tile.name}</strong> to level ${st.level}!`);
+        } else {
+          logEvent(`🏗️ <strong>${p.name}</strong> upgraded <strong>${tile.name}</strong> to level ${st.level}!`);
+        }
         refreshTileTextureAndBuildings(tileId);
         renderCornerHUDs();
         saveCurrentMatchToStorage();

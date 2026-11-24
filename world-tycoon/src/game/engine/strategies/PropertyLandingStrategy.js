@@ -154,17 +154,13 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
           return;
         }
         if (player.cash >= tile.houseCost + 300000) {
-          player.cash -= tile.houseCost;
-          st.level++;
-          playSFX('build', 1.0, getTileWorldPosition(tile.id));
-          spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(tile.houseCost)} (Ally Build)`, false);
-          showSpeechBubble(`Upgraded ally ${partnerName}'s city! 🏗️`, 2200);
-          logEvent(`🏗️ <strong>${player.name}</strong> invested and built a house in teammate <strong>${partnerName}</strong>'s city <strong>${tile.name}</strong> (Now Level ${st.level})!`);
-          refreshTileTextureAndBuildings(tile.id);
-          renderCornerHUDs();
-          if (networkState.isMultiplayer && networkState.isHost) {
-            broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, count: 1, levelsToAdd: 1 });
-            broadcastFullGameState();
+          const didUpgrade = upgradeCityLevel(tile.id, true, playerIdx, 1);
+          if (didUpgrade) {
+            showSpeechBubble(`Upgraded ally ${partnerName}'s city! 🏗️`, 2200);
+            if (networkState.isMultiplayer && networkState.isHost) {
+              broadcastAction('ACTION_UPGRADE_CITY', { playerIdx, tileId: tile.id, count: 1, levelsToAdd: 1 });
+              broadcastFullGameState();
+            }
           }
         }
         if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
@@ -671,8 +667,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       if (st && st.level < 4 && player.cash >= tile.houseCost + 200000) {
         const canDoTwo = st.level <= 2 && player.cash >= (tile.houseCost * 2) + 400000;
         const count = canDoTwo ? 2 : 1;
-        upgradeCityLevel(tile.id, true);
-        if (canDoTwo) upgradeCityLevel(tile.id, true);
+        upgradeCityLevel(tile.id, true, playerIdx, count);
         reachedMaxLevel = Boolean(st.level >= 4);
         const bubbleMsg = reachedMaxLevel
           ? `Erected Landmark in ${tile.name}! 🏛️`

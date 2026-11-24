@@ -91,6 +91,8 @@ const initialModalState = {
     tile: null,
     cityName: 'TOKYO',
     countryName: 'YOUR ESTATE',
+    isAlly: false,
+    ownerName: '',
     levelLabel: 'Level 1',
     colorHex: '#10b981',
     currentRentFormatted: '$180K',

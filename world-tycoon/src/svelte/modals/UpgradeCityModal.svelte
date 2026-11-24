@@ -43,6 +43,12 @@
       <h3 id="upgrade-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate">
         {state.cityName || 'CITY'}
       </h3>
+      {#if state.isAlly}
+        <span id="upgrade-modal-ally-badge" class="text-xs font-black px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/40 shrink-0 flex items-center gap-1">
+          <span>🤝</span>
+          <span>{state.ownerName || 'Ally'}'s City</span>
+        </span>
+      {/if}
       <span id="upgrade-modal-level-pill" class="text-xs font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shrink-0">
         {state.levelLabel || 'Lvl 1'}
       </span>
@@ -73,14 +79,14 @@
   <div class="flex items-center gap-2 pt-0.5">
     <button id="btn-confirm-upgrade" onclick={onConfirmUpgrade} disabled={!state.canUpgrade} class="game-btn game-btn-green flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none {!state.canUpgrade ? 'opacity-50 cursor-not-allowed' : ''}">
       <i class="fa-solid fa-arrow-up-right-dots"></i>
-      <span>UPGRADE +1</span>
+      <span>{state.isAlly ? 'UPGRADE ALLY +1' : 'UPGRADE +1'}</span>
       <span class="text-xs font-bold opacity-90">({state.costOneFormatted || '$0'})</span>
     </button>
 
     {#if state.canUpgradeTwo}
       <button id="btn-confirm-upgrade-2" onclick={onConfirmUpgradeTwo} class="game-btn game-btn-blue flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:outline-none">
         <i class="fa-solid fa-angles-up"></i>
-        <span>+2 LEVELS</span>
+        <span>{state.isAlly ? 'ALLY +2 LEVELS' : '+2 LEVELS'}</span>
         <span class="text-xs font-bold opacity-90">({state.costTwoFormatted || '$0'})</span>
       </button>
     {/if}

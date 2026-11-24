@@ -23,8 +23,8 @@ import { triggerTileButtonPress } from '../board/tilePress.js';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const activeDebris = [];
-const activeCoins = [];
-const activeShockwaves = [];
+export const activeCoins = [];
+export const activeShockwaves = [];
 const activeTrailSparks = [];
 let physicsSceneGroup = null;
 let trailSparkGeo = null;

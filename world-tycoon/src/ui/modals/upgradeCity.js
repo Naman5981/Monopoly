@@ -7,7 +7,7 @@ import { GROUP_META } from '../../game/data.js';
 import { gameState } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
-import { calculateTileRent, getPropertyLevelMetadata } from '../../game/rules.js';
+import { calculateTileRent, getPropertyLevelMetadata, isTeammate } from '../../game/rules.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import {
   clearCityPreview,
@@ -26,7 +26,7 @@ import { playLandmarkCinematicReveal } from '../../three/theatre.js';
 import { setPlayerPortraitMood } from '../portraitRenderer.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 
-export function openUpgradeCityModal(tile, isDoubles) {
+export function openUpgradeCityModal(tile, isDoubles, isAlly = false) {
   if (isLobbyScreenActive()) return;
   const st = tile ? gameState.properties[tile.id] : null;
   if (st && st.level >= 4) {
@@ -43,18 +43,22 @@ export function openUpgradeCityModal(tile, isDoubles) {
 
   setTileHighlightRing(tile.id, true);
   setStatusPill(`🏗️ Managing property upgrades for <strong>${tile.name}</strong>...`, { isThinking: false, playerIdx: gameState.currentPlayerIdx });
-  renderUpgradeModalContent(tile);
+  renderUpgradeModalContent(tile, isAlly);
 
   const origin = getTileScreenPosition(tile.id);
   animateModalSpringOpen('#modal-upgrade-city', '#modal-upgrade-city-card', origin);
   playSFX('hop');
 }
 
-export function renderUpgradeModalContent(tile) {
+export function renderUpgradeModalContent(tile, isAlly = false) {
   const st = gameState.properties[tile.id];
   if (!st) return;
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx] || gameState.players[0];
+
+  const isTeammateAlly = Boolean(isAlly || (st.owner !== null && st.owner !== undefined && st.owner !== pIdx && isTeammate(pIdx, st.owner)));
+  const owner = (st.owner !== null && st.owner !== undefined) ? gameState.players[st.owner] : null;
+  const ownerName = owner ? owner.name : 'Ally';
 
   const groupColor = tile.group ? GROUP_META[tile.group].hex : '#10b981';
   const countryName = tile.group ? GROUP_META[tile.group].name : 'ESTATE';
@@ -77,6 +81,8 @@ export function renderUpgradeModalContent(tile) {
     tile,
     cityName: tile.name,
     countryName,
+    isAlly: isTeammateAlly,
+    ownerName,
     levelLabel: `Level ${st.level}: ${getPropertyLevelMetadata(st.level).label}`,
     colorHex: groupColor,
     currentRentFormatted: fmtMoney(curRent),
@@ -104,22 +110,24 @@ export function confirmUpgradeFromModal() {
 
   if (st.level >= 4 || p.cash < tile.houseCost) return;
 
+  let upgraded = false;
   try {
-    upgradeCityLevel(tile.id, true);
+    upgraded = upgradeCityLevel(tile.id, true, pIdx, 1);
   } catch (err) {
     console.error('[confirmUpgradeFromModal] Error in upgradeCityLevel:', err);
   }
-  gameState.upgradesThisVisit = 1;
+  if (!upgraded) {
+    closeUpgradeCityModal();
+    return;
+  }
+
+  gameState.upgradesThisVisit = (gameState.upgradesThisVisit || 0) + 1;
   const newLevel = gameState.properties[tile.id]?.level;
   if (newLevel >= 4) {
     setPlayerPortraitMood(pIdx, 'cheering', 4500);
   }
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.4, 40);
   spawnAnimatedReaction('star', window.innerWidth / 2, window.innerHeight * 0.4);
-
-  const tilePos = getTileWorldPosition(tile.id);
-  spawnGoldCoinShower(tilePos.x, tilePos.z, 20);
-  triggerBoardShockwave(tilePos.x, tilePos.z, 18, 26);
 
   if (networkState.isMultiplayer) {
     broadcastAction('ACTION_UPGRADE_CITY', { playerIdx: pIdx, tileId: tile.id, count: 1 });
@@ -144,23 +152,24 @@ export function confirmUpgradeTwoLevelsFromModal() {
   const cost2 = tile.houseCost * 2;
   if (st.level > 2 || p.cash < cost2) return;
 
+  let upgraded = false;
   try {
-    upgradeCityLevel(tile.id, true);
-    upgradeCityLevel(tile.id, true);
+    upgraded = upgradeCityLevel(tile.id, true, pIdx, 2);
   } catch (err) {
     console.error('[confirmUpgradeTwoLevelsFromModal] Error in upgradeCityLevel:', err);
   }
-  gameState.upgradesThisVisit = 2;
+  if (!upgraded) {
+    closeUpgradeCityModal();
+    return;
+  }
+
+  gameState.upgradesThisVisit = (gameState.upgradesThisVisit || 0) + 2;
   const newLevel2 = gameState.properties[tile.id]?.level;
   if (newLevel2 >= 4) {
     setPlayerPortraitMood(pIdx, 'cheering', 4500);
   }
   fireConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.4, 55);
   spawnAnimatedReaction('star', window.innerWidth / 2, window.innerHeight * 0.4);
-
-  const tilePos = getTileWorldPosition(tile.id);
-  spawnGoldCoinShower(tilePos.x, tilePos.z, 36);
-  triggerBoardShockwave(tilePos.x, tilePos.z, 24, 30);
 
   if (networkState.isMultiplayer) {
     broadcastAction('ACTION_UPGRADE_CITY', { playerIdx: pIdx, tileId: tile.id, count: 2 });

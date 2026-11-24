@@ -27,7 +27,7 @@ import { ensure3DPortraitSystemInitialized } from './pawns/tokens.js';
 import { applyBoardStyle, BOARD_STYLES } from './board/skins.js';
 import { initInputHandlers } from './core/input.js';
 import { startRenderLoop } from './core/loop.js';
-import { initPhysicsEngine, spawnShatterDebris, spawnGoldCoinShower, triggerBoardShockwave } from './physics/physicsEngine.js';
+import { initPhysicsEngine, spawnShatterDebris, spawnGoldCoinShower, triggerBoardShockwave, activeShockwaves, activeCoins } from './physics/physicsEngine.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Scene Initialization Facade & GPU Detection
@@ -312,7 +312,9 @@ export {
 export {
   spawnShatterDebris,
   spawnGoldCoinShower,
-  triggerBoardShockwave
+  triggerBoardShockwave,
+  activeShockwaves,
+  activeCoins
 } from './physics/physicsEngine.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
