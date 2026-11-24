@@ -10,11 +10,12 @@ import { gameState } from '../../state.js';
 import { fmtMoney } from '../../utils.js';
 import { playSFX } from '../../audio.js';
 import { refreshTileTextureAndBuildings, triggerTokenHurtAnimation, showSpeechBubble, spawnShatterDebris, triggerBoardShockwave } from '../../../three/scene.js';
-import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setPlayerPortraitMood, setStatusPill } from '../../../ui/hud.js';
+import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setPlayerPortraitMood, setStatusPill, updateRollButtonsUI } from '../../../ui/hud.js';
 import { openSellCitiesModal, calculatePropertySaleValue } from '../../../ui/modals.js';
 import { animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../../../ui/anim.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
-import { concludeActionPhase } from '../turnCycle.js';
+import { concludeActionPhase, cancelAllGameTimers } from '../turnCycle.js';
+import { startSoldPropertiesAuctionSequence, clearAuctionTimers } from '../auction.js';
 
 export class TaxLandingStrategy extends ITileLandingStrategy {
   async execute(context) {
@@ -42,6 +43,7 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
 
     // Player cannot afford tax: check if they have properties to liquidate
     const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
+    const soldTiles = [];
 
     if (owned.length > 0) {
       if (player.isAI) {
@@ -60,8 +62,13 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
           st.level = 0;
           st.mortgaged = false;
           player.cash += saleVal;
+          soldTiles.push(t);
           refreshTileTextureAndBuildings(t.id);
           logEvent(`🤖 <strong>${player.name}</strong> liquidated <strong>${t.name}</strong> for <strong>${fmtMoney(saleVal)}</strong> to pay Luxury Tax.`);
+
+          if (networkState.isMultiplayer) {
+            broadcastAction('ACTION_SELL_CITY_FOR_RENT', { playerIdx, tileId: t.id, saleVal });
+          }
         }
 
         if (player.cash >= taxAmt) {
@@ -70,9 +77,37 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
           playSFX('cash');
           logEvent(`🏛️ <strong>${player.name}</strong> paid <strong>${fmtMoney(taxAmt)}</strong> Luxury Tax into the Festival Pool.`);
           renderCornerHUDs();
-          if (networkState.isMultiplayer && networkState.isHost) {
-            broadcastFullGameState();
+          if (networkState.isMultiplayer) {
+            broadcastAction('ACTION_SETTLE_RENT', {
+              debtorIdx: playerIdx,
+              creditorIdx: null,
+              rentOwed: taxAmt,
+              soldTileIds: soldTiles.map(t => t.id),
+              isDoubles: Boolean(isDoubles)
+            });
+            if (networkState.isHost) {
+              broadcastFullGameState();
+            }
           }
+
+          if (soldTiles.length > 0) {
+            cancelAllGameTimers();
+            clearAuctionTimers();
+            gameState.phase = 'AUCTION';
+            updateRollButtonsUI(false);
+            if (!networkState.isMultiplayer || networkState.isHost) {
+              const delay = globalThis.__WT_TEST__ ? 0 : 700;
+              if (delay > 0) {
+                setTimeout(() => {
+                  startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+                }, delay);
+              } else {
+                startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+              }
+            }
+            return;
+          }
+
           if (concludeActionPhase) {
             concludeActionPhase(isDoubles);
           } else if (window.concludeActionPhase) {
@@ -153,11 +188,31 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
       broadcastAction('ACTION_BANKRUPTCY', {
         bankruptIdx: playerIdx,
         creditorIdx: null,
-        paidCash: paid
+        paidCash: paid,
+        soldTileIds: soldTiles.map(t => t.id),
+        isDoubles: Boolean(isDoubles)
       });
       if (networkState.isHost) {
         broadcastFullGameState();
       }
+    }
+
+    if (soldTiles.length > 0) {
+      cancelAllGameTimers();
+      clearAuctionTimers();
+      gameState.phase = 'AUCTION';
+      updateRollButtonsUI(false);
+      if (!networkState.isMultiplayer || networkState.isHost) {
+        const delay = globalThis.__WT_TEST__ ? 0 : 2850;
+        if (delay > 0) {
+          setTimeout(() => {
+            startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+          }, delay);
+        } else {
+          startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+        }
+      }
+      return;
     }
 
     if (concludeActionPhase) {

@@ -27,7 +27,8 @@ import {
   logEvent,
   animateRentTransferOnHUD,
   setStatusPill,
-  clearThinkingState
+  clearThinkingState,
+  updateRollButtonsUI
 } from '../../../ui/hud.js';
 import {
   openBuyCityModal,
@@ -40,6 +41,8 @@ import {
   checkAndTriggerMonopoly
 } from '../../../ui/modals.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
+import { startSoldPropertiesAuctionSequence, clearAuctionTimers } from '../auction.js';
+import { cancelAllGameTimers } from '../turnCycle.js';
 
 let autoEndTurnTimer = null;
 
@@ -382,6 +385,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     logEvent(`💸 <strong>${player.name}</strong> is selling properties to pay <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
     await new Promise(r => setTimeout(r, getGameDelay(700)));
 
+    const soldTiles = [];
     while (player.cash < rent) {
       const currentOwned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
       if (currentOwned.length === 0) break;
@@ -395,9 +399,15 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       const sVal = calculatePropertySaleValue(cheapest, cSt);
       cSt.owner = null;
       cSt.level = 0;
+      cSt.mortgaged = false;
       player.cash += sVal;
+      soldTiles.push(cheapest);
       refreshTileTextureAndBuildings(cheapest.id);
       logEvent(`⚡ <strong>${player.name}</strong> sold <strong>${cheapest.name}</strong> for <strong>${fmtMoney(sVal)}</strong> to pay rent.`);
+
+      if (networkState.isMultiplayer) {
+        broadcastAction('ACTION_SELL_CITY_FOR_RENT', { playerIdx, tileId: cheapest.id, saleVal: sVal });
+      }
     }
 
     renderCornerHUDs();
@@ -409,13 +419,45 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       owner.cash += rent;
       logEvent(`💸 <strong>${player.name}</strong> settled <strong>${fmtMoney(rent)}</strong> rent to <strong>${owner.name}</strong>.`);
       renderCornerHUDs();
+
+      if (networkState.isMultiplayer) {
+        broadcastAction('ACTION_SETTLE_RENT', {
+          debtorIdx: playerIdx,
+          creditorIdx: resolvedOwnerIdx >= 0 ? resolvedOwnerIdx : null,
+          rentOwed: rent,
+          soldTileIds: soldTiles.map(t => t.id),
+          isDoubles: Boolean(isDoubles)
+        });
+        if (networkState.isHost) {
+          broadcastFullGameState();
+        }
+      }
+
+      if (soldTiles.length > 0) {
+        cancelAllGameTimers();
+        clearAuctionTimers();
+        gameState.phase = 'AUCTION';
+        updateRollButtonsUI(false);
+        if (!networkState.isMultiplayer || networkState.isHost) {
+          const delay = globalThis.__WT_TEST__ ? 0 : 700;
+          if (delay > 0) {
+            setTimeout(() => {
+              startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+            }, delay);
+          } else {
+            startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+          }
+        }
+        return;
+      }
+
       if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
     } else {
-      this.executeBankruptcy(playerIdx, player, owner, rent, null, isDoubles, resolvedOwnerIdx);
+      this.executeBankruptcy(playerIdx, player, owner, rent, null, isDoubles, resolvedOwnerIdx, soldTiles);
     }
   }
 
-  executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles, ownerIdx = null) {
+  executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles, ownerIdx = null, soldTiles = []) {
     const resolvedOwnerIdx = typeof ownerIdx === 'number' && ownerIdx >= 0
       ? ownerIdx
       : (owner ? gameState.players.indexOf(owner) : null);
@@ -426,8 +468,20 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       owner.cash += paid;
     }
     player.bankrupt = true;
-    if (resolvedOwnerIdx !== null && resolvedOwnerIdx >= 0) {
-    }
+
+    // Transfer remaining unsold properties to creditor if solvent, otherwise revert to bank
+    BOARD_TILES.forEach(t => {
+      const st = gameState.properties[t.id];
+      if (st && st.owner === playerIdx) {
+        if (owner && !owner.bankrupt && resolvedOwnerIdx !== null) {
+          st.owner = resolvedOwnerIdx;
+        } else {
+          st.owner = null;
+          st.level = 0;
+        }
+        refreshTileTextureAndBuildings(t.id);
+      }
+    });
 
     playSFX('bankrupt', 1.0, tile ? getTileWorldPosition(tile.id) : null);
     showSpeechBubble(`Bankrupt! 💥`, 2500);
@@ -448,11 +502,31 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       broadcastAction('ACTION_BANKRUPTCY', {
         bankruptIdx: playerIdx,
         creditorIdx,
-        paidCash: paid
+        paidCash: paid,
+        soldTileIds: soldTiles.map(t => t.id),
+        isDoubles: Boolean(isDoubles)
       });
       if (networkState.isHost) {
         broadcastFullGameState();
       }
+    }
+
+    if (soldTiles.length > 0) {
+      cancelAllGameTimers();
+      clearAuctionTimers();
+      gameState.phase = 'AUCTION';
+      updateRollButtonsUI(false);
+      if (!networkState.isMultiplayer || networkState.isHost) {
+        const delay = globalThis.__WT_TEST__ ? 0 : 2850;
+        if (delay > 0) {
+          setTimeout(() => {
+            startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+          }, delay);
+        } else {
+          startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+        }
+      }
+      return;
     }
 
     if (window.concludeActionPhase) {

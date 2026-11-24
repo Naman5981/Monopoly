@@ -19,10 +19,12 @@ import {
   spawnShatterDebris,
   triggerBoardShockwave
 } from '../../three/scene.js';
-import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setStatusPill } from '../../ui/hud.js';
+import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setStatusPill, updateRollButtonsUI } from '../../ui/hud.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
 import { animateGoSalaryStream, animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../../ui/anim.js';
 import { openSellCitiesModal, calculatePropertySaleValue } from '../../ui/modals.js';
+import { startSoldPropertiesAuctionSequence, clearAuctionTimers } from './auction.js';
+import { cancelAllGameTimers } from './turnCycle.js';
 
 export function getActiveChancePrizes() {
   const editionKey = matchSettings?.boardEdition;
@@ -67,6 +69,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       }
     } else {
       const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
+      const soldTiles = [];
       if (owned.length > 0) {
         if (p.isAI) {
           owned.sort((a, b) => {
@@ -83,8 +86,13 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
             st.level = 0;
             st.mortgaged = false;
             p.cash += saleVal;
+            soldTiles.push(t);
             refreshTileTextureAndBuildings(t.id);
             logEvent(`🤖 <strong>${p.name}</strong> sold <strong>${t.name}</strong> for <strong>${fmtMoney(saleVal)}</strong> to pay Chance tax.`);
+
+            if (networkState.isMultiplayer) {
+              broadcastAction('ACTION_SELL_CITY_FOR_RENT', { playerIdx, tileId: t.id, saleVal });
+            }
           }
 
           if (p.cash >= prize.amount) {
@@ -94,8 +102,35 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
             playSFX('cash');
             logEvent(`🏛️ <strong>${p.name}</strong> paid <strong>${fmtMoney(prize.amount)}</strong> Chance fine into the Festival Pool.`);
             renderCornerHUDs();
-            if (networkState.isMultiplayer && networkState.isHost) {
-              broadcastFullGameState();
+            if (networkState.isMultiplayer) {
+              broadcastAction('ACTION_SETTLE_RENT', {
+                debtorIdx: playerIdx,
+                creditorIdx: null,
+                rentOwed: prize.amount,
+                soldTileIds: soldTiles.map(t => t.id),
+                isDoubles: Boolean(isDoubles)
+              });
+              if (networkState.isHost) {
+                broadcastFullGameState();
+              }
+            }
+
+            if (soldTiles.length > 0) {
+              cancelAllGameTimers();
+              clearAuctionTimers();
+              gameState.phase = 'AUCTION';
+              updateRollButtonsUI(false);
+              if (!networkState.isMultiplayer || networkState.isHost) {
+                const delay = globalThis.__WT_TEST__ ? 0 : 700;
+                if (delay > 0) {
+                  setTimeout(() => {
+                    startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+                  }, delay);
+                } else {
+                  startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+                }
+              }
+              return;
             }
           } else {
             // Still cannot afford fine
@@ -118,8 +153,32 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
             triggerBoardShockwave(0, 0, 26, 32);
             logEvent(`💥 <strong>${p.name}</strong> went BANKRUPT paying Chance fine.`);
             if (networkState.isMultiplayer) {
-              broadcastAction('ACTION_BANKRUPTCY', { bankruptIdx: playerIdx, creditorIdx: null, paidCash: paid });
+              broadcastAction('ACTION_BANKRUPTCY', {
+                bankruptIdx: playerIdx,
+                creditorIdx: null,
+                paidCash: paid,
+                soldTileIds: soldTiles.map(t => t.id),
+                isDoubles: Boolean(isDoubles)
+              });
               if (networkState.isHost) broadcastFullGameState();
+            }
+
+            if (soldTiles.length > 0) {
+              cancelAllGameTimers();
+              clearAuctionTimers();
+              gameState.phase = 'AUCTION';
+              updateRollButtonsUI(false);
+              if (!networkState.isMultiplayer || networkState.isHost) {
+                const delay = globalThis.__WT_TEST__ ? 0 : 2850;
+                if (delay > 0) {
+                  setTimeout(() => {
+                    startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+                  }, delay);
+                } else {
+                  startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
+                }
+              }
+              return;
             }
           }
         } else {
