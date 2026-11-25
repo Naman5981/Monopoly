@@ -39,7 +39,6 @@ export function setStatusPill(htmlContent, options = {}) {
     ? PLAYER_THEMES[playerIdx].colorHex
     : (isThinking ? '#38bdf8' : '#fbbf24');
 
-  // ALWAYS dispatch to reactive Svelte hudStore first!
   updateHudState({
     statusPill: {
       text: htmlContent,
@@ -50,11 +49,9 @@ export function setStatusPill(htmlContent, options = {}) {
     }
   });
 
-  if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined' && !document.getElementById('svelte-hud-mount')?.firstElementChild) {
     const textEl = document.getElementById('hud-status-pill-text');
-    if (textEl) {
-      textEl.innerHTML = formatActivityEmoji(htmlContent);
-    }
+    if (textEl) textEl.innerHTML = formatActivityEmoji(htmlContent);
   }
 
   if (statusPillResetTimer) {

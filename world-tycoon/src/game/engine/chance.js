@@ -20,11 +20,10 @@ import {
   triggerBoardShockwave
 } from '../../three/scene.js';
 import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setStatusPill, updateRollButtonsUI } from '../../ui/hud.js';
-import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
+import { networkState, broadcastAction, broadcastFullGameState, isResponsibleForLandingMutation } from '../../network/p2p.js';
 import { animateGoSalaryStream, animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../../ui/anim.js';
 import { openSellCitiesModal, calculatePropertySaleValue } from '../../ui/modals.js';
-import { startSoldPropertiesAuctionSequence, clearAuctionTimers } from './auction.js';
-import { cancelAllGameTimers } from './turnCycle.js';
+import { scheduleSoldPropertiesAuction } from './auction.js';
 
 export function getActiveChancePrizes() {
   const editionKey = matchSettings?.boardEdition;
@@ -116,20 +115,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
             }
 
             if (soldTiles.length > 0) {
-              cancelAllGameTimers();
-              clearAuctionTimers();
-              gameState.phase = 'AUCTION';
-              updateRollButtonsUI(false);
-              if (!networkState.isMultiplayer || networkState.isHost) {
-                const delay = globalThis.__WT_TEST__ ? 0 : 700;
-                if (delay > 0) {
-                  setTimeout(() => {
-                    startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
-                  }, delay);
-                } else {
-                  startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
-                }
-              }
+              scheduleSoldPropertiesAuction(soldTiles, playerIdx, Boolean(isDoubles), 700);
               return;
             }
           } else {
@@ -164,20 +150,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
             }
 
             if (soldTiles.length > 0) {
-              cancelAllGameTimers();
-              clearAuctionTimers();
-              gameState.phase = 'AUCTION';
-              updateRollButtonsUI(false);
-              if (!networkState.isMultiplayer || networkState.isHost) {
-                const delay = globalThis.__WT_TEST__ ? 0 : 2850;
-                if (delay > 0) {
-                  setTimeout(() => {
-                    startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
-                  }, delay);
-                } else {
-                  startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
-                }
-              }
+              scheduleSoldPropertiesAuction(soldTiles, playerIdx, Boolean(isDoubles), 2850);
               return;
             }
           }
@@ -217,10 +190,7 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
         }
       } else {
         // Debtor owns 0 properties: Bankrupt
-        const isResponsible = !networkState.isMultiplayer ||
-          playerIdx === networkState.localPlayerIdx ||
-          (Boolean(p?.isAI) && networkState.isHost);
-        if (!isResponsible) {
+        if (!isResponsibleForLandingMutation(playerIdx, p)) {
           gameState.phase = 'MODAL';
           return;
         }

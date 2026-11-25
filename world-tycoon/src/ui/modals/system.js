@@ -12,8 +12,9 @@ import { networkState, broadcastAction } from '../../network/p2p.js';
 import { closeAllGameModals, closeOtherInformationalModals } from './common.js';
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { renderCornerHUDs, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
-import { updateModalSlice } from '../../svelte/stores/modalStore.js';
-import { updateHudState } from '../../svelte/stores/hudStore.js';
+import { get } from 'svelte/store';
+import { modalStore, updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { hudStore, updateHudState } from '../../svelte/stores/hudStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SETUP / LOBBY MODAL (LEGACY FALLBACK)
@@ -36,31 +37,19 @@ export function renderLobbyControls() {}
    RULES MODAL
 ───────────────────────────────────────────────────────────────────────────── */
 export function openRulesModal() {
-  const m = document.getElementById('modal-rules');
-  if (m && m.classList.contains('flex') && !m.classList.contains('hidden')) {
+  if (get(modalStore).rules?.visible) {
     closeRulesModal();
     return;
   }
   closeOtherInformationalModals('modal-rules');
   updateModalSlice('rules', { visible: true });
-  if (m) {
-    m.style.removeProperty('display');
-    m.style.removeProperty('pointer-events');
-    animateModalSpringOpen(m, '#modal-rules .game-modal-shell');
-    playSFX('hop');
-  }
+  animateModalSpringOpen('#modal-rules', '#modal-rules .game-modal-shell');
+  playSFX('hop');
 }
 
 export function closeRulesModal() {
   updateModalSlice('rules', { visible: false });
-  const m = document.getElementById('modal-rules');
-  if (m) {
-    animateModalSpringClose(m, '#modal-rules .game-modal-shell', () => {
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-      m.style.setProperty('display', 'none', 'important');
-    });
-  }
+  animateModalSpringClose('#modal-rules', '#modal-rules .game-modal-shell');
   if (gameState.gameStarted && gameState.phase !== 'SETUP') {
     renderCornerHUDs();
     refreshActivePlayerTurnStatus();
@@ -82,22 +71,16 @@ export function sendQuickEmote(text) {
 }
 
 export function toggleEventLogDrawer() {
-  const d = document.getElementById('event-log-drawer');
-  if (!d) return;
-  const isHidden = d.classList.contains('hidden') || d.style.display === 'none';
-  if (isHidden) {
-    d.classList.remove('hidden');
-    d.classList.add('flex');
-    d.style.removeProperty('display');
-    d.style.setProperty('display', 'flex', 'important');
-    d.style.pointerEvents = 'auto';
-    playSFX('hop');
-    updateHudState({ isEventLogOpen: true });
-  } else {
-    d.classList.add('hidden');
-    d.classList.remove('flex');
-    d.style.setProperty('display', 'none', 'important');
-    updateHudState({ isEventLogOpen: false });
+  const nextOpen = !get(hudStore).isEventLogOpen;
+  updateHudState({ isEventLogOpen: nextOpen });
+  if (nextOpen) playSFX('hop');
+
+  if (typeof document !== 'undefined' && !document.getElementById('svelte-hud-mount')?.firstElementChild) {
+    const d = document.getElementById('event-log-drawer');
+    if (d) {
+      d.classList.toggle('hidden', !nextOpen);
+      d.classList.toggle('flex', nextOpen);
+    }
   }
 }
 
@@ -124,31 +107,18 @@ export function openConfirmExitLobbyModal() {
     description
   });
 
-  const m = document.getElementById('modal-confirm-exit-lobby');
-  if (m) {
-    m.style.removeProperty('display');
-    m.style.removeProperty('pointer-events');
-    animateModalSpringOpen(m, '#modal-confirm-exit-lobby .game-modal-shell');
-    playSFX('hop');
-  }
+  animateModalSpringOpen('#modal-confirm-exit-lobby', '#modal-confirm-exit-lobby .game-modal-shell');
+  playSFX('hop');
 }
 
 export function closeConfirmExitLobbyModal() {
   updateModalSlice('confirmExitLobby', { visible: false });
-  const m = document.getElementById('modal-confirm-exit-lobby');
-  if (m) {
-    animateModalSpringClose(m, '#modal-confirm-exit-lobby .game-modal-shell', () => {
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-      m.style.setProperty('display', 'none', 'important');
-    });
-  }
+  animateModalSpringClose('#modal-confirm-exit-lobby', '#modal-confirm-exit-lobby .game-modal-shell');
 }
 
 export function handleLobbyButtonClick() {
   if (gameState && gameState.gameStarted) {
-    const m = document.getElementById('modal-confirm-exit-lobby');
-    if (m && m.classList.contains('flex') && !m.classList.contains('hidden')) {
+    if (get(modalStore).confirmExitLobby?.visible) {
       closeConfirmExitLobbyModal();
       return;
     }

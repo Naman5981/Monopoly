@@ -87,18 +87,17 @@ export function openFestivalBoostModal(ownedProperties, isDoubles, playerIdx = n
   const eligibleTileIds = cachedFestivalProperties.map(t => t.id);
   setFestivalSelectionHighlights(true, eligibleTileIds, '#10b981');
 
-  // 2. Display persistent World Festival top helper banner
-  const banner = document.getElementById('festival-select-banner');
-  if (banner) {
-    banner.classList.remove('hidden');
-    banner.classList.add('flex');
-  }
-
+  // 2. Update reactive Svelte modalStore slice (bannerVisible + modal data)
   if (engineCallbacks.updateUI) engineCallbacks.updateUI();
-
-  // 3. Update reactive Svelte modalStore slice
   renderFestivalBoostModal(cachedFestivalProperties, pIdx);
-  updateModalSlice('festivalBoost', { visible: false });
+  updateModalSlice('festivalBoost', { visible: false, bannerVisible: true });
+  if (typeof document !== 'undefined' && !document.getElementById('svelte-modals-mount')?.firstElementChild) {
+    const banner = document.getElementById('festival-select-banner');
+    if (banner) {
+      banner.classList.remove('hidden');
+      banner.classList.add('flex');
+    }
+  }
   playSFX('hop');
   setStatusPill(`🎪 Click any flashing owned city on the board to double rent (2×)!`, { isThinking: false, playerIdx: pIdx });
 }
@@ -121,10 +120,6 @@ export function openFestivalBoostModalFromBanner() {
  */
 export function renderFestivalBoostModal(ownedProperties, pIdx) {
   const player = gameState.players ? gameState.players[pIdx] : null;
-  const countEl = document.getElementById('festival-boost-count');
-  if (countEl) countEl.textContent = `${ownedProperties.length} Properties Owned`;
-  const playerNameEl = document.getElementById('festival-boost-player-name');
-  if (playerNameEl && player) playerNameEl.textContent = player.name;
 
   updateModalSlice('festivalBoost', {
     playerName: player?.name || 'Player',
@@ -183,10 +178,13 @@ export function chooseFestivalBoostCity(tileId) {
 
   // 2. Shut off 3D breathing rings and dismiss top banner
   setFestivalSelectionHighlights(false);
-  const banner = document.getElementById('festival-select-banner');
-  if (banner) {
-    banner.classList.add('hidden');
-    banner.classList.remove('flex');
+  updateModalSlice('festivalBoost', { bannerVisible: false });
+  if (typeof document !== 'undefined' && !document.getElementById('svelte-modals-mount')?.firstElementChild) {
+    const banner = document.getElementById('festival-select-banner');
+    if (banner) {
+      banner.classList.add('hidden');
+      banner.classList.remove('flex');
+    }
   }
 
   const newRent = calculateTileRent(tileId);
@@ -250,11 +248,7 @@ export function closeFestivalBoostModal(forceCancelHighlights = false) {
 
   if (forceCancelHighlights) {
     setFestivalSelectionHighlights(false);
-    const banner = document.getElementById('festival-select-banner');
-    if (banner) {
-      banner.classList.add('hidden');
-      banner.classList.remove('flex');
-    }
+    updateModalSlice('festivalBoost', { bannerVisible: false });
     festivalPlayerIdx = null;
   }
 }

@@ -26,20 +26,33 @@ function adjustColorBrightness(hex, percent) {
 }
 
 /**
+ * Resolves full owner theme metadata (colorHex, charColor, ownerPlayer) for a tile,
+ * respecting Team Mode (Red #ef4444 / Blue #3b82f6) and Solo custom colors.
+ * @param {object|null} propState
+ * @returns {{ isOwned: boolean, ownerPlayer: object|null, colorHex: string, charColor: number }}
+ */
+export function resolveOwnerTheme(propState) {
+  const ownerIdx = propState?.owner;
+  const isOwned = Boolean(ownerIdx !== null && ownerIdx !== undefined && gameState?.players?.[ownerIdx]);
+  if (!isOwned) {
+    return { isOwned: false, ownerPlayer: null, colorHex: '#b91c1c', charColor: 0x6366f1 };
+  }
+  const ownerPlayer = gameState.players[ownerIdx];
+  const theme = PLAYER_THEMES[ownerIdx] || null;
+  const isTeam = Boolean(matchSettings?.teamMode);
+  const teamId = ownerPlayer.teamId !== undefined ? ownerPlayer.teamId : (ownerIdx % 2);
+  const colorHex = isTeam ? (teamId === 0 ? '#ef4444' : '#3b82f6') : (ownerPlayer.colorHex || theme?.colorHex || '#3b82f6');
+  const charColor = isTeam ? (teamId === 0 ? 0xef4444 : 0x3b82f6) : (ownerPlayer.charColor ?? theme?.charColor ?? 0x6366f1);
+  return { isOwned: true, ownerPlayer, colorHex, charColor };
+}
+
+/**
  * Resolves the owner theme color for ribbons and on-tile rent price text.
- * Respects Team Mode (Red #ef4444 / Blue #3b82f6) and player custom colors in Solo Mode.
  * @param {object|null} propState
  * @returns {string}
  */
 export function getOwnerThemeColor(propState) {
-  const ownerIdx = propState?.owner;
-  if (ownerIdx === null || ownerIdx === undefined) return '#b91c1c';
-  const player = gameState?.players?.[ownerIdx];
-  const theme = PLAYER_THEMES[ownerIdx];
-  const isTeam = Boolean(matchSettings?.teamMode);
-  const teamId = player ? (player.teamId !== undefined ? player.teamId : (ownerIdx % 2)) : (ownerIdx % 2);
-  const teamHex = teamId === 0 ? '#ef4444' : '#3b82f6';
-  return isTeam ? teamHex : (player?.colorHex || theme?.colorHex || '#3b82f6');
+  return resolveOwnerTheme(propState).colorHex;
 }
 
 /**

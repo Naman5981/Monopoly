@@ -13,9 +13,9 @@ import { refreshTileTextureAndBuildings, triggerTokenHurtAnimation, showSpeechBu
 import { renderCornerHUDs, spawnFloatingCashOnHUD, logEvent, setPlayerPortraitMood, setStatusPill, updateRollButtonsUI } from '../../../ui/hud.js';
 import { openSellCitiesModal, calculatePropertySaleValue } from '../../../ui/modals.js';
 import { animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../../../ui/anim.js';
-import { networkState, broadcastAction, broadcastFullGameState } from '../../../network/p2p.js';
-import { concludeActionPhase, cancelAllGameTimers } from '../turnCycle.js';
-import { startSoldPropertiesAuctionSequence, clearAuctionTimers } from '../auction.js';
+import { networkState, broadcastAction, broadcastFullGameState, isResponsibleForLandingMutation } from '../../../network/p2p.js';
+import { concludeActionPhase } from '../turnCycle.js';
+import { scheduleSoldPropertiesAuction } from '../auction.js';
 
 export class TaxLandingStrategy extends ITileLandingStrategy {
   async execute(context) {
@@ -91,20 +91,7 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
           }
 
           if (soldTiles.length > 0) {
-            cancelAllGameTimers();
-            clearAuctionTimers();
-            gameState.phase = 'AUCTION';
-            updateRollButtonsUI(false);
-            if (!networkState.isMultiplayer || networkState.isHost) {
-              const delay = globalThis.__WT_TEST__ ? 0 : 700;
-              if (delay > 0) {
-                setTimeout(() => {
-                  startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
-                }, delay);
-              } else {
-                startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
-              }
-            }
+            scheduleSoldPropertiesAuction(soldTiles, playerIdx, Boolean(isDoubles), 700);
             return;
           }
 
@@ -152,10 +139,7 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
     }
 
     // Player owns 0 properties and cash < taxAmt: Total Bankruptcy to the Bank
-    const isResponsible = !networkState.isMultiplayer ||
-      playerIdx === networkState.localPlayerIdx ||
-      (Boolean(player?.isAI) && networkState.isHost);
-    if (!isResponsible) {
+    if (!isResponsibleForLandingMutation(playerIdx, player)) {
       gameState.phase = 'MODAL';
       return;
     }
@@ -199,20 +183,7 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
     }
 
     if (soldTiles.length > 0) {
-      cancelAllGameTimers();
-      clearAuctionTimers();
-      gameState.phase = 'AUCTION';
-      updateRollButtonsUI(false);
-      if (!networkState.isMultiplayer || networkState.isHost) {
-        const delay = globalThis.__WT_TEST__ ? 0 : 2850;
-        if (delay > 0) {
-          setTimeout(() => {
-            startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
-          }, delay);
-        } else {
-          startSoldPropertiesAuctionSequence(soldTiles, playerIdx, Boolean(isDoubles));
-        }
-      }
+      scheduleSoldPropertiesAuction(soldTiles, playerIdx, Boolean(isDoubles), 2850);
       return;
     }
 

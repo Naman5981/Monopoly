@@ -19,20 +19,6 @@ export function updateGameSpeedUI() {
   const speed = isMulti ? 1 : (matchSettings.gameSpeed || 1);
   if (isMulti) matchSettings.gameSpeed = 1;
   updateHudState({ gameSpeed: speed });
-  const label = document.getElementById('game-speed-label');
-  const btn = document.getElementById('btn-game-speed');
-  if (label) {
-    if (speed === 4) {
-      label.textContent = '🚀 4× Turbo';
-      if (btn) btn.className = 'hud-capsule-btn px-2 py-0.5 rounded-full text-rose-600 bg-rose-50 hover:bg-rose-100 font-black cursor-pointer animate-pulse transition';
-    } else if (speed === 2) {
-      label.textContent = '⚡ 2× Fast';
-      if (btn) btn.className = 'hud-capsule-btn px-2 py-0.5 rounded-full text-amber-600 bg-amber-50 hover:bg-amber-100 font-black cursor-pointer transition';
-    } else {
-      label.textContent = '⚡ 1×';
-      if (btn) btn.className = 'hud-capsule-btn px-2 py-0.5 rounded-full text-slate-700 hover:text-sky-600 hover:bg-slate-100 font-black cursor-pointer transition';
-    }
-  }
 }
 
 /** Show the turn-lock warning toast. */

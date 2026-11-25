@@ -65,6 +65,24 @@ export function clearAuctionTimers() {
   botBidTimeouts = [];
 }
 
+export function scheduleSoldPropertiesAuction(soldTiles, sellerIdx, isDoubles = false, delayMs = 700) {
+  if (!soldTiles || soldTiles.length === 0) return;
+  cancelAllGameTimers();
+  clearAuctionTimers();
+  gameState.phase = 'AUCTION';
+  updateRollButtonsUI(false);
+  if (!networkState.isMultiplayer || networkState.isHost) {
+    const delay = globalThis.__WT_TEST__ ? 0 : delayMs;
+    if (delay > 0) {
+      setTimeout(() => {
+        startSoldPropertiesAuctionSequence(soldTiles, sellerIdx, Boolean(isDoubles));
+      }, delay);
+    } else {
+      startSoldPropertiesAuctionSequence(soldTiles, sellerIdx, Boolean(isDoubles));
+    }
+  }
+}
+
 /**
  * Starts the sequential auction queue for all properties sold to cover rent.
  * @param {Array<Object>} soldTiles - Array of tile definitions sold

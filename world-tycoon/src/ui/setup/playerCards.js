@@ -21,78 +21,7 @@ import { currentLobbyView } from './lobbyNavigation.js';
 import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
 import { validateTeamModeBalance } from '../../game/rules.js';
 
-export function buildPlayerCardActionControls(i, isGuest, isOnline, isConnectedPeer, isHuman, isSelf) {
-  if (!isGuest) {
-    if (isOnline && i === 0) {
-      return `
-        <div class="action-controls-slot flex items-center gap-1.5 flex-shrink-0">
-          <span class="text-xs font-black px-2.5 py-1 rounded-xl bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">HOST (YOU)</span>
-        </div>
-      `;
-    }
-    if (isOnline && isConnectedPeer) {
-      return `
-        <div class="action-controls-slot flex items-center gap-1.5 flex-shrink-0">
-          <span class="text-xs font-black px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs flex items-center gap-1.5" title="Connected online player">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>ONLINE</span>
-          </span>
-        </div>
-      `;
-    }
-    return `
-      <div class="action-controls-slot flex items-center gap-1.5 flex-shrink-0">
-        <button onclick="window.togglePlayerRole(${i})" class="text-xs font-black px-2.5 py-1 rounded-xl border-2 transition cursor-pointer ${
-          isHuman ? 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 shadow-2xs' : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-        }" title="Toggle Player / Bot">
-          <i class="${isHuman ? 'fa-solid fa-user' : 'fa-solid fa-robot'} mr-1 text-xs"></i>
-          ${isHuman ? 'Player' : 'Bot'}
-        </button>
-        ${(i > 0 && lobbyPlayerCount > 2) ? `
-        <button onclick="window.removePlayerAt(${i})" class="text-xs font-black px-2 py-1 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition cursor-pointer shadow-2xs" title="Remove player slot">
-          <i class="fa-solid fa-xmark text-xs font-black"></i>
-        </button>
-        ` : ''}
-      </div>
-    `;
-  } else {
-    if (i === networkState.localPlayerIdx) {
-      return `
-        <div class="action-controls-slot flex items-center gap-1.5 flex-shrink-0">
-          <span class="text-xs font-black px-2.5 py-1 rounded-xl bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs">YOU</span>
-        </div>
-      `;
-    }
-    if (i === 0) {
-      return `
-        <div class="action-controls-slot flex items-center gap-1.5 flex-shrink-0">
-          <span class="text-xs font-black px-2.5 py-1 rounded-xl bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">HOST</span>
-        </div>
-      `;
-    }
-    if (isConnectedPeer) {
-      return `
-        <div class="action-controls-slot flex items-center gap-1.5 flex-shrink-0">
-          <span class="text-xs font-black px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs flex items-center gap-1.5" title="Connected online player">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>ONLINE</span>
-          </span>
-        </div>
-      `;
-    }
-    return `
-      <div class="action-controls-slot flex items-center gap-1.5 flex-shrink-0">
-        <span class="text-xs font-bold px-2 py-1 rounded-xl bg-slate-100 text-slate-600 border border-slate-200">${isHuman ? 'PLAYER' : 'BOT'}</span>
-      </div>
-    `;
-  }
-}
-
 export function renderPlayerCards() {
-  const container = document.getElementById('setup-players-roster');
-  const countBadge = document.getElementById('table-player-count-badge');
-  if (countBadge) countBadge.textContent = `${lobbyPlayerCount}/6`;
-
   const isGuest = networkState.isMultiplayer && !networkState.isHost;
 
   if (networkState.isMultiplayer) {
@@ -190,58 +119,7 @@ export function renderPlayerCards() {
     players: lobbyPlayersList
   });
 
-  // Update center hero archetype pill indicator based on selected player
-  const curPlayer = matchSettings.customPlayers[selectedSetupPlayerIdx] || p0;
-  const archEl = document.getElementById('setup-character-archetype-name');
-  const prevBtn = document.querySelector('button[onclick*="cycleAvatarPrev"]');
-  const nextBtn = document.querySelector('button[onclick*="cycleAvatarNext"]');
-  const canEditCurrent = canCurrentPlayerEditSlot(selectedSetupPlayerIdx);
-
-  if (prevBtn) {
-    prevBtn.disabled = !canEditCurrent;
-    prevBtn.classList.toggle('opacity-30', !canEditCurrent);
-    prevBtn.classList.toggle('cursor-not-allowed', !canEditCurrent);
-    prevBtn.classList.toggle('pointer-events-none', !canEditCurrent);
-  }
-  if (nextBtn) {
-    nextBtn.disabled = !canEditCurrent;
-    nextBtn.classList.toggle('opacity-30', !canEditCurrent);
-    nextBtn.classList.toggle('cursor-not-allowed', !canEditCurrent);
-    nextBtn.classList.toggle('pointer-events-none', !canEditCurrent);
-  }
-
-  if (archEl && curPlayer) {
-    const arch = ARCHETYPES[curPlayer.hatStyle || 0] || ARCHETYPES[0];
-    let roleTag = '';
-    if (networkState.isMultiplayer) {
-      const tagText = (isGuest && selectedSetupPlayerIdx === networkState.localPlayerIdx)
-        ? 'YOU'
-        : (selectedSetupPlayerIdx === 0 ? 'HOST' : (curPlayer.name || `P${selectedSetupPlayerIdx + 1}`));
-      roleTag = ` (${tagText})`;
-    } else {
-      // Local Play / Title Screen
-      if (currentLobbyView === 'title') {
-        roleTag = '';
-      } else {
-        const pLabel = curPlayer.isAI ? 'BOT' : `P${selectedSetupPlayerIdx + 1}`;
-        roleTag = lobbyPlayerCount > 1 ? ` (${pLabel})` : '';
-      }
-    }
-    archEl.innerHTML = `<span class="text-xl">${arch.icon}</span><span class="font-black text-sm tracking-wide text-slate-800">${arch.name.toUpperCase()}${roleTag}</span>`;
-    if (!canEditCurrent) {
-      archEl.classList.remove('cursor-pointer');
-      archEl.classList.add('cursor-default');
-      archEl.onclick = null;
-    } else {
-      archEl.classList.add('cursor-pointer');
-      archEl.classList.remove('cursor-default');
-      archEl.onclick = () => {
-        if (window.cycleAvatarNext) window.cycleAvatarNext();
-      };
-    }
-  }
-
-  // Reactive Svelte PlayerSetupCards mounted at #setup-players-roster handles DOM declaratively
+  // Reactive Svelte PlayerSetupCards & HeroPreview handle DOM declaratively via lobbyStore
 }
 
 export function handlePlayerNameChange(idx, name) {

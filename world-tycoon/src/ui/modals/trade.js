@@ -199,10 +199,8 @@ export function executeTradeOffer() {
   const partner = gameState.players[partnerIdx];
   if (!me || !partner) return;
 
-  const offerCashInput = document.getElementById('trade-offer-cash');
-  const reqCashInput = document.getElementById('trade-req-cash');
-  const offerCash = (parseInt(offerCashInput?.value || '0', 10) || 0) * 1000;
-  const reqCash = (parseInt(reqCashInput?.value || '0', 10) || 0) * 1000;
+  const offerCash = 0;
+  const reqCash = 0;
 
   const myIds = Array.from(document.querySelectorAll('.trade-my-prop:checked')).map(e => parseInt(e.value, 10));
   const theirIds = Array.from(document.querySelectorAll('.trade-their-prop:checked')).map(e => parseInt(e.value, 10));
@@ -237,6 +235,7 @@ export function executeTradeOffer() {
   }
 
   if (myIds.length === 0 && theirIds.length === 0) {
+    updateModalSlice('trade', { statusMessage: 'Please select at least one city to trade!' });
     if (msg) {
       msg.className = 'text-center text-xs font-extrabold py-1 text-rose-600';
       msg.textContent = 'Please select at least one city to trade!';
@@ -257,6 +256,10 @@ export function executeTradeOffer() {
     broadcastAction('ACTION_TRADE_OFFER', {
       targetIdx: partnerIdx,
       proposal
+    });
+    updateModalSlice('trade', {
+      isWaiting: true,
+      statusMessage: `Trade proposal sent to ${partner.name}! Waiting for their decision...`
     });
     if (msg) {
       msg.className = 'text-center text-xs font-bold py-1 text-sky-600';

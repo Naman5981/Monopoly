@@ -10,8 +10,9 @@ import { setupBrowserMocks } from '../setup.js';
 setupBrowserMocks();
 
 import { lobbyStore, updateLobbyStore, resetLobbyStore } from '../../src/svelte/stores/lobbyStore.js';
-import { renderPlayerCards, togglePlayerRole, buildPlayerCardActionControls } from '../../src/ui/setup/playerCards.js';
+import { renderPlayerCards, togglePlayerRole } from '../../src/ui/setup/playerCards.js';
 import { matchSettings, lobbyPlayerCount, setLobbyPlayerCount } from '../../src/game/state.js';
+import { networkState } from '../../src/network/p2pState.js';
 
 describe('Phase 5: Pre-Game Lobby & Svelte Store Synchronization (/clean-code)', () => {
   beforeEach(() => {
@@ -53,8 +54,14 @@ describe('Phase 5: Pre-Game Lobby & Svelte Store Synchronization (/clean-code)',
     assert.equal(state.players[0].name, 'TEST_LEADER');
   });
 
-  it('preserves buildPlayerCardActionControls contract', () => {
-    const controls = buildPlayerCardActionControls(1, false, true, true, true, false);
-    assert.ok(controls.includes('ONLINE'), 'Must include ONLINE tag');
+  it('reflects connected online peer state in lobbyStore', () => {
+    networkState.isMultiplayer = true;
+    matchSettings.customPlayers[1].isOnlinePeer = true;
+    renderPlayerCards();
+    let state;
+    const unsub = lobbyStore.subscribe(val => { state = val; });
+    unsub();
+    networkState.isMultiplayer = false;
+    assert.equal(state.players[1].isConnectedPeer, true);
   });
 });

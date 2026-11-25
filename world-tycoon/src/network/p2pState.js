@@ -45,6 +45,12 @@ export function registerNetworkCallbacks(cbs) {
   networkCallbacks = { ...networkCallbacks, ...cbs };
 }
 
+export function isResponsibleForLandingMutation(playerIdx, player) {
+  return !networkState.isMultiplayer ||
+    playerIdx === networkState.localPlayerIdx ||
+    (Boolean(player?.isAI) && networkState.isHost);
+}
+
 export function generateRoomCode() {
   const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   let res = '';

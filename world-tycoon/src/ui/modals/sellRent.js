@@ -14,7 +14,7 @@ import { spawnAnimatedReaction } from '../../three/effects.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
 import { animateBankruptcyQuake, animateModalSpringOpen, animateModalSpringClose, animatePlayerEliminatedBanner } from '../anim.js';
 import { updateModalSlice } from '../../svelte/stores/modalStore.js';
-import { startSoldPropertiesAuctionSequence, clearAuctionTimers } from '../../game/engine/auction.js';
+import { scheduleSoldPropertiesAuction, clearAuctionTimers } from '../../game/engine/auction.js';
 import { cancelAllGameTimers } from '../../game/engine/turnCycle.js';
 import { cameraState } from '../../three/core/camera.js';
 import { getTileWorldPosition } from '../../three/board/coords.js';
@@ -284,21 +284,7 @@ export async function settlePendingRentAndCloseModal() {
   }
 
   if (soldTiles.length > 0) {
-    cancelAllGameTimers();
-    clearAuctionTimers();
-    gameState.phase = 'AUCTION';
-    updateRollButtonsUI(false);
-    if (!networkState.isMultiplayer || networkState.isHost) {
-      // Grace period in browser: allows rent settlement cash floating text to settle before starting auction
-      const delay = globalThis.__WT_TEST__ ? 0 : 700;
-      if (delay > 0) {
-        setTimeout(() => {
-          startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
-        }, delay);
-      } else {
-        startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
-      }
-    }
+    scheduleSoldPropertiesAuction(soldTiles, pIdx, isDoubles, 700);
     return;
   }
 
@@ -372,21 +358,7 @@ export function settleDebtDeficitWithoutProperties() {
   }
 
   if (soldTiles.length > 0) {
-    cancelAllGameTimers();
-    clearAuctionTimers();
-    gameState.phase = 'AUCTION';
-    updateRollButtonsUI(false);
-    if (!networkState.isMultiplayer || networkState.isHost) {
-      // 2850ms delay in browser: allows 2.8s player-eliminated banner & quake to conclude completely before auction timer starts!
-      const delay = globalThis.__WT_TEST__ ? 0 : 2850;
-      if (delay > 0) {
-        setTimeout(() => {
-          startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
-        }, delay);
-      } else {
-        startSoldPropertiesAuctionSequence(soldTiles, pIdx, isDoubles);
-      }
-    }
+    scheduleSoldPropertiesAuction(soldTiles, pIdx, isDoubles, 2850);
     return;
   }
 

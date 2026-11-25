@@ -99,53 +99,58 @@ export function openChanceWheelModal(isDoubles, targetPlayerIdx = null) {
       : `${playerName} is testing their luck on the Wheel!`;
   }
 
-  const btn = document.getElementById('btn-spin-wheel');
-  if (btn) {
-    if (isAI) {
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-robot mr-2"></i> ${playerName.toUpperCase()} IS DRAWING & BOT-${pIdx} IS SPINNING...`;
-      setStatusPill(`🃏 <strong>${playerName}</strong> is drawing & spinning the Chance Wheel...`, { isThinking: true, playerIdx: pIdx });
-      // If offline or Host, auto-trigger draw after 800ms pause so players see the deck
-      if (!networkState.isMultiplayer || networkState.isHost) {
-        chanceCountdownTimer = setTimeout(() => {
-          if (!isWheelSpinning) {
-            spinChanceWheel(null, null, pIdx, isDoubles);
-          }
-        }, 800);
-      }
-    } else if (isLocalUser) {
-      btn.disabled = false;
-      let secondsLeft = 10;
-      btn.innerHTML = `<i class="fa-solid fa-sparkles mr-2"></i> DRAW CHANCE CARD (${secondsLeft}s)`;
-      setStatusPill(`🃏 Draw a Chance Card! Spin the wheel to test your luck on Chance!`, { isThinking: false, playerIdx: pIdx });
+  const hasSvelte = typeof document !== 'undefined' && Boolean(document.getElementById('svelte-modals-mount')?.firstElementChild);
+  const headlessBtn = (!hasSvelte && typeof document !== 'undefined') ? document.getElementById('btn-spin-wheel') : null;
 
-      chanceCountdownInterval = setInterval(() => {
-        secondsLeft--;
-        if (secondsLeft > 0) {
-          if (btn && !isWheelSpinning) {
-            btn.innerHTML = `<i class="fa-solid fa-sparkles mr-2"></i> DRAW CHANCE CARD (${secondsLeft}s)`;
-          }
-        } else {
-          clearChanceTimers();
-          if (!isWheelSpinning) {
-            spinChanceWheel(null, null, pIdx, isDoubles);
-          }
+  if (isAI) {
+    if (headlessBtn) {
+      headlessBtn.disabled = true;
+      headlessBtn.innerHTML = `${playerName.toUpperCase()} IS DRAWING & BOT-${pIdx} IS SPINNING...`;
+    }
+    setStatusPill(`🃏 <strong>${playerName}</strong> is drawing & spinning the Chance Wheel...`, { isThinking: true, playerIdx: pIdx });
+    if (!networkState.isMultiplayer || networkState.isHost) {
+      chanceCountdownTimer = setTimeout(() => {
+        if (!isWheelSpinning) {
+          spinChanceWheel(null, null, pIdx, isDoubles);
         }
-      }, 1000);
-    } else {
-      // Remote player in multiplayer
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-hourglass-half mr-2"></i> WAITING FOR ${playerName.toUpperCase()}...`;
-      setStatusPill(`⏳ Waiting for <strong>${playerName}</strong> to draw a Chance Card...`, { isThinking: true, playerIdx: pIdx });
+      }, 800);
+    }
+  } else if (isLocalUser) {
+    let secondsLeft = 10;
+    if (headlessBtn) {
+      headlessBtn.disabled = false;
+      headlessBtn.innerHTML = `DRAW CHANCE CARD (${secondsLeft}s)`;
+    }
+    updateModalSlice('chanceWheel', { countdownSeconds: secondsLeft });
+    setStatusPill(`🃏 Draw a Chance Card! Spin the wheel to test your luck on Chance!`, { isThinking: false, playerIdx: pIdx });
 
-      // Safety timeout: If remote peer does not spin within 14 seconds, Host resolves
-      if (networkState.isHost) {
-        chanceCountdownTimer = setTimeout(() => {
-          if (!isWheelSpinning) {
-            spinChanceWheel(null, null, pIdx, isDoubles);
-          }
-        }, 14000);
+    chanceCountdownInterval = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft > 0) {
+        if (!isWheelSpinning) {
+          updateModalSlice('chanceWheel', { countdownSeconds: secondsLeft });
+          if (headlessBtn) headlessBtn.innerHTML = `DRAW CHANCE CARD (${secondsLeft}s)`;
+        }
+      } else {
+        clearChanceTimers();
+        if (!isWheelSpinning) {
+          spinChanceWheel(null, null, pIdx, isDoubles);
+        }
       }
+    }, 1000);
+  } else {
+    if (headlessBtn) {
+      headlessBtn.disabled = true;
+      headlessBtn.innerHTML = `WAITING FOR ${playerName.toUpperCase()}...`;
+    }
+    setStatusPill(`⏳ Waiting for <strong>${playerName}</strong> to draw a Chance Card...`, { isThinking: true, playerIdx: pIdx });
+
+    if (networkState.isHost) {
+      chanceCountdownTimer = setTimeout(() => {
+        if (!isWheelSpinning) {
+          spinChanceWheel(null, null, pIdx, isDoubles);
+        }
+      }, 14000);
     }
   }
 
@@ -214,11 +219,12 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
     ? pIdx
     : ((gameState.currentPlayerIdx !== undefined && gameState.currentPlayerIdx !== null) ? gameState.currentPlayerIdx : 0);
   const isDoub = isDoubles !== null ? isDoubles : Boolean(gameState.pendingDoubles);
-
-  const btn = document.getElementById('btn-spin-wheel');
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> REVEALING CARD (SPINNING)...`;
+  if (typeof document !== 'undefined' && !document.getElementById('svelte-modals-mount')?.firstElementChild) {
+    const headlessBtn = document.getElementById('btn-spin-wheel');
+    if (headlessBtn) {
+      headlessBtn.disabled = true;
+      headlessBtn.innerHTML = 'REVEALING CARD (SPINNING)...';
+    }
   }
 
   const prizes = getActiveChancePrizes();

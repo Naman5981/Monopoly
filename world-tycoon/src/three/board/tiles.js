@@ -21,7 +21,7 @@ import {
 } from '../assets/buildings.js';
 import { disposeHierarchy } from '../core/dispose.js';
 import { updateDioramaCenterForEdition } from './diorama.js';
-import { drawTileToCanvas, createTileEmissiveTexture } from './tileCanvas.js';
+import { drawTileToCanvas, createTileEmissiveTexture, resolveOwnerTheme } from './tileCanvas.js';
 
 /**
  * Renders a crisp 2D canvas texture for a tile synchronously.
@@ -88,16 +88,9 @@ export function buildAllBoardTiles3D(boardGroup) {
   BOARD_TILES.forEach(tile => {
     const pos = getTileWorldPosition(tile.id);
     const propState = gameState?.properties?.[tile.id] || null;
-    const isOwned = Boolean(propState?.owner !== null && propState?.owner !== undefined && gameState?.players?.[propState.owner]);
-    const ownerPlayer = isOwned ? gameState.players[propState.owner] : null;
-    const isTeam = Boolean(matchSettings?.teamMode);
-    const ownerTeam = ownerPlayer ? (ownerPlayer.teamId !== undefined ? ownerPlayer.teamId : ((propState?.owner || 0) % 2)) : 0;
-    const teamColorHex = ownerTeam === 0 ? '#ef4444' : '#3b82f6';
-    const teamCharColor = ownerTeam === 0 ? 0xef4444 : 0x3b82f6;
-    const ownerThemeFallback = (propState?.owner != null && PLAYER_THEMES[propState.owner]) ? PLAYER_THEMES[propState.owner] : null;
-    const ownerColorHex = isTeam ? teamColorHex : (ownerPlayer?.colorHex || ownerThemeFallback?.colorHex || '#3b82f6');
-    const ownerColor = isTeam ? teamCharColor : (ownerPlayer?.charColor ?? ownerThemeFallback?.charColor ?? 0x6366f1);
-    const ownerTheme = isOwned ? { colorHex: ownerColorHex, charColor: ownerColor } : null;
+    const resolvedOwner = resolveOwnerTheme(propState);
+    const isOwned = resolvedOwner.isOwned;
+    const ownerTheme = isOwned ? resolvedOwner : null;
     const lightPlayerAccent = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
     const boardStyle = matchSettings.boardStyle || 'wood';
     const isCyber = (boardStyle === 'cyberpunk');
@@ -219,16 +212,11 @@ export function refreshTileTextureAndBuildings(tileId) {
     topMat.needsUpdate = true;
   }
 
-  const isOwned = Boolean(propState?.owner !== null && propState?.owner !== undefined && gameState?.players?.[propState.owner]);
-  const ownerPlayer = isOwned ? gameState.players[propState.owner] : null;
-  const isTeam = Boolean(matchSettings?.teamMode);
-  const ownerTeam = ownerPlayer ? (ownerPlayer.teamId !== undefined ? ownerPlayer.teamId : ((propState?.owner || 0) % 2)) : 0;
-  const teamColorHex = ownerTeam === 0 ? '#ef4444' : '#3b82f6';
-  const teamCharColor = ownerTeam === 0 ? 0xef4444 : 0x3b82f6;
-  const ownerThemeFallback = (propState?.owner != null && PLAYER_THEMES[propState.owner]) ? PLAYER_THEMES[propState.owner] : null;
-  const ownerColorHex = isTeam ? teamColorHex : (ownerPlayer?.colorHex || ownerThemeFallback?.colorHex || '#3b82f6');
-  const ownerColor = isTeam ? teamCharColor : (ownerPlayer?.charColor ?? ownerThemeFallback?.charColor ?? 0x6366f1);
-  const ownerTheme = isOwned ? { colorHex: ownerColorHex, charColor: ownerColor } : null;
+  const resolvedOwner = resolveOwnerTheme(propState);
+  const isOwned = resolvedOwner.isOwned;
+  const ownerPlayer = resolvedOwner.ownerPlayer;
+  const ownerColor = resolvedOwner.charColor;
+  const ownerTheme = isOwned ? resolvedOwner : null;
   const lightPlayerAccent = ownerTheme ? getLightPlayerAccent(ownerTheme.colorHex, 0.40) : null;
 
   const boardStyle = matchSettings.boardStyle || 'wood';

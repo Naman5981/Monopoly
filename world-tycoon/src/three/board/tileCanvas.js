@@ -18,7 +18,7 @@ import { calculateTileRent } from '../../game/rules.js';
 import { getTileWorldPosition } from './coords.js';
 import { currentBulbMode } from '../core/lighting.js';
 
-import { drawCityTile, drawResortTile } from './tiles/cityTileRenderer.js';
+import { drawCityTile, drawResortTile, resolveOwnerTheme } from './tiles/cityTileRenderer.js';
 import { drawChanceTile, drawTaxTile, drawCornerTile } from './tiles/specialTileRenderer.js';
 import { hexToRgb } from './tiles/canvasUtils.js';
 
@@ -57,14 +57,9 @@ export function drawTileToCanvas(canvas, tile, propState, isUpright = false) {
   ctx.fillRect(0, 0, 512, 512);
 
   // 2. Outer Border Frame
-  const isOwned = Boolean(propState?.owner !== null && propState?.owner !== undefined && gameState?.players?.[propState.owner]);
-  const ownerPlayer = isOwned ? gameState.players[propState.owner] : null;
-  const isTeam = Boolean(matchSettings?.teamMode);
-  const ownerTeam = ownerPlayer ? (ownerPlayer.teamId !== undefined ? ownerPlayer.teamId : ((propState?.owner || 0) % 2)) : 0;
-  const teamColorHex = ownerTeam === 0 ? '#ef4444' : '#3b82f6';
-  const ownerThemeFallback = (propState?.owner != null && PLAYER_THEMES[propState.owner]) ? PLAYER_THEMES[propState.owner] : null;
-  const ownerColorHex = isTeam ? teamColorHex : (ownerPlayer?.colorHex || ownerThemeFallback?.colorHex || '#3b82f6');
-  const ownerTheme = isOwned ? { colorHex: ownerColorHex } : null;
+  const resolvedOwner = resolveOwnerTheme(propState);
+  const isOwned = resolvedOwner.isOwned;
+  const ownerTheme = isOwned ? resolvedOwner : null;
 
   const isFestivalBoost = Boolean(propState?.festivalBoost);
 

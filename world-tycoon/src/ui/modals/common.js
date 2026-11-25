@@ -6,7 +6,9 @@
 import { gameState } from '../../game/state.js';
 import { clearCityPreview } from '../../three/stages/cityPreview.js';
 import { getPropertyLevelMetadata } from '../../game/rules.js';
-import { closeAllModalsInStore, updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { get } from 'svelte/store';
+import { closeAllModalsInStore, modalStore, updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
 
 export const engineCallbacks = {};
 
@@ -138,12 +140,12 @@ export function registerEngineCallbacks(cbs) {
  */
 export function isLobbyScreenActive() {
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return true;
-  if (typeof document !== 'undefined') {
+  updateLobbyStore({ active: false });
+  if (typeof document !== 'undefined' && !document.getElementById('svelte-lobby-mount')?.firstElementChild) {
     const landingScreen = document.getElementById('landing-setup-screen');
-    if (landingScreen && !landingScreen.classList.contains('hidden') && landingScreen.style.display !== 'none') {
+    if (landingScreen && !landingScreen.classList.contains('hidden')) {
       landingScreen.classList.add('hidden');
       landingScreen.classList.remove('flex');
-      landingScreen.style.setProperty('display', 'none', 'important');
     }
   }
   return false;
@@ -186,29 +188,19 @@ const TURN_ACTION_MODAL_IDS = [
  * Informational user modals triggered from the top HUD bar.
  * Always elevated and togglable independently of turns.
  */
-const USER_INFORMATIONAL_MODAL_IDS = [
-  'modal-portfolio',
-  'modal-trade',
-  'modal-rules',
-  'modal-confirm-exit-lobby',
-  'modal-leaderboard'
-];
+const INFORMATIONAL_MODAL_SLICES = {
+  'modal-portfolio': 'portfolio',
+  'modal-trade': 'trade',
+  'modal-rules': 'rules',
+  'modal-confirm-exit-lobby': 'confirmExitLobby',
+  'modal-leaderboard': 'leaderboard'
+};
 
-/**
- * Closes other open user informational modals when a new one is opened.
- * Ensures only one user panel is open at a time without stacking backdrops.
- * @param {string} [exceptModalId]
- */
 export function closeOtherInformationalModals(exceptModalId = null) {
-  USER_INFORMATIONAL_MODAL_IDS.forEach(id => {
+  Object.entries(INFORMATIONAL_MODAL_SLICES).forEach(([id, sliceKey]) => {
     if (id === exceptModalId) return;
-    const el = document.getElementById(id);
-    if (el && (!el.classList.contains('hidden') || el.style.display !== 'none')) {
-      el.classList.add('hidden');
-      el.classList.remove('flex');
-      el.style.setProperty('display', 'none', 'important');
-      el.style.removeProperty('opacity');
-      el.style.removeProperty('z-index');
+    if (get(modalStore)[sliceKey]?.visible) {
+      updateModalSlice(sliceKey, { visible: false });
     }
   });
 }

@@ -24,7 +24,9 @@ import {
   CANDY_PALETTE,
   setSelectedSetupPlayerIdx
 } from '../../src/ui/setup/playerCustomization.js';
-import { togglePlayerRole, buildPlayerCardActionControls } from '../../src/ui/setup/playerCards.js';
+import { get } from 'svelte/store';
+import { lobbyStore } from '../../src/svelte/stores/lobbyStore.js';
+import { renderPlayerCards, togglePlayerRole } from '../../src/ui/setup/playerCards.js';
 import { currentLobbyView, setLobbyView } from '../../src/ui/setup/lobbyNavigation.js';
 import { matchSettings, setupPlayers, setLobbyPlayerCount, resetGameStateForNewMatch, gameState } from '../../src/game/state.js';
 import { networkState } from '../../src/network/p2pState.js';
@@ -206,11 +208,11 @@ describe('Lobby Appearance Lock & Dynamic Bot Appearances', () => {
       setupPlayers[1] = { ...matchSettings.customPlayers[1] };
     });
 
-    it('renders ONLINE badge instead of Bot toggle or delete button for connected peers', () => {
-      const controls = buildPlayerCardActionControls(1, false, true, true, true, false);
-      assert.ok(controls.includes('ONLINE'), 'Must display ONLINE badge');
-      assert.ok(!controls.includes('togglePlayerRole'), 'Must NOT contain toggle button');
-      assert.ok(!controls.includes('removePlayerAt'), 'Must NOT contain delete button');
+    it('marks connected peer as non-editable in lobbyStore instead of Bot toggle or delete', () => {
+      renderPlayerCards();
+      const peerSlot = get(lobbyStore).players[1];
+      assert.equal(peerSlot.isConnectedPeer, true, 'Must flag connected peer in lobbyStore');
+      assert.equal(peerSlot.isAI, false, 'Connected peer must remain human');
     });
 
     it('prevents toggling connected online peer to bot', () => {
