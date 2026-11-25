@@ -3,6 +3,7 @@
    * svelte/lobby/PlayerSetupCards.svelte
    * Declarative player cards roster for match lobby setup (Local & Multiplayer).
    */
+  import { tick } from "svelte";
   import { lobbyStore } from "../stores/lobbyStore.js";
   import {
     animateTeamPillToggle,
@@ -16,9 +17,9 @@
   $effect(() => {
     const isTeam = state.isTeamMode;
     if (isTeam && !prevTeamMode) {
-      setTimeout(() => {
+      tick().then(() => {
         animateTeamClashEntrance();
-      }, 20);
+      });
     }
     prevTeamMode = Boolean(isTeam);
   });
@@ -76,7 +77,7 @@
     tabindex="0"
     onclick={() => selectPlayer(idx)}
     onkeydown={(e) => e.key === 'Enter' && selectPlayer(idx)}
-    class="player-setup-card group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer {isSelected
+    class="player-setup-card group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl border-2 transition-[transform,background-color,border-color,box-shadow] duration-150 cursor-pointer {isSelected
       ? (isTeam
           ? (isRed
               ? 'card-selected bg-rose-50/70 border-rose-400 shadow-sm ring-2 ring-rose-400/50'
@@ -177,6 +178,29 @@
   </div>
 {/snippet}
 
+{#snippet openTeamSeat(label, variant)}
+  {@const isRedSeat = variant === 'red'}
+  {@const totalPlayers = state.players?.length || state.playerCount || 4}
+  {@const canAdd = totalPlayers < 6 && (!state.isMultiplayer || state.isHost)}
+  <button
+    type="button"
+    disabled={!canAdd}
+    onclick={() => window.addBotOrSlot?.()}
+    aria-label="Add player or bot to {label}"
+    class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed flex items-center justify-between transition {isRedSeat
+      ? 'border-rose-200/90 bg-white/50 text-rose-400 hover:border-rose-300 hover:bg-rose-50/70 hover:text-rose-600'
+      : 'border-sky-200/90 bg-white/50 text-sky-400 hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-600'} {canAdd ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}"
+  >
+    <div class="flex items-center gap-2.5 sm:gap-3">
+      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed {isRedSeat ? 'border-rose-200' : 'border-sky-200'} flex items-center justify-center flex-shrink-0">
+        <i class="fa-solid fa-plus text-xs"></i>
+      </div>
+      <span class="text-xs sm:text-sm font-bold tracking-wide">{label}</span>
+    </div>
+    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border {isRedSeat ? 'border-rose-200' : 'border-sky-200'}">+ Add</span>
+  </button>
+{/snippet}
+
 {#if !state.isTeamMode}
   <div class="player-cards-grid flex flex-col gap-2 w-full">
     {#each state.players || [] as p (p.idx)}
@@ -188,7 +212,7 @@
   <div class="team-clash-roster flex flex-col gap-2.5 w-full">
     <!-- Red Alliance Bracket -->
     <div
-      class="team-bracket team-bracket-red bg-rose-50/50 border-2 border-rose-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-col gap-1.5 shadow-2xs transition-all"
+      class="team-bracket team-bracket-red bg-rose-50/50 border-2 border-rose-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-col gap-1.5 shadow-2xs transition-[border-color,background-color] duration-150"
     >
       <div class="flex items-center justify-between px-1.5 py-0.5">
         <span
@@ -210,13 +234,9 @@
         {#each redPlayers as p (p.idx)}
           {@render playerCard(p)}
         {/each}
-        {#if redPlayers.length === 0}
-          <div
-            class="text-[11px] font-bold text-rose-400 text-center py-2.5 border-2 border-dashed border-rose-200/80 rounded-xl bg-white/40"
-          >
-            No players on Team Red
-          </div>
-        {/if}
+        {#each Array(Math.max(0, 3 - redPlayers.length)) as _, idx}
+          {@render openTeamSeat(`Open Red Seat ${redPlayers.length + idx + 1}`, 'red')}
+        {/each}
       </div>
     </div>
 
@@ -241,7 +261,7 @@
 
     <!-- Blue Alliance Bracket -->
     <div
-      class="team-bracket team-bracket-blue bg-sky-50/50 border-2 border-sky-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-col gap-1.5 shadow-2xs transition-all"
+      class="team-bracket team-bracket-blue bg-sky-50/50 border-2 border-sky-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-col gap-1.5 shadow-2xs transition-[border-color,background-color] duration-150"
     >
       <div class="flex items-center justify-between px-1.5 py-0.5">
         <span
@@ -262,13 +282,9 @@
         {#each bluePlayers as p (p.idx)}
           {@render playerCard(p)}
         {/each}
-        {#if bluePlayers.length === 0}
-          <div
-            class="text-[11px] font-bold text-sky-400 text-center py-2.5 border-2 border-dashed border-sky-200/80 rounded-xl bg-white/40"
-          >
-            No players on Team Blue
-          </div>
-        {/if}
+        {#each Array(Math.max(0, 3 - bluePlayers.length)) as _, idx}
+          {@render openTeamSeat(`Open Blue Seat ${bluePlayers.length + idx + 1}`, 'blue')}
+        {/each}
       </div>
     </div>
   </div>

@@ -42,7 +42,7 @@
 
 <div
   id="lobby-roster-column"
-  class="col-span-12 lg:col-span-4 game-panel-card p-3.5 sm:p-5 2xl:p-6 flex flex-col justify-between shadow-xl min-h-[460px] lg:min-h-[500px] 2xl:min-h-[560px]"
+  class="col-span-12 lg:col-span-4 game-panel-card p-3.5 sm:p-5 2xl:p-6 flex flex-col justify-between shadow-xl h-full lg:min-h-[570px]"
 >
   <div class="flex-1 flex flex-col">
     <!-- Header -->
@@ -83,6 +83,24 @@
     <!-- Roster list with Svelte 5 PlayerSetupCards -->
     <div id="setup-players-roster" class="space-y-2.5 flex-1">
       <PlayerSetupCards />
+      {#if !state.isTeamMode && playerCount < 6}
+        {#each Array(6 - playerCount) as _, emptyIdx}
+          <button
+            type="button"
+            onclick={addBot}
+            aria-label="Add player or bot to seat {playerCount + emptyIdx + 1}"
+            class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed border-slate-200/90 bg-slate-50/50 hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-700 flex items-center justify-between text-slate-400 transition cursor-pointer"
+          >
+            <div class="flex items-center gap-2.5 sm:gap-3">
+              <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-plus text-xs"></i>
+              </div>
+              <span class="text-xs sm:text-sm font-bold tracking-wide">Open Seat {playerCount + emptyIdx + 1}</span>
+            </div>
+            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border border-slate-200">+ Add</span>
+          </button>
+        {/each}
+      {/if}
     </div>
   </div>
 
@@ -92,6 +110,7 @@
       <button
         onclick={addBot}
         disabled={playerCount >= 6}
+        aria-label="Add player or bot"
         class="flex-1 py-3 rounded-2xl font-rounded font-black text-xs sm:text-sm text-white game-btn game-btn-blue shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <i class="fa-solid fa-plus text-xs"></i> Add Player / Bot

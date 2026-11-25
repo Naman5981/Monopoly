@@ -80,15 +80,15 @@ export function animateTeamPillToggle(targetEl) {
   anime.remove(targetEl);
   anime({
     targets: targetEl,
-    scale: [0.82, 1.15, 1],
-    duration: 340,
-    easing: 'spring(1, 80, 10, 0)'
+    scale: [0.92, 1],
+    duration: 150,
+    easing: 'easeOutCubic'
   });
 }
 
 /**
  * Phase 3: Alliance Clash bracket animation when entering or switching to Team Mode.
- * Staggers Red bracket from left, Blue bracket from right, and pops the VS divider.
+ * Simultaneous, compositor-only 180ms entrance with zero overshoot.
  */
 export function animateTeamClashEntrance() {
   if (typeof anime === 'undefined' || isReducedMotion()) return;
@@ -101,38 +101,34 @@ export function animateTeamClashEntrance() {
 
   anime.remove(['.team-bracket-red', '.team-bracket-blue', '.team-clash-divider']);
 
-  const tl = anime.timeline({
-    easing: 'easeOutBack'
-  });
-
   if (redBracket) {
-    tl.add({
+    anime({
       targets: redBracket,
-      translateX: [-24, 0],
+      translateX: [-12, 0],
       opacity: [0, 1],
-      duration: 360,
-      easing: 'spring(1, 85, 12, 0)'
+      duration: 180,
+      easing: 'easeOutCubic'
     });
   }
 
   if (vsDivider) {
-    tl.add({
+    anime({
       targets: vsDivider,
-      scale: [0.7, 1.1, 1],
+      scale: [0.92, 1],
       opacity: [0, 1],
-      duration: 320,
-      easing: 'spring(1, 80, 10, 0)'
-    }, '-=200');
+      duration: 180,
+      easing: 'easeOutCubic'
+    });
   }
 
   if (blueBracket) {
-    tl.add({
+    anime({
       targets: blueBracket,
-      translateX: [24, 0],
+      translateX: [12, 0],
       opacity: [0, 1],
-      duration: 360,
-      easing: 'spring(1, 85, 12, 0)'
-    }, '-=250');
+      duration: 180,
+      easing: 'easeOutCubic'
+    });
   }
 }
 

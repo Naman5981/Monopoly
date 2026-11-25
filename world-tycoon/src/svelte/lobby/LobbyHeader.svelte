@@ -60,13 +60,13 @@
         {(state.activeDisplayName || 'T')[0]?.toUpperCase() || 'T'}
       </div>
       <div class="flex items-center gap-1.5 sm:gap-2">
-        <div id="setup-profile-name-btn" class="flex items-center gap-1 sm:gap-1.5 {isTitle ? 'cursor-pointer hover:opacity-80' : ''} transition max-w-[70px] sm:max-w-[120px] md:max-w-none" onclick={editName} title={isTitle ? 'Click to edit your tycoon name' : 'Names are locked in lobby - return to Home Screen to change'}>
+        <button type="button" id="setup-profile-name-btn" disabled={!isTitle} class="flex items-center gap-1 sm:gap-1.5 {isTitle ? 'cursor-pointer hover:opacity-80' : 'cursor-default'} transition max-w-[70px] sm:max-w-[120px] md:max-w-none bg-transparent border-0 p-0" onclick={editName} title={isTitle ? 'Click to edit your tycoon name' : 'Names are locked in lobby - return to Home Screen to change'}>
           <span id="setup-profile-name" class="text-xs sm:text-sm font-black uppercase text-slate-800 tracking-wider truncate">
             {state.activeDisplayName || 'TYCOON'}
           </span>
           <svg class="ui-icon w-3 h-3 text-amber-500 flex-shrink-0" aria-hidden="true"><use href="#icon-crown"></use></svg>
           <i id="setup-profile-edit-icon" class="fa-solid {isTitle ? 'fa-pen text-amber-500' : 'fa-lock text-slate-400'} text-[8px] ml-0.5 flex-shrink-0"></i>
-        </div>
+        </button>
       </div>
     </div>
   </div>
