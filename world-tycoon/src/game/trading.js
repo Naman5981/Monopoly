@@ -25,7 +25,7 @@ export function resetTradeMemory() {
  * Imposes a 20-turn cooldown so bots do not repeatedly pester the player for the same property.
  */
 export function recordDeclinedTrade(tileIds = []) {
-  const currentTurn = gameState.netWorthHistory?.length || 0;
+  const currentTurn = Math.max(gameState.turnNumber || 0, gameState.netWorthHistory?.length || 0);
   tileIds.forEach(id => {
     if (id !== undefined && id !== null) {
       declinedTradeTargetTurns[id] = currentTurn;
@@ -272,7 +272,7 @@ export function generateProactiveBotTrade(botIdx) {
   const bot = gameState.players[botIdx];
   if (!bot || !bot.isAI || bot.bankrupt) return null;
 
-  const currentTurn = gameState.netWorthHistory?.length || 0;
+  const currentTurn = Math.max(gameState.turnNumber || 0, gameState.netWorthHistory?.length || 0);
 
   // Enforce global match cooldown: At least 10 turns between ANY bot trade offer to human
   if (currentTurn - lastGlobalBotTradeTurn < 10) return null;

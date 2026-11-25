@@ -88,11 +88,11 @@ export function getGameDelay(ms) {
 export function recordNetWorthSnapshot() {
   if (!gameState.gameStarted || gameState.phase === 'SETUP') return;
   if (!gameState.netWorthHistory) gameState.netWorthHistory = [];
-  const turnNum = gameState.netWorthHistory.length + 1;
+  const roundNum = gameState.netWorthHistory.length;
   const values = gameState.players.map((p, idx) => calculatePlayerNetWorth(p.id !== undefined ? p.id : idx));
   gameState.netWorthHistory.push({
-    turn: turnNum,
-    time: `${turnNum}`,
+    turn: roundNum,
+    time: `R${roundNum}`,
     values
   });
 }
@@ -409,6 +409,7 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null, targetTurnNu
 
   const victory = checkVictoryConditions();
   if (victory) {
+    recordNetWorthSnapshot();
     clearSavedMatch();
     showVictoryModal(victory.winner, victory);
     return;
@@ -417,7 +418,8 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null, targetTurnNu
   clearThinkingState();
 
   const total = gameState.players.length;
-  let next = forcedNextIdx !== null ? forcedNextIdx : (gameState.currentPlayerIdx + 1) % total;
+  const prevIdx = gameState.currentPlayerIdx;
+  let next = forcedNextIdx !== null ? forcedNextIdx : (prevIdx + 1) % total;
   let guard = 0;
   while (gameState.players[next].bankrupt && guard < total) {
     next = (next + 1) % total;
@@ -437,8 +439,10 @@ export function advanceTurn(isRemote = false, forcedNextIdx = null, targetTurnNu
   gameState.phase = 'ROLL';
   gameState.turnTimeLeft = 15;
 
-  // Record net worth snapshot for timeline chart
-  recordNetWorthSnapshot();
+  // Record net worth snapshot once per full table round (wrap-around to first active player)
+  if (next <= prevIdx) {
+    recordNetWorthSnapshot();
+  }
 
   renderCornerHUDs();
   animateActiveTurnSwitch(next);

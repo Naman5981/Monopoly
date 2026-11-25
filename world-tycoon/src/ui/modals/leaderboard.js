@@ -86,10 +86,13 @@ export function renderLeaderboardModal() {
     velocity: computePlayerVelocity(s.idx, gameState.netWorthHistory || [], s.netWorth)
   }));
 
+  const roundCount = Math.max(0, (gameState.netWorthHistory?.length || 1) - 1);
+
   updateModalSlice('leaderboard', {
     visible: true,
     matchTimerText,
     summaryText,
+    roundCount,
     standings: formattedStandings,
     historyChart: buildNetWorthChartData()
   });
@@ -172,11 +175,12 @@ function buildXAxisTicks(dataPoints, padLeft, plotW) {
 
   return Array.from(indices).sort((a, b) => a - b).map(idx => {
     const x = padLeft + (idx / (count - 1)) * plotW;
-    const turn = dataPoints[idx]?.turn ?? idx;
-    let label = `T${turn}`;
+    const pt = dataPoints[idx];
+    const round = pt?.turn ?? idx;
+    let label = `R${round}`;
     if (idx === 0) label = 'Start';
-    else if (idx === count - 1) label = `T${turn} (Now)`;
-    return { x: x.toFixed(1), label, turn };
+    else if (idx === count - 1) label = pt?.isLive ? 'Now' : `R${round} (Now)`;
+    return { x: x.toFixed(1), label, turn: round };
   });
 }
 
@@ -185,18 +189,24 @@ export function buildNetWorthChartData() {
   const players = gameState.players || [];
   if (players.length === 0) return { empty: true, gridLines: [], series: [], xTicks: [], turns: [] };
 
-  let dataPoints = history.length > 0 ? [...history] : [];
+  const liveVals = players.map((p, idx) => calculatePlayerNetWorth(p.id !== undefined ? p.id : idx));
+  let dataPoints = history.length > 0 ? history.map(pt => ({ ...pt, values: [...(pt.values || [])] })) : [];
+
   if (dataPoints.length === 0) {
-    const initialVals = players.map(p => calculatePlayerNetWorth(p.id !== undefined ? p.id : players.indexOf(p)));
     dataPoints = [
-      { turn: 0, values: initialVals },
-      { turn: 1, values: initialVals }
+      { turn: 0, values: [...liveVals] },
+      { turn: 1, isLive: true, values: [...liveVals] }
     ];
-  } else if (dataPoints.length === 1) {
-    dataPoints.push({
-      turn: (dataPoints[0].turn || 0) + 1,
-      values: [...dataPoints[0].values]
-    });
+  } else {
+    const lastPt = dataPoints[dataPoints.length - 1];
+    const hasLiveChange = liveVals.some((v, i) => v !== (lastPt.values?.[i] ?? v));
+    if (hasLiveChange || dataPoints.length === 1) {
+      dataPoints.push({
+        turn: (lastPt.turn ?? (dataPoints.length - 1)) + 1,
+        isLive: true,
+        values: [...liveVals]
+      });
+    }
   }
 
   let minVal = Infinity;
@@ -218,7 +228,7 @@ export function buildNetWorthChartData() {
   if (maxVal <= minVal) maxVal = minVal + 1000000;
 
   const width = 440;
-  const height = 132;
+  const height = 150;
   const padLeft = 50;
   const padRight = 16;
   const padTop = 16;
@@ -287,6 +297,7 @@ export function buildNetWorthChartData() {
   const turns = dataPoints.map((pt, i) => ({
     index: i,
     turn: pt.turn ?? i,
+    isLive: Boolean(pt.isLive),
     x: Number((padLeft + (i / (dataPoints.length - 1)) * plotW).toFixed(1))
   }));
 

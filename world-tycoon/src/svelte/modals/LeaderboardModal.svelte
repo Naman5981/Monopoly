@@ -161,8 +161,13 @@
       <!-- Live Timeline Chart Container -->
       <div class="mt-2.5 pt-2 border-t border-white/10">
         <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
-          <span class="flex items-center gap-1 text-amber-300/90"><i class="fa-solid fa-chart-line text-amber-400"></i> Trajectory</span>
-          <span class="text-[9px] text-slate-500 font-normal">Hover / drag to inspect turns</span>
+          <span class="flex items-center gap-1.5 text-amber-300/90">
+            <i class="fa-solid fa-chart-line text-amber-400"></i> Trajectory
+            {#if state.roundCount !== undefined}
+              <span class="px-1.5 py-0.2 rounded bg-amber-500/15 border border-amber-400/30 text-[9px] text-amber-300">Round {state.roundCount}</span>
+            {/if}
+          </span>
+          <span class="text-[9px] text-slate-500 font-normal">Hover / drag to inspect rounds</span>
         </div>
         <div id="leaderboard-timeline-chart" class="w-full bg-slate-900/90 rounded-xl border border-white/10 p-2 overflow-hidden flex items-center justify-center">
           <NetWorthChart chart={state.historyChart} {spotlightIdx} />

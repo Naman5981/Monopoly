@@ -72,7 +72,7 @@
     {#if scrubTurn}
       <div class="absolute top-1 right-1 bg-slate-950/95 border border-amber-400/50 rounded-lg px-2 py-1 text-[9px] font-mono pointer-events-none z-20 shadow-lg">
         <div class="text-amber-300 font-bold border-b border-white/10 pb-0.5 mb-0.5">
-          {scrubIdx === 0 ? 'Match Start' : `Turn ${scrubTurn.turn}`}
+          {scrubIdx === 0 ? 'Match Start' : scrubTurn.isLive ? 'Current (Live)' : `Round ${scrubTurn.turn}`}
         </div>
         <div class="space-y-0.5">
           {#each tooltipRows as row, rIdx (row.name)}
@@ -92,7 +92,7 @@
     <svg
       bind:this={svgEl}
       viewBox="0 0 {chart.width} {chart.height}"
-      class="w-full h-auto max-h-36 overflow-visible cursor-crosshair focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400 rounded"
+      class="w-full h-auto max-h-44 overflow-visible cursor-crosshair focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400 rounded"
       role="img"
       tabindex="0"
       aria-label="Net worth trajectory by turn. Use left and right arrow keys to inspect turn values."

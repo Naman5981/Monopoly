@@ -12,6 +12,7 @@ import { get } from 'svelte/store';
 import { gameState, matchSettings } from '../../src/game/state.js';
 import { networkState } from '../../src/network/p2pState.js';
 import { broadcastFullGameState } from '../../src/network/p2pHost.js';
+import { advanceTurn } from '../../src/game/engine/turnCycle.js';
 import { buildNetWorthChartData, renderLeaderboardModal } from '../../src/ui/modals/leaderboard.js';
 import { modalStore } from '../../src/svelte/stores/modalStore.js';
 
@@ -109,5 +110,57 @@ describe('Leaderboard Net Worth Trajectory & P2P Sync', () => {
     assert.ok(Array.isArray(syncPkt.gameState.netWorthHistory));
     assert.equal(syncPkt.gameState.netWorthHistory.length, 4);
     assert.deepEqual(syncPkt.gameState.netWorthHistory[3].values, [2500000, 1800000, 1500000, 2000000]);
+  });
+
+  it('records netWorthHistory once per full table round (wrap-around), even if Player 1 is bankrupt', () => {
+    gameState.netWorthHistory = [{ turn: 0, time: 'R0', values: [2000000, 2000000, 2000000, 2000000] }];
+    gameState.currentPlayerIdx = 0;
+    gameState.turnNumber = 1;
+    gameState.phase = 'ACTION';
+
+    // P1 -> P2 (mid-round: no snapshot)
+    advanceTurn(false);
+    assert.equal(gameState.currentPlayerIdx, 1);
+    assert.equal(gameState.netWorthHistory.length, 1);
+
+    // P2 -> P3 (mid-round: no snapshot)
+    gameState.phase = 'ACTION';
+    advanceTurn(false);
+    assert.equal(gameState.currentPlayerIdx, 2);
+    assert.equal(gameState.netWorthHistory.length, 1);
+
+    // P3 -> P4 (mid-round: no snapshot)
+    gameState.phase = 'ACTION';
+    advanceTurn(false);
+    assert.equal(gameState.currentPlayerIdx, 3);
+    assert.equal(gameState.netWorthHistory.length, 1);
+
+    // P4 -> P1 (full round wrap-around: records R1)
+    gameState.phase = 'ACTION';
+    advanceTurn(false);
+    assert.equal(gameState.currentPlayerIdx, 0);
+    assert.equal(gameState.netWorthHistory.length, 2);
+    assert.equal(gameState.netWorthHistory[1].time, 'R1');
+
+    // Bankrupt P1, advance P4 -> P2 (wrap-around skipping P1: records R2)
+    gameState.players[0].bankrupt = true;
+    gameState.currentPlayerIdx = 3;
+    gameState.phase = 'ACTION';
+    advanceTurn(false);
+    assert.equal(gameState.currentPlayerIdx, 1);
+    assert.equal(gameState.netWorthHistory.length, 3);
+    assert.equal(gameState.netWorthHistory[2].time, 'R2');
+  });
+
+  it('appends transient Live tip when mid-round net worth changes without mutating netWorthHistory', () => {
+    gameState.netWorthHistory = [
+      { turn: 0, time: 'R0', values: [2000000, 2000000, 2000000, 2000000] }
+    ];
+    gameState.players[0].cash = 2400000;
+    const chart = buildNetWorthChartData();
+    assert.equal(gameState.netWorthHistory.length, 1);
+    assert.equal(chart.turns.length, 2);
+    assert.equal(chart.turns[1].isLive, true);
+    assert.equal(chart.xTicks[1].label, 'Now');
   });
 });
