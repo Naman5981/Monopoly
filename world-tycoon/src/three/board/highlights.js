@@ -11,7 +11,8 @@ import { gameState } from '../../game/state.js';
 import { getTileWorldPosition } from './coords.js';
 import { getLightPlayerAccent } from '../core/lighting.js';
 import { disposeHierarchy } from '../core/dispose.js';
-export { setEmpireSpotlight } from './empireSpotlight.js';
+import { setEmpireSpotlight, updateEmpireSpotlightPulse } from './empireSpotlight.js';
+export { setEmpireSpotlight };
 
 let activePlayerBeaconGroup = null;
 let flightHighlightsGroup = null;
@@ -481,19 +482,7 @@ export function updateActivePlayerBeacon(t) {
     });
   }
 
-  if (empireActivePlayerIdx !== null) {
-    const s = 1 + Math.sin(t * 4.8) * 0.025;
-    const poolOp = 0.40 + Math.sin(t * 4.8) * 0.20;
-    BOARD_TILES.forEach(tile => {
-      const prop = gameState.properties?.[tile.id];
-      if (prop && prop.owner === empireActivePlayerIdx) {
-        const frame = context.tileBorderFrames?.[tile.id];
-        if (frame) frame.scale.set(s, 1.0, s);
-        const pool = context.tileGroundLightPools?.[tile.id];
-        if (pool?.material) pool.material.opacity = poolOp;
-      }
-    });
-  }
+  updateEmpireSpotlightPulse(t);
 
   if (monopolyRingsGroup && monopolyRingsGroup.children.length > 0) {
     const s = 1 + Math.sin(t * 6.0) * 0.12;

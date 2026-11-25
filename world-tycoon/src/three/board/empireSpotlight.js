@@ -11,6 +11,7 @@ import { gameState } from '../../game/state.js';
 import { disposeHierarchy } from '../core/dispose.js';
 
 let empireHighlightsGroup = null;
+let empireActivePlayerIdx = null;
 const originalTileMaterials = new Map();
 const originalFrameColors = new Map();
 
@@ -30,6 +31,7 @@ function ensureEmpireHighlightsGroup() {
 }
 
 function resetBoardSpotlight() {
+  empireActivePlayerIdx = null;
   empireHighlightsGroup.visible = false;
   const isNight = (gameState.bulbMode === 'night');
   const isSunset = (gameState.bulbMode === 'sunset');
@@ -92,6 +94,7 @@ export function setEmpireSpotlight(targetPlayerIdx) {
     return;
   }
 
+  empireActivePlayerIdx = targetPlayerIdx;
   empireHighlightsGroup.visible = true;
   const theme = PLAYER_THEMES[targetPlayerIdx];
   const threeColor = new THREE.Color(theme?.colorHex || '#3b82f6');
@@ -158,6 +161,21 @@ export function setEmpireSpotlight(targetPlayerIdx) {
         pool.visible = false;
         pool.material.opacity = 0;
       }
+    }
+  });
+}
+
+export function updateEmpireSpotlightPulse(t) {
+  if (empireActivePlayerIdx === null) return;
+  const s = 1 + Math.sin(t * 4.8) * 0.025;
+  const poolOp = 0.40 + Math.sin(t * 4.8) * 0.20;
+  BOARD_TILES.forEach(tile => {
+    const prop = gameState.properties?.[tile.id];
+    if (prop && prop.owner === empireActivePlayerIdx) {
+      const frame = context.tileBorderFrames?.[tile.id];
+      if (frame) frame.scale.set(s, 1.0, s);
+      const pool = context.tileGroundLightPools?.[tile.id];
+      if (pool?.material) pool.material.opacity = poolOp;
     }
   });
 }
