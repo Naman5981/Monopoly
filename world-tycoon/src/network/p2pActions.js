@@ -3,7 +3,7 @@
  * In-game multiplayer action dispatching: rolls, purchases, buyouts, auctions, trades, and rent settlements.
  */
 
-import { gameState, setupPlayers, lobbyPlayerCount } from '../game/state.js';
+import { gameState, setupPlayers, lobbyPlayerCount, displayedCash } from '../game/state.js';
 import { logEvent, renderCornerHUDs, refreshActivePlayerTurnStatus, spawnFloatingCashOnHUD, setStatusPill } from '../ui/hud.js';
 import { playSFX } from '../game/audio.js';
 import { fmtMoney } from '../game/utils.js';
@@ -22,6 +22,7 @@ import { checkVictoryConditions, calculateTileRent } from '../game/rules.js';
 import { showVictoryModal } from '../ui/modals.js';
 import { animatePlayerEliminatedBanner, animateBankruptcyQuake } from '../ui/anim.js';
 import { startSoldPropertiesAuctionSequence } from '../game/engine/auction.js';
+import { clearRentDebtWatchdog } from '../game/engine/strategies/PropertyLandingStrategy.js';
 import { networkState, networkCallbacks } from './p2pState.js';
 import { broadcastToAll, broadcastFullGameState } from './p2pHost.js';
 import { triggerBanner } from '../svelte/stores/bannerStore.js';
@@ -149,11 +150,16 @@ export function executeIncomingNetworkAction(msg) {
       const debtor = gameState.players ? gameState.players[msg.playerIdx] : null;
       const creditor = gameState.players ? gameState.players[msg.ownerIdx] : null;
       if (debtor && creditor && typeof msg.rent === 'number') {
-        debtor.cash -= msg.rent;
-        creditor.cash += msg.rent;
+        const paid = Math.max(0, Math.min(debtor.cash, msg.rent));
+        debtor.cash -= paid;
+        creditor.cash += paid;
+        if (displayedCash) {
+          displayedCash[msg.playerIdx] = debtor.cash;
+          displayedCash[msg.ownerIdx] = creditor.cash;
+        }
         playSFX('cash');
-        spawnFloatingCashOnHUD(msg.playerIdx, `-${fmtMoney(msg.rent)}`, false);
-        spawnFloatingCashOnHUD(msg.ownerIdx, `+${fmtMoney(msg.rent)}`, true);
+        spawnFloatingCashOnHUD(msg.playerIdx, `-${fmtMoney(paid)}`, false);
+        spawnFloatingCashOnHUD(msg.ownerIdx, `+${fmtMoney(paid)}`, true);
         renderCornerHUDs();
         refreshActivePlayerTurnStatus();
       }
@@ -192,16 +198,21 @@ export function executeIncomingNetworkAction(msg) {
     }
 
     case 'ACTION_SETTLE_RENT': {
+      clearRentDebtWatchdog();
+      gameState.pendingRentDebt = null;
       const debtor = gameState.players[msg.debtorIdx];
       const hasCreditor = msg.creditorIdx !== undefined && msg.creditorIdx !== null;
       const creditor = hasCreditor ? gameState.players[msg.creditorIdx] : null;
       if (debtor) {
-        debtor.cash -= msg.rentOwed;
+        const paid = Math.max(0, Math.min(debtor.cash, msg.rentOwed));
+        debtor.cash -= paid;
+        if (displayedCash) displayedCash[msg.debtorIdx] = debtor.cash;
         if (creditor) {
-          creditor.cash += msg.rentOwed;
-          logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(msg.rentOwed)}</strong> rent to <strong>${creditor.name}</strong>.`);
+          creditor.cash += paid;
+          if (displayedCash) displayedCash[msg.creditorIdx] = creditor.cash;
+          logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(paid)}</strong> rent to <strong>${creditor.name}</strong>.`);
         } else {
-          logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(msg.rentOwed)}</strong> debt to the Bank.`);
+          logEvent(`💸 <strong>${debtor.name}</strong> settled <strong>${fmtMoney(paid)}</strong> debt to the Bank.`);
         }
         playSFX('cash');
         renderCornerHUDs();
@@ -238,14 +249,18 @@ export function executeIncomingNetworkAction(msg) {
     }
 
     case 'ACTION_BANKRUPTCY': {
+      clearRentDebtWatchdog();
+      gameState.pendingRentDebt = null;
       const bankruptP = gameState.players[msg.bankruptIdx];
       const hasCreditor = msg.creditorIdx !== undefined && msg.creditorIdx !== null;
       const creditorP = hasCreditor ? gameState.players[msg.creditorIdx] : null;
-      if (bankruptP) {
+      if (bankruptP && !bankruptP.bankrupt) {
         bankruptP.cash = 0;
         bankruptP.bankrupt = true;
+        if (displayedCash) displayedCash[msg.bankruptIdx] = 0;
         if (creditorP && msg.paidCash) {
           creditorP.cash += msg.paidCash;
+          if (displayedCash) displayedCash[msg.creditorIdx] = creditorP.cash;
         }
         BOARD_TILES.forEach(t => {
           const st = gameState.properties[t.id];

@@ -12,7 +12,7 @@ import {
   populateCityPreview3DScene,
   clearCityPreview,
   setTileHighlightRing,
-  refreshTileTextureAndBuildings,
+  refreshTileAndGroup,
   getTileWorldPosition,
   getTileScreenPosition,
   playBuyoutCinematicFocus
@@ -191,7 +191,7 @@ export function confirmBuyoutCity() {
   setTileHighlightRing(tile.id, false);
   gameState.pendingBuyoutTile = null;
 
-  refreshTileTextureAndBuildings(tile.id);
+  refreshTileAndGroup(tile.id);
   renderCornerHUDs();
   if (tile.group) {
     try {

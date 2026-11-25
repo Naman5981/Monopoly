@@ -10,7 +10,7 @@ import { playSFX } from '../../game/audio.js';
 import { saveCurrentMatchToStorage, clearSavedMatch } from '../../game/persistence.js';
 import { checkVictoryConditions } from '../../game/rules.js';
 import { evaluateTradeDeal, recordDeclinedTrade } from '../../game/trading.js';
-import { refreshTileTextureAndBuildings } from '../../three/scene.js';
+import { refreshTileAndGroup } from '../../three/scene.js';
 import { logEvent, renderCornerHUDs, refreshActivePlayerTurnStatus, updateRollButtonsUI } from '../hud.js';
 import { checkAndTriggerMonopoly, showVictoryModal } from './victory.js';
 import { isLobbyScreenActive, closeOtherInformationalModals } from './common.js';
@@ -153,14 +153,14 @@ export function completeTradeTransfer(giverIdx, receiverIdx, offerCash = 0, reqC
   validOfferTiles.forEach(id => {
     if (gameState.properties[id] && gameState.properties[id].owner === giverIdx) {
       gameState.properties[id].owner = receiverIdx;
-      refreshTileTextureAndBuildings(id);
+      refreshTileAndGroup(id);
     }
   });
 
   validReqTiles.forEach(id => {
     if (gameState.properties[id] && gameState.properties[id].owner === receiverIdx) {
       gameState.properties[id].owner = giverIdx;
-      refreshTileTextureAndBuildings(id);
+      refreshTileAndGroup(id);
     }
   });
 

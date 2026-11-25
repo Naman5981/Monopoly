@@ -242,7 +242,9 @@ export function refreshTileTextureAndBuildings(tileId) {
   if (Array.isArray(mesh.material)) {
     [0, 1, 3, 4, 5].forEach(idx => {
       if (mesh.material[idx]) {
-        mesh.material[idx].color.copy(sideColor);
+        if (mesh.material[idx].color) {
+          mesh.material[idx].color.copy(sideColor);
+        }
         mesh.material[idx].roughness = isCyber ? 0.28 : (isElegant ? 0.18 : 0.42);
         mesh.material[idx].metalness = isCyber ? 0.85 : (isElegant ? 0.25 : 0.04);
         if (mesh.material[idx].emissive) {
@@ -351,6 +353,21 @@ export function refreshTileTextureAndBuildings(tileId) {
 }
 
 export const updateTileMesh = refreshTileTextureAndBuildings;
+
+/**
+ * Refreshes a tile and all sibling tiles in its color group so 2x monopoly rent updates across the entire set.
+ * @param {number} tileId
+ */
+export function refreshTileAndGroup(tileId) {
+  refreshTileTextureAndBuildings(tileId);
+  const tile = BOARD_TILES[tileId];
+  if (!tile?.group) return;
+  for (const sibling of BOARD_TILES) {
+    if (sibling.id !== tileId && sibling.group === tile.group) {
+      refreshTileTextureAndBuildings(sibling.id);
+    }
+  }
+}
 
 /**
  * Refreshes textures, side colors, and materials on all 32 tiles simultaneously.

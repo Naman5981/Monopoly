@@ -25,6 +25,7 @@ import { playSFX, startAdaptiveMusic, stopAdaptiveMusic } from './audio.js';
 import { getTileWorldPosition } from '../three/board/coords.js';
 import {
   refreshTileTextureAndBuildings,
+  refreshTileAndGroup,
   spawnAllPlayerTokens3D,
   showSpeechBubble,
   setTileHighlightRing,
@@ -156,7 +157,7 @@ export function initEngine() {
         playSFX('build', 1.0, getTileWorldPosition(tileId));
         spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(tile.price)}`, false);
         logEvent(`🏙️ <strong>${p.name}</strong> bought <strong>${tile.name}</strong> for <strong>${fmtMoney(tile.price)}</strong>!`);
-        refreshTileTextureAndBuildings(tileId);
+        refreshTileAndGroup(tileId);
         renderCornerHUDs();
         if (tile.group) {
           try {
@@ -391,7 +392,7 @@ export function initEngine() {
         } else {
           logEvent(`⚔️ <strong>${buyer.name}</strong> bought out <strong>${tile ? tile.name : 'City'}</strong> from <strong>${prevOwner ? prevOwner.name : 'Opponent'}</strong> (${fmtMoney(bankFee)} Bank Tax burned)!`);
         }
-        refreshTileTextureAndBuildings(tileId);
+        refreshTileAndGroup(tileId);
         renderCornerHUDs();
         saveCurrentMatchToStorage();
         if (networkState.isMultiplayer && networkState.isHost) {

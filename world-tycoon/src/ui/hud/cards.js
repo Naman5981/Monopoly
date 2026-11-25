@@ -206,9 +206,11 @@ export function animateRentTransferOnHUD(fromIdx, toIdx, amount, tileObj = null)
     const fromPlayer = gameState.players[fromIdx];
     const toPlayer = gameState.players[toIdx];
 
-    if (!fromCard || !toCard || !fromPlayer || !toPlayer) {
-      spawnFloatingCashOnHUD(fromIdx, `-${fmtMoney(amount)}`, false);
-      spawnFloatingCashOnHUD(toIdx, `+${fmtMoney(amount)}`, true);
+    if (globalThis.__WT_TEST__ || !fromCard || !toCard || !fromPlayer || !toPlayer) {
+      if (!globalThis.__WT_TEST__) {
+        spawnFloatingCashOnHUD(fromIdx, `-${fmtMoney(amount)}`, false);
+        spawnFloatingCashOnHUD(toIdx, `+${fmtMoney(amount)}`, true);
+      }
       resolve();
       return;
     }

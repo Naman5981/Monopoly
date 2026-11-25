@@ -10,7 +10,7 @@ import { gameState, localPlayerIdx, displayedCash } from '../state.js';
 import { fmtMoney } from '../utils.js';
 import { playSFX } from '../audio.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
-import { refreshTileTextureAndBuildings } from '../../three/scene.js';
+import { refreshTileAndGroup } from '../../three/scene.js';
 import { renderCornerHUDs, logEvent, updateRollButtonsUI, setStatusPill } from '../../ui/hud.js';
 import { checkAndTriggerMonopoly } from '../../ui/modals/victory.js';
 import { engineCallbacks } from '../../ui/modals/common.js';
@@ -506,7 +506,7 @@ export function concludeCurrentAuction() {
         engineCallbacks.spawnFloatingCash(a.highBidderIdx, `-${fmtMoney(a.currentBid)}`, false);
       }
 
-      refreshTileTextureAndBuildings(tile.id);
+      refreshTileAndGroup(tile.id);
       renderCornerHUDs();
       checkAndTriggerMonopoly(a.highBidderIdx, tile.group);
     }
@@ -516,7 +516,7 @@ export function concludeCurrentAuction() {
       propState.owner = null;
       propState.level = 0;
       propState.mortgaged = false;
-      refreshTileTextureAndBuildings(tile.id);
+      refreshTileAndGroup(tile.id);
     }
     logEvent(`🔨 No bids were placed for <strong>${tile.name}</strong>. It returns to the Bank.`);
   }
@@ -654,7 +654,7 @@ export function applyAuctionConcludeFromHost(msg) {
         engineCallbacks.spawnFloatingCash(msg.winnerIdx, `-${fmtMoney(msg.winningBid || 0)}`, false);
       }
 
-      refreshTileTextureAndBuildings(tile.id);
+      refreshTileAndGroup(tile.id);
       renderCornerHUDs();
       checkAndTriggerMonopoly(msg.winnerIdx, tile.group);
     }
@@ -663,7 +663,7 @@ export function applyAuctionConcludeFromHost(msg) {
       propState.owner = null;
       propState.level = 0;
       propState.mortgaged = false;
-      if (tile) refreshTileTextureAndBuildings(tile.id);
+      if (tile) refreshTileAndGroup(tile.id);
     }
     logEvent(`🔨 No bids were placed for <strong>${tile ? tile.name : 'Property'}</strong>. It returns to the Bank.`);
   }

@@ -193,13 +193,27 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
 
   drawCadastralGrid(ctx, isCyber);
 
-  // Top Group Color Strip
+  // Top Group Color Strip (clear of 26px owner border & 3D buildings when owned)
+  const stripX = isOwned ? 28 : 16;
+  const stripY = isOwned ? 28 : 16;
+  const stripW = isOwned ? 456 : 480;
+  const stripH = isOwned ? 80 : 70;
+  const dividerColor = (isCyber || isNight) ? '#ffffff' : '#0f172a';
+
   ctx.fillStyle = groupColor;
-  ctx.fillRect(16, 16, 480, 58);
+  ctx.fillRect(stripX, stripY, stripW, stripH);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
-  ctx.fillRect(16, 16, 480, 7);
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(16, 74, 480, 4);
+  ctx.fillRect(stripX, stripY, stripW, 7);
+  ctx.fillStyle = dividerColor;
+  ctx.fillRect(stripX, stripY + stripH, stripW, 4);
+
+  // Bottom District Color Footer Bar (360° visibility when camera rotates behind skyscrapers)
+  const footerY = isOwned ? 464 : 478;
+  const footerH = isOwned ? 18 : 16;
+  ctx.fillStyle = groupColor;
+  ctx.fillRect(stripX, footerY, stripW, footerH);
+  ctx.fillStyle = dividerColor;
+  ctx.fillRect(stripX, footerY - 3, stripW, 3);
 
   // High-contrast Owner Ribbon (if owned)
   if (isOwned && propState) {

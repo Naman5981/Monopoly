@@ -7,13 +7,14 @@
 
 import { ITileLandingStrategy } from './ITileLandingStrategy.js';
 import { BOARD_TILES } from '../../data.js';
-import { gameState, matchSettings } from '../../state.js';
+import { gameState, matchSettings, displayedCash } from '../../state.js';
 import { fmtMoney } from '../../utils.js';
 import { playSFX } from '../../audio.js';
 import { getTileWorldPosition } from '../../../three/board/coords.js';
 import { calculateTileRent, isTeammate, getTeamMembers } from '../../rules.js';
 import {
   refreshTileTextureAndBuildings,
+  refreshTileAndGroup,
   showSpeechBubble,
   spawnShatterDebris,
   triggerBoardShockwave,
@@ -45,6 +46,20 @@ import { startSoldPropertiesAuctionSequence, clearAuctionTimers } from '../aucti
 import { cancelAllGameTimers } from '../turnCycle.js';
 
 let autoEndTurnTimer = null;
+let rentDebtWatchdogTimer = null;
+
+export function clearRentDebtWatchdog() {
+  if (rentDebtWatchdogTimer) {
+    clearTimeout(rentDebtWatchdogTimer);
+    rentDebtWatchdogTimer = null;
+  }
+}
+
+function isResponsibleForLandingMutation(playerIdx, player) {
+  return !networkState.isMultiplayer ||
+    playerIdx === networkState.localPlayerIdx ||
+    (Boolean(player?.isAI) && networkState.isHost);
+}
 
 const lastBotBuyoutTurn = {};
 
@@ -181,8 +196,10 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
   async handleOpponentProperty(playerIdx, player, tile, st, isDoubles) {
     const rent = calculateTileRent(tile.id);
     const owner = gameState.players[st.owner];
+    const isResponsible = isResponsibleForLandingMutation(playerIdx, player);
 
     // Team Bailout: If player is insolvent, check if teammate can bail them out
+    let teamBailoutCovered = false;
     if (player.cash < rent && matchSettings.teamMode && player.teamId !== undefined) {
       const deficit = rent - player.cash;
       const teammates = getTeamMembers(player.teamId).filter(idx => idx !== playerIdx && !gameState.players[idx]?.bankrupt);
@@ -192,18 +209,25 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         if (partner && partner.cash >= deficit) {
           const shouldBailout = partner.isAI ? (partner.cash >= deficit + 200000) : (partner.cash >= deficit);
           if (shouldBailout) {
-            partner.cash -= deficit;
-            player.cash += deficit;
-            playSFX('cash');
-            spawnFloatingCashOnHUD(partnerIdx, `-${fmtMoney(deficit)} Bailout`, false);
-            spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(deficit)} Bailed out!`, true);
-            showSpeechBubble(`${partner.name} bailed out ${player.name}! 🤝`, 2400);
-            logEvent(`🤝 <strong>TEAM BAILOUT!</strong> <strong>${partner.name}</strong> transferred <strong>${fmtMoney(deficit)}</strong> to rescue teammate <strong>${player.name}</strong> from rent bankruptcy!`);
-            renderCornerHUDs();
-            if (networkState.isMultiplayer) {
-              broadcastAction('ACTION_TEAM_BAILOUT', { partnerIdx, playerIdx, deficit });
-              if (networkState.isHost) {
-                broadcastFullGameState();
+            teamBailoutCovered = true;
+            if (isResponsible) {
+              partner.cash -= deficit;
+              player.cash += deficit;
+              if (displayedCash) {
+                displayedCash[partnerIdx] = partner.cash;
+                displayedCash[playerIdx] = player.cash;
+              }
+              playSFX('cash');
+              spawnFloatingCashOnHUD(partnerIdx, `-${fmtMoney(deficit)} Bailout`, false);
+              spawnFloatingCashOnHUD(playerIdx, `+${fmtMoney(deficit)} Bailed out!`, true);
+              showSpeechBubble(`${partner.name} bailed out ${player.name}! 🤝`, 2400);
+              logEvent(`🤝 <strong>TEAM BAILOUT!</strong> <strong>${partner.name}</strong> transferred <strong>${fmtMoney(deficit)}</strong> to rescue teammate <strong>${player.name}</strong> from rent bankruptcy!`);
+              renderCornerHUDs();
+              if (networkState.isMultiplayer) {
+                broadcastAction('ACTION_TEAM_BAILOUT', { partnerIdx, playerIdx, deficit });
+                if (networkState.isHost) {
+                  broadcastFullGameState();
+                }
               }
             }
           }
@@ -212,7 +236,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
     }
 
     // Insolvency check: Does player need to liquidate properties to pay rent?
-    if (player.cash < rent) {
+    if (player.cash < rent && !teamBailoutCovered) {
       const owned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
 
       if (owned.length > 0) {
@@ -239,7 +263,9 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
 
             // Host safety timeout if remote debtor peer disconnects or freezes
             if (networkState.isHost) {
-              setTimeout(() => {
+              clearRentDebtWatchdog();
+              rentDebtWatchdogTimer = setTimeout(() => {
+                rentDebtWatchdogTimer = null;
                 if (gameState.phase === 'MODAL' && gameState.pendingRentDebt && gameState.pendingRentDebt.debtorIdx === playerIdx) {
                   if (typeof window.autoSellCheapestForRent === 'function') {
                     window.autoSellCheapestForRent();
@@ -266,7 +292,11 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         }
       } else {
         // Bankruptcy: Debtor owns 0 properties and cash < rent
-        this.executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles, st.owner);
+        if (isResponsible) {
+          this.executeBankruptcy(playerIdx, player, owner, rent, tile, isDoubles, st.owner);
+        } else {
+          gameState.phase = 'MODAL';
+        }
         return;
       }
     }
@@ -283,12 +313,16 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       gameState.pendingRentCreditor = null;
     }
 
-    player.cash -= rent;
-    owner.cash += rent;
-    renderCornerHUDs();
+    if (isResponsible) {
+      player.cash -= rent;
+      owner.cash += rent;
+      if (displayedCash) {
+        displayedCash[playerIdx] = player.cash;
+        displayedCash[st.owner] = owner.cash;
+      }
+      renderCornerHUDs();
 
-    if (networkState.isMultiplayer) {
-      if (playerIdx === networkState.localPlayerIdx || (player.isAI && networkState.isHost)) {
+      if (networkState.isMultiplayer) {
         broadcastAction('ACTION_PAY_RENT', {
           playerIdx,
           ownerIdx: st.owner,
@@ -300,6 +334,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
 
     // Hostile Buyout check
     const buyoutCost = calculateBuyoutCost(tile, st);
+    const projectedCashAfterRent = isResponsible ? player.cash : (player.cash - rent);
     if (buyoutCost > 0) {
       if (player.isAI) {
         if (shouldAIBuyoutTile(playerIdx, tile, st, buyoutCost)) {
@@ -310,7 +345,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
           await this.handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, isDoubles);
           return;
         }
-      } else if (player.cash >= buyoutCost) {
+      } else if (projectedCashAfterRent >= buyoutCost) {
         if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
           showSpeechBubble(`${player.name} is considering a buyout of ${tile.name}...`, 3000);
           setStatusPill(`⚔️ Waiting for <strong>${player.name}</strong> to decide on hostile buyout of <strong>${tile.name}</strong>...`, { isThinking: true, playerIdx });
@@ -398,7 +433,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       cSt.mortgaged = false;
       player.cash += sVal;
       soldTiles.push(cheapest);
-      refreshTileTextureAndBuildings(cheapest.id);
+      refreshTileAndGroup(cheapest.id);
       logEvent(`⚡ <strong>${player.name}</strong> sold <strong>${cheapest.name}</strong> for <strong>${fmtMoney(sVal)}</strong> to pay rent.`);
 
       if (networkState.isMultiplayer) {
@@ -546,7 +581,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       spawnFloatingCashOnHUD(playerIdx, `-${fmtMoney(tile.price)}`, false);
       showSpeechBubble(`Bought ${tile.name}!`, 1800);
       logEvent(`🤖 <strong>${player.name}</strong> bought <strong>${tile.name}</strong> for <strong>${fmtMoney(tile.price)}</strong>.`);
-      refreshTileTextureAndBuildings(tile.id);
+      refreshTileAndGroup(tile.id);
       renderCornerHUDs();
       let monopolyEvent = null;
       if (tile.group) {
@@ -610,7 +645,7 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
       } else {
         logEvent(`⚔️ <strong>${player.name}</strong> executed a hostile buyout on <strong>${tile.name}</strong> from <strong>${prevOwner.name}</strong> for <strong>${fmtMoney(buyoutCost)}</strong> (${fmtMoney(bankFee)} Bank Tax burned).`);
       }
-      refreshTileTextureAndBuildings(tile.id);
+      refreshTileAndGroup(tile.id);
       renderCornerHUDs();
       let buyoutMonopolyEvent = null;
       if (tile.group) {

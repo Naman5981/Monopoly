@@ -89,13 +89,13 @@ export function drawTileToCanvas(canvas, tile, propState, isUpright = false) {
       const rgb = hexToRgb(ownerTheme.colorHex);
       const tintGrad = ctx.createLinearGradient(0, 76, 0, 480);
       if (isCyber || isNight) {
-        tintGrad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.26)`);
-        tintGrad.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.16)`);
-        tintGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.08)`);
-      } else {
-        tintGrad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.18)`);
-        tintGrad.addColorStop(0.45, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.10)`);
+        tintGrad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.16)`);
+        tintGrad.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.09)`);
         tintGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.04)`);
+      } else {
+        tintGrad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.10)`);
+        tintGrad.addColorStop(0.45, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.05)`);
+        tintGrad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.02)`);
       }
       ctx.fillStyle = tintGrad;
       ctx.fillRect(29, 76, 454, 404);

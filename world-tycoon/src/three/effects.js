@@ -268,6 +268,8 @@ export function startVictoryCelebration(winner) {
   setTimeout(() => launchFireworkRocket(w * 0.50, h * 0.16), 180);
   setTimeout(() => launchFireworkRocket(w * 0.75, h * 0.22), 360);
 
+  if (globalThis.__WT_TEST__) return;
+
   // 3. Continuous festival loop while win screen is displayed
   let tick = 0;
   victoryCelebrationTimer = setInterval(() => {

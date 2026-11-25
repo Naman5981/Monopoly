@@ -232,6 +232,7 @@ export { triggerTileButtonPress } from './board/tilePress.js';
 export { spawnFlyingThreatCard, cancelFlyingThreatCard } from './board/flyingThreatCard.js';
 export {
   refreshTileTextureAndBuildings,
+  refreshTileAndGroup,
   updateTileMesh,
   refreshAllTileTexturesAndMaterials
 } from './board/tiles.js';

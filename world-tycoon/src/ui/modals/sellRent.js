@@ -4,11 +4,11 @@
  */
 
 import { GROUP_META, BOARD_TILES } from '../../game/data.js';
-import { gameState } from '../../game/state.js';
+import { gameState, displayedCash } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
-import { refreshTileTextureAndBuildings, spawnShatterDebris, triggerBoardShockwave } from '../../three/scene.js';
+import { refreshTileTextureAndBuildings, refreshTileAndGroup, spawnShatterDebris, triggerBoardShockwave } from '../../three/scene.js';
 import { renderCornerHUDs, logEvent, updateRollButtonsUI } from '../hud.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
@@ -139,7 +139,7 @@ function notifyPropertyLiquidation(pIdx, player, tile, saleVal) {
     broadcastAction('ACTION_SELL_CITY_FOR_RENT', { playerIdx: pIdx, tileId: tile.id, saleVal });
   }
 
-  refreshTileTextureAndBuildings(tile.id);
+  refreshTileAndGroup(tile.id);
   renderCornerHUDs();
 }
 
@@ -204,7 +204,7 @@ export function autoSellCheapestForRent() {
     debt.soldTiles.push(cheapest);
     const saleVal = applyPropertyLiquidation(p, cheapest, st);
 
-    refreshTileTextureAndBuildings(cheapest.id);
+    refreshTileAndGroup(cheapest.id);
     logEvent(`⚡ <strong>${p.name}</strong> auto-sold <strong>${cheapest.name}</strong> for <strong>${fmtMoney(saleVal)}</strong>.`);
 
     if (networkState.isMultiplayer) {
@@ -232,6 +232,11 @@ export async function settlePendingRentAndCloseModal() {
 
   const pIdx = debt.debtorIdx !== undefined ? debt.debtorIdx : gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
+  if (p && p.cash < debt.rentOwed) {
+    settleDebtDeficitWithoutProperties();
+    return;
+  }
+
   const hasCreditor = debt.creditorIdx !== null && debt.creditorIdx !== undefined;
   const creditor = hasCreditor ? gameState.players[debt.creditorIdx] : null;
   const isDoubles = debt.isDoubles;
@@ -242,8 +247,10 @@ export async function settlePendingRentAndCloseModal() {
 
   if (p) {
     p.cash -= debt.rentOwed;
+    if (displayedCash) displayedCash[pIdx] = p.cash;
     if (creditor) {
       creditor.cash += debt.rentOwed;
+      if (displayedCash) displayedCash[debt.creditorIdx] = creditor.cash;
     } else if (debt.isTax) {
       gameState.festivalPot += debt.rentOwed;
     }

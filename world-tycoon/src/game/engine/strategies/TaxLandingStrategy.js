@@ -130,13 +130,6 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
             isTax: true
           };
           logEvent(`💸 <strong>${player.name}</strong> is selling cities to pay <strong>${fmtMoney(taxAmt)}</strong> Luxury Tax.`);
-          broadcastAction('ACTION_RENT_DEBT', {
-            debtorIdx: playerIdx,
-            creditorIdx: null,
-            rentOwed: taxAmt,
-            tileId: tile.id,
-            isDoubles: Boolean(isDoubles)
-          });
           return;
         }
 
@@ -159,6 +152,14 @@ export class TaxLandingStrategy extends ITileLandingStrategy {
     }
 
     // Player owns 0 properties and cash < taxAmt: Total Bankruptcy to the Bank
+    const isResponsible = !networkState.isMultiplayer ||
+      playerIdx === networkState.localPlayerIdx ||
+      (Boolean(player?.isAI) && networkState.isHost);
+    if (!isResponsible) {
+      gameState.phase = 'MODAL';
+      return;
+    }
+
     const paid = Math.max(0, player.cash);
     player.cash = 0;
     gameState.festivalPot += paid;

@@ -51,7 +51,7 @@ export function setPlayerPortraitMood(playerIdx, mood, durationMs = 3500) {
  * Initializes and starts the portrait RAF render loop.
  */
 export function initPortraitRenderLoop() {
-  if (animationFrameId || typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') return;
+  if (globalThis.__WT_TEST__ || animationFrameId || typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') return;
 
   function loop(timestamp) {
     animationFrameId = requestAnimationFrame(loop);

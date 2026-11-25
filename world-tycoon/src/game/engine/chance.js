@@ -196,13 +196,6 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
               isDoubles: Boolean(isDoubles),
               isTax: true
             };
-            broadcastAction('ACTION_RENT_DEBT', {
-              debtorIdx: playerIdx,
-              creditorIdx: null,
-              rentOwed: prize.amount,
-              tileId: curTile.id,
-              isDoubles: Boolean(isDoubles)
-            });
             return;
           }
 
@@ -224,6 +217,13 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
         }
       } else {
         // Debtor owns 0 properties: Bankrupt
+        const isResponsible = !networkState.isMultiplayer ||
+          playerIdx === networkState.localPlayerIdx ||
+          (Boolean(p?.isAI) && networkState.isHost);
+        if (!isResponsible) {
+          gameState.phase = 'MODAL';
+          return;
+        }
         const paid = Math.max(0, p.cash);
         p.cash = 0;
         gameState.festivalPot += paid;

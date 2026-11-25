@@ -75,4 +75,20 @@ describe('Board Tile Subtle Player Color Tint Wash', () => {
     const tintRect = calls.find(c => c.type === 'fillRect' && c.y === 76 && c.h === 404);
     assert.strictEqual(tintRect, undefined, 'Unowned tile should not have player tint rect');
   });
+
+  it('renders expanded top district band and bottom district footer bar on owned city tiles', () => {
+    const calls = [];
+    const mockCtx = createMockCtx(calls);
+    const mockCanvas = { getContext: () => mockCtx };
+
+    const tile = { id: 1, name: 'SEOUL', type: 'city', group: 'brown', price: 120000 };
+    const propState = { owner: 0, level: 1 };
+
+    drawTileToCanvas(mockCanvas, tile, propState);
+
+    const topBand = calls.find(c => c.type === 'fillRect' && c.x === 28 && c.y === 28 && c.w === 456 && c.h === 80);
+    const bottomFooter = calls.find(c => c.type === 'fillRect' && c.x === 28 && c.y === 464 && c.w === 456 && c.h === 18);
+    assert.ok(topBand, 'Should render expanded top district color band clear of 26px owner border');
+    assert.ok(bottomFooter, 'Should render bottom district color footer bar for 360° visibility');
+  });
 });

@@ -10,6 +10,7 @@ import { playSFX } from '../audio.js';
 import { checkVictoryConditions } from '../rules.js';
 import {
   refreshTileTextureAndBuildings,
+  refreshTileAndGroup,
   updatePlayerTokenPositions3D,
   showSpeechBubble
 } from '../../three/scene.js';
@@ -158,7 +159,7 @@ export function debugSetPropertyOwner(tileId, playerIdx, chargePrice = false) {
     }
   }
 
-  refreshTileTextureAndBuildings(tileId);
+  refreshTileAndGroup(tileId);
   renderCornerHUDs();
   saveCurrentMatchToStorage();
   if (window.syncDebugUIState) window.syncDebugUIState();
@@ -185,7 +186,7 @@ export function debugSetPropertyLevel(tileId, level) {
   const tierNames = ['Vacant (0)', '1 House (1)', '2 Houses (2)', 'Hotel (3)', 'Landmark (4)'];
   logEvent(`🏗️ <strong>[DEBUG]</strong> Set <strong>${tile.name}</strong> to <strong>${tierNames[level]}</strong>.`);
 
-  refreshTileTextureAndBuildings(tileId);
+  refreshTileAndGroup(tileId);
   renderCornerHUDs();
   saveCurrentMatchToStorage();
   if (window.syncDebugUIState) window.syncDebugUIState();
@@ -204,7 +205,7 @@ export function debugToggleFestivalBoost(tileId) {
   playSFX('cash');
   logEvent(`✨ <strong>[DEBUG]</strong> <strong>${tile.name}</strong> Festival 2× Boost is now <strong>${st.festivalBoost ? 'ENABLED' : 'DISABLED'}</strong>.`);
 
-  refreshTileTextureAndBuildings(tileId);
+  refreshTileAndGroup(tileId);
   renderCornerHUDs();
   saveCurrentMatchToStorage();
   if (window.syncDebugUIState) window.syncDebugUIState();

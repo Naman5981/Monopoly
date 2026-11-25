@@ -11,7 +11,7 @@ import { networkState, broadcastAction, broadcastFullGameState } from '../../net
 import {
   clearCityPreview,
   setTileHighlightRing,
-  refreshTileTextureAndBuildings,
+  refreshTileAndGroup,
   getTileWorldPosition,
   getTileScreenPosition
 } from '../../three/scene.js';
@@ -102,7 +102,7 @@ export function confirmBuyCity() {
   animateModalSpringClose('#modal-buy-city', '#modal-buy-city-card');
   setTileHighlightRing(tile.id, false);
   gameState.pendingBuyTile = null;
-  refreshTileTextureAndBuildings(tile.id);
+  refreshTileAndGroup(tile.id);
   renderCornerHUDs();
   if (tile.group) {
     try {
