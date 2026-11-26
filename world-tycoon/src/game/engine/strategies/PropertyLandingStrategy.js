@@ -121,6 +121,11 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         }
         if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
       } else {
+        if (player.cash < (tile.houseCost || 0)) {
+          showSpeechBubble(`Need ${fmtMoney(tile.houseCost)} to upgrade ${tile.name} 💸`, 2000);
+          if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
+          return;
+        }
         if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
           showSpeechBubble(`${player.name} is visiting ${partnerName}'s city...`, 3000);
           gameState.phase = 'MODAL';
@@ -331,6 +336,12 @@ export class PropertyLandingStrategy extends ITileLandingStrategy {
         }
         await handleAIOwnedCityLanding(playerIdx, tile, isDoubles);
       } else {
+        if (player.cash < (tile.houseCost || 0)) {
+          showSpeechBubble(`Need ${fmtMoney(tile.houseCost)} to upgrade ${tile.name} 💸`, 2000);
+          logEvent(`🏠 <strong>${player.name}</strong> visited <strong>${tile.name}</strong> (Insufficient funds to upgrade).`);
+          if (window.concludeActionPhase) window.concludeActionPhase(isDoubles);
+          return;
+        }
         if (networkState.isMultiplayer && playerIdx !== networkState.localPlayerIdx) {
           showSpeechBubble(`${player.name} is checking their estate in ${tile.name}...`, 3000);
           gameState.phase = 'MODAL';

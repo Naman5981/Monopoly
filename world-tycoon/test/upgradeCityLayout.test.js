@@ -13,7 +13,13 @@ import {
 } from '../src/ui/modals/upgradeCity.js';
 import { PropertyLandingStrategy } from '../src/game/engine/strategies/PropertyLandingStrategy.js';
 import { engineCallbacks } from '../src/ui/modals/common.js';
-import { modalStore } from '../src/svelte/stores/modalStore.js';
+import { modalStore, updateModalSlice } from '../src/svelte/stores/modalStore.js';
+
+function getUpgradeVisible() {
+  let visible = false;
+  modalStore.subscribe(v => { visible = Boolean(v?.upgradeCity?.visible); })();
+  return visible;
+}
 
 describe('Upgrade City Modal & Chance Wheel Visual Optimization (/better-layout /fixing-motion-performance)', () => {
   beforeEach(() => {
@@ -112,5 +118,44 @@ describe('Upgrade City Modal & Chance Wheel Visual Optimization (/better-layout 
     // Verify tile 1 (playerIdx) was untouched and remains level 1
     assert.equal(gameState.properties[1].level, 1, 'Player 0 tile 1 must not be modified by bot upgrade');
     assert.equal(turnConcluded, true, 'Turn phase must conclude');
+  });
+
+  it('skips UpgradeCityModal and concludes turn when human cannot afford 1 level on self-owned city', async () => {
+    const tile = BOARD_TILES[10];
+    gameState.currentPlayerIdx = 0;
+    gameState.phase = 'MOVING';
+    gameState.players[0] = { id: 'p0', name: 'Host', cash: (tile.houseCost || 100000) - 1000, isAI: false, position: 10 };
+    gameState.properties[10] = { owner: 0, level: 1, mortgaged: false };
+    updateModalSlice('upgradeCity', { visible: false });
+
+    let concluded = false;
+    global.window.concludeActionPhase = () => { concluded = true; };
+
+    const strategy = new PropertyLandingStrategy();
+    await strategy.handleSelfOwnedProperty(0, gameState.players[0], tile, gameState.properties[10], false);
+
+    assert.equal(getUpgradeVisible(), false, 'Upgrade modal must not open when cash < houseCost');
+    assert.equal(concluded, true, 'Turn phase must conclude immediately');
+    assert.notEqual(gameState.phase, 'MODAL');
+  });
+
+  it('skips UpgradeCityModal and concludes turn when human cannot afford 1 level on ally city', async () => {
+    const tile = BOARD_TILES[10];
+    gameState.currentPlayerIdx = 0;
+    gameState.phase = 'MOVING';
+    gameState.players[0] = { id: 'p0', name: 'Host', cash: 0, isAI: false, position: 10, teamId: 0 };
+    gameState.players[1] = { id: 'p1', name: 'Ally', cash: 500000, isAI: false, position: 0, teamId: 0 };
+    gameState.properties[10] = { owner: 1, level: 1, mortgaged: false };
+    updateModalSlice('upgradeCity', { visible: false });
+
+    let concluded = false;
+    global.window.concludeActionPhase = () => { concluded = true; };
+
+    const strategy = new PropertyLandingStrategy();
+    await strategy.handleTeammateProperty(0, gameState.players[0], tile, gameState.properties[10], false);
+
+    assert.equal(getUpgradeVisible(), false, 'Upgrade modal must not open on ally city when cash < houseCost');
+    assert.equal(concluded, true, 'Turn phase must conclude immediately');
+    assert.notEqual(gameState.phase, 'MODAL');
   });
 });

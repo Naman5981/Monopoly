@@ -4,7 +4,7 @@
  */
 
 import { fmtMoney } from '../../../game/utils.js';
-import { ICON_PATHS, fillRoundRect } from './canvasUtils.js';
+import { BOARD_FONT_FAMILY, ICON_PATHS, fillRoundRect } from './canvasUtils.js';
 
 export function drawChanceTile(ctx, isCyber) {
   const cx = 256;
@@ -52,7 +52,7 @@ export function drawChanceTile(ctx, isCyber) {
 
   // 7. Central Golden 3D Mystery Crest "?"
   ctx.fillStyle = isCyber ? '#00f5ff' : '#fde047';
-  ctx.font = '900 68px Rubik, system-ui, sans-serif';
+  ctx.font = `900 68px ${BOARD_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.shadowColor = isCyber ? 'rgba(0, 245, 255, 0.8)' : 'rgba(245, 158, 11, 0.75)';
@@ -61,7 +61,7 @@ export function drawChanceTile(ctx, isCyber) {
   ctx.shadowColor = 'transparent';
 
   // 8. Card Top/Bottom Labels
-  ctx.font = '900 12px Rubik, monospace';
+  ctx.font = `900 12px ${BOARD_FONT_FAMILY}`;
   ctx.fillStyle = isCyber ? '#38bdf8' : '#fef08a';
   ctx.fillText('FORTUNE', cx, cy - th / 2 + 22);
   ctx.fillText('• DECK •', cx, cy + th / 2 - 22);
@@ -73,12 +73,12 @@ export function drawChanceTile(ctx, isCyber) {
   fillRoundRect(ctx, 36, 348, 440, 74, 20, true, true);
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 46px Rubik, system-ui, sans-serif';
+  ctx.font = `900 46px ${BOARD_FONT_FAMILY}`;
   ctx.fillText('CHANCE', 256, 385);
 
   // 10. Subtitle
   ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
-  ctx.font = '800 22px Rubik, system-ui, sans-serif';
+  ctx.font = `800 22px ${BOARD_FONT_FAMILY}`;
   ctx.fillText('6 FORTUNE CARDS', 256, 468);
 }
 
@@ -92,14 +92,14 @@ export function drawTaxTile(ctx, tile, isCyber) {
   fillRoundRect(ctx, 166, 60, 180, 190, 24, true, true);
 
   ctx.fillStyle = '#dc2626';
-  ctx.font = '900 100px Rubik, system-ui, sans-serif';
+  ctx.font = `900 100px ${BOARD_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('%', 256, 155);
 
   // Title
   ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-  ctx.font = '900 56px Rubik, system-ui, sans-serif';
+  ctx.font = `900 56px ${BOARD_FONT_FAMILY}`;
   const taxTitle = tile.name && tile.name !== 'TAX' ? tile.name : 'WORLD TAX';
   ctx.fillText(taxTitle, 256, 340);
 
@@ -110,12 +110,12 @@ export function drawTaxTile(ctx, tile, isCyber) {
   fillRoundRect(ctx, 36, 386, 440, 68, 18, true, true);
 
   ctx.fillStyle = '#dc2626';
-  ctx.font = '900 46px Rubik, system-ui, sans-serif';
+  ctx.font = `900 46px ${BOARD_FONT_FAMILY}`;
   ctx.fillText(`-${fmtMoney(taxAmount)}`, 256, 420);
 
   // Subtitle
   ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
-  ctx.font = '800 20px Rubik, system-ui, sans-serif';
+  ctx.font = `800 20px ${BOARD_FONT_FAMILY}`;
   ctx.fillText((tile.subtitle || 'FEES FUND THE FESTIVAL POOL').toUpperCase(), 256, 488);
 }
 
@@ -147,7 +147,7 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 310, 440, 74, 20, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 52px Rubik, system-ui, sans-serif';
+    ctx.font = `900 52px ${BOARD_FONT_FAMILY}`;
     ctx.fillText('START', 256, 347);
 
     ctx.fillStyle = '#ecfdf5';
@@ -156,7 +156,7 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 404, 440, 66, 18, true, true);
 
     ctx.fillStyle = '#065f46';
-    ctx.font = '900 24px Rubik, system-ui, sans-serif';
+    ctx.font = `900 24px ${BOARD_FONT_FAMILY}`;
     ctx.fillText(tile.subtitle ? tile.subtitle.toUpperCase() : 'PASS: +250K • LAND: +350K', 256, 437);
     return;
   }
@@ -188,7 +188,7 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 310, 440, 74, 20, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 46px Rubik, system-ui, sans-serif';
+    ctx.font = `900 46px ${BOARD_FONT_FAMILY}`;
     ctx.fillText(jailTitle, 256, 347);
 
     ctx.fillStyle = '#fffbeb';
@@ -197,7 +197,7 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 404, 440, 66, 18, true, true);
 
     ctx.fillStyle = '#92400e';
-    ctx.font = '900 24px Rubik, system-ui, sans-serif';
+    ctx.font = `900 24px ${BOARD_FONT_FAMILY}`;
     ctx.fillText(tile.subtitle ? tile.subtitle.toUpperCase() : 'ROLL DOUBLES OR 150K BAIL', 256, 437);
     return;
   }
@@ -227,7 +227,7 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 310, 440, 74, 20, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 46px Rubik, system-ui, sans-serif';
+    ctx.font = `900 46px ${BOARD_FONT_FAMILY}`;
     ctx.fillText(festTitle, 256, 347);
 
     ctx.fillStyle = '#faf5ff';
@@ -236,7 +236,7 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 404, 440, 66, 18, true, true);
 
     ctx.fillStyle = '#581c87';
-    ctx.font = '900 24px Rubik, system-ui, sans-serif';
+    ctx.font = `900 24px ${BOARD_FONT_FAMILY}`;
     ctx.fillText(tile.subtitle ? tile.subtitle.toUpperCase() : '2X CITY RENT & TAX JACKPOT', 256, 437);
     return;
   }
@@ -268,7 +268,7 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 310, 440, 74, 20, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 46px Rubik, system-ui, sans-serif';
+    ctx.font = `900 46px ${BOARD_FONT_FAMILY}`;
     ctx.fillText(tourTitle, 256, 347);
 
     ctx.fillStyle = '#f0f9ff';
@@ -277,16 +277,16 @@ export function drawCornerTile(ctx, tile, isCyber) {
     fillRoundRect(ctx, 36, 404, 440, 66, 18, true, true);
 
     ctx.fillStyle = isRoyal ? '#78350f' : '#075985';
-    ctx.font = '900 23px Rubik, system-ui, sans-serif';
+    ctx.font = `900 23px ${BOARD_FONT_FAMILY}`;
     ctx.fillText(isRoyal ? 'PALACE ON WHEELS • ANY TILE' : 'DIRECT FLIGHT TO ANY TILE', 256, 437);
     return;
   }
 
   // Fallback
   ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-  ctx.font = '900 52px Rubik, system-ui, sans-serif';
+  ctx.font = `900 52px ${BOARD_FONT_FAMILY}`;
   ctx.fillText(tile.name, 256, 395);
   ctx.fillStyle = isCyber ? '#94a3b8' : '#64748b';
-  ctx.font = '800 32px Rubik, system-ui, sans-serif';
+  ctx.font = `800 32px ${BOARD_FONT_FAMILY}`;
   ctx.fillText(tile.subtitle || '', 256, 452);
 }

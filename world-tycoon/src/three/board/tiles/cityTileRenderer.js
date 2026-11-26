@@ -7,7 +7,7 @@ import { GROUP_META, PLAYER_THEMES } from '../../../game/data.js';
 import { gameState, matchSettings } from '../../../game/state.js';
 import { fmtMoney } from '../../../game/utils.js';
 import { calculateTileRent } from '../../../game/rules.js';
-import { drawCadastralGrid, drawWhiteNeonText, drawCrispNeonPrice } from './canvasUtils.js';
+import { BOARD_FONT_FAMILY, drawCadastralGrid, drawWhiteNeonText, drawCrispNeonPrice } from './canvasUtils.js';
 
 const THEME_ICONS = ['🎩', '✈️', '🧭', '⚡', '👑', '💎'];
 
@@ -123,7 +123,7 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
   ctx.fill();
 
   ctx.fillStyle = colorHex;
-  ctx.font = '900 18px Rubik, system-ui, sans-serif';
+  ctx.font = `900 18px ${BOARD_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(slotBadge, slotX + slotW / 2, slotY + slotH / 2);
@@ -149,7 +149,7 @@ export function drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber) {
   const textY = ry + rh / 2;
   const maxTextW = (avatarCenterX - 24) - (slotX + slotW + 10);
 
-  ctx.font = '900 24px Rubik, system-ui, sans-serif';
+  ctx.font = `900 24px ${BOARD_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
@@ -184,7 +184,7 @@ export function drawFestivalBadge(ctx, badgeY = 320) {
 
   ctx.shadowColor = 'transparent';
   ctx.fillStyle = '#0b1120';
-  ctx.font = '900 18px Rubik, system-ui, sans-serif';
+  ctx.font = `900 18px ${BOARD_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('🎪 2× FESTIVAL', 256, badgeY + badgeH / 2 + 1);
@@ -235,7 +235,7 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
 
   const nameLen = tile.name.length;
   const nameFontSize = nameLen <= 6 ? 84 : (nameLen <= 9 ? 70 : (nameLen <= 11 ? 58 : 48));
-  const nameFont = `900 ${nameFontSize}px Rubik, system-ui, sans-serif`;
+  const nameFont = `900 ${nameFontSize}px ${BOARD_FONT_FAMILY}`;
 
   let valStr;
   if (isOwned) {
@@ -247,7 +247,7 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
 
   const valLen = valStr.length;
   const valFontSize = valLen <= 4 ? 148 : (valLen <= 5 ? 134 : (valLen <= 6 ? 120 : 106));
-  const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
+  const valFont = `900 ${valFontSize}px ${BOARD_FONT_FAMILY}`;
 
   const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
   const nameY = isOwned ? 245 : 220;
@@ -343,7 +343,7 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
 
   // Header Title
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 30px Rubik, system-ui, sans-serif';
+  ctx.font = `900 30px ${BOARD_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('RESORT', 256, 45);
@@ -355,7 +355,7 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
 
   const nameLen = tile.name.length;
   const nameFontSize = nameLen <= 6 ? 84 : (nameLen <= 9 ? 70 : (nameLen <= 11 ? 58 : 48));
-  const nameFont = `900 ${nameFontSize}px Rubik, system-ui, sans-serif`;
+  const nameFont = `900 ${nameFontSize}px ${BOARD_FONT_FAMILY}`;
 
   let valStr;
   if (isOwned) {
@@ -367,7 +367,7 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
 
   const valLen = valStr.length;
   const valFontSize = valLen <= 4 ? 148 : (valLen <= 5 ? 134 : (valLen <= 6 ? 120 : 106));
-  const valFont = `900 ${valFontSize}px Rubik, system-ui, sans-serif`;
+  const valFont = `900 ${valFontSize}px ${BOARD_FONT_FAMILY}`;
 
   const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
   const nameY = isOwned ? 245 : 220;

@@ -1,3 +1,5 @@
+export const BOARD_FONT_FAMILY = 'Fredoka, "Plus Jakarta Sans", system-ui, sans-serif';
+
 export function hexToRgb(hex) {
   const clean = (hex || '#3b82f6').replace('#', '');
   const num = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);

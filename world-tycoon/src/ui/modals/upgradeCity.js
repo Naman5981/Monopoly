@@ -29,7 +29,8 @@ import { updateModalSlice } from '../../svelte/stores/modalStore.js';
 export function openUpgradeCityModal(tile, isDoubles, isAlly = false) {
   if (isLobbyScreenActive()) return;
   const st = tile ? gameState.properties[tile.id] : null;
-  if (st && st.level >= 4) {
+  const p = gameState.players?.[gameState.currentPlayerIdx];
+  if ((st && st.level >= 4) || (p && tile?.houseCost && p.cash < tile.houseCost)) {
     if (engineCallbacks.concludeActionPhase) {
       engineCallbacks.concludeActionPhase(isDoubles);
     }

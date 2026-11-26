@@ -12,6 +12,7 @@ import { getTileWorldPosition } from './coords.js';
 import { getLightPlayerAccent } from '../core/lighting.js';
 import { disposeHierarchy } from '../core/dispose.js';
 import { setEmpireSpotlight, updateEmpireSpotlightPulse } from './empireSpotlight.js';
+import { BOARD_FONT_FAMILY } from './tiles/canvasUtils.js';
 export { setEmpireSpotlight };
 
 let activePlayerBeaconGroup = null;
@@ -98,7 +99,7 @@ function createTurnBillboardTexture(name, colorHex) {
 
   // 5. Overline Tag (better-typography: role-based hierarchy, uppercase, letter-spaced)
   ctx.save();
-  ctx.font = '900 24px Rubik, system-ui, sans-serif';
+  ctx.font = `900 24px ${BOARD_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#facc15'; // Vibrant gold star accent
@@ -109,7 +110,7 @@ function createTurnBillboardTexture(name, colorHex) {
   // 6. Primary Headline: Player's Turn in bold, punchy, crisp typography
   const textLen = cleanName.length;
   const fontSize = textLen <= 7 ? 84 : (textLen <= 11 ? 72 : 60);
-  ctx.font = `900 ${fontSize}px Rubik, system-ui, sans-serif`;
+  ctx.font = `900 ${fontSize}px ${BOARD_FONT_FAMILY}`;
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
   ctx.shadowBlur = 16;

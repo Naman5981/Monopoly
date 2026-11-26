@@ -12,9 +12,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Rubik', 'system-ui', 'sans-serif'],
-        rounded: ['Rubik', 'Fredoka', 'system-ui', 'sans-serif'],
-        display: ['Rubik', 'Fredoka', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        rounded: ['Fredoka', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        display: ['Fredoka', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       }
     }
   },

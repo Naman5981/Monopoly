@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 *, ::before, ::after{
   --tw-border-spacing-x: 0;
@@ -146,7 +146,7 @@ html,
   -moz-tab-size: 4; /* 3 */
   -o-tab-size: 4;
      tab-size: 4; /* 3 */
-  font-family: Rubik, system-ui, sans-serif; /* 4 */
+  font-family: Plus Jakarta Sans, system-ui, sans-serif; /* 4 */
   font-feature-settings: normal; /* 5 */
   font-variation-settings: normal; /* 6 */
   -webkit-tap-highlight-color: transparent; /* 7 */
@@ -226,7 +226,7 @@ code,
 kbd,
 samp,
 pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 1 */
+  font-family: JetBrains Mono, ui-monospace, SFMono-Regular, monospace; /* 1 */
   font-feature-settings: normal; /* 2 */
   font-variation-settings: normal; /* 3 */
   font-size: 1em; /* 4 */
@@ -2597,16 +2597,16 @@ video {
   text-align: right;
 }
 .font-display{
-  font-family: Rubik, Fredoka, system-ui, sans-serif;
+  font-family: Fredoka, Plus Jakarta Sans, system-ui, sans-serif;
 }
 .font-mono{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: JetBrains Mono, ui-monospace, SFMono-Regular, monospace;
 }
 .font-rounded{
-  font-family: Rubik, Fredoka, system-ui, sans-serif;
+  font-family: Fredoka, Plus Jakarta Sans, system-ui, sans-serif;
 }
 .font-sans{
-  font-family: Rubik, system-ui, sans-serif;
+  font-family: Plus Jakarta Sans, system-ui, sans-serif;
 }
 .text-2xl{
   font-size: 1.5rem;
@@ -3383,8 +3383,9 @@ video {
 }
 
 :root {
-  --font-display: 'Outfit', 'Rubik', system-ui, -apple-system, sans-serif;
-  --font-ui: 'Rubik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Fredoka', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
   --game-font: var(--font-display);
 }
 
@@ -3414,6 +3415,11 @@ body {
 
 .font-ui {
   font-family: var(--font-ui);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Hard guarantee that .hidden always sets display: none regardless of inline styles or specificity */
@@ -6009,11 +6015,11 @@ html, body {
 }
 
 .placeholder\:font-sans::-moz-placeholder{
-  font-family: Rubik, system-ui, sans-serif;
+  font-family: Plus Jakarta Sans, system-ui, sans-serif;
 }
 
 .placeholder\:font-sans::placeholder{
-  font-family: Rubik, system-ui, sans-serif;
+  font-family: Plus Jakarta Sans, system-ui, sans-serif;
 }
 
 .placeholder\:text-sm::-moz-placeholder{
