@@ -1,8 +1,13 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
 
   let state = $state({});
+  let hud = $state({});
   modalStore.subscribe(val => { state = val.inspector || {}; });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   function onClose() {
     window.closeInspectorModal?.();
@@ -37,14 +42,14 @@
 >
   <div
     id="modal-tile-inspector-card"
-    class="pointer-events-auto w-80 sm:w-92 max-w-[calc(100vw-24px)] bg-slate-950/95 border border-white/15 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui select-none transition-all duration-200"
-    style="box-shadow: 0 20px 50px -10px rgba(0,0,0,0.8), 0 0 25px {state.groupHex ? state.groupHex + '25' : 'rgba(255,255,255,0.05)'};"
+    class="pointer-events-auto w-80 sm:w-92 max-w-[calc(100vw-24px)] border rounded-3xl p-0 shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui select-none transition-all duration-200 {isDarkTheme ? 'bg-slate-950/95 border-white/15 text-white' : 'bg-white border-slate-200 text-slate-900'}"
+    style="box-shadow: 0 20px 50px -10px rgba(0,0,0,{isDarkTheme ? '0.8' : '0.22'}), 0 0 25px {state.groupHex ? state.groupHex + '25' : 'rgba(255,255,255,0.05)'};"
   >
     <!-- Header with Dynamic Atmospheric District Glow & 3D Preview -->
     <div
       id="insp-header"
       class="relative p-3.5 flex flex-col justify-between items-center text-center text-white overflow-hidden transition-all duration-200"
-      style="background: radial-gradient(circle at 50% 25%, {state.groupHex ? state.groupHex + '35' : 'rgba(59,130,246,0.25)'} 0%, rgba(2,6,23,0.92) 85%); border-bottom: 1px solid {state.groupHex ? state.groupHex + '40' : 'rgba(255,255,255,0.1)'};"
+      style="background: radial-gradient(circle at 50% 25%, {state.groupHex ? state.groupHex + '40' : 'rgba(59,130,246,0.3)'} 0%, {isDarkTheme ? 'rgba(2,6,23,0.92)' : 'rgba(15,23,42,0.88)'} 85%); border-bottom: 1px solid {state.groupHex ? state.groupHex + '40' : 'rgba(255,255,255,0.1)'};"
     >
       <!-- Close Button -->
       <button
@@ -82,41 +87,41 @@
     </div>
 
     <!-- Body Section -->
-    <div class="p-3.5 space-y-2.5 bg-slate-950/70">
+    <div class="p-3.5 space-y-2.5 {isDarkTheme ? 'bg-slate-950/70' : 'bg-white'}">
       <!-- Owner / Pricing Status Strip -->
       <div id="insp-owner-pill">
         {#if state.isOwner}
-          <div class="text-xs sm:text-sm font-display font-black py-2 px-3 rounded-2xl bg-emerald-950/60 text-emerald-300 border border-emerald-500/40 shadow-xs flex items-center justify-between">
-            <span class="flex items-center gap-1.5 text-white">
-              <i class="fa-solid fa-crown text-amber-400"></i>
+          <div class="text-xs sm:text-sm font-display font-black py-2 px-3 rounded-2xl border shadow-xs flex items-center justify-between {isDarkTheme ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}">
+            <span class="flex items-center gap-1.5 {isDarkTheme ? 'text-white' : 'text-emerald-950'}">
+              <i class="fa-solid fa-crown text-amber-500"></i>
               <span>Your Estate</span>
             </span>
-            <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded-full border {isDarkTheme ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-emerald-100 text-emerald-800 border-emerald-300'}">
               {state.levelLabel}
             </span>
           </div>
         {:else if state.isOwned}
-          <div class="text-xs sm:text-sm font-display font-black py-2 px-3 rounded-2xl bg-slate-900/80 text-slate-200 border border-white/10 shadow-xs flex items-center justify-between">
+          <div class="text-xs sm:text-sm font-display font-black py-2 px-3 rounded-2xl border shadow-xs flex items-center justify-between {isDarkTheme ? 'bg-slate-900/80 text-slate-200 border-white/10' : 'bg-slate-50 text-slate-700 border-slate-200'}">
             <span class="flex items-center gap-2 truncate">
               <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0 shadow-xs" style="background-color: {state.ownerColorHex || '#f43f5e'};"></span>
-              <span class="truncate">Owned by <strong class="text-white">{state.ownerName}</strong></span>
+              <span class="truncate">Owned by <strong class="{isDarkTheme ? 'text-white' : 'text-slate-900'}">{state.ownerName}</strong></span>
             </span>
-            <span class="text-[11px] font-mono text-slate-400 shrink-0">
+            <span class="text-[11px] font-mono shrink-0 {isDarkTheme ? 'text-slate-400' : 'text-slate-500'}">
               {state.levelLabel}
             </span>
           </div>
         {:else if state.priceFormatted}
-          <div class="text-xs sm:text-sm font-display font-black py-2 px-3 rounded-2xl bg-slate-900/80 text-slate-300 border border-white/10 shadow-xs flex items-center justify-between">
-            <span class="flex items-center gap-1.5 text-slate-400">
-              <i class="fa-solid fa-tag text-emerald-400"></i>
+          <div class="text-xs sm:text-sm font-display font-black py-2 px-3 rounded-2xl border shadow-xs flex items-center justify-between {isDarkTheme ? 'bg-slate-900/80 text-slate-300 border-white/10' : 'bg-slate-50 text-slate-600 border-slate-200'}">
+            <span class="flex items-center gap-1.5 {isDarkTheme ? 'text-slate-400' : 'text-slate-600'}">
+              <i class="fa-solid fa-tag text-emerald-500"></i>
               <span>Unowned</span>
             </span>
-            <span class="font-mono text-emerald-300">
-              Price: <strong class="text-white font-black">{state.priceFormatted}</strong>
+            <span class="font-mono {isDarkTheme ? 'text-emerald-300' : 'text-emerald-700'}">
+              Price: <strong class="font-black {isDarkTheme ? 'text-white' : 'text-slate-900'}">{state.priceFormatted}</strong>
             </span>
           </div>
         {:else}
-          <div class="text-xs font-display font-bold text-center py-2 px-3 rounded-2xl bg-slate-900/80 text-slate-300 border border-white/10 shadow-xs">
+          <div class="text-xs font-display font-bold text-center py-2 px-3 rounded-2xl border shadow-xs {isDarkTheme ? 'bg-slate-900/80 text-slate-300 border-white/10' : 'bg-slate-50 text-slate-700 border-slate-200'}">
             {state.subtitle || 'Special Tile'}
           </div>
         {/if}
@@ -127,44 +132,44 @@
         {#if state.rentTiers && state.rentTiers.length > 0}
           {#each state.rentTiers as tier}
             {#if tier.isCurrent}
-              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border-2 border-emerald-400 bg-emerald-500/15 shadow-[0_0_15px_rgba(16,185,129,0.25)] text-white transition-all">
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border-2 border-emerald-400 transition-all {isDarkTheme ? 'bg-emerald-500/15 text-white' : 'bg-emerald-50 text-emerald-950'}">
                 <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-lg bg-emerald-500 text-slate-950 font-black flex items-center justify-center text-[10px] shadow-xs">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white font-black flex items-center justify-center text-[10px] shadow-xs">
                     <i class="fa-solid {tier.icon}"></i>
                   </span>
                   <div class="flex items-center gap-1.5">
-                    <span class="font-display font-black text-xs text-white">{tier.label}</span>
-                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 font-black tracking-wider shadow-xs">ACTIVE</span>
+                    <span class="font-display font-black text-xs">{tier.label}</span>
+                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-500 text-white font-black tracking-wider shadow-xs">ACTIVE</span>
                   </div>
                 </div>
-                <div class="text-xs font-mono font-black text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-lg shadow-xs">
+                <div class="text-xs font-mono font-black border px-2 py-0.5 rounded-lg shadow-xs {isDarkTheme ? 'text-emerald-300 bg-emerald-950/70 border-emerald-500/40' : 'text-emerald-800 bg-white border-emerald-300'}">
                   {tier.rent}
                 </div>
               </div>
             {:else if tier.isMax}
-              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-amber-500/30 bg-amber-950/20 text-amber-200/90 transition-all hover:bg-amber-950/30">
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border transition-all {isDarkTheme ? 'border-amber-500/30 bg-amber-950/20 text-amber-200/90 hover:bg-amber-950/30' : 'border-amber-200 bg-amber-50/70 text-amber-900 hover:bg-amber-50'}">
                 <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 font-black flex items-center justify-center text-[10px]">
+                  <span class="w-6 h-6 rounded-lg font-black flex items-center justify-center text-[10px] border {isDarkTheme ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-amber-100 text-amber-700 border-amber-300'}">
                     <i class="fa-solid {tier.icon}"></i>
                   </span>
                   <div class="flex items-center gap-1.5">
-                    <span class="font-display font-bold text-xs text-amber-200">{tier.label}</span>
-                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">MAX</span>
+                    <span class="font-display font-bold text-xs">{tier.label}</span>
+                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded-md border font-bold {isDarkTheme ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-amber-100 text-amber-800 border-amber-300'}">MAX</span>
                   </div>
                 </div>
-                <div class="text-xs font-mono font-bold text-amber-300 px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <div class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg border {isDarkTheme ? 'text-amber-300 bg-amber-500/10 border-amber-500/20' : 'text-amber-800 bg-white border-amber-200'}">
                   {tier.rent}
                 </div>
               </div>
             {:else}
-              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-slate-900/70 text-slate-300 transition-colors">
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl border transition-colors {isDarkTheme ? 'border-white/5 bg-slate-900/40 hover:bg-slate-900/70 text-slate-300' : 'border-slate-200/80 bg-slate-50/70 hover:bg-slate-100 text-slate-700'}">
                 <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-lg bg-white/5 text-slate-400 border border-white/10 font-bold flex items-center justify-center text-[10px]">
+                  <span class="w-6 h-6 rounded-lg border font-bold flex items-center justify-center text-[10px] {isDarkTheme ? 'bg-white/5 text-slate-400 border-white/10' : 'bg-white text-slate-500 border-slate-200'}">
                     {tier.badgeText}
                   </span>
-                  <span class="font-display font-medium text-xs text-slate-300">{tier.label}</span>
+                  <span class="font-display font-medium text-xs">{tier.label}</span>
                 </div>
-                <div class="text-xs font-mono font-bold text-slate-300 px-2 py-0.5">
+                <div class="text-xs font-mono font-bold px-2 py-0.5">
                   {tier.rent}
                 </div>
               </div>
@@ -173,11 +178,11 @@
         {/if}
       </div>
 
-      <!-- Financial Intel (House build cost & sell refund) -->
+      <!-- Financial Intel -->
       {#if state.houseCostFormatted}
-        <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 px-1 pt-1 border-t border-white/10">
+        <div class="flex items-center justify-between text-[11px] font-bold px-1 pt-1 border-t {isDarkTheme ? 'text-slate-400 border-white/10' : 'text-slate-500 border-slate-200'}">
           <span>House Build Cost:</span>
-          <strong class="text-slate-200 font-mono">{state.houseCostFormatted}</strong>
+          <strong class="font-mono {isDarkTheme ? 'text-slate-200' : 'text-slate-900'}">{state.houseCostFormatted}</strong>
         </div>
       {/if}
 
@@ -185,13 +190,13 @@
       <div id="insp-actions" class="space-y-1.5 pt-0.5">
         {#if state.isOwner}
           {#if !state.isStandingOnTile}
-            <div class="py-2 px-3 rounded-xl bg-slate-900/60 border border-white/10 text-slate-400 font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-2xs">
-              <i class="fa-solid fa-location-dot text-slate-500"></i>
+            <div class="py-2 px-3 rounded-xl border font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-2xs {isDarkTheme ? 'bg-slate-900/60 border-white/10 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'}">
+              <i class="fa-solid fa-location-dot text-slate-400"></i>
               <span>Land here to build upgrades</span>
             </div>
           {:else if !state.isTurnActionable}
-            <div class="w-full py-2 px-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-300 font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs">
-              <i class="fa-solid fa-lock text-amber-400"></i>
+            <div class="w-full py-2 px-3 rounded-xl border font-black text-xs text-center flex items-center justify-center gap-1.5 shadow-xs {isDarkTheme ? 'bg-amber-950/40 border-amber-500/30 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800'}">
+              <i class="fa-solid fa-lock text-amber-500"></i>
               <span>Wait for your turn to build upgrades</span>
             </div>
           {:else}
@@ -215,12 +220,12 @@
             </div>
           {/if}
         {:else if state.isOwned && state.currentRentFormatted}
-          <div class="py-1.5 px-3 rounded-xl bg-slate-900/40 border border-white/5 text-slate-400 font-medium text-[11px] text-center">
-            Rent payable upon landing: <strong class="text-rose-400 font-mono font-bold">{state.currentRentFormatted}</strong>
+          <div class="py-1.5 px-3 rounded-xl border font-medium text-[11px] text-center {isDarkTheme ? 'bg-slate-900/40 border-white/5 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'}">
+            Rent payable upon landing: <strong class="font-mono font-bold {isDarkTheme ? 'text-rose-400' : 'text-rose-600'}">{state.currentRentFormatted}</strong>
           </div>
         {:else if !state.isOwned && state.priceFormatted}
-          <div class="py-1.5 px-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 font-medium text-[11px] text-center">
-            Land here to purchase for <strong class="text-white font-mono font-bold">{state.priceFormatted}</strong>
+          <div class="py-1.5 px-3 rounded-xl border font-medium text-[11px] text-center {isDarkTheme ? 'bg-emerald-950/30 border-emerald-500/20 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}">
+            Land here to purchase for <strong class="font-mono font-bold {isDarkTheme ? 'text-white' : 'text-emerald-950'}">{state.priceFormatted}</strong>
           </div>
         {/if}
       </div>

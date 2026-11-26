@@ -1,10 +1,15 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
   import { fly } from 'svelte/transition';
   import { backOut } from 'svelte/easing';
 
   let state = $state({});
+  let hud = $state({});
   modalStore.subscribe(val => { state = val.monopolyCelebration || {}; });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   function onClose() {
     if (typeof window !== 'undefined' && typeof window.closeMonopolyModal === 'function') {
@@ -39,8 +44,8 @@
     transition:fly={{ duration: 380, y: 40, easing: backOut }}
   >
     <div
-      class="relative w-full rounded-2xl bg-slate-950/95 border-2 p-3 sm:p-4 text-white shadow-2xl flex flex-col backdrop-blur-sm"
-      style="border-color: {state.groupColor || '#f59e0b'}; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 28px {state.groupColor || '#f59e0b'}40;"
+      class="relative w-full rounded-2xl border-2 p-3 sm:p-4 shadow-2xl flex flex-col backdrop-blur-sm {isDarkTheme ? 'bg-slate-950/95 text-white' : 'bg-white text-slate-900'}"
+      style="border-color: {state.groupColor || '#f59e0b'}; box-shadow: 0 16px 48px rgba(0, 0, 0, {isDarkTheme ? '0.7' : '0.22'}), 0 0 28px {state.groupColor || '#f59e0b'}40;"
     >
       <!-- Main Content Row -->
       <div class="w-full flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -58,7 +63,7 @@
 
           <div class="flex flex-col">
             <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <span id="monopoly-ribbon-title" class="font-display font-black text-sm sm:text-base text-amber-300 tracking-wide uppercase flex items-center gap-1">
+              <span id="monopoly-ribbon-title" class="font-display font-black text-sm sm:text-base tracking-wide uppercase flex items-center gap-1 {isDarkTheme ? 'text-amber-300' : 'text-amber-600'}">
                 🏆 MONOPOLY!
               </span>
               <span
@@ -68,8 +73,8 @@
                 {state.groupName || 'DISTRICT'}
               </span>
             </div>
-            <p id="monopoly-ribbon-subtitle" class="text-xs font-bold text-slate-200 mt-0.5">
-              <span id="monopoly-winner-name" class="text-white font-black">{state.winnerName || 'Player'}</span> &bull; <span class="text-amber-300 font-extrabold uppercase tracking-wide">All District Rents Doubled (2×)</span>
+            <p id="monopoly-ribbon-subtitle" class="text-xs font-bold mt-0.5 {isDarkTheme ? 'text-slate-200' : 'text-slate-600'}">
+              <span id="monopoly-winner-name" class="font-black {isDarkTheme ? 'text-white' : 'text-slate-900'}">{state.winnerName || 'Player'}</span> &bull; <span class="font-extrabold uppercase tracking-wide {isDarkTheme ? 'text-amber-300' : 'text-amber-700'}">All District Rents Doubled (2×)</span>
             </p>
           </div>
         </div>
@@ -79,9 +84,9 @@
           <div id="monopoly-cards-row" class="flex-1 flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-0.5">
             {#if state.deedCards && state.deedCards.length > 0}
               {#each state.deedCards as card}
-                <div class="flex-1 min-w-[85px] sm:min-w-[105px] py-1.5 px-2 rounded-xl bg-slate-900/90 border border-white/15 flex flex-col items-center text-center shadow-inner">
-                  <span class="text-[11px] font-black text-white truncate max-w-[120px]">{card.name}</span>
-                  <span class="text-[10px] sm:text-[11px] font-mono font-black text-amber-300 mt-0.5 whitespace-nowrap">
+                <div class="flex-1 min-w-[85px] sm:min-w-[105px] py-1.5 px-2 rounded-xl border flex flex-col items-center text-center shadow-inner {isDarkTheme ? 'bg-slate-900/90 border-white/15' : 'bg-slate-50 border-slate-200'}" style="border-top: 3px solid {state.groupColor || '#f59e0b'};">
+                  <span class="text-[11px] font-black truncate max-w-[120px] {isDarkTheme ? 'text-white' : 'text-slate-900'}">{card.name}</span>
+                  <span class="text-[10px] sm:text-[11px] font-mono font-black mt-0.5 whitespace-nowrap {isDarkTheme ? 'text-amber-300' : 'text-emerald-700'}">
                     ⚡ {card.rentFormatted || '2× RENT'}
                   </span>
                 </div>
@@ -94,7 +99,7 @@
             id="monopoly-close-btn"
             type="button"
             onclick={onClose}
-            class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition flex items-center justify-center text-slate-300 hover:text-white text-xs font-bold shrink-0 cursor-pointer ml-1"
+            class="w-7 h-7 rounded-full active:scale-95 transition flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer ml-1 {isDarkTheme ? 'bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900'}"
             aria-label="Dismiss celebration"
           >
             ✕
@@ -102,14 +107,14 @@
         </div>
       </div>
 
-      <!-- Bottom Hint Bar (Single clean hint, no duplicate dismiss buttons) -->
-      <div class="w-full mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-medium">
+      <!-- Bottom Hint Bar -->
+      <div class="w-full mt-2 pt-1.5 border-t flex items-center justify-between text-[10px] font-medium {isDarkTheme ? 'border-slate-800/80 text-slate-400' : 'border-slate-200 text-slate-500'}">
         <span>Tap anywhere or press ESC to dismiss</span>
-        <span class="font-mono text-slate-500 uppercase tracking-wider text-[10px]">Auto-closing</span>
+        <span class="font-mono uppercase tracking-wider text-[10px] {isDarkTheme ? 'text-slate-500' : 'text-slate-400'}">Auto-closing</span>
       </div>
 
       <!-- Depleting Progress Bar (District Color Harmonized) -->
-      <div class="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl overflow-hidden bg-slate-900">
+      <div class="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl overflow-hidden {isDarkTheme ? 'bg-slate-900' : 'bg-slate-200'}">
         <div
           class="h-full rounded-full"
           style="background: {state.groupColor || '#f59e0b'}; animation: monopolyTimerDeplete 4.5s linear forwards;"

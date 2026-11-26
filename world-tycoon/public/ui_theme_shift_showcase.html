@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>World Tycoon — All Alerts &amp; Modals Theme Showcase</title>
+  <title>World Tycoon — Full UI Color Shift Showcase (Rich Layouts Preserved)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet" />
   <style>
@@ -11,6 +11,7 @@
       --bg-canvas: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 100%);
       --surface: #ffffff;
       --surface-subtle: #f8fafc;
+      --surface-elevated: #f1f5f9;
       --border: #e2e8f0;
       --text: #0f172a;
       --muted: #64748b;
@@ -31,6 +32,7 @@
       --bg-canvas: linear-gradient(180deg, #070b14 0%, #0f172a 100%);
       --surface: rgba(15, 23, 42, 0.96);
       --surface-subtle: rgba(30, 41, 59, 0.85);
+      --surface-elevated: rgba(2, 6, 23, 0.72);
       --border: rgba(255, 255, 255, 0.14);
       --text: #f8fafc;
       --muted: #94a3b8;
@@ -52,12 +54,12 @@
       margin: 0; min-height: 100vh;
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       background: var(--bg-canvas); color: var(--text);
-      padding: 24px 20px 64px;
+      padding: 22px 18px 64px;
       transition: background 0.25s ease, color 0.25s ease;
     }
-    .wrap { max-width: 1240px; margin: 0 auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; }
     .topbar-header {
-      position: sticky; top: 12px; z-index: 30;
+      position: sticky; top: 10px; z-index: 30;
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
       background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px;
       padding: 12px 16px; margin-bottom: 22px; box-shadow: var(--shadow);
@@ -68,7 +70,7 @@
     .switcher button { border: 0; border-radius: 999px; padding: 7px 14px; font-weight: 800; font-size: 12px; cursor: pointer; background: transparent; color: var(--muted); }
     .switcher button.active { background: #0284c7; color: #ffffff; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; }
     .card {
       background: var(--surface); border: 1.5px solid var(--border); border-radius: 24px;
       padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 11px;
@@ -76,6 +78,7 @@
     .label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
     .title { font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 700; line-height: 1.15; }
     .subtle { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 14px; padding: 9px 11px; font-size: 12px; }
+    .elevated { background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 14px; padding: 9px 11px; font-size: 12px; }
     .pill {
       display: inline-flex; align-items: center; gap: 7px;
       background: var(--pill-bg); border: 1.5px solid var(--pill-border);
@@ -84,21 +87,22 @@
     .accent-box { background: var(--accent-bg); border: 1px solid var(--accent-border); color: var(--accent-text); border-radius: 12px; padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-weight: 800; }
     .rose-box { background: var(--rose-bg); border: 1px solid var(--rose-border); color: var(--rose-text); border-radius: 12px; padding: 4px 10px; font-weight: 800; }
     .amber-box { background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text); border-radius: 12px; padding: 4px 10px; font-weight: 800; }
-    .btn-green { background: linear-gradient(180deg, #22c55e, #16a34a); border: 2px solid #fff; box-shadow: 0 3px 0 #15803d; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; }
-    .btn-red { background: linear-gradient(180deg, #f43f5e, #e11d48); border: 2px solid #fff; box-shadow: 0 3px 0 #be123c; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; }
-    .btn-amber { background: linear-gradient(180deg, #f59e0b, #d97706); border: 2px solid #fff; box-shadow: 0 3px 0 #b45309; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; }
-    .btn-secondary { background: var(--surface-subtle); border: 1.5px solid var(--border); color: var(--text); font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; }
+    .btn-green { background: linear-gradient(180deg, #22c55e, #16a34a); border: 2px solid #fff; box-shadow: 0 3px 0 #15803d; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+    .btn-red { background: linear-gradient(180deg, #f43f5e, #e11d48); border: 2px solid #fff; box-shadow: 0 3px 0 #be123c; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+    .btn-amber { background: linear-gradient(180deg, #f59e0b, #d97706); border: 2px solid #fff; box-shadow: 0 3px 0 #b45309; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+    .btn-secondary { background: var(--surface-subtle); border: 1.5px solid var(--border); color: var(--text); font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
     .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .divider { border-bottom: 1px solid var(--border); padding-bottom: 9px; }
     .icon-badge { width: 38px; height: 38px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
+    .chip-mini { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-subtle); }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar-header">
       <div>
-        <h1>World Tycoon — All Alerts &amp; Modals Preview</h1>
-        <p class="sub">14 unified UI surfaces shifting between Option A (Day / Sunset) and Option B (Night / Cyberpunk).</p>
+        <h1>World Tycoon — Full UI Color Shift (Rich Layouts Preserved)</h1>
+        <p class="sub">All icons, charts, rent tables, timers, and stats stay intact — only surface, border &amp; text colors shift.</p>
       </div>
       <div class="switcher">
         <button id="btn-day" class="active" onclick="setTheme(false)">☀️ Day / Sunset (Option A)</button>
@@ -107,161 +111,203 @@
     </div>
 
     <div class="grid">
-      <!-- 1. TopBar & StatusPill -->
+      <!-- 1. TopBar, StatusPill & Event Log -->
       <div class="card">
-        <span class="label">1. TopBar &amp; Status Pill</span>
+        <span class="label">1. TopBar, Status Pill &amp; Event Log</span>
         <div style="display:flex; flex-wrap:wrap; gap:6px;">
           <span class="pill"><i class="fa-solid fa-house" style="color:#6366f1;"></i> Lobby</span>
+          <span class="pill"><i class="fa-solid fa-city" style="color:#0284c7;"></i> Cities</span>
+          <span class="pill"><i class="fa-solid fa-handshake" style="color:#10b981;"></i> Trade</span>
           <span class="pill"><i class="fa-solid fa-clock" style="color:#0284c7;"></i> 14:32</span>
           <span class="pill"><i class="fa-solid fa-sun" style="color:#f59e0b;"></i> Morning</span>
         </div>
         <div class="pill row" style="width:100%;">
-          <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#10b981;margin-right:6px;"></span>Your Turn — Roll dice</span>
-          <span style="font-size:10px;color:var(--muted);">LOG</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#10b981;margin-right:6px;"></span><i class="fa-solid fa-dice" style="color:#f59e0b;margin-right:4px;"></i>Your Turn — Roll dice or press Space</span>
+          <span class="chip-mini"><i class="fa-solid fa-list-ul" style="color:#f59e0b;"></i> LOG</span>
+        </div>
+        <div class="subtle" style="font-size:11px;display:flex;flex-direction:column;gap:4px;">
+          <div>🏙️ <strong>NAMAN</strong> bought <strong>Tokyo</strong> for <strong>$480K</strong></div>
+          <div>🎲 <strong>BARON</strong> rolled 8 (4 + 4 Doubles!)</div>
         </div>
       </div>
 
-      <!-- 2. Buy City Dock -->
-      <div class="card">
-        <span class="label">2. Buy City / Resort Dock</span>
+      <!-- 2. Upgrade City Dock -->
+      <div class="card" style="border-color: var(--accent-border);">
+        <span class="label">2. Upgrade City Dock (All Details Intact)</span>
+        <div class="row divider">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+            <span style="width:12px;height:12px;border-radius:99px;background:#22c55e;"></span>
+            <div>
+              <div class="title">Tokyo <span class="chip-mini">Lvl 1 → 2</span></div>
+              <div style="font-size:11px;color:var(--muted);font-weight:700;">GREEN DISTRICT • CASH: $1.65M</div>
+            </div>
+          </div>
+          <div class="accent-box" style="text-align:right;">
+            <div style="font-size:9px;">NEW RENT</div>
+            <div style="font-size:15px;">$360K</div>
+          </div>
+        </div>
+        <div class="subtle row" style="font-size:11px;">
+          <span>Current Rent: <strong>$180K</strong></span>
+          <span><i class="fa-solid fa-arrow-trend-up" style="color:#10b981;"></i> +$180K / visit</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-green" style="flex:1;"><i class="fa-solid fa-hammer"></i> Upgrade ($240K)</button>
+          <button class="btn-secondary">Skip</button>
+        </div>
+      </div>
+
+      <!-- 3. Hostile Buyout Dock -->
+      <div class="card" style="border-color: var(--rose-border);">
+        <span class="label">3. Hostile Buyout Dock</span>
         <div class="row divider">
           <div style="display:flex;align-items:center;gap:8px;">
-            <span style="width:11px;height:11px;border-radius:99px;background:#0ea5e9;"></span>
-            <div><div class="title">Riviera</div><div class="label">Coastal Resort</div></div>
+            <span style="width:12px;height:12px;border-radius:99px;background:#ef4444;"></span>
+            <div>
+              <div class="title">London <span class="rose-box" style="font-size:10px;padding:1px 6px;">Takeover 1/2</span></div>
+              <div style="font-size:11px;color:var(--muted);font-weight:700;">Owned by BARON • Lvl 2</div>
+            </div>
           </div>
-          <div class="accent-box"><div style="font-size:9px;">BASE RENT</div>$60K</div>
+          <div class="rose-box" style="text-align:right;font-family:'JetBrains Mono',monospace;">
+            <div style="font-size:9px;">BUYOUT</div>
+            <div style="font-size:15px;">$680K</div>
+          </div>
         </div>
-        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Buy for $200K</button><button class="btn-secondary">Pass</button></div>
+        <div class="subtle row" style="font-size:11px;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#f43f5e;"></i> 2nd takeover locks as Landmark</span>
+          <span>Rent: <strong>$280K</strong></span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-red" style="flex:1;"><i class="fa-solid fa-gavel"></i> Buyout ($680K)</button>
+          <button class="btn-secondary">Pass (9s)</button>
+        </div>
       </div>
 
-      <!-- 3. Upgrade City Dock -->
-      <div class="card">
-        <span class="label">3. Upgrade City Dock</span>
+      <!-- 4. Live Auction Dock -->
+      <div class="card" style="border-color: var(--amber-border);">
+        <span class="label">4. Live Auction Dock</span>
         <div class="row divider">
-          <div><div class="title">Tokyo</div><div class="label">Green District • Lvl 1 → 2</div></div>
-          <div class="accent-box"><div style="font-size:9px;">NEW RENT</div>$360K</div>
+          <div>
+            <div class="title">Dubai <span class="amber-box" style="font-size:10px;padding:1px 6px;">LIVE BID</span></div>
+            <div style="font-size:11px;color:var(--muted);font-weight:700;">Leader: BARON • Queue: 1 left</div>
+          </div>
+          <div class="amber-box" style="text-align:right;font-family:'JetBrains Mono',monospace;">
+            <div style="font-size:9px;">HIGH BID</div>
+            <div style="font-size:15px;">$380K • 4s</div>
+          </div>
         </div>
-        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Upgrade for $240K</button><button class="btn-secondary">Skip</button></div>
-      </div>
-
-      <!-- 4. Hostile Buyout Dock -->
-      <div class="card">
-        <span class="label">4. Hostile Buyout Dock</span>
-        <div class="row divider">
-          <div><div class="title">London</div><div class="label">Owned by Baron • Takeover 1/2</div></div>
-          <div class="rose-box" style="font-family:'JetBrains Mono',monospace;">$680K</div>
-        </div>
-        <div style="display:flex;gap:8px;"><button class="btn-red" style="flex:1;">Buyout for $680K</button><button class="btn-secondary">Pass</button></div>
-      </div>
-
-      <!-- 5. Auction Dock -->
-      <div class="card">
-        <span class="label">5. Live Auction Dock</span>
-        <div class="row divider">
-          <div><div class="title">Dubai</div><div class="label">Highest Bid • Baron</div></div>
-          <div class="amber-box" style="font-family:'JetBrains Mono',monospace;">$380K • 4s</div>
-        </div>
+        <div style="height:6px;background:var(--surface-subtle);border-radius:99px;overflow:hidden;"><div style="width:68%;height:100%;background:linear-gradient(90deg,#f59e0b,#ef4444);"></div></div>
         <div style="display:flex;gap:6px;">
           <button class="btn-amber" style="flex:1;">+$20K</button>
           <button class="btn-amber" style="flex:1;">+$50K</button>
+          <button class="btn-amber" style="flex:1;">+$100K</button>
           <button class="btn-secondary">Pass</button>
         </div>
       </div>
 
-      <!-- 6. Sell Cities (Debt Liquidation) -->
-      <div class="card">
-        <span class="label">6. Sell Cities (Rent Debt)</span>
+      <!-- 5. Sell Cities (Liquidation) -->
+      <div class="card" style="border-color: var(--rose-border);">
+        <span class="label">5. Sell Cities (Rent Debt)</span>
         <div class="row divider">
-          <div><div class="title">Raise $180K</div><div class="label">Owed to Atlas • Cash $90K</div></div>
-          <div class="rose-box">-$90K Short</div>
+          <div>
+            <div class="title">Liquidate Assets</div>
+            <div style="font-size:11px;color:var(--muted);font-weight:700;">Owed to ATLAS: $180K • Cash: $90K</div>
+          </div>
+          <div class="rose-box" style="font-family:'JetBrains Mono',monospace;">-$90K Short</div>
         </div>
-        <div class="subtle row"><span><strong>Cairo</strong> <span style="color:var(--muted);">• Lvl 0</span></span><button class="btn-red" style="padding:5px 11px;font-size:11px;">Sell +$100K</button></div>
+        <div class="subtle row">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#a16207;margin-right:6px;"></span><strong>Cairo</strong> • Lvl 0</span>
+          <button class="btn-red" style="padding:5px 11px;font-size:11px;">Sell +$100K</button>
+        </div>
+        <div class="subtle row">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#38bdf8;margin-right:6px;"></span><strong>Athens</strong> • Lvl 1</span>
+          <button class="btn-red" style="padding:5px 11px;font-size:11px;">Sell +$140K</button>
+        </div>
       </div>
 
-      <!-- 7. Trade Modal / Incoming Offer -->
-      <div class="card">
-        <span class="label">7. Incoming Trade Offer</span>
-        <div class="row divider">
-          <div><div class="title">Offer from Nova</div><div class="label">1 City + $120K ↔ Your 1 City</div></div>
-          <span class="accent-box" style="font-size:11px;">+$120K</span>
-        </div>
-        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Accept Trade</button><button class="btn-secondary">Decline</button></div>
-      </div>
-
-      <!-- 8. Monopoly Celebration Dock -->
-      <div class="card">
-        <span class="label">8. Monopoly Complete Dock</span>
+      <!-- 6. Monopoly Celebration Dock (with District Color) -->
+      <div class="card" style="border-top: 4px solid #ef4444;">
+        <span class="label">6. Monopoly Complete Dock (District Color Kept)</span>
         <div class="row divider">
           <div style="display:flex;align-items:center;gap:9px;">
-            <span class="icon-badge amber-box"><i class="fa-solid fa-crown"></i></span>
-            <div><div class="title">Naman Completed Red!</div><div class="label">2× District Rent Active</div></div>
+            <span class="icon-badge" style="background:rgba(239,68,68,0.16);border:1px solid rgba(239,68,68,0.45);color:#ef4444;"><i class="fa-solid fa-crown"></i></span>
+            <div>
+              <div class="title" style="display:flex;align-items:center;gap:6px;">
+                <span>NAMAN Completed</span>
+                <span style="font-size:11px;padding:2px 8px;border-radius:999px;background:#ef4444;color:#fff;">RED</span>
+              </div>
+              <div style="font-size:11px;color:var(--muted);font-weight:700;">2× District Rent Unlocked</div>
+            </div>
           </div>
           <button class="btn-secondary" style="padding:6px 10px;">✕</button>
         </div>
-        <div class="subtle row"><span>Dubai • Singapore • Hong Kong</span><span class="accent-box" style="font-size:11px;">2× Rent</span></div>
-      </div>
-
-      <!-- 9. Festival Boost / No Properties Alert -->
-      <div class="card">
-        <span class="label">9. Festival Boost &amp; Info Alert</span>
-        <div class="row divider">
-          <div style="display:flex;align-items:center;gap:9px;">
-            <span class="icon-badge amber-box"><i class="fa-solid fa-champagne-glasses"></i></span>
-            <div><div class="title">World Festival</div><div class="label">Pick a city for 2× rent</div></div>
-          </div>
-          <button class="btn-secondary" style="padding:6px 10px;">Skip</button>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+          <div class="subtle" style="text-align:center;border-top:3px solid #ef4444;"><strong>Dubai</strong><div class="accent-box" style="font-size:10px;margin-top:4px;">$140K</div></div>
+          <div class="subtle" style="text-align:center;border-top:3px solid #ef4444;"><strong>Singapore</strong><div class="accent-box" style="font-size:10px;margin-top:4px;">$148K</div></div>
+          <div class="subtle" style="text-align:center;border-top:3px solid #ef4444;"><strong>Hong Kong</strong><div class="accent-box" style="font-size:10px;margin-top:4px;">$160K</div></div>
         </div>
-        <div class="subtle">Or when 0 properties owned: <strong>No properties to boost yet.</strong></div>
+        <div style="height:4px;background:var(--surface-subtle);border-radius:99px;overflow:hidden;"><div style="width:72%;height:100%;background:#ef4444;"></div></div>
       </div>
 
-      <!-- 10. Inspector & Leaderboard -->
+      <!-- 7. Property Inspector Dossier -->
       <div class="card">
-        <span class="label">10. Inspector &amp; Leaderboard</span>
-        <div class="subtle row"><span><strong>#1 Naman</strong> <span style="color:var(--muted);">• 4 cities</span></span><span class="accent-box" style="font-size:12px;">$2.84M</span></div>
-        <div class="subtle row"><span><strong>#2 Baron</strong> <span style="color:var(--muted);">• 2 cities</span></span><span style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--muted);">$1.95M</span></div>
-      </div>
-
-      <!-- 11. Exit to Lobby & Resume Match -->
-      <div class="card">
-        <span class="label">11. Exit Match &amp; Resume Alerts</span>
+        <span class="label">7. Property Inspector Dossier (Rent Table Intact)</span>
         <div class="row divider">
-          <div style="display:flex;align-items:center;gap:9px;">
-            <span class="icon-badge rose-box"><i class="fa-solid fa-door-open"></i></span>
-            <div><div class="title">Exit to Lobby?</div><div class="label">Current match progress will be lost</div></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="width:12px;height:12px;border-radius:99px;background:#3b82f6;"></span>
+            <div><div class="title">Jaipur</div><div style="font-size:11px;color:var(--muted);font-weight:700;">DARK BLUE • OWNER: NAMAN</div></div>
           </div>
+          <button class="btn-secondary" style="padding:5px 10px;">✕</button>
         </div>
-        <div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;">Keep Playing</button><button class="btn-red" style="flex:1;">Exit Match</button></div>
+        <div class="subtle" style="display:flex;flex-direction:column;gap:4px;">
+          <div class="row"><span>Base</span><strong>$120K</strong></div>
+          <div class="row accent-box"><span>● Lvl 1 Villa (Active)</span><strong>$300K</strong></div>
+          <div class="row"><span>Lvl 2 Hotel</span><strong>$550K</strong></div>
+          <div class="row"><span>Lvl 4 Skyscraper</span><strong>$1.10M</strong></div>
+        </div>
+        <div class="elevated row"><span>Build Cost: <strong>$280K</strong></span><button class="btn-green" style="padding:6px 12px;font-size:11px;">Upgrade</button></div>
       </div>
 
-      <!-- 12. Disconnect & Reconnect Grace -->
+      <!-- 8. Leaderboard & Net Worth Timeline -->
       <div class="card">
-        <span class="label">12. Disconnect / Reconnect Alerts</span>
-        <div class="row divider">
-          <div style="display:flex;align-items:center;gap:9px;">
-            <span class="icon-badge amber-box"><i class="fa-solid fa-wifi"></i></span>
-            <div><div class="title">Reconnecting Peer...</div><div class="label">Waiting for Brave (24s)</div></div>
-          </div>
+        <span class="label">8. Leaderboard &amp; Net Worth Chart</span>
+        <div class="row divider"><div class="title"><i class="fa-solid fa-ranking-star" style="color:#f59e0b;margin-right:6px;"></i>Standings</div><button class="btn-secondary" style="padding:5px 10px;">✕</button></div>
+        <div class="subtle row"><span><strong>#1 NAMAN</strong> <span class="accent-box" style="font-size:10px;padding:1px 6px;">+$320K</span></span><strong style="font-family:'JetBrains Mono',monospace;">$2.84M</strong></div>
+        <div class="subtle row"><span><strong>#2 BARON</strong> <span class="chip-mini">BOT</span></span><strong style="font-family:'JetBrains Mono',monospace;color:var(--muted);">$1.95M</strong></div>
+        <div class="elevated" style="height:68px;display:flex;align-items:flex-end;gap:6px;padding:10px;">
+          <svg viewBox="0 0 260 44" style="width:100%;height:100%;">
+            <polyline fill="none" stroke="#3b82f6" stroke-width="3" points="4,36 65,30 130,22 195,14 256,6" />
+            <polyline fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="4 3" points="4,36 65,32 130,28 195,25 256,21" />
+          </svg>
         </div>
-        <div style="display:flex;gap:8px;"><button class="btn-amber" style="flex:1;">Replace with Bot</button><button class="btn-secondary">Wait</button></div>
       </div>
 
-      <!-- 13. Edit Name & Rules -->
+      <!-- 9. Trade Modal (Two-Column Offer & Request) -->
       <div class="card">
-        <span class="label">13. Edit Name &amp; Rules Modals</span>
-        <div class="subtle" style="font-weight:800;">NAMAN</div>
-        <div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;">Cancel</button><button class="btn-green" style="flex:1;">Save Name</button></div>
+        <span class="label">9. Trade Proposal Modal (Full 2-Column)</span>
+        <div class="row divider"><div class="title"><i class="fa-solid fa-handshake" style="color:#10b981;margin-right:6px;"></i>Trade Deal</div><span class="chip-mini">NAMAN ↔ NOVA</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="subtle"><div class="label">You Offer</div><div style="margin-top:4px;font-weight:700;">Cairo + $120K</div></div>
+          <div class="subtle"><div class="label">You Request</div><div style="margin-top:4px;font-weight:700;">Seoul</div></div>
+        </div>
+        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Send Offer</button><button class="btn-secondary">Cancel</button></div>
       </div>
 
-      <!-- 14. Victory Podium -->
+      <!-- 10. Festival Boost & Network Alerts -->
       <div class="card">
-        <span class="label">14. Victory Modal</span>
-        <div class="row divider">
-          <div style="display:flex;align-items:center;gap:9px;">
-            <span class="icon-badge amber-box"><i class="fa-solid fa-trophy"></i></span>
-            <div><div class="title">Naman Wins!</div><div class="label">Monopoly Victory • $4.20M</div></div>
-          </div>
+        <span class="label">10. Festival, Disconnect, Reconnect &amp; Victory</span>
+        <div class="subtle row">
+          <span><i class="fa-solid fa-champagne-glasses" style="color:#f59e0b;margin-right:6px;"></i><strong>World Festival</strong> — Pick city for 2×</span>
+          <button class="btn-amber" style="padding:5px 10px;font-size:11px;">Boost</button>
         </div>
-        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Play Again</button><button class="btn-secondary">Lobby</button></div>
+        <div class="subtle row">
+          <span><i class="fa-solid fa-wifi" style="color:#f59e0b;margin-right:6px;"></i><strong>Reconnecting Brave</strong> (24s)</span>
+          <button class="btn-secondary" style="padding:5px 10px;font-size:11px;">Bot Takeover</button>
+        </div>
+        <div class="subtle row">
+          <span><i class="fa-solid fa-trophy" style="color:#f59e0b;margin-right:6px;"></i><strong>NAMAN Wins!</strong> • $4.20M</span>
+          <button class="btn-green" style="padding:5px 10px;font-size:11px;">Rematch</button>
+        </div>
       </div>
     </div>
   </div>

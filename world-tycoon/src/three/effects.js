@@ -605,6 +605,10 @@ export function applyLightingMode(key, threeSceneObjects) {
   updateHudState({ lightingMode: modeLabel, boardStyle });
   updateLobbyStore({ lightingTheme: key });
 
+  if (typeof document !== 'undefined' && document.body) {
+    document.body.classList.toggle('theme-dark-ui', key === 'night' || boardStyle === 'cyberpunk');
+  }
+
   // Update Main Menu (Lobby) full-screen background & sky elements
   if (typeof document !== 'undefined') {
     const lobbyEl = document.getElementById('landing-setup-screen');

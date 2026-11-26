@@ -1,9 +1,14 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
   import ActionChipShell from '../components/ActionChipShell.svelte';
 
   let state = $state({});
+  let hud = $state({});
   modalStore.subscribe(val => { state = val.upgradeCity || {}; });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   function onConfirmUpgrade() {
     window.confirmUpgradeFromModal?.();
@@ -34,36 +39,36 @@
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
-<ActionChipShell modalId="modal-upgrade-city" cardId="modal-upgrade-city-card" visible={state.visible} borderColor="border-emerald-500/80">
+<ActionChipShell modalId="modal-upgrade-city" cardId="modal-upgrade-city-card" visible={state.visible} themeAware={true}>
   <!-- Top Summary Line -->
-  <div class="flex items-center justify-between gap-3 border-b border-white/10 pb-2">
+  <div class="flex items-center justify-between gap-3 border-b pb-2 {isDarkTheme ? 'border-white/10' : 'border-slate-100'}">
     <!-- City Identity & Level -->
     <div class="flex items-center gap-2 truncate min-w-0">
-      <span class="w-3.5 h-3.5 rounded-full border border-white/40 shrink-0" style="background-color: {state.colorHex || '#10b981'};"></span>
-      <h3 id="upgrade-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate">
+      <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: {state.colorHex || '#10b981'};"></span>
+      <h3 id="upgrade-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide truncate {isDarkTheme ? 'text-white' : 'text-slate-900'}">
         {state.cityName || 'CITY'}
       </h3>
       {#if state.isAlly}
-        <span id="upgrade-modal-ally-badge" class="text-xs font-black px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/40 shrink-0 flex items-center gap-1">
+        <span id="upgrade-modal-ally-badge" class="text-xs font-black px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 border {isDarkTheme ? 'bg-blue-500/20 text-blue-300 border-blue-400/40' : 'bg-blue-50 text-blue-800 border-blue-200'}">
           <span>🤝</span>
           <span>{state.ownerName || 'Ally'}'s City</span>
         </span>
       {/if}
-      <span id="upgrade-modal-level-pill" class="text-xs font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shrink-0">
+      <span id="upgrade-modal-level-pill" class="text-xs font-black px-2 py-0.5 rounded-full shrink-0 border {isDarkTheme ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}">
         {state.levelLabel || 'Lvl 1'}
       </span>
     </div>
 
-    <!-- High-Contrast Rent Progression Capsule (/better-interface) -->
-    <div class="flex items-center gap-2 bg-emerald-950/80 border border-emerald-400/60 rounded-xl px-2.5 sm:px-3 py-1 shadow-inner shrink-0">
+    <!-- High-Contrast Rent Progression Capsule -->
+    <div class="flex items-center gap-2 rounded-xl px-2.5 sm:px-3 py-1 shrink-0 border {isDarkTheme ? 'bg-emerald-950/80 border-emerald-400/60' : 'bg-emerald-50 border-emerald-200'}">
       <div class="flex flex-col items-end leading-none">
-        <span class="text-xs font-black uppercase tracking-wider text-emerald-400">New Rent</span>
+        <span class="text-xs font-black uppercase tracking-wider {isDarkTheme ? 'text-emerald-400' : 'text-emerald-700'}">New Rent</span>
         <div class="flex items-center gap-1.5 mt-0.5">
-          <span id="upgrade-modal-current-rent" class="text-slate-400 line-through text-xs font-bold tabular-nums">
+          <span id="upgrade-modal-current-rent" class="line-through text-xs font-bold tabular-nums {isDarkTheme ? 'text-slate-400' : 'text-slate-500'}">
             {state.currentRentFormatted || '$0'}
           </span>
-          <span class="text-emerald-400 text-xs font-black">→</span>
-          <span id="upgrade-modal-next-rent" class="text-emerald-300 font-black text-base sm:text-lg tabular-nums drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">
+          <span class="text-xs font-black {isDarkTheme ? 'text-emerald-400' : 'text-emerald-600'}">→</span>
+          <span id="upgrade-modal-next-rent" class="font-black text-base sm:text-lg tabular-nums {isDarkTheme ? 'text-emerald-300' : 'text-emerald-700'}">
             {state.nextRentFormatted || '$0'}
           </span>
         </div>

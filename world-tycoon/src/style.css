@@ -43,6 +43,70 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+:root {
+  --wt-surface: #ffffff;
+  --wt-surface-subtle: #f8fafc;
+  --wt-border: #e2e8f0;
+  --wt-text: #0f172a;
+  --wt-text-muted: #64748b;
+  --wt-pill-bg: rgba(255, 255, 255, 0.96);
+  --wt-pill-border: rgba(226, 232, 240, 0.95);
+  --wt-pill-text: #0f172a;
+  --wt-status-bg: rgba(255, 255, 255, 0.96);
+  --wt-status-border: rgba(226, 232, 240, 0.95);
+  --wt-status-text: #0f172a;
+  --wt-status-strong: #0284c7;
+}
+
+body.theme-dark-ui {
+  --wt-surface: rgba(15, 23, 42, 0.96);
+  --wt-surface-subtle: rgba(30, 41, 59, 0.85);
+  --wt-border: rgba(255, 255, 255, 0.14);
+  --wt-text: #f8fafc;
+  --wt-text-muted: #94a3b8;
+  --wt-pill-bg: rgba(30, 41, 59, 0.94);
+  --wt-pill-border: rgba(148, 163, 184, 0.28);
+  --wt-pill-text: #f8fafc;
+  --wt-status-bg: rgba(15, 23, 42, 0.96);
+  --wt-status-border: rgba(255, 255, 255, 0.18);
+  --wt-status-text: #f8fafc;
+  --wt-status-strong: #fde047;
+}
+
+/* High-contrast Night / Cyberpunk HUD legibility overrides */
+body.theme-dark-ui .hud-glass-capsule,
+body.theme-dark-ui .hud-circle-icon-btn {
+  background: var(--wt-pill-bg) !important;
+  color: var(--wt-pill-text) !important;
+  border-color: var(--wt-pill-border) !important;
+}
+
+body.theme-dark-ui .hud-capsule-divider {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug),
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) .text-indigo-950,
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) .text-emerald-950,
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) .text-slate-700,
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) .text-slate-800,
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) .text-slate-600,
+body.theme-dark-ui .hud-glass-capsule .text-slate-700,
+body.theme-dark-ui .hud-glass-capsule .text-slate-800,
+body.theme-dark-ui .hud-glass-capsule .text-amber-900,
+body.theme-dark-ui .hud-circle-icon-btn .text-slate-700 {
+  color: #f1f5f9 !important;
+}
+
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) .text-indigo-600 { color: #a5b4fc !important; }
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) .text-emerald-600 { color: #6ee7b7 !important; }
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) .text-sky-600 { color: #7dd3fc !important; }
+body.theme-dark-ui .hud-glass-capsule .text-slate-500 { color: #94a3b8 !important; }
+body.theme-dark-ui .hud-pill:not(#btn-hud-debug) button:hover,
+body.theme-dark-ui .hud-glass-capsule button:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
 /* Hard guarantee that .hidden always sets display: none regardless of inline styles or specificity */
 .hidden {
   display: none !important;
@@ -265,8 +329,8 @@ body {
 .hud-pill,
 .top-pill {
   touch-action: manipulation;
-  background: rgba(255, 255, 255, 0.96);
-  color: #0f172a;
+  background: var(--wt-pill-bg);
+  color: var(--wt-pill-text);
   border-radius: 9999px;
   height: 36px;
   padding: 0 11px;
@@ -282,7 +346,7 @@ body {
   gap: 6px;
   transition: transform 100ms ease-out, box-shadow 100ms ease-out, background-color 100ms ease-out, border-color 100ms ease-out;
   cursor: pointer;
-  border: 1.5px solid rgba(226, 232, 240, 0.9);
+  border: 1.5px solid var(--wt-pill-border);
   white-space: nowrap;
 }
 
@@ -1474,12 +1538,12 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: rgba(15, 23, 42, 0.96);
-  color: #ffffff;
+  background: var(--wt-status-bg);
+  color: var(--wt-status-text);
   padding: 9px 20px;
   border-radius: 9999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.38), 0 0 20px rgba(14, 165, 233, 0.22);
+  border: 1.5px solid var(--wt-status-border);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16), 0 0 20px rgba(14, 165, 233, 0.14);
   font-family: var(--game-font);
   font-size: 14px;
   font-weight: 700;
@@ -1494,9 +1558,9 @@ body {
 @media (hover: hover) {
   .hud-status-pill:hover {
     transform: translateY(-2px) scale(1.02);
-    background: rgba(15, 23, 42, 0.96);
+    background: var(--wt-status-bg);
     border-color: rgba(251, 191, 36, 0.6);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 24px rgba(251, 191, 36, 0.35);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22), 0 0 24px rgba(251, 191, 36, 0.3);
   }
 }
 
@@ -1528,12 +1592,12 @@ body {
 
 .hud-status-pill-text {
   letter-spacing: 0.02em;
-  color: #f8fafc;
+  color: var(--wt-status-text);
   line-height: 1.35;
 }
 
 .hud-status-pill-text strong {
-  color: #fde047;
+  color: var(--wt-status-strong);
   font-weight: 900;
 }
 
@@ -2431,13 +2495,7 @@ body.production-build #debug-modal {
   z-index: 1000 !important;
 }
 
-#modal-buyout-city-card,
-#modal-upgrade-city-card,
-#modal-auction-card,
-#modal-incoming-trade-card {
-  background-color: rgba(2, 6, 23, 0.96) !important;
-  color: #ffffff !important;
-}
+/* Theme-aware action docks use ActionChipShell / Svelte classes */
 
 #hud-bottom-left-container {
   z-index: 45;
