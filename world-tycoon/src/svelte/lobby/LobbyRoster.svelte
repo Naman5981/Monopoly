@@ -87,29 +87,35 @@
       {#if !state.isTeamMode && playerCount < 6}
         {#each Array(6 - playerCount) as _, emptyIdx}
           {#if isGuest}
-            <div class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed border-slate-200/80 bg-slate-50/40 flex items-center justify-between text-slate-400 select-none">
-              <div class="flex items-center gap-2.5 sm:gap-3">
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center flex-shrink-0">
+            <div class="lobby-roster-slot w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed border-slate-200/80 bg-slate-50/40 flex items-center justify-between text-slate-400 select-none">
+              <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div class="open-seat-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center flex-shrink-0">
                   <i class="fa-solid fa-user-clock text-xs"></i>
                 </div>
-                <span class="text-xs sm:text-sm font-bold tracking-wide">Open Seat {playerCount + emptyIdx + 1}</span>
+                <div class="flex flex-col text-left min-w-0">
+                  <span class="text-xs sm:text-sm font-bold tracking-wide leading-tight truncate">Open Seat {playerCount + emptyIdx + 1}</span>
+                  <span class="text-[10px] font-bold uppercase tracking-wider opacity-75 leading-tight">Waiting for host</span>
+                </div>
               </div>
-              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border border-slate-200">Waiting...</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border border-slate-200 flex-shrink-0">Waiting...</span>
             </div>
           {:else}
             <button
               type="button"
               onclick={addBot}
               aria-label="Add player or bot to seat {playerCount + emptyIdx + 1}"
-              class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed border-slate-200/90 bg-slate-50/50 hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-700 flex items-center justify-between text-slate-400 transition cursor-pointer"
+              class="lobby-roster-slot w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed border-slate-200/90 bg-slate-50/50 hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-700 flex items-center justify-between text-slate-400 transition cursor-pointer"
             >
-              <div class="flex items-center gap-2.5 sm:gap-3">
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center flex-shrink-0">
+              <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div class="open-seat-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center flex-shrink-0">
                   <i class="fa-solid fa-plus text-xs"></i>
                 </div>
-                <span class="text-xs sm:text-sm font-bold tracking-wide">Open Seat {playerCount + emptyIdx + 1}</span>
+                <div class="flex flex-col text-left min-w-0">
+                  <span class="text-xs sm:text-sm font-bold tracking-wide leading-tight truncate">Open Seat {playerCount + emptyIdx + 1}</span>
+                  <span class="text-[10px] font-bold uppercase tracking-wider opacity-75 leading-tight">Available seat</span>
+                </div>
               </div>
-              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border border-slate-200">+ Add</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border border-slate-200 flex-shrink-0">+ Add</span>
             </button>
           {/if}
         {/each}

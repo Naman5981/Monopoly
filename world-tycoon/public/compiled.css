@@ -146,7 +146,7 @@ html,
   -moz-tab-size: 4; /* 3 */
   -o-tab-size: 4;
      tab-size: 4; /* 3 */
-  font-family: Rubik, system-ui, sans-serif; /* 4 */
+  font-family: Plus Jakarta Sans, system-ui, sans-serif; /* 4 */
   font-feature-settings: normal; /* 5 */
   font-variation-settings: normal; /* 6 */
   -webkit-tap-highlight-color: transparent; /* 7 */
@@ -226,7 +226,7 @@ code,
 kbd,
 samp,
 pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 1 */
+  font-family: JetBrains Mono, ui-monospace, SFMono-Regular, monospace; /* 1 */
   font-feature-settings: normal; /* 2 */
   font-variation-settings: normal; /* 3 */
   font-size: 1em; /* 4 */
@@ -1510,6 +1510,10 @@ video {
 .\!border-sky-400\/80{
   border-color: rgb(56 189 248 / 0.8) !important;
 }
+.\!border-white{
+  --tw-border-opacity: 1 !important;
+  border-color: rgb(255 255 255 / var(--tw-border-opacity, 1)) !important;
+}
 .border-amber-200{
   --tw-border-opacity: 1;
   border-color: rgb(253 230 138 / var(--tw-border-opacity, 1));
@@ -2614,16 +2618,16 @@ video {
   text-align: right;
 }
 .font-display{
-  font-family: Rubik, Fredoka, system-ui, sans-serif;
+  font-family: Fredoka, Plus Jakarta Sans, system-ui, sans-serif;
 }
 .font-mono{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: JetBrains Mono, ui-monospace, SFMono-Regular, monospace;
 }
 .font-rounded{
-  font-family: Rubik, Fredoka, system-ui, sans-serif;
+  font-family: Fredoka, Plus Jakarta Sans, system-ui, sans-serif;
 }
 .font-sans{
-  font-family: Rubik, system-ui, sans-serif;
+  font-family: Plus Jakarta Sans, system-ui, sans-serif;
 }
 .text-2xl{
   font-size: 1.5rem;
@@ -3056,6 +3060,9 @@ video {
 }
 .opacity-70{
   opacity: 0.7;
+}
+.opacity-75{
+  opacity: 0.75;
 }
 .opacity-80{
   opacity: 0.8;
@@ -5778,6 +5785,12 @@ body.production-build #debug-modal {
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.lobby-roster-slot {
+  height: 64px;
+  min-height: 64px;
+  box-sizing: border-box;
+}
+
 /* Compact Laptop Scaling (<= 850px viewport height) */
 @media (max-height: 850px) {
   #landing-setup-screen { padding: 0.45rem 0.85rem !important; }
@@ -5786,7 +5799,9 @@ body.production-build #debug-modal {
   .lobby-view-local #lobby-hero-column, .lobby-view-multiplayer-room #lobby-hero-column { padding: 0 !important; gap: 0.35rem !important; }
   #setup-players-roster { gap: 0.375rem; }
   #setup-players-roster > * + * { margin-top: 0.375rem !important; }
-  .player-setup-card { padding: 0.4rem 0.65rem !important; }
+  .lobby-roster-slot { height: 52px !important; min-height: 52px !important; padding: 0.375rem 0.65rem !important; }
+  .lobby-roster-slot .avatar-medallion,
+  .lobby-roster-slot .open-seat-circle { width: 2rem !important; height: 2rem !important; }
   #lobby-roster-column .pt-3 { padding-top: 0.5rem !important; margin-top: 0.5rem !important; }
   #lobby-settings-column .space-y-4 > * + *,
   #lobby-settings-column .space-y-3 > * + * { margin-top: 0.45rem !important; }
@@ -6026,11 +6041,11 @@ html, body {
 }
 
 .placeholder\:font-sans::-moz-placeholder{
-  font-family: Rubik, system-ui, sans-serif;
+  font-family: Plus Jakarta Sans, system-ui, sans-serif;
 }
 
 .placeholder\:font-sans::placeholder{
-  font-family: Rubik, system-ui, sans-serif;
+  font-family: Plus Jakarta Sans, system-ui, sans-serif;
 }
 
 .placeholder\:text-sm::-moz-placeholder{
@@ -6839,8 +6854,8 @@ html, body {
     gap: 1rem;
   }
 
-  .sm\:gap-6{
-    gap: 1.5rem;
+  .sm\:gap-5{
+    gap: 1.25rem;
   }
 
   .sm\:space-y-2\.5 > :not([hidden]) ~ :not([hidden]){
@@ -6873,6 +6888,10 @@ html, body {
 
   .sm\:p-5{
     padding: 1.25rem;
+  }
+
+  .sm\:p-6{
+    padding: 1.5rem;
   }
 
   .sm\:p-7{

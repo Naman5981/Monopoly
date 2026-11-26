@@ -407,33 +407,44 @@ export function passAuctionBid(playerIdx = null) {
  * @param {number} botIdx
  * @returns {number|null} The chosen new bid amount, or null if passing
  */
+function calculateBotMaxWillingPrice(bot, botIdx, tile) {
+  const basePrice = tile.price || 120000;
+  let valuationMultiplier = 1.0;
+
+  if (tile.group) {
+    const groupTiles = BOARD_TILES.filter(t => (t.type === 'city' || t.type === 'resort') && t.group === tile.group);
+    const ownedByBot = groupTiles.filter(t => gameState.properties[t.id]?.owner === botIdx).length;
+    if (ownedByBot === groupTiles.length - 1 && groupTiles.length > 1) {
+      valuationMultiplier = 1.65;
+    } else if (ownedByBot > 0) {
+      valuationMultiplier = 1.3;
+    } else {
+      // Check if any opponent is 1 property away from completing this monopoly
+      const opponentNearMonopoly = (gameState.players || []).some((opp, oppIdx) => {
+        if (!opp || opp.bankrupt || oppIdx === botIdx) return false;
+        const oppOwned = groupTiles.filter(t => gameState.properties[t.id]?.owner === oppIdx).length;
+        return groupTiles.length > 1 && oppOwned === groupTiles.length - 1;
+      });
+      if (opponentNearMonopoly) {
+        valuationMultiplier = 1.45;
+      }
+    }
+  }
+
+  // Surplus cash liquidity scaling: rich bots compete instead of hoarding millions
+  const surplusCash = Math.max(0, bot.cash - 1200000);
+  const liquidityBonus = Math.min(0.75, (surplusCash / 1000000) * 0.2);
+  return Math.round(basePrice * (valuationMultiplier + liquidityBonus));
+}
+
 export function evaluateBotAuctionBid(bot, botIdx) {
   const a = gameState.auction;
   if (!a || !a.active || !a.tile) return null;
   if (bot.bankrupt || botIdx === a.sellerIdx) return null;
-  if (botIdx === a.highBidderIdx) return null; // Already highest bidder
+  if (botIdx === a.highBidderIdx) return null;
 
-  const tile = a.tile;
-  const basePrice = tile.price || 120000;
-
-  // Valuation heuristics
-  let valuationMultiplier = 1.0;
-
-  // Check monopoly synergy
-  const group = tile.group;
-  if (group) {
-    const groupTiles = BOARD_TILES.filter(t => t.type === 'city' && t.group === group);
-    const ownedInGroup = groupTiles.filter(t => gameState.properties[t.id]?.owner === botIdx).length;
-    if (ownedInGroup === groupTiles.length - 1) {
-      // Completes a monopoly! High strategic value!
-      valuationMultiplier = 1.55;
-    } else if (ownedInGroup > 0) {
-      valuationMultiplier = 1.25;
-    }
-  }
-
-  const maxWillingPrice = Math.round(basePrice * valuationMultiplier);
-  const reserveCashFloor = 250000; // Keep cash reserve for safety
+  const maxWillingPrice = calculateBotMaxWillingPrice(bot, botIdx, a.tile);
+  const reserveCashFloor = 250000;
   const maxAffordable = Math.max(0, bot.cash - reserveCashFloor);
   const maxCeiling = Math.min(maxWillingPrice, maxAffordable);
 
@@ -446,12 +457,11 @@ export function evaluateBotAuctionBid(bot, botIdx) {
   const validOptions = options.filter(opt => opt <= maxCeiling && opt <= bot.cash);
   if (validOptions.length === 0) return null;
 
-  // If monopoly completion, bot picks aggressive Option 2 or 3
-  if (valuationMultiplier >= 1.5 && validOptions.length >= 2) {
+  const basePrice = a.tile.price || 120000;
+  if (maxWillingPrice >= basePrice * 1.45 && validOptions.length >= 2) {
     return validOptions[validOptions.length - 1];
   }
 
-  // Otherwise pick smallest or medium raise
   return validOptions[0];
 }
 
@@ -472,6 +482,7 @@ function scheduleBotAuctionBids() {
   const players = gameState.players || [];
   players.forEach((p, idx) => {
     if (!p.isAI || p.bankrupt || idx === a.sellerIdx || idx === a.highBidderIdx) return;
+    if (a.passedPlayerIndices?.has(idx)) return;
 
     // Random jitter between 1.2s and 3.2s
     const jitterMs = 1200 + Math.random() * 2000;

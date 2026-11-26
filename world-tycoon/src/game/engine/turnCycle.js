@@ -120,6 +120,12 @@ export async function handleRollButtonClick() {
   await executePlayerRoll();
 }
 
+export function shouldAIPayIslandBail(player) {
+  if (!player || !player.isAI || !player.inIsland || player.cash < 600000) return false;
+  const unownedCount = BOARD_TILES.filter(t => (t.type === 'city' || t.type === 'resort') && gameState.properties[t.id]?.owner === null).length;
+  return unownedCount >= 4;
+}
+
 export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
   if (networkState && networkState.isReconnecting) return;
   if (!gameState.gameStarted || gameState.phase === 'SETUP' || gameState.phase === 'VICTORY') return;
@@ -127,6 +133,9 @@ export async function executePlayerRoll(forcedD1 = null, forcedD2 = null) {
   const pIdx = gameState.currentPlayerIdx;
   const p = gameState.players[pIdx];
   if (!p) return;
+  if (forcedD1 === null && shouldAIPayIslandBail(p)) {
+    handlePayIslandBail();
+  }
   gameState.phase = 'MOVING';
   updateRollButtonsUI(isHumanTurnActionable());
 

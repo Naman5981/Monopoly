@@ -8,7 +8,7 @@
 import { BOARD_TILES } from './data.js';
 import { gameState, matchSettings, localPlayerIdx } from './state.js';
 import { fmtMoney } from './utils.js';
-import { ownsFullColorGroup, calculatePlayerNetWorth } from './rules.js';
+import { ownsFullColorGroup, calculatePlayerNetWorth, isTeammate } from './rules.js';
 
 const lastBotTradeTurn = {};
 let lastGlobalBotTradeTurn = -999;
@@ -131,6 +131,14 @@ export function evaluateTradeDeal(receiverIdx, giverIdx, offerCash = 0, reqCash 
     return {
       status: 'decline',
       reason: `${receiver.name} only has ${fmtMoney(receiver.cash)} cash and cannot afford your cash request.`
+    };
+  }
+
+  // Team Mode: AI teammates always cooperate on shared-set trades
+  if (isTeammate(receiverIdx, giverIdx)) {
+    return {
+      status: 'accept',
+      reason: `${receiver.name} gladly accepted your Team Alliance trade!`
     };
   }
 

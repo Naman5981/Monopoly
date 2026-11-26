@@ -11,6 +11,42 @@ import { updateRollButtonsUI, setStatusPill } from '../../../ui/hud.js';
 import { networkState, broadcastFullGameState } from '../../../network/p2p.js';
 import { executeWorldTourFlight } from '../flight.js';
 
+export function chooseStrategicFlightDestination(playerIdx, playerCash) {
+  const unowned = BOARD_TILES.filter(t => (t.type === 'city' || t.type === 'resort') && gameState.properties[t.id]?.owner === null);
+  const affordable = unowned.filter(t => playerCash >= (t.price || 0) + 120000);
+
+  if (affordable.length > 0) {
+    let bestTile = affordable[0];
+    let bestScore = -1;
+    for (const tile of affordable) {
+      let score = tile.price || 0;
+      if (tile.group) {
+        const grp = BOARD_TILES.filter(t => (t.type === 'city' || t.type === 'resort') && t.group === tile.group);
+        const ownedByBot = grp.filter(t => gameState.properties[t.id]?.owner === playerIdx).length;
+        if (grp.length > 1 && ownedByBot === grp.length - 1) score += 2000000;
+        else if (ownedByBot > 0) score += 400000;
+        const opponentNear = (gameState.players || []).some((opp, oppIdx) => {
+          if (!opp || opp.bankrupt || oppIdx === playerIdx) return false;
+          return grp.length > 1 && grp.filter(t => gameState.properties[t.id]?.owner === oppIdx).length === grp.length - 1;
+        });
+        if (opponentNear) score += 1200000;
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestTile = tile;
+      }
+    }
+    return bestTile.id;
+  }
+
+  const upgradeableOwned = BOARD_TILES.find(t =>
+    (t.type === 'city' || t.type === 'resort') &&
+    gameState.properties[t.id]?.owner === playerIdx &&
+    (gameState.properties[t.id]?.level || 0) < 4
+  );
+  return upgradeableOwned ? upgradeableOwned.id : 0;
+}
+
 export class AirportLandingStrategy extends ITileLandingStrategy {
   constructor(tileLandingEvaluator) {
     super();
@@ -27,8 +63,7 @@ export class AirportLandingStrategy extends ITileLandingStrategy {
       }
       showSpeechBubble(`✈️ ${player.name} landed on World Tour! Planning flight...`, 2500);
       await new Promise(r => setTimeout(r, Math.max(200, Math.round(900 / (matchSettings.gameSpeed || 1)))));
-      const unowned = BOARD_TILES.filter(t => (t.type === 'city' || t.type === 'resort') && !gameState.properties[t.id]?.owner);
-      const dest = unowned.length > 0 ? unowned[Math.floor(Math.random() * unowned.length)].id : 0;
+      const dest = chooseStrategicFlightDestination(playerIdx, player.cash);
       await executeWorldTourFlight(dest, false, playerIdx, this.tileLandingEvaluator);
       return;
     }

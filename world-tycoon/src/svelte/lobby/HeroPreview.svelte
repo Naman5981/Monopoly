@@ -118,8 +118,8 @@
         <div id="setup-color-swatches-container" class="flex items-center gap-1 px-1">
           <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider mr-0.5">COLOR</span>
           <div id="setup-color-swatches" class="flex items-center gap-1.5">
-            {@const canEditColor = state.canChangeCurrentColor !== false}
             {#each CANDY_PALETTE as candy}
+              {@const canEditColor = state.canChangeCurrentColor !== false}
               {@const candyHex = candy.hex.toLowerCase()}
               {@const isSelected = (state.selectedColorHex || activePlayer.colorHex || '').toLowerCase() === candyHex}
               {@const takenByHuman = (state.players || []).find(p => p.idx !== activePlayer.idx && !p.isAI && (p.colorHex || '').toLowerCase() === candyHex)}

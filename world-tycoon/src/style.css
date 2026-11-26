@@ -2381,6 +2381,12 @@ body.production-build #debug-modal {
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.lobby-roster-slot {
+  height: 64px;
+  min-height: 64px;
+  box-sizing: border-box;
+}
+
 /* Compact Laptop Scaling (<= 850px viewport height) */
 @media (max-height: 850px) {
   #landing-setup-screen { padding: 0.45rem 0.85rem !important; }
@@ -2389,7 +2395,9 @@ body.production-build #debug-modal {
   .lobby-view-local #lobby-hero-column, .lobby-view-multiplayer-room #lobby-hero-column { padding: 0 !important; gap: 0.35rem !important; }
   #setup-players-roster { gap: 0.375rem; }
   #setup-players-roster > * + * { margin-top: 0.375rem !important; }
-  .player-setup-card { padding: 0.4rem 0.65rem !important; }
+  .lobby-roster-slot { height: 52px !important; min-height: 52px !important; padding: 0.375rem 0.65rem !important; }
+  .lobby-roster-slot .avatar-medallion,
+  .lobby-roster-slot .open-seat-circle { width: 2rem !important; height: 2rem !important; }
   #lobby-roster-column .pt-3 { padding-top: 0.5rem !important; margin-top: 0.5rem !important; }
   #lobby-settings-column .space-y-4 > * + *,
   #lobby-settings-column .space-y-3 > * + * { margin-top: 0.45rem !important; }

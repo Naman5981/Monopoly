@@ -8,7 +8,7 @@ import { gameState, matchSettings } from '../../state.js';
 import { fmtMoney } from '../../utils.js';
 import { playSFX } from '../../audio.js';
 import { getTileWorldPosition } from '../../../three/board/coords.js';
-import { isTeammate } from '../../rules.js';
+import { isTeammate, ownsFullColorGroup } from '../../rules.js';
 import {
   refreshTileTextureAndBuildings,
   refreshTileAndGroup,
@@ -56,7 +56,7 @@ export function shouldAIBuyoutTile(playerIdx, tile, st, buyoutCost) {
   if ((st.level || 0) >= 4) return false;
   if (player.cash < buyoutCost + 600000) return false;
 
-  const currentTurn = gameState.netWorthHistory?.length || 0;
+  const currentTurn = Math.max(gameState.turnNumber || 0, gameState.netWorthHistory?.length || 0);
   if (lastBotBuyoutTurn[playerIdx] && (currentTurn - lastBotBuyoutTurn[playerIdx] < 6)) {
     return false;
   }
@@ -80,6 +80,17 @@ export function shouldAIBuyoutTile(playerIdx, tile, st, buyoutCost) {
   return false;
 }
 
+function sortLiquidatableTiles(ownedTiles, playerIdx) {
+  return [...ownedTiles].sort((a, b) => {
+    const aMonopoly = a.group ? ownsFullColorGroup(playerIdx, a.group) : false;
+    const bMonopoly = b.group ? ownsFullColorGroup(playerIdx, b.group) : false;
+    if (aMonopoly !== bMonopoly) return aMonopoly ? 1 : -1;
+    const vA = calculatePropertySaleValue(a, gameState.properties[a.id]);
+    const vB = calculatePropertySaleValue(b, gameState.properties[b.id]);
+    return vA - vB;
+  });
+}
+
 export async function handleAIDebtorLiquidation(playerIdx, player, owner, rent, isDoubles, ownerIdx, onBankrupt) {
   const resolvedOwnerIdx = typeof ownerIdx === 'number' && ownerIdx >= 0
     ? ownerIdx
@@ -93,12 +104,8 @@ export async function handleAIDebtorLiquidation(playerIdx, player, owner, rent, 
   while (player.cash < rent) {
     const currentOwned = BOARD_TILES.filter(t => gameState.properties[t.id]?.owner === playerIdx);
     if (currentOwned.length === 0) break;
-    currentOwned.sort((a, b) => {
-      const vA = calculatePropertySaleValue(a, gameState.properties[a.id]);
-      const vB = calculatePropertySaleValue(b, gameState.properties[b.id]);
-      return vA - vB;
-    });
-    const cheapest = currentOwned[0];
+    const sorted = sortLiquidatableTiles(currentOwned, playerIdx);
+    const cheapest = sorted[0];
     const cSt = gameState.properties[cheapest.id];
     const sVal = calculatePropertySaleValue(cheapest, cSt);
     cSt.owner = null;
@@ -106,7 +113,7 @@ export async function handleAIDebtorLiquidation(playerIdx, player, owner, rent, 
     cSt.mortgaged = false;
     player.cash += sVal;
     soldTiles.push(cheapest);
-    refreshTileTextureAndBuildings(cheapest.id);
+    refreshTileAndGroup(cheapest.id);
     logEvent(`⚡ <strong>${player.name}</strong> sold <strong>${cheapest.name}</strong> for <strong>${fmtMoney(sVal)}</strong> to pay rent.`);
 
     if (networkState.isMultiplayer) {
@@ -207,7 +214,7 @@ export async function handleAIBuyoutDecision(playerIdx, tile, st, buyoutCost, is
   const prevOwner = gameState.players[previousOwnerIdx];
 
   if (player.cash >= buyoutCost + 600000) {
-    const currentTurn = gameState.netWorthHistory?.length || 0;
+    const currentTurn = Math.max(gameState.turnNumber || 0, gameState.netWorthHistory?.length || 0);
     lastBotBuyoutTurn[playerIdx] = currentTurn;
     const housesCost = (st.level || 0) * (tile.houseCost || 0);
     const sellerPayout = Math.round((tile.price || 0) * 1.4) + housesCost;
