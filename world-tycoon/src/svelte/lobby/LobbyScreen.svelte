@@ -16,7 +16,7 @@
 
 <div
   id="landing-setup-screen"
-  class="lobby-view-{state.currentView || 'title'} fixed inset-0 z-50 flex flex-col justify-between p-2 sm:p-3 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden"
+  class="lobby-view-{state.currentView || 'title'} fixed inset-0 h-[100dvh] z-50 flex flex-col justify-between p-2 sm:p-3 md:p-4 lg:p-5 overflow-y-auto lg:overflow-hidden overflow-x-hidden"
 >
   <!-- Floating Atmosphere Clouds -->
   <div id="setup-atmosphere-sky-elements" class="absolute bottom-0 left-0 right-0 pointer-events-none opacity-45 flex justify-between select-none transition-opacity duration-700 px-4 sm:px-6 2xl:px-12">
@@ -29,9 +29,9 @@
   <LobbyHeader />
 
   <!-- Main Content Arena -->
-  <div id="lobby-main-arena" class="relative z-10 max-w-7xl 2xl:max-w-[1540px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4.5 2xl:gap-6 items-stretch my-auto py-1 sm:py-2">
+  <div id="lobby-main-arena" class="relative z-10 flex-1 min-h-0 max-w-7xl 2xl:max-w-[1540px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 2xl:gap-6 items-stretch py-1 sm:py-2">
     {#if state.currentView === 'multiplayer-portal'}
-      <div id="lobby-portal-mount" class="col-span-12 max-w-3xl mx-auto w-full my-auto py-6">
+      <div id="lobby-portal-mount" class="col-span-12 max-w-3xl mx-auto w-full my-auto py-2 sm:py-4">
         <MultiplayerPortal />
       </div>
     {:else}
@@ -42,7 +42,7 @@
       <HeroPreview />
 
       <!-- Right Column: Match Configuration -->
-      <div id="lobby-settings-mount" class="col-span-12 lg:col-span-4 flex flex-col items-stretch">
+      <div id="lobby-settings-mount" class="col-span-12 lg:col-span-4 flex flex-col items-stretch min-h-0 lg:h-full">
         <MatchSettingsPanel />
       </div>
     {/if}

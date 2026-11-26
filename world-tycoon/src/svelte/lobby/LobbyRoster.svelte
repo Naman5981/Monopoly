@@ -43,12 +43,12 @@
 
 <div
   id="lobby-roster-column"
-  class="col-span-12 lg:col-span-4 game-panel-card p-3.5 sm:p-5 2xl:p-6 flex flex-col justify-between shadow-xl h-full lg:min-h-[570px]"
+  class="col-span-12 lg:col-span-4 game-panel-card p-3 sm:p-4 2xl:p-6 flex flex-col justify-between shadow-xl h-full min-h-0"
 >
-  <div class="flex-1 flex flex-col">
+  <div class="flex-1 min-h-0 flex flex-col">
     <!-- Header -->
     <div
-      class="flex items-center justify-between border-b-2 border-sky-100 pb-3 mb-3 flex-shrink-0"
+      class="flex items-center justify-between border-b-2 border-sky-100 pb-2.5 mb-2.5 flex-shrink-0"
     >
       <div
         class="flex items-center gap-2.5 font-black text-sm sm:text-base 2xl:text-lg text-[#0284c7] uppercase tracking-wide"
@@ -82,7 +82,7 @@
     </div>
 
     <!-- Roster list with Svelte 5 PlayerSetupCards -->
-    <div id="setup-players-roster" class="space-y-2.5 flex-1">
+    <div id="setup-players-roster" class="space-y-2 sm:space-y-2.5 flex-1 min-h-0 overflow-y-auto pr-0.5">
       <PlayerSetupCards />
       {#if !state.isTeamMode && playerCount < 6}
         {#each Array(6 - playerCount) as _, emptyIdx}

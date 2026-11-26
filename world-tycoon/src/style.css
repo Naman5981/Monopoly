@@ -2368,26 +2368,34 @@ body.production-build #debug-modal {
 
 .lobby-view-local #lobby-avatar-3d-canvas,
 .lobby-view-multiplayer-room #lobby-avatar-3d-canvas {
-  width: clamp(160px, 24vh, 260px) !important;
-  height: clamp(160px, 24vh, 260px) !important;
-  max-height: 30vh !important;
+  width: clamp(120px, 21vh, 260px) !important;
+  height: clamp(120px, 21vh, 260px) !important;
+  max-height: 26vh !important;
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lobby-view-local .lobby-podium-halo,
 .lobby-view-multiplayer-room .lobby-podium-halo {
-  width: clamp(220px, 32vh, 360px) !important;
-  height: clamp(220px, 32vh, 360px) !important;
+  width: clamp(150px, 27vh, 340px) !important;
+  height: clamp(150px, 27vh, 340px) !important;
   transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1), height 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Compact Laptop Scaling (<= 850px viewport height) */
 @media (max-height: 850px) {
-  #landing-setup-screen { padding: 0.5rem 1rem !important; }
-  #lobby-main-arena { gap: 0.75rem !important; margin: auto !important; }
+  #landing-setup-screen { padding: 0.45rem 0.85rem !important; }
+  #lobby-main-arena { gap: 0.65rem !important; }
   #lobby-roster-column, #lobby-hero-column, #lobby-settings-column { min-height: 0 !important; padding: 0.625rem 0.875rem !important; }
-  .lobby-view-local #lobby-hero-column, .lobby-view-multiplayer-room #lobby-hero-column { padding: 0 !important; gap: 0.375rem !important; }
-  #landing-play-btn { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; font-size: 1.25rem !important; }
+  .lobby-view-local #lobby-hero-column, .lobby-view-multiplayer-room #lobby-hero-column { padding: 0 !important; gap: 0.35rem !important; }
+  #setup-players-roster { gap: 0.375rem; }
+  #setup-players-roster > * + * { margin-top: 0.375rem !important; }
+  .player-setup-card { padding: 0.4rem 0.65rem !important; }
+  #lobby-roster-column .pt-3 { padding-top: 0.5rem !important; margin-top: 0.5rem !important; }
+  #lobby-settings-column .space-y-4 > * + *,
+  #lobby-settings-column .space-y-3 > * + * { margin-top: 0.45rem !important; }
+  #lobby-settings-column .p-3,
+  #lobby-settings-column .sm\:p-3\.5 { padding: 0.5rem 0.65rem !important; }
+  #landing-play-btn { padding-top: 0.55rem !important; padding-bottom: 0.55rem !important; font-size: 1.15rem !important; }
 }
 
 @media (max-height: 700px) {

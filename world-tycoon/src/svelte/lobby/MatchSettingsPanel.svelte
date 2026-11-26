@@ -43,10 +43,10 @@
   }
 </script>
 
-<div id="lobby-settings-column" class="w-full h-full game-panel-card p-3.5 sm:p-5 flex flex-col justify-between shadow-xl space-y-3">
-  <div class="space-y-4">
+<div id="lobby-settings-column" class="w-full h-full min-h-0 lg:overflow-y-auto game-panel-card p-3 sm:p-4 flex flex-col justify-between shadow-xl space-y-2.5">
+  <div class="space-y-2.5 sm:space-y-3">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b-2 border-sky-100 pb-3">
+    <div class="flex items-center justify-between border-b-2 border-sky-100 pb-2.5">
       <div class="flex items-center gap-2.5 font-black text-sm sm:text-base text-[#0284c7] uppercase tracking-wide">
         <i class="fa-solid fa-sliders text-sky-500 text-lg"></i> MATCH SETTINGS
       </div>

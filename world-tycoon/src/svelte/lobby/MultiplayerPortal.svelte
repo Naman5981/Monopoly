@@ -18,7 +18,7 @@
   }
 </script>
 
-<div id="lobby-multiplayer-portal" class="col-span-12 max-w-3xl mx-auto w-full my-auto py-6 flex flex-col gap-4">
+<div id="lobby-multiplayer-portal" class="col-span-12 max-w-3xl mx-auto w-full my-auto py-2 sm:py-3 flex flex-col gap-3 sm:gap-4">
   <!-- Player Identity Banner -->
   <div class="game-panel-card p-4 sm:p-5 shadow-lg border-2 border-sky-200 bg-white/95 flex flex-col sm:flex-row items-center justify-between gap-3">
     <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -43,9 +43,9 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-stretch">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 items-stretch">
     <!-- Host Room Card -->
-    <div class="game-panel-card p-6 sm:p-7 flex flex-col justify-between shadow-xl border-2 border-sky-300 border-b-4 border-b-sky-500 bg-white">
+    <div class="game-panel-card p-4 sm:p-6 flex flex-col justify-between shadow-xl border-2 border-sky-300 border-b-4 border-b-sky-500 bg-white">
       <div class="space-y-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center text-xl shadow-md border-2 border-white/80 flex-shrink-0">
@@ -78,7 +78,7 @@
     </div>
 
     <!-- Join Room Card -->
-    <div class="game-panel-card p-6 sm:p-7 flex flex-col justify-between shadow-xl border-2 border-emerald-300 border-b-4 border-b-emerald-500 bg-white">
+    <div class="game-panel-card p-4 sm:p-6 flex flex-col justify-between shadow-xl border-2 border-emerald-300 border-b-4 border-b-emerald-500 bg-white">
       <div class="space-y-4">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xl shadow-md border-2 border-white/80 flex-shrink-0">
