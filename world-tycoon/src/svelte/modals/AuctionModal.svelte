@@ -101,37 +101,40 @@
     <!-- 3 Dynamic Bidding Increase Options & Pass Button -->
     <div class="grid grid-cols-4 gap-1.5 pt-0.5">
       {#if state.bidOptions && state.bidOptions.length === 3}
+        {@const d0 = !state.optionsAffordable?.[0] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
+        {@const d1 = !state.optionsAffordable?.[1] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
+        {@const d2 = !state.optionsAffordable?.[2] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
         <!-- Option 1: Minimum / Tactical Increment -->
         <button
           onclick={() => onBid(state.bidOptions[0])}
-          disabled={!state.optionsAffordable?.[0] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
-          class="game-btn game-btn-green py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 disabled:opacity-35 disabled:cursor-not-allowed disabled:grayscale"
+          disabled={d0}
+          class="py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs transition-all duration-150 {d0 ? (isDarkTheme ? 'bg-slate-800/80 border border-white/10 text-slate-400 cursor-not-allowed' : 'bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed') : 'game-btn game-btn-green cursor-pointer hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95'}"
           title="Raise by {state.incrementsFormatted?.[0] || ''}"
         >
           <span class="text-[11px] sm:text-xs font-black">{state.incrementsFormatted?.[0] || '+10K'}</span>
-          <span class="text-[10px] font-mono text-emerald-200/90 leading-tight">({state.bidOptionsFormatted?.[0] || '$0'})</span>
+          <span class="text-[10px] font-mono leading-tight {d0 ? 'opacity-80' : 'text-emerald-100'}">({state.bidOptionsFormatted?.[0] || '$0'})</span>
         </button>
 
         <!-- Option 2: Standard Increment -->
         <button
           onclick={() => onBid(state.bidOptions[1])}
-          disabled={!state.optionsAffordable?.[1] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
-          class="game-btn game-btn-green py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 disabled:opacity-35 disabled:cursor-not-allowed disabled:grayscale"
+          disabled={d1}
+          class="py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs transition-all duration-150 {d1 ? (isDarkTheme ? 'bg-slate-800/80 border border-white/10 text-slate-400 cursor-not-allowed' : 'bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed') : 'game-btn game-btn-green cursor-pointer hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95'}"
           title="Raise by {state.incrementsFormatted?.[1] || ''}"
         >
           <span class="text-[11px] sm:text-xs font-black">{state.incrementsFormatted?.[1] || '+25K'}</span>
-          <span class="text-[10px] font-mono text-emerald-200/90 leading-tight">({state.bidOptionsFormatted?.[1] || '$0'})</span>
+          <span class="text-[10px] font-mono leading-tight {d1 ? 'opacity-80' : 'text-emerald-100'}">({state.bidOptionsFormatted?.[1] || '$0'})</span>
         </button>
 
         <!-- Option 3: Aggressive Power Bid Increment -->
         <button
           onclick={() => onBid(state.bidOptions[2])}
-          disabled={!state.optionsAffordable?.[2] || state.isLeading || state.isSeller || state.hasPassed || isSubmitting}
-          class="game-btn game-btn-amber py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 disabled:opacity-35 disabled:cursor-not-allowed disabled:grayscale"
+          disabled={d2}
+          class="py-2 px-1 text-center flex flex-col items-center justify-center rounded-2xl shadow-xs transition-all duration-150 {d2 ? (isDarkTheme ? 'bg-slate-800/80 border border-white/10 text-slate-400 cursor-not-allowed' : 'bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed') : 'game-btn game-btn-amber cursor-pointer hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95'}"
           title="Raise by {state.incrementsFormatted?.[2] || ''}"
         >
           <span class="text-[11px] sm:text-xs font-black">{state.incrementsFormatted?.[2] || '+50K'}</span>
-          <span class="text-[10px] font-mono text-amber-100/90 leading-tight">({state.bidOptionsFormatted?.[2] || '$0'})</span>
+          <span class="text-[10px] font-mono leading-tight {d2 ? 'opacity-80' : 'text-amber-100'}">({state.bidOptionsFormatted?.[2] || '$0'})</span>
         </button>
       {/if}
 

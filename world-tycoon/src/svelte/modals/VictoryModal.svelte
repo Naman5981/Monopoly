@@ -1,8 +1,13 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
 
   let state = $state({});
+  let hud = $state({});
   modalStore.subscribe(val => { state = val.victory || {}; });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   function onReturnLobby() {
     window.handleReturnToLobbyFromVictory?.();
@@ -20,7 +25,7 @@
   </div>
 
   <!-- Victory Celebration Card -->
-  <div id="victory-card" class="relative bg-white/95 backdrop-blur-xs border-4 border-amber-400 rounded-3xl max-w-md w-full max-h-[92vh] overflow-hidden shadow-[0_0_60px_rgba(245,158,11,0.45)] transform flex flex-col z-10 victory-card-animate my-auto">
+  <div id="victory-card" class="relative backdrop-blur-xs border-4 border-amber-400 rounded-3xl max-w-md w-full max-h-[92vh] overflow-hidden shadow-[0_0_60px_rgba(245,158,11,0.45)] transform flex flex-col z-10 victory-card-animate my-auto {isDarkTheme ? 'bg-slate-950/95 text-white' : 'bg-white text-slate-900'}">
     <!-- Grand Banner Header (Clean & Vibrant, No Empty Void) -->
     <div class="relative px-5 py-4 text-center text-white overflow-hidden bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-500 shadow-sm flex-shrink-0">
       <!-- Watermark icons -->
@@ -72,17 +77,17 @@
       </div>
 
       <!-- Match Standings Leaderboard -->
-      <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 shadow-2xs space-y-2">
-        <div class="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center justify-between px-0.5">
+      <div class="border rounded-2xl p-3 shadow-2xs space-y-2 {isDarkTheme ? 'bg-slate-900/90 border-white/10' : 'bg-slate-50 border-slate-200/90'}">
+        <div class="text-[11px] font-black uppercase tracking-wider flex items-center justify-between px-0.5 {isDarkTheme ? 'text-slate-200' : 'text-slate-700'}">
           <span class="flex items-center gap-1.5">
             <i class="fa-solid fa-ranking-star text-amber-500"></i> Match Standings
           </span>
-          <span class="text-[10px] text-slate-600 font-extrabold uppercase">Final Worth</span>
+          <span class="text-[10px] font-extrabold uppercase {isDarkTheme ? 'text-slate-400' : 'text-slate-600'}">Final Worth</span>
         </div>
 
         <div class="space-y-1.5">
           {#each state.standings || [] as player (player.id)}
-            <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl border transition-colors {player.isWinner ? 'bg-amber-100/70 border-amber-300 font-black text-slate-900 shadow-2xs' : (player.bankrupt ? 'bg-rose-50/50 border-rose-200 text-rose-700/80' : 'bg-white border-slate-200 text-slate-800')}">
+            <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl border transition-colors {player.isWinner ? (isDarkTheme ? 'bg-amber-500/20 border-amber-400/50 font-black text-white shadow-2xs' : 'bg-amber-100/70 border-amber-300 font-black text-slate-900 shadow-2xs') : (player.bankrupt ? (isDarkTheme ? 'bg-rose-950/40 border-rose-500/30 text-rose-300' : 'bg-rose-50/50 border-rose-200 text-rose-700/80') : (isDarkTheme ? 'bg-slate-800/80 border-white/10 text-slate-100' : 'bg-white border-slate-200 text-slate-800'))}">
               <!-- Left: Rank & Player identity -->
               <div class="flex items-center gap-2 min-w-0">
                 <span class="text-sm select-none w-5 text-center">{player.medal}</span>

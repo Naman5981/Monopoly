@@ -86,7 +86,7 @@
 
   <!-- Action Buttons Row -->
   <div class="flex items-center gap-2 pt-0.5">
-    <button id="btn-confirm-buyout" onclick={onConfirm} disabled={!state.canAfford} class="game-btn game-btn-orange flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:outline-none {!state.canAfford ? 'opacity-50 cursor-not-allowed' : ''}">
+    <button id="btn-confirm-buyout" onclick={onConfirm} disabled={!state.canAfford} class="flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md transition-all duration-150 focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:outline-none {!state.canAfford ? (isDarkTheme ? 'rounded-full bg-slate-800 border border-white/10 text-slate-400 cursor-not-allowed' : 'rounded-full bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed') : 'game-btn game-btn-orange cursor-pointer hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95'}">
       <i class="fa-solid fa-handshake-slash"></i>
       <span>ACQUIRE CITY</span>
       <span class="text-xs font-bold opacity-90">({state.buyoutCostFormatted || '$0'})</span>

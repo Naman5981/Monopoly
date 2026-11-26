@@ -230,7 +230,7 @@
   </div>
 {:else}
   <!-- Team Mode Alliance Clash Split -->
-  <div class="team-clash-roster flex flex-col gap-2.5 w-full">
+  <div class="team-clash-roster flex flex-col gap-2 w-full">
     <!-- Red Alliance Bracket -->
     <div
       class="team-bracket team-bracket-red bg-rose-50/50 border-2 border-rose-200/90 rounded-2xl p-2 sm:p-2.5 flex flex-col gap-1.5 shadow-2xs transition-[border-color,background-color] duration-150"

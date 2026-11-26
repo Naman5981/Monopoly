@@ -43,9 +43,9 @@
 
 <div
   id="lobby-roster-column"
-  class="col-span-12 lg:col-span-4 game-panel-card p-3 sm:p-4 2xl:p-6 flex flex-col justify-between shadow-xl h-full min-h-0"
+  class="col-span-12 lg:col-span-4 game-panel-card p-3 sm:p-4 2xl:p-5 flex flex-col shadow-xl h-auto max-h-full min-h-0"
 >
-  <div class="flex-1 min-h-0 flex flex-col">
+  <div class="min-h-0 flex flex-col">
     <!-- Header -->
     <div
       class="flex items-center justify-between border-b-2 border-sky-100 pb-2.5 mb-2.5 flex-shrink-0"

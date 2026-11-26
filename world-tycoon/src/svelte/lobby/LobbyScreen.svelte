@@ -29,7 +29,7 @@
   <LobbyHeader />
 
   <!-- Main Content Arena -->
-  <div id="lobby-main-arena" class="relative z-10 flex-1 min-h-0 max-w-7xl 2xl:max-w-[1540px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 2xl:gap-6 items-stretch py-1 sm:py-2">
+  <div id="lobby-main-arena" class="relative z-10 flex-1 min-h-0 max-h-full max-w-7xl 2xl:max-w-[1540px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 2xl:gap-6 items-center my-auto py-1 sm:py-2">
     {#if state.currentView === 'multiplayer-portal'}
       <div id="lobby-portal-mount" class="col-span-12 max-w-3xl mx-auto w-full my-auto py-2 sm:py-4">
         <MultiplayerPortal />
@@ -42,7 +42,7 @@
       <HeroPreview />
 
       <!-- Right Column: Match Configuration -->
-      <div id="lobby-settings-mount" class="col-span-12 lg:col-span-4 flex flex-col items-stretch min-h-0 lg:h-full">
+      <div id="lobby-settings-mount" class="col-span-12 lg:col-span-4 flex flex-col items-stretch min-h-0 max-h-full">
         <MatchSettingsPanel />
       </div>
     {/if}

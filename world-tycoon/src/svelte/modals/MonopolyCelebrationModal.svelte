@@ -6,7 +6,11 @@
 
   let state = $state({});
   let hud = $state({});
-  modalStore.subscribe(val => { state = val.monopolyCelebration || {}; });
+  let isAuctionActive = $state(false);
+  modalStore.subscribe(val => {
+    state = val.monopolyCelebration || {};
+    isAuctionActive = Boolean(val.auction?.visible);
+  });
   hudStore.subscribe(val => { hud = val || {}; });
 
   const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
@@ -36,12 +40,12 @@
   <!-- Zero Blackout: Transparent click catcher to dismiss anywhere without darkening 3D board -->
   <div class="absolute inset-0 bg-transparent" aria-hidden="true"></div>
 
-  <!-- Bottom Action Dock: Playfield Aligned, Dual-Hue Semantic Palette -->
+  <!-- Bottom Action Dock (or Top Dock during active Auction): Playfield Aligned, Dual-Hue Semantic Palette -->
   <div
     id="modal-monopoly-card"
-    class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-2xl z-20 pointer-events-auto cursor-default font-ui"
+    class="fixed {isAuctionActive ? 'top-16 sm:top-20' : 'bottom-4 sm:bottom-6'} left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-3xl z-20 pointer-events-auto cursor-default font-ui"
     onclick={(e) => e.stopPropagation()}
-    transition:fly={{ duration: 380, y: 40, easing: backOut }}
+    transition:fly={{ duration: 380, y: isAuctionActive ? -40 : 40, easing: backOut }}
   >
     <div
       class="relative w-full rounded-2xl border-2 p-3 sm:p-4 shadow-2xl flex flex-col backdrop-blur-sm {isDarkTheme ? 'bg-slate-950/95 text-white' : 'bg-white text-slate-900'}"
@@ -80,11 +84,11 @@
         </div>
 
         <!-- Right: Deed Chips Row + Direct Close Button -->
-        <div class="flex items-center gap-2">
-          <div id="monopoly-cards-row" class="flex-1 flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-0.5">
+        <div class="flex items-center gap-2 min-w-0 flex-1 justify-end">
+          <div id="monopoly-cards-row" class="min-w-0 flex-1 flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-0.5">
             {#if state.deedCards && state.deedCards.length > 0}
               {#each state.deedCards as card}
-                <div class="flex-1 min-w-[85px] sm:min-w-[105px] py-1.5 px-2 rounded-xl border flex flex-col items-center text-center shadow-inner {isDarkTheme ? 'bg-slate-900/90 border-white/15' : 'bg-slate-50 border-slate-200'}" style="border-top: 3px solid {state.groupColor || '#f59e0b'};">
+                <div class="flex-1 min-w-[78px] sm:min-w-[88px] max-w-[130px] py-1.5 px-2 rounded-xl border flex flex-col items-center text-center shadow-inner {isDarkTheme ? 'bg-slate-900/90 border-white/15' : 'bg-slate-50 border-slate-200'}" style="border-top: 3px solid {state.groupColor || '#f59e0b'};">
                   <span class="text-[11px] font-black truncate max-w-[120px] {isDarkTheme ? 'text-white' : 'text-slate-900'}">{card.name}</span>
                   <span class="text-[10px] sm:text-[11px] font-mono font-black mt-0.5 whitespace-nowrap {isDarkTheme ? 'text-amber-300' : 'text-emerald-700'}">
                     ⚡ {card.rentFormatted || '2× RENT'}

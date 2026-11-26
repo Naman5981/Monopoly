@@ -39,19 +39,19 @@
   <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-shrink-0">
     <button id="btn-top-lobby" onclick={onLobby} class="hud-pill text-indigo-950 font-bold cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Return to Lobby" aria-label="Return to Lobby">
       <i class="fa-solid fa-house text-indigo-600"></i>
-      <span class="hidden sm:inline">Lobby</span>
+      <span class="text-xs">Lobby</span>
     </button>
 
     <div class="h-5 w-px bg-slate-300/60 hidden sm:block"></div>
 
     <button id="btn-manage-cities" onclick={onCities} class="hud-pill text-indigo-950 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Manage Cities" aria-label="Manage Cities Portfolio">
       <i class="fa-solid fa-city text-indigo-600"></i>
-      <span class="hidden md:inline">Manage Cities</span>
-      <span class="hidden sm:inline md:hidden">Cities</span>
+      <span class="hidden md:inline text-xs">Manage Cities</span>
+      <span class="md:hidden text-xs">Cities</span>
     </button>
     <button id="btn-trade" onclick={onTrade} class="hud-pill text-emerald-950 transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.96]" title="Trade Properties with Opponents" aria-label="Trade Properties">
       <i class="fa-solid fa-handshake text-emerald-600"></i>
-      <span class="hidden sm:inline">Trade</span>
+      <span class="text-xs">Trade</span>
     </button>
   </div>
 
@@ -112,7 +112,7 @@
 
     <button onclick={onLight} class="hud-pill text-slate-700" title="Toggle Lighting Theme" aria-label="Toggle Lighting Atmosphere">
       <i class="fa-solid fa-sun text-amber-500"></i>
-      <span class="hidden xl:inline text-xs">{state.lightingMode || 'Day'}</span>
+      <span class="hidden sm:inline text-xs">{state.lightingMode || 'Day'}</span>
     </button>
 
     <!-- Sound Control Pill -->

@@ -5,14 +5,19 @@
    * Replaces native browser window.prompt with an AAA animated Svelte dialog.
    */
   import { modalStore, closeEditNameModal } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
 
   let state = $state({});
+  let hud = $state({});
   let inputVal = $state('');
   let inputEl = $state(null);
 
   modalStore.subscribe(val => {
     state = val.editName || {};
   });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   $effect(() => {
     if (state.visible) {
@@ -75,21 +80,18 @@
     tabindex="-1"
   >
     <div
-      class="relative w-full max-w-sm sm:max-w-md bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-amber-400/50 rounded-3xl p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.95)] flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-150"
+      class="relative w-full max-w-sm sm:max-w-md border-2 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-150 {isDarkTheme ? 'bg-slate-950 border-amber-400/50 text-white' : 'bg-white border-amber-300 text-slate-900'}"
     >
-      <!-- Top Decorative Glow -->
-      <div class="absolute -top-10 inset-x-0 h-20 bg-amber-500/15 blur-2xl pointer-events-none rounded-full"></div>
-
       <!-- Header Icon Badge -->
       <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950 flex items-center justify-center text-2xl shadow-lg shadow-amber-500/25 border-2 border-white/60 mb-3.5">
         <i class="fa-solid fa-crown text-slate-950"></i>
       </div>
 
       <!-- Title & Subtitle -->
-      <h2 id="edit-name-title" class="text-lg sm:text-xl font-black text-white uppercase tracking-wider drop-shadow">
+      <h2 id="edit-name-title" class="text-lg sm:text-xl font-black uppercase tracking-wider {isDarkTheme ? 'text-white' : 'text-slate-900'}">
         YOUR TYCOON NAME
       </h2>
-      <p class="text-xs font-semibold text-slate-400 mt-1 mb-5">
+      <p class="text-xs font-semibold mt-1 mb-5 {isDarkTheme ? 'text-slate-400' : 'text-slate-600'}">
         Choose your official tycoon identity for leaderboards &amp; multiplayer
       </p>
 
@@ -103,12 +105,12 @@
             maxlength="14"
             placeholder="ENTER NAME..."
             id="tycoon-name-modal-input"
-            class="w-full px-4 py-3 sm:py-3.5 rounded-2xl bg-slate-800/90 border-2 border-amber-400/60 font-black text-base sm:text-lg text-amber-300 uppercase tracking-wider placeholder:text-slate-500 placeholder:normal-case placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-300 transition-all text-center"
+            class="w-full px-4 py-3 sm:py-3.5 rounded-2xl border-2 font-black text-base sm:text-lg uppercase tracking-wider placeholder:normal-case placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all text-center {isDarkTheme ? 'bg-slate-800/90 border-amber-400/60 text-amber-300 placeholder:text-slate-500 focus:border-amber-300' : 'bg-slate-50 border-amber-400 text-slate-900 placeholder:text-slate-400 focus:border-amber-500'}"
           />
         </div>
-        <div class="flex items-center justify-between px-2 mt-1.5 text-[11px] font-mono text-slate-400">
+        <div class="flex items-center justify-between px-2 mt-1.5 text-[11px] font-mono {isDarkTheme ? 'text-slate-400' : 'text-slate-600'}">
           <span>Max 14 characters</span>
-          <span class="font-bold {(inputVal || '').length >= 14 ? 'text-amber-400' : 'text-slate-500'}">
+          <span class="font-bold {(inputVal || '').length >= 14 ? 'text-amber-500' : (isDarkTheme ? 'text-slate-500' : 'text-slate-500')}">
             {(inputVal || '').length} / 14
           </span>
         </div>
@@ -120,7 +122,7 @@
           type="button"
           id="btn-edit-name-cancel"
           onclick={onCancel}
-          class="flex-1 py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-300 border border-slate-700 font-black text-xs uppercase tracking-wider transition-all cursor-pointer active:scale-95"
+          class="flex-1 py-3 rounded-xl border font-black text-xs uppercase tracking-wider transition-all cursor-pointer active:scale-95 {isDarkTheme ? 'bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 border-slate-700' : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'}"
         >
           Cancel
         </button>

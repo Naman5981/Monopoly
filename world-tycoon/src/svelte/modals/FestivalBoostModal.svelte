@@ -1,8 +1,13 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
 
   let state = $state({});
+  let hud = $state({});
   modalStore.subscribe(val => { state = val.festivalBoost || {}; });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   function onClose() {
     window.closeFestivalBoostModal?.();
@@ -58,25 +63,25 @@
     </div>
 
     <!-- Properties list / Grid -->
-    <div id="festival-boost-grid" class="p-4 sm:p-5 overflow-y-auto space-y-3 bg-gradient-to-b from-white to-slate-50/70 max-h-[50vh]">
+    <div id="festival-boost-grid" class="p-4 sm:p-5 overflow-y-auto space-y-3 max-h-[50vh] {isDarkTheme ? 'bg-slate-950/95' : 'bg-gradient-to-b from-white to-slate-50/70'}">
       {#each state.ownedProperties || [] as prop}
-        <div onclick={() => onSelectCity(prop.id)} class="p-3 rounded-2xl border-2 border-emerald-200 bg-white hover:bg-emerald-50 cursor-pointer transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-between shadow-2xs">
+        <div onclick={() => onSelectCity(prop.id)} class="p-3 rounded-2xl border-2 cursor-pointer transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-between shadow-2xs {isDarkTheme ? 'border-emerald-500/40 bg-slate-900 text-white hover:bg-emerald-950/40' : 'border-emerald-200 bg-white text-slate-800 hover:bg-emerald-50'}">
           <div class="flex items-center gap-2.5">
             <span class="w-4 h-4 rounded-full border border-black/20" style="background-color: {prop.color};"></span>
             <div>
-              <div class="font-black text-sm text-slate-800">{prop.name}</div>
-              <div class="text-xs font-bold text-slate-500">Tier: {prop.level || 0}</div>
+              <div class="font-black text-sm {isDarkTheme ? 'text-white' : 'text-slate-800'}">{prop.name}</div>
+              <div class="text-xs font-bold {isDarkTheme ? 'text-slate-400' : 'text-slate-500'}">Tier: {prop.level || 0}</div>
             </div>
           </div>
           <div class="text-right">
-            <div class="text-xs font-black text-emerald-600">Rent: {prop.rentFormatted}</div>
-            <div class="text-xs font-bold text-amber-600">Boosts to 2×!</div>
+            <div class="text-xs font-black {isDarkTheme ? 'text-emerald-400' : 'text-emerald-600'}">Rent: {prop.rentFormatted}</div>
+            <div class="text-xs font-bold {isDarkTheme ? 'text-amber-400' : 'text-amber-600'}">Boosts to 2×!</div>
           </div>
         </div>
       {/each}
     </div>
 
-    <div class="p-3 bg-white border-t border-slate-100 flex items-center justify-between gap-2 shrink-0">
+    <div class="p-3 border-t flex items-center justify-between gap-2 shrink-0 {isDarkTheme ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}">
       <button onclick={onClose} class="w-full py-2.5 rounded-xl text-xs font-black text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0">
         Or Click Directly on the 3D Board
       </button>
@@ -100,10 +105,10 @@
       </div>
     </div>
 
-    <div class="p-5 space-y-4 bg-gradient-to-b from-white to-slate-50/70">
-      <div class="bg-amber-50/90 border-2 border-amber-200/90 rounded-2xl p-3.5 flex items-start gap-3 shadow-xs">
-        <p id="festival-no-props-desc" class="text-xs font-bold text-amber-950 leading-relaxed">
-          You visited the <strong class="text-amber-900">World Festival</strong>! However, you currently do not own any cities or resorts to host the festival and receive a <strong class="text-emerald-700">2× Rent Boost</strong>.
+    <div class="p-5 space-y-4 {isDarkTheme ? 'bg-slate-950/95' : 'bg-gradient-to-b from-white to-slate-50/70'}">
+      <div class="border-2 rounded-2xl p-3.5 flex items-start gap-3 shadow-xs {isDarkTheme ? 'bg-amber-950/40 border-amber-500/40' : 'bg-amber-50/90 border-amber-200/90'}">
+        <p id="festival-no-props-desc" class="text-xs font-bold leading-relaxed {isDarkTheme ? 'text-amber-100' : 'text-amber-950'}">
+          You visited the <strong class="{isDarkTheme ? 'text-amber-300' : 'text-amber-900'}">World Festival</strong>! However, you currently do not own any cities or resorts to host the festival and receive a <strong class="{isDarkTheme ? 'text-emerald-300' : 'text-emerald-700'}">2× Rent Boost</strong>.
         </p>
       </div>
 

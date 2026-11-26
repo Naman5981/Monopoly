@@ -290,7 +290,7 @@
           </div>
         {/each}
         {#if !state.incomingTrade?.theyOfferProps?.length}
-          <span class="text-xs text-slate-400 italic">No properties</span>
+          <span class="text-xs italic {isDarkTheme ? 'text-slate-400' : 'text-slate-600'}">No properties</span>
         {/if}
       </div>
     </div>
@@ -317,7 +317,7 @@
           </div>
         {/each}
         {#if !state.incomingTrade?.theyReqProps?.length}
-          <span class="text-xs text-slate-400 italic">No properties</span>
+          <span class="text-xs italic {isDarkTheme ? 'text-slate-400' : 'text-slate-600'}">No properties</span>
         {/if}
       </div>
     </div>

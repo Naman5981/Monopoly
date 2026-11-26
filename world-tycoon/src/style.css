@@ -52,6 +52,8 @@ body {
   --wt-pill-bg: rgba(255, 255, 255, 0.96);
   --wt-pill-border: rgba(226, 232, 240, 0.95);
   --wt-pill-text: #0f172a;
+  --wt-pill-hover-bg: #ffffff;
+  --wt-pill-hover-border: #cbd5e1;
   --wt-status-bg: rgba(255, 255, 255, 0.96);
   --wt-status-border: rgba(226, 232, 240, 0.95);
   --wt-status-text: #0f172a;
@@ -67,6 +69,8 @@ body.theme-dark-ui {
   --wt-pill-bg: rgba(30, 41, 59, 0.94);
   --wt-pill-border: rgba(148, 163, 184, 0.28);
   --wt-pill-text: #f8fafc;
+  --wt-pill-hover-bg: rgba(51, 65, 85, 0.96);
+  --wt-pill-hover-border: rgba(148, 163, 184, 0.55);
   --wt-status-bg: rgba(15, 23, 42, 0.96);
   --wt-status-border: rgba(255, 255, 255, 0.18);
   --wt-status-text: #f8fafc;
@@ -365,8 +369,8 @@ body.theme-dark-ui .hud-glass-capsule button:hover {
   .top-pill:hover:not(.pill-locked) {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.06);
-    background: #ffffff;
-    border-color: #cbd5e1;
+    background: var(--wt-pill-hover-bg);
+    border-color: var(--wt-pill-hover-border);
   }
 }
 

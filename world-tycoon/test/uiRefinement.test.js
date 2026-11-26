@@ -48,7 +48,9 @@ describe('UI Visual Refinement Suite (/better-colors /game-art /fixing-motion-pe
       '.player-hud-card should use crisp solid surface'
     );
     assert.ok(
-      styleContent.includes('.hud-status-pill {') && styleContent.includes('background: rgba(15, 23, 42, 0.96);'),
+      styleContent.includes('.hud-status-pill {') &&
+        (styleContent.includes('background: rgba(15, 23, 42, 0.96);') ||
+          (styleContent.includes('background: var(--wt-status-bg);') && styleContent.includes('--wt-status-bg: rgba(15, 23, 42, 0.96);'))),
       '.hud-status-pill should use crisp dark solid surface'
     );
   });

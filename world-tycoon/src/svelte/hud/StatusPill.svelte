@@ -8,7 +8,7 @@
   modalStore.subscribe(val => { modals = val || {}; });
 
   const hideStatusPillForDock = $derived(
-    Boolean(modals.buyCity?.visible || modals.upgradeCity?.visible || modals.buyoutCity?.visible)
+    Boolean(modals.buyCity?.visible || modals.upgradeCity?.visible || modals.buyout?.visible || modals.auction?.visible || modals.sellCities?.visible)
   );
 
   function onStatusPill() { window.handleStatusPillClick?.(); }

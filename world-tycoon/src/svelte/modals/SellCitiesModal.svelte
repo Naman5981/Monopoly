@@ -127,7 +127,7 @@
           </div>
         {/each}
       {:else}
-        <div class="text-center py-6 text-slate-400 font-bold text-xs">
+        <div class="text-center py-6 font-bold text-xs {isDarkTheme ? 'text-slate-400' : 'text-slate-600'}">
           <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base mb-1 block"></i>
           No properties left to sell.
         </div>

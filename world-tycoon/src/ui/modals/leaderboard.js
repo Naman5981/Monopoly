@@ -64,13 +64,13 @@ export function renderLeaderboardModal() {
   const remM = Math.floor(remainingSecs / 60);
   const remS = remainingSecs % 60;
   const timeStr = `${String(remM).padStart(2, '0')}:${String(remS).padStart(2, '0')}`;
-  const matchTimerText = `⏱️ ${timeStr} left (${durationMins}m cap)`;
+  const matchTimerText = `${timeStr} left (${durationMins}m cap)`;
 
   // Summary banner (who leads net worth & who is closest to Triple Monopoly)
   const leader = standings[0];
   const topSetsPlayer = [...standings].sort((a, b) => b.sets - a.sets)[0];
   const targetSets = matchSettings.monopolySetsToWin || 3;
-  const summaryText = `👑 Wealth Leader: ${leader?.player.name || 'None'} (${fmtMoney(leader?.netWorth || 0)}) • 🏰 Sets Leader: ${topSetsPlayer?.player.name || 'None'} (${topSetsPlayer?.sets || 0}/${targetSets})`;
+  const summaryText = `Wealth Leader: ${leader?.player.name || 'None'} (${fmtMoney(leader?.netWorth || 0)}) • Sets Leader: ${topSetsPlayer?.player.name || 'None'} (${topSetsPlayer?.sets || 0}/${targetSets})`;
 
   const formattedStandings = standings.map((s, rankIdx) => ({
     rank: rankIdx + 1,
@@ -223,16 +223,21 @@ export function buildNetWorthChartData() {
     maxVal = 3000000;
   }
 
-  minVal = Math.max(0, Math.floor(minVal * 0.9));
-  maxVal = Math.ceil(maxVal * 1.1);
+  minVal = Math.max(0, Math.floor((minVal * 0.9) / 100000) * 100000);
+  maxVal = Math.ceil((maxVal * 1.1) / 100000) * 100000;
   if (maxVal <= minVal) maxVal = minVal + 1000000;
 
+  // Snap step to a clean $100k multiple across 3 intervals so Y-axis ticks stay readable
+  const rawStep = Math.ceil(((maxVal - minVal) / 3) / 100000) * 100000;
+  const step = Math.max(100000, rawStep);
+  maxVal = minVal + step * 3;
+
   const width = 440;
-  const height = 150;
-  const padLeft = 50;
-  const padRight = 16;
+  const height = 160;
+  const padLeft = 56;
+  const padRight = 18;
   const padTop = 16;
-  const padBottom = 26;
+  const padBottom = 28;
 
   const plotW = width - padLeft - padRight;
   const plotH = height - padTop - padBottom;

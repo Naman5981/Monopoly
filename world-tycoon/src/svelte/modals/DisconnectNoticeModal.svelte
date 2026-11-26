@@ -1,8 +1,13 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
 
   let state = $state({});
+  let hud = $state({});
   modalStore.subscribe(val => { state = val.disconnectNotice || {}; });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   function onReturnToLobby() {
     if (typeof window !== 'undefined' && typeof window.returnToLobbyFromDisconnect === 'function') {
@@ -13,42 +18,28 @@
 
 <div
   id="modal-disconnect-notice"
-  class="fixed inset-0 z-50 items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs overscroll-contain select-none text-center {state.visible ? 'flex' : 'hidden'}"
+  role="alertdialog"
+  aria-modal="true"
+  class="fixed inset-0 z-[1000] items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm overscroll-contain select-none text-center {state.visible ? 'flex' : 'hidden'}"
 >
-  <div
-    class="relative w-full max-w-sm bg-slate-950/95 border border-rose-500/40 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui transition-all duration-200"
-    style="box-shadow: 0 25px 60px -15px rgba(0,0,0,0.9), 0 0 35px rgba(244,63,94,0.2);"
-  >
-    <!-- Header with Atmospheric Rose Halo -->
-    <div
-      class="relative p-5 text-white overflow-hidden flex flex-col items-center gap-2 shadow-md"
-      style="background: radial-gradient(circle at 50% 20%, rgba(244,63,94,0.38) 0%, rgba(2,6,23,0.95) 85%); border-bottom: 1px solid rgba(244,63,94,0.35);"
-    >
-      <div class="w-12 h-12 rounded-2xl bg-rose-500/20 backdrop-blur-xs border border-rose-400/40 flex items-center justify-center text-2xl text-rose-300 shadow-inner mb-1">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-      </div>
-      <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-rose-500/15 backdrop-blur-xs text-[10px] font-mono font-bold uppercase tracking-widest text-rose-300 border border-rose-400/30">
-        <i class="fa-solid fa-wifi"></i>
-        <span>CONNECTION LOST</span>
-      </div>
-      <h2 class="font-display font-black text-2xl text-white tracking-wide drop-shadow">
-        DISCONNECTED
-      </h2>
+  <div class="relative w-full max-w-sm border-2 rounded-3xl p-6 shadow-2xl flex flex-col items-center gap-4 font-ui {isDarkTheme ? 'bg-slate-950/95 border-rose-500/40 text-white' : 'bg-white border-rose-200 text-slate-900'}">
+    <div class="w-12 h-12 rounded-2xl border flex items-center justify-center text-xl {isDarkTheme ? 'bg-rose-500/20 border-rose-400/40 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-600'}">
+      <i class="fa-solid fa-triangle-exclamation"></i>
     </div>
-
-    <!-- Body Section -->
-    <div class="p-5 space-y-4 bg-slate-950/70">
-      <p id="disconnect-notice-text" class="text-xs sm:text-sm font-semibold text-slate-300 leading-relaxed">
+    <div class="space-y-1.5">
+      <h2 class="font-display font-black text-xl tracking-tight {isDarkTheme ? 'text-white' : 'text-slate-900'}">
+        Disconnected
+      </h2>
+      <p id="disconnect-notice-text" class="text-xs sm:text-sm font-semibold leading-snug {isDarkTheme ? 'text-slate-300' : 'text-slate-600'}">
         {state.message || 'Player disconnected. Returning to lobby.'}
       </p>
-
-      <button
-        onclick={onReturnToLobby}
-        class="game-btn game-btn-blue w-full py-3 text-xs sm:text-sm font-black shadow-lg shadow-sky-950/50 flex items-center justify-center gap-2 cursor-pointer"
-      >
-        <i class="fa-solid fa-door-open"></i>
-        <span>Return to Lobby</span>
-      </button>
     </div>
+    <button
+      onclick={onReturnToLobby}
+      class="game-btn game-btn-blue w-full py-2.5 text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer"
+    >
+      <i class="fa-solid fa-door-open"></i>
+      <span>Return to Lobby</span>
+    </button>
   </div>
 </div>

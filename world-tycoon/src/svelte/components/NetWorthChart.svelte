@@ -1,5 +1,11 @@
 <script>
+  import { hudStore } from '../stores/hudStore.js';
+
   let { chart = null, spotlightIdx = null } = $props();
+
+  let hud = $state({});
+  hudStore.subscribe(val => { hud = val || {}; });
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   let svgEl = $state(null);
   let scrubIdx = $state(null);
@@ -65,23 +71,23 @@
 </script>
 
 {#if !chart || chart.empty}
-  <div class="text-xs text-slate-400 font-bold text-center py-4">No match timeline data recorded</div>
+  <div class="text-xs font-bold text-center py-4 {isDarkTheme ? 'text-slate-300' : 'text-slate-600'}">No match timeline data recorded</div>
 {:else}
   <div class="w-full flex flex-col items-center relative select-none">
     <!-- Floating Scrubber Tooltip -->
     {#if scrubTurn}
-      <div class="absolute top-1 right-1 bg-slate-950/95 border border-amber-400/50 rounded-lg px-2 py-1 text-[10px] font-mono pointer-events-none z-20 shadow-lg">
-        <div class="text-amber-300 font-bold border-b border-white/10 pb-0.5 mb-0.5">
+      <div class="absolute top-1 right-1 bg-slate-950/95 border border-amber-400/50 rounded-lg px-2.5 py-1.5 text-xs font-mono pointer-events-none z-20 shadow-lg">
+        <div class="text-amber-300 font-bold border-b border-white/10 pb-0.5 mb-1">
           {scrubIdx === 0 ? 'Match Start' : scrubTurn.isLive ? 'Current (Live)' : `Round ${scrubTurn.turn}`}
         </div>
         <div class="space-y-0.5">
           {#each tooltipRows as row, rIdx (row.name)}
             <div class="flex items-center justify-between gap-2.5">
-              <span class="flex items-center gap-1 font-bold truncate max-w-[85px]" style="color:{row.color}">
+              <span class="flex items-center gap-1 font-bold truncate max-w-[95px]" style="color:{row.color}">
                 <span>#{rIdx + 1}</span>
                 <span class="truncate">{row.name}</span>
               </span>
-              <span class="font-bold text-white">{row.formatted}</span>
+              <span class="font-bold text-white tabular-nums">{row.formatted}</span>
             </div>
           {/each}
         </div>
@@ -92,7 +98,7 @@
     <svg
       bind:this={svgEl}
       viewBox="0 0 {chart.width} {chart.height}"
-      class="w-full h-auto max-h-44 overflow-visible cursor-crosshair focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400 rounded"
+      class="w-full h-auto max-h-52 overflow-visible cursor-crosshair focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400 rounded"
       role="img"
       tabindex="0"
       aria-label="Net worth trajectory by turn. Use left and right arrow keys to inspect turn values."
@@ -114,13 +120,13 @@
 
       <!-- Horizontal Y-Axis Gridlines -->
       {#each chart.gridLines as line (line.y)}
-        <line x1={chart.padLeft} y1={line.y} x2={chart.right} y2={line.y} stroke="#334155" stroke-width="1" stroke-dasharray="3,3" />
-        <text x={chart.padLeft - 6} y={line.labelY} text-anchor="end" font-size="8" font-weight="700" fill="#94a3b8" class="font-mono">{line.value}</text>
+        <line x1={chart.padLeft} y1={line.y} x2={chart.right} y2={line.y} stroke={isDarkTheme ? '#334155' : '#cbd5e1'} stroke-width="1" stroke-dasharray="3,3" />
+        <text x={chart.padLeft - 8} y={line.labelY} text-anchor="end" font-size="10.5" font-weight="700" fill={isDarkTheme ? '#cbd5e1' : '#334155'} class="font-mono">{line.value}</text>
       {/each}
 
       <!-- X-Axis Turn Milestones -->
       {#each chart.xTicks as tick (tick.label)}
-        <text x={tick.x} y={chart.height - 6} text-anchor="middle" font-size="8" font-weight="700" fill="#64748b" class="font-mono">{tick.label}</text>
+        <text x={tick.x} y={chart.height - 6} text-anchor="middle" font-size="10.5" font-weight="700" fill={isDarkTheme ? '#cbd5e1' : '#334155'} class="font-mono">{tick.label}</text>
       {/each}
 
       <!-- Soft Area Glow (Spotlighted or Local Player) -->
@@ -208,13 +214,13 @@
     </svg>
 
     <!-- Static Non-Hoverable Legend -->
-    <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-1 px-1 border-t border-white/10 pt-1.5 w-full pointer-events-none">
+    <div class="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1.5 mt-1.5 px-1 border-t pt-2 w-full pointer-events-none {isDarkTheme ? 'border-white/10' : 'border-slate-200'}">
       {#each chart.series as s (s.playerIdx)}
         {@const isDimmed = spotlightIdx !== null && spotlightIdx !== s.playerIdx}
-        <div class="flex items-center gap-1.5 text-[10px] font-bold transition-opacity duration-150 {isDimmed ? 'opacity-40 text-slate-500' : 'text-slate-300'}">
-          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:{s.color}"></span>
-          <span class="truncate max-w-[65px] uppercase">{s.name}</span>
-          <span class="text-slate-400 font-semibold font-mono">{s.lastValue}</span>
+        <div class="flex items-center gap-1.5 text-xs font-bold transition-opacity duration-150 {isDimmed ? 'opacity-40' : ''} {isDarkTheme ? 'text-slate-100' : 'text-slate-900'}">
+          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:{s.color}" aria-hidden="true"></span>
+          <span class="truncate max-w-[85px] uppercase">{s.name}</span>
+          <span class="font-bold font-mono tabular-nums {isDarkTheme ? 'text-slate-300' : 'text-slate-700'}">{s.lastValue}</span>
         </div>
       {/each}
     </div>

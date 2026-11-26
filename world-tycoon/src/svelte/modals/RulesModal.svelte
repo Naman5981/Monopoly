@@ -1,8 +1,13 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
 
   let state = $state({});
+  let hud = $state({});
   modalStore.subscribe(val => { state = val.rules || {}; });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
 
   function onClose() {
     window.closeRulesModal?.();
@@ -54,7 +59,7 @@
     </div>
 
     <!-- Rulebook Accolade Cards -->
-    <div class="p-5 overflow-y-auto space-y-3.5 bg-gradient-to-b from-white to-slate-50/70 text-sm leading-relaxed overscroll-contain">
+    <div class="p-5 overflow-y-auto space-y-3.5 text-sm leading-relaxed overscroll-contain {isDarkTheme ? 'bg-slate-950/95' : 'bg-gradient-to-b from-white to-slate-50/70'}">
       <div class="victory-accolade-box victory-accolade-box-emerald">
         <svg class="ui-icon w-8 h-8 text-emerald-600 flex-shrink-0" aria-hidden="true"><use href="#icon-money"></use></svg>
         <div>
