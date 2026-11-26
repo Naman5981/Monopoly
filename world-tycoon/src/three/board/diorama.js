@@ -345,7 +345,7 @@ export function buildDioramaBaseAndPark(boardGroup) {
     { x: -4.6, z: 1.5 },
     { x: 1.5, z: -4.8 },
     { x: 4.8, z: 1.2 },
-    { x: -0.6, z: 5.2 }
+    { x: -4.8, z: 5.2 }
   ];
   treeClusters.forEach(pos => {
     const cluster = createPineTreeCluster3D();
@@ -372,7 +372,7 @@ export function buildLowPolyParkDecor3D(boardGroup) {
   [
     { x: -5.0, z: -4.2, s: 0.42 },
     { x: 4.2, z: 3.8, s: 0.45 },
-    { x: -2.8, z: 4.6, s: 0.38 },
+    { x: -5.4, z: 4.0, s: 0.38 },
     { x: 4.6, z: -2.8, s: 0.40 }
   ].forEach(rp => {
     const rg = new THREE.Group();

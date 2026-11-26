@@ -1,9 +1,15 @@
 <script>
   import { hudStore } from '../stores/hudStore.js';
-  import { isAnyModalOpen } from '../stores/modalStore.js';
+  import { modalStore, isAnyModalOpen } from '../stores/modalStore.js';
 
   let state = $state({});
+  let modals = $state({});
   hudStore.subscribe(val => { state = val; });
+  modalStore.subscribe(val => { modals = val || {}; });
+
+  const hideStatusPillForDock = $derived(
+    Boolean(modals.buyCity?.visible || modals.upgradeCity?.visible || modals.buyoutCity?.visible)
+  );
 
   function onStatusPill() { window.handleStatusPillClick?.(); }
   function onRoll() { window.handleRollButtonClick?.(); }
@@ -47,8 +53,8 @@
 
 <!-- Unified Bottom Action Dock -->
 <div id="hud-bottom-status-wrap" class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 hidden flex flex-col items-center gap-2.5 pointer-events-none w-full max-w-xl px-4 transition-[transform,opacity] duration-300">
-  <!-- Status Pill -->
-  <div id="hud-status-pill" onclick={onStatusPill} class="hud-status-pill pointer-events-auto cursor-pointer transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0" title="Click to roll dice or view activity log">
+  <!-- Status Pill (hidden when a bottom action dock is open so it never peeks behind) -->
+  <div id="hud-status-pill" onclick={onStatusPill} class="hud-status-pill pointer-events-auto cursor-pointer transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 {hideStatusPillForDock ? 'opacity-0 pointer-events-none' : ''}" title="Click to roll dice or view activity log">
     <div class="hud-status-pill-avatar shrink-0">
       <span id="hud-status-pill-dot" class="w-2.5 h-2.5 rounded-full {state.statusPill?.isThinking ? 'animate-ping' : ''}" style="background-color: {state.statusPill?.dotColor || '#10b981'}"></span>
     </div>

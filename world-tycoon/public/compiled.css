@@ -1599,8 +1599,8 @@ video {
 .border-emerald-400\/20{
   border-color: rgb(52 211 153 / 0.2);
 }
-.border-emerald-400\/30{
-  border-color: rgb(52 211 153 / 0.3);
+.border-emerald-400\/35{
+  border-color: rgb(52 211 153 / 0.35);
 }
 .border-emerald-400\/40{
   border-color: rgb(52 211 153 / 0.4);
@@ -1722,9 +1722,6 @@ video {
 }
 .border-sky-500\/40{
   border-color: rgb(14 165 233 / 0.4);
-}
-.border-sky-500\/80{
-  border-color: rgb(14 165 233 / 0.8);
 }
 .border-slate-100{
   --tw-border-opacity: 1;
@@ -2032,6 +2029,9 @@ video {
 .bg-slate-50\/50{
   background-color: rgb(248 250 252 / 0.5);
 }
+.bg-slate-50\/90{
+  background-color: rgb(248 250 252 / 0.9);
+}
 .bg-slate-800{
   --tw-bg-opacity: 1;
   background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1));
@@ -2125,9 +2125,6 @@ video {
 }
 .bg-white\/95{
   background-color: rgb(255 255 255 / 0.95);
-}
-.bg-white\/\[0\.04\]{
-  background-color: rgb(255 255 255 / 0.04);
 }
 .bg-gradient-to-b{
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
@@ -2927,9 +2924,15 @@ video {
   --tw-text-opacity: 1;
   color: rgb(224 242 254 / var(--tw-text-opacity, 1));
 }
+.text-sky-100\/10{
+  color: rgb(224 242 254 / 0.1);
+}
 .text-sky-200{
   --tw-text-opacity: 1;
   color: rgb(186 230 253 / var(--tw-text-opacity, 1));
+}
+.text-sky-200\/15{
+  color: rgb(186 230 253 / 0.15);
 }
 .text-sky-300{
   --tw-text-opacity: 1;
@@ -3013,12 +3016,6 @@ video {
 .text-white\/30{
   color: rgb(255 255 255 / 0.3);
 }
-.text-white\/40{
-  color: rgb(255 255 255 / 0.4);
-}
-.text-white\/50{
-  color: rgb(255 255 255 / 0.5);
-}
 .text-white\/80{
   color: rgb(255 255 255 / 0.8);
 }
@@ -3036,6 +3033,9 @@ video {
 }
 .accent-sky-400{
   accent-color: #38bdf8;
+}
+.opacity-0{
+  opacity: 0;
 }
 .opacity-100{
   opacity: 1;
@@ -3180,10 +3180,6 @@ video {
 }
 .shadow-indigo-500\/20{
   --tw-shadow-color: rgb(99 102 241 / 0.2);
-  --tw-shadow: var(--tw-shadow-colored);
-}
-.shadow-rose-950\/50{
-  --tw-shadow-color: rgb(76 5 25 / 0.5);
   --tw-shadow: var(--tw-shadow-colored);
 }
 .shadow-sky-950\/50{
@@ -3439,7 +3435,7 @@ body {
 
 /* ═══ CASUAL 3D GAME LOBBY ATMOSPHERE BACKGROUND ═══ */
 #landing-setup-screen {
-  background: linear-gradient(180deg, #38b6ff 0%, #2fa5f5 35%, #60a5fa 70%, #93c5fd 100%);
+  background: linear-gradient(180deg, #0b1324 0%, #112240 42%, #1a3358 78%, #1e3a5f 100%);
   transition: background 0.7s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.7s ease;
 }
 
@@ -3647,7 +3643,7 @@ body {
   width: clamp(260px, 36vh, 420px);
   height: clamp(260px, 36vh, 420px);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.65) 30%, rgba(186, 230, 253, 0.25) 55%, transparent 72%);
+  background: radial-gradient(circle, rgba(186, 230, 253, 0.36) 0%, rgba(56, 189, 248, 0.16) 35%, rgba(14, 165, 233, 0.06) 58%, transparent 74%);
   pointer-events: none;
   z-index: 1;
 }
@@ -5835,7 +5831,6 @@ body.production-build #debug-modal {
   z-index: 1000 !important;
 }
 
-#modal-buy-city-card,
 #modal-buyout-city-card,
 #modal-upgrade-city-card,
 #modal-auction-card,
@@ -6305,6 +6300,10 @@ html, body {
   background-color: rgb(255 255 255 / 0.1);
 }
 
+.hover\:bg-white\/15:hover{
+  background-color: rgb(255 255 255 / 0.15);
+}
+
 .hover\:bg-white\/20:hover{
   background-color: rgb(255 255 255 / 0.2);
 }
@@ -6315,10 +6314,6 @@ html, body {
 
 .hover\:bg-white\/30:hover{
   background-color: rgb(255 255 255 / 0.3);
-}
-
-.hover\:bg-white\/\[0\.08\]:hover{
-  background-color: rgb(255 255 255 / 0.08);
 }
 
 .hover\:from-amber-300:hover{

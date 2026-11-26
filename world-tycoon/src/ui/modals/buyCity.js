@@ -41,7 +41,7 @@ export function openBuyCityModal(tile, isDoubles) {
   const isLocalHuman = (pIdx === myLocalIdx) && !p.isAI;
 
   const colorHex = tile.group ? GROUP_META[tile.group].hex : '#0284c7';
-  const countryName = tile.group ? GROUP_META[tile.group].name : 'RESORT DESTINATION';
+  const countryName = tile.group ? GROUP_META[tile.group].name : (tile.subtitle || 'Coastal Resort');
   const maxRentHtml = (tile.type === 'city')
     ? `<span class="text-amber-700">${fmtMoney(tile.rent[tile.rent.length - 1] || tile.rent[4])}</span> <span class="text-[10px] text-slate-500 font-bold">(Skyscraper)</span>`
     : `<span class="text-sky-700">2× Boosted</span> <span class="text-[10px] text-slate-500 font-bold">(Set of 2)</span>`;

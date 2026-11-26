@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buy Property Action Dock — UI Concepts</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: linear-gradient(180deg, #0b1324 0%, #112240 50%, #1e3a5f 100%);
+      color: #f8fafc;
+      padding: 28px 20px 56px;
+    }
+    .wrap { max-width: 1060px; margin: 0 auto; }
+    h1 { font-family: 'Fredoka', sans-serif; font-size: 26px; margin: 0 0 6px; }
+    .sub { color: #94a3b8; font-size: 13px; margin: 0 0 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 22px; }
+    .section {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 4px 10px; border-radius: 999px; width: fit-content;
+    }
+    .tag-bad { background: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .tag-rec { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .tag-alt { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.4); }
+    .stage {
+      background: radial-gradient(circle at 50% 25%, #dbeafe 0%, #bfdbfe 100%);
+      border-radius: 18px;
+      padding: 26px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 175px;
+    }
+    .notes { font-size: 12px; color: #cbd5e1; line-height: 1.5; margin: 0; }
+    .btn-green {
+      background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 0 #15803d, 0 8px 18px rgba(22, 163, 74, 0.35);
+      color: #fff; font-weight: 800; border-radius: 999px; cursor: pointer;
+    }
+    .btn-slate {
+      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 0 #cbd5e1, 0 6px 12px rgba(15, 23, 42, 0.14);
+      color: #0f172a; font-weight: 800; border-radius: 999px; cursor: pointer;
+    }
+    .btn-ghost-dark {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      color: #e2e8f0; font-weight: 700; border-radius: 999px; cursor: pointer;
+    }
+
+    /* Current */
+    .cur-card {
+      width: 100%; max-width: 440px;
+      background: rgba(2, 6, 23, 0.96);
+      border: 2px solid rgba(14, 165, 233, 0.8);
+      border-radius: 24px;
+      padding: 14px;
+      position: relative; z-index: 2;
+      box-shadow: 0 18px 40px rgba(2, 6, 23, 0.5);
+    }
+    .cur-peek {
+      margin-top: -12px;
+      background: rgba(15, 23, 42, 0.92);
+      color: #94a3b8;
+      font-size: 11px; font-weight: 700;
+      padding: 14px 18px 6px;
+      border-radius: 999px;
+      z-index: 1;
+    }
+
+    /* Option A: Crisp Tabletop White */
+    .opt-a {
+      width: 100%; max-width: 440px;
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 14px 16px;
+      color: #0f172a;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+    }
+
+    /* Option B: Refined Obsidian */
+    .opt-b {
+      width: 100%; max-width: 440px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1.5px solid rgba(255, 255, 255, 0.16);
+      border-radius: 24px;
+      padding: 14px 16px;
+      color: #ffffff;
+      box-shadow: 0 20px 45px rgba(2, 6, 23, 0.55);
+    }
+
+    /* Option C: Compact 1-Row Deed Pill */
+    .opt-c {
+      width: 100%; max-width: 470px;
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 8px 10px 8px 16px;
+      color: #0f172a;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Buy Property Dock — UI Audit &amp; Concepts</h1>
+    <p class="sub">Compare current dock issues against 3 clean replacements.</p>
+
+    <div class="grid">
+      <!-- CURRENT -->
+      <div class="section">
+        <span class="tag tag-bad">Current (Issues Found)</span>
+        <div class="stage">
+          <div class="cur-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px; margin-bottom:10px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="width:12px;height:12px;border-radius:999px;background:#0284c7;display:inline-block;"></span>
+                <strong style="font-family:'Fredoka',sans-serif;font-size:15px;">RESORT</strong>
+                <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);">RESORT DESTINATION</span>
+              </div>
+              <div style="background:rgba(6,78,59,0.75);border:1px solid rgba(52,211,153,0.5);border-radius:12px;padding:4px 10px;text-align:right;">
+                <div style="font-size:9px;font-weight:800;color:#34d399;">RENT</div>
+                <div style="font-size:15px;font-weight:800;color:#6ee7b7;font-family:'JetBrains Mono',monospace;">60K</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-green" style="flex:1;padding:10px 14px;font-size:13px;"><i class="fa-solid fa-cart-shopping"></i> BUY PROPERTY (200K)</button>
+              <button class="btn-slate" style="padding:10px 16px;font-size:12px;">PASS ✕</button>
+            </div>
+          </div>
+          <div class="cur-peek">Deciding whether to buy RESORT (200K)...</div>
+        </div>
+        <p class="notes">
+          1. Duplicate "RESORT" + "RESORT DESTINATION" label.<br>
+          2. Missing "$" on <strong>60K</strong> and <strong>200K</strong>.<br>
+          3. Dark StatusPill bleeds out from behind the bottom edge.
+        </p>
+      </div>
+
+      <!-- OPTION A -->
+      <div class="section">
+        <span class="tag tag-rec">Option A — Crisp Tabletop White (Recommended)</span>
+        <div class="stage">
+          <div class="opt-a">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid #f1f5f9;">
+              <div style="display:flex; align-items:center; gap:9px;">
+                <span style="width:12px;height:12px;border-radius:999px;background:#0ea5e9;display:inline-block;box-shadow:0 0 0 3px #e0f2fe;"></span>
+                <div>
+                  <div style="font-family:'Fredoka',sans-serif;font-size:17px;font-weight:700;line-height:1.1;">Riviera</div>
+                  <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">Coastal Resort</div>
+                </div>
+              </div>
+              <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:4px 11px;text-align:right;">
+                <div style="font-size:9px;font-weight:800;color:#059669;letter-spacing:0.05em;">BASE RENT</div>
+                <div style="font-size:16px;font-weight:800;color:#047857;font-family:'JetBrains Mono',monospace;">$60K</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-green" style="flex:1;padding:10px 14px;font-size:13px;">Buy for $200K</button>
+              <button class="btn-slate" style="padding:10px 18px;font-size:12px;">Pass</button>
+            </div>
+          </div>
+        </div>
+        <p class="notes">
+          Matches TopBar, PlayerCards, and modernized modals. Clean hierarchy, "$" prefix, no duplicate badge, StatusPill hidden while dock is open.
+        </p>
+      </div>
+
+      <!-- OPTION B -->
+      <div class="section">
+        <span class="tag tag-alt">Option B — Refined Obsidian Dock</span>
+        <div class="stage">
+          <div class="opt-b">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08);">
+              <div style="display:flex; align-items:center; gap:9px;">
+                <span style="width:12px;height:12px;border-radius:999px;background:#0ea5e9;display:inline-block;box-shadow:0 0 10px rgba(14,165,233,0.6);"></span>
+                <div>
+                  <div style="font-family:'Fredoka',sans-serif;font-size:17px;font-weight:700;line-height:1.1;">Riviera</div>
+                  <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;">Coastal Resort</div>
+                </div>
+              </div>
+              <div style="background:rgba(16,185,129,0.14);border:1px solid rgba(52,211,153,0.35);border-radius:12px;padding:4px 11px;text-align:right;">
+                <div style="font-size:9px;font-weight:800;color:#34d399;letter-spacing:0.05em;">BASE RENT</div>
+                <div style="font-size:16px;font-weight:800;color:#6ee7b7;font-family:'JetBrains Mono',monospace;">$60K</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-green" style="flex:1;padding:10px 14px;font-size:13px;">Buy for $200K</button>
+              <button class="btn-ghost-dark" style="padding:10px 18px;font-size:12px;">Pass</button>
+            </div>
+          </div>
+        </div>
+        <p class="notes">
+          Keeps high-contrast dark slate glass over bright board, drops neon border &amp; duplicate pill, adds "$" prefix, and hides StatusPill underneath.
+        </p>
+      </div>
+
+      <!-- OPTION C -->
+      <div class="section">
+        <span class="tag tag-alt">Option C — Ultra-Compact 1-Row Pill</span>
+        <div class="stage">
+          <div class="opt-c">
+            <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+              <span style="width:11px;height:11px;border-radius:999px;background:#0ea5e9;flex-shrink:0;"></span>
+              <div style="min-width:0;">
+                <div style="font-family:'Fredoka',sans-serif;font-size:15px;font-weight:700;line-height:1.1;">Riviera</div>
+                <div style="font-size:11px;font-weight:700;color:#059669;font-family:'JetBrains Mono',monospace;">Rent $60K</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+              <button class="btn-green" style="padding:9px 14px;font-size:12px;">Buy $200K</button>
+              <button class="btn-slate" style="padding:9px 13px;font-size:12px;">Pass</button>
+            </div>
+          </div>
+        </div>
+        <p class="notes">
+          Smallest footprint (single row) so 95%+ of the 3D board stays unobstructed.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

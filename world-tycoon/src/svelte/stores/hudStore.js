@@ -15,6 +15,7 @@ const initialHudState = {
   isMultiplayer: false,
   isHost: false,
   lightingMode: 'Day',
+  boardStyle: 'wood',
   soundVolume: 75,
   soundEnabled: true,
   statusPill: {

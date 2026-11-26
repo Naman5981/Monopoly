@@ -20,9 +20,9 @@
 >
   <!-- Floating Atmosphere Clouds -->
   <div id="setup-atmosphere-sky-elements" class="absolute bottom-0 left-0 right-0 pointer-events-none opacity-45 flex justify-between select-none transition-opacity duration-700 px-4 sm:px-6 2xl:px-12">
-    <svg class="w-32 h-20 sm:w-36 sm:h-24 2xl:w-48 2xl:h-32 text-white/50 cloud-float-1 transform -translate-y-6 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
-    <svg class="w-24 h-16 sm:w-28 sm:h-20 2xl:w-40 2xl:h-28 text-white/40 cloud-float-2 transform -translate-y-3 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
-    <svg class="w-32 h-20 sm:w-36 sm:h-24 2xl:w-48 2xl:h-32 text-white/50 cloud-float-1 transform -translate-y-8 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
+    <svg class="w-32 h-20 sm:w-36 sm:h-24 2xl:w-48 2xl:h-32 text-sky-200/15 cloud-float-1 transform -translate-y-6 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
+    <svg class="w-24 h-16 sm:w-28 sm:h-20 2xl:w-40 2xl:h-28 text-sky-100/10 cloud-float-2 transform -translate-y-3 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
+    <svg class="w-32 h-20 sm:w-36 sm:h-24 2xl:w-48 2xl:h-32 text-sky-200/15 cloud-float-1 transform -translate-y-8 pointer-events-none fill-current"><use href="#icon-cloud"></use></svg>
   </div>
 
   <!-- Top Header Bar -->

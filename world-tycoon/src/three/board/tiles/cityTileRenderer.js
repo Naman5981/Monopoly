@@ -201,6 +201,53 @@ export function drawUnownedPill(ctx, isCyber) {
   ctx.restore?.();
 }
 
+function drawPropertyTitleAndPrice(ctx, { tile, propState, isOwned, isNight, isSunset, isCyber }) {
+  const nameLen = tile.name.length;
+  const nameFontSize = nameLen <= 6 ? 84 : (nameLen <= 9 ? 70 : (nameLen <= 11 ? 58 : 48));
+  const nameFont = `900 ${nameFontSize}px ${BOARD_FONT_FAMILY}`;
+  const maxTextW = isOwned ? 424 : 452;
+
+  const valStr = isOwned ? fmtMoney(calculateTileRent(tile.id)) : fmtMoney(tile.price);
+  const valLen = valStr.length;
+  const valFontSize = valLen <= 4 ? 148 : (valLen <= 5 ? 134 : (valLen <= 6 ? 120 : 106));
+  const valFont = `900 ${valFontSize}px ${BOARD_FONT_FAMILY}`;
+
+  const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
+  const nameY = isOwned ? 245 : 220;
+  const valY = isFestivalBoost ? 395 : 365;
+  const rentColor = isFestivalBoost ? '#f59e0b' : (isOwned ? getOwnerThemeColor(propState) : '#b91c1c');
+
+  if (isFestivalBoost) {
+    drawFestivalBadge(ctx, 305);
+  }
+
+  if (isNight || isSunset) {
+    drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont, maxTextW);
+    const neonPriceColor = isOwned ? rentColor : (isCyber ? '#38bdf8' : '#34d399');
+    drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, neonPriceColor);
+    return;
+  }
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+  ctx.lineWidth = isCyber ? 10 : 12;
+  ctx.font = nameFont;
+  ctx.strokeText(tile.name, 256, nameY, maxTextW);
+  ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
+  ctx.fillText(tile.name, 256, nameY, maxTextW);
+
+  ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
+  ctx.lineWidth = isCyber ? 12 : 14;
+  ctx.font = valFont;
+  ctx.strokeText(valStr, 256, valY, maxTextW);
+  ctx.fillStyle = isOwned ? rentColor : (isCyber ? '#38bdf8' : '#047857');
+  ctx.fillText(valStr, 256, valY, maxTextW);
+}
+
 export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber) {
   const groupColor = (tile.group && GROUP_META[tile.group]) ? GROUP_META[tile.group].hex : '#38bdf8';
 
@@ -233,92 +280,21 @@ export function drawCityTile(ctx, tile, propState, isOwned, isNight, isSunset, i
     drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber);
   }
 
-  const nameLen = tile.name.length;
-  const nameFontSize = nameLen <= 6 ? 84 : (nameLen <= 9 ? 70 : (nameLen <= 11 ? 58 : 48));
-  const nameFont = `900 ${nameFontSize}px ${BOARD_FONT_FAMILY}`;
-
-  let valStr;
-  if (isOwned) {
-    const rentAmt = calculateTileRent(tile.id);
-    valStr = fmtMoney(rentAmt);
-  } else {
-    valStr = fmtMoney(tile.price);
-  }
-
-  const valLen = valStr.length;
-  const valFontSize = valLen <= 4 ? 148 : (valLen <= 5 ? 134 : (valLen <= 6 ? 120 : 106));
-  const valFont = `900 ${valFontSize}px ${BOARD_FONT_FAMILY}`;
-
-  const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
-  const nameY = isOwned ? 245 : 220;
-  const valY = isFestivalBoost ? 395 : 365;
-
-  const rentColor = isFestivalBoost ? '#f59e0b' : (isOwned ? getOwnerThemeColor(propState) : '#b91c1c');
-
-  if (isFestivalBoost) {
-    drawFestivalBadge(ctx, 305);
-  }
-
-  if (isOwned) {
-    if (isNight || isSunset) {
-      drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
-      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, rentColor);
-    } else {
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 10 : 12;
-      ctx.font = nameFont;
-      ctx.strokeText(tile.name, 256, nameY);
-      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-      ctx.fillText(tile.name, 256, nameY);
-
-      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 12 : 14;
-      ctx.font = valFont;
-      ctx.strokeText(valStr, 256, valY);
-      ctx.fillStyle = rentColor;
-      ctx.fillText(valStr, 256, valY);
-    }
-  } else {
-    if (isNight || isSunset) {
-      drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
-      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, isCyber ? '#38bdf8' : '#34d399');
-    } else {
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 10 : 12;
-      ctx.font = nameFont;
-      ctx.strokeText(tile.name, 256, nameY);
-      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-      ctx.fillText(tile.name, 256, nameY);
-
-      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 12 : 14;
-      ctx.font = valFont;
-      ctx.strokeText(valStr, 256, valY);
-      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
-      ctx.fillText(valStr, 256, valY);
-    }
-  }
+  drawPropertyTitleAndPrice(ctx, { tile, propState, isOwned, isNight, isSunset, isCyber });
 }
 
 export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset, isCyber) {
   const resortColor = '#0ea5e9';
+  const bgInset = isOwned ? 29 : 22;
 
   if (!isCyber) {
     if (!isOwned) {
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, 512);
+      const bgGrad = ctx.createLinearGradient(0, bgInset, 0, 512 - bgInset);
       bgGrad.addColorStop(0, '#f0fdfa');
       bgGrad.addColorStop(0.35, '#f8fafc');
       bgGrad.addColorStop(1, '#fefce8');
       ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, 512, 512);
+      ctx.fillRect(bgInset, bgInset, 512 - bgInset * 2, 512 - bgInset * 2);
     }
 
     // Subtle tropical wave contours along upper margin
@@ -333,97 +309,28 @@ export function drawResortTile(ctx, tile, propState, isOwned, isNight, isSunset,
     drawCadastralGrid(ctx, isCyber);
   }
 
-  // Top Resort Header Strip
+  // Top Resort Header Strip (clear of 26px owner border when owned)
+  const stripX = isOwned ? 28 : 16;
+  const stripY = isOwned ? 28 : 16;
+  const stripW = isOwned ? 456 : 480;
   ctx.fillStyle = resortColor;
-  ctx.fillRect(16, 16, 480, 58);
+  ctx.fillRect(stripX, stripY, stripW, 58);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
-  ctx.fillRect(16, 16, 480, 7);
+  ctx.fillRect(stripX, stripY, stripW, 7);
   ctx.fillStyle = '#0f172a';
-  ctx.fillRect(16, 74, 480, 4);
+  ctx.fillRect(stripX, stripY + 58, stripW, 4);
 
   // Header Title
   ctx.fillStyle = '#ffffff';
   ctx.font = `900 30px ${BOARD_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('RESORT', 256, 45);
+  ctx.fillText('RESORT', 256, stripY + 29);
 
   // High-contrast Owner Ribbon (if owned)
   if (isOwned && propState) {
     drawOwnerRibbon(ctx, propState, isNight, isSunset, isCyber);
   }
 
-  const nameLen = tile.name.length;
-  const nameFontSize = nameLen <= 6 ? 84 : (nameLen <= 9 ? 70 : (nameLen <= 11 ? 58 : 48));
-  const nameFont = `900 ${nameFontSize}px ${BOARD_FONT_FAMILY}`;
-
-  let valStr;
-  if (isOwned) {
-    const rentAmt = calculateTileRent(tile.id);
-    valStr = fmtMoney(rentAmt);
-  } else {
-    valStr = fmtMoney(tile.price);
-  }
-
-  const valLen = valStr.length;
-  const valFontSize = valLen <= 4 ? 148 : (valLen <= 5 ? 134 : (valLen <= 6 ? 120 : 106));
-  const valFont = `900 ${valFontSize}px ${BOARD_FONT_FAMILY}`;
-
-  const isFestivalBoost = Boolean(isOwned && propState?.festivalBoost);
-  const nameY = isOwned ? 245 : 220;
-  const valY = isFestivalBoost ? 395 : 365;
-
-  const rentColor = isFestivalBoost ? '#f59e0b' : (isOwned ? getOwnerThemeColor(propState) : '#b91c1c');
-
-  if (isFestivalBoost) {
-    drawFestivalBadge(ctx, 305);
-  }
-
-  if (isOwned) {
-    if (isNight || isSunset) {
-      drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
-      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, rentColor);
-    } else {
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 10 : 12;
-      ctx.font = nameFont;
-      ctx.strokeText(tile.name, 256, nameY);
-      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-      ctx.fillText(tile.name, 256, nameY);
-
-      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 12 : 14;
-      ctx.font = valFont;
-      ctx.strokeText(valStr, 256, valY);
-      ctx.fillStyle = rentColor;
-      ctx.fillText(valStr, 256, valY);
-    }
-  } else {
-    if (isNight || isSunset) {
-      drawWhiteNeonText(ctx, tile.name, 256, nameY, nameFont);
-      drawCrispNeonPrice(ctx, valStr, 256, valY, valFont, isCyber ? '#38bdf8' : '#34d399');
-    } else {
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 10 : 12;
-      ctx.font = nameFont;
-      ctx.strokeText(tile.name, 256, nameY);
-      ctx.fillStyle = isCyber ? '#ffffff' : '#0f172a';
-      ctx.fillText(tile.name, 256, nameY);
-
-      ctx.strokeStyle = isCyber ? '#020617' : '#ffffff';
-      ctx.lineWidth = isCyber ? 12 : 14;
-      ctx.font = valFont;
-      ctx.strokeText(valStr, 256, valY);
-      ctx.fillStyle = isCyber ? '#38bdf8' : '#047857';
-      ctx.fillText(valStr, 256, valY);
-    }
-  }
+  drawPropertyTitleAndPrice(ctx, { tile, propState, isOwned, isNight, isSunset, isCyber });
 }

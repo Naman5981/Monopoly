@@ -69,7 +69,7 @@ export function drawCadastralGrid(ctx, isCyber) {
   ctx.restore();
 }
 
-export function drawWhiteNeonText(ctx, text, x, y, font) {
+export function drawWhiteNeonText(ctx, text, x, y, font, maxWidth) {
   ctx.save();
   ctx.font = font;
   ctx.textAlign = 'center';
@@ -80,10 +80,12 @@ export function drawWhiteNeonText(ctx, text, x, y, font) {
   ctx.shadowBlur = 0;
   ctx.strokeStyle = '#020617';
   ctx.lineWidth = 14;
-  ctx.strokeText(text, x, y);
+  if (maxWidth) ctx.strokeText(text, x, y, maxWidth);
+  else ctx.strokeText(text, x, y);
 
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(text, x, y);
+  if (maxWidth) ctx.fillText(text, x, y, maxWidth);
+  else ctx.fillText(text, x, y);
   ctx.restore();
 }
 

@@ -50,7 +50,7 @@ body {
 
 /* ═══ CASUAL 3D GAME LOBBY ATMOSPHERE BACKGROUND ═══ */
 #landing-setup-screen {
-  background: linear-gradient(180deg, #38b6ff 0%, #2fa5f5 35%, #60a5fa 70%, #93c5fd 100%);
+  background: linear-gradient(180deg, #0b1324 0%, #112240 42%, #1a3358 78%, #1e3a5f 100%);
   transition: background 0.7s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.7s ease;
 }
 
@@ -256,7 +256,7 @@ body {
   width: clamp(260px, 36vh, 420px);
   height: clamp(260px, 36vh, 420px);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.65) 30%, rgba(186, 230, 253, 0.25) 55%, transparent 72%);
+  background: radial-gradient(circle, rgba(186, 230, 253, 0.36) 0%, rgba(56, 189, 248, 0.16) 35%, rgba(14, 165, 233, 0.06) 58%, transparent 74%);
   pointer-events: none;
   z-index: 1;
 }
@@ -2431,7 +2431,6 @@ body.production-build #debug-modal {
   z-index: 1000 !important;
 }
 
-#modal-buy-city-card,
 #modal-buyout-city-card,
 #modal-upgrade-city-card,
 #modal-auction-card,

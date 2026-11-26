@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Tycoon — All Alerts &amp; Modals Theme Showcase</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-canvas: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 100%);
+      --surface: #ffffff;
+      --surface-subtle: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --pill-bg: rgba(255, 255, 255, 0.96);
+      --pill-border: #e2e8f0;
+      --accent-bg: #ecfdf5;
+      --accent-border: #a7f3d0;
+      --accent-text: #047857;
+      --rose-bg: #fff1f2;
+      --rose-border: #fecdd3;
+      --rose-text: #be123c;
+      --amber-bg: #fffbeb;
+      --amber-border: #fde68a;
+      --amber-text: #b45309;
+      --shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+    }
+    body.dark {
+      --bg-canvas: linear-gradient(180deg, #070b14 0%, #0f172a 100%);
+      --surface: rgba(15, 23, 42, 0.96);
+      --surface-subtle: rgba(30, 41, 59, 0.85);
+      --border: rgba(255, 255, 255, 0.14);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --pill-bg: rgba(15, 23, 42, 0.92);
+      --pill-border: rgba(255, 255, 255, 0.16);
+      --accent-bg: rgba(16, 185, 129, 0.14);
+      --accent-border: rgba(52, 211, 153, 0.35);
+      --accent-text: #6ee7b7;
+      --rose-bg: rgba(244, 63, 94, 0.15);
+      --rose-border: rgba(251, 113, 133, 0.35);
+      --rose-text: #fda4af;
+      --amber-bg: rgba(245, 158, 11, 0.15);
+      --amber-border: rgba(251, 191, 36, 0.35);
+      --amber-text: #fcd34d;
+      --shadow: 0 20px 45px rgba(2, 6, 23, 0.65);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg-canvas); color: var(--text);
+      padding: 24px 20px 64px;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+    .wrap { max-width: 1240px; margin: 0 auto; }
+    .topbar-header {
+      position: sticky; top: 12px; z-index: 30;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px;
+      padding: 12px 16px; margin-bottom: 22px; box-shadow: var(--shadow);
+    }
+    h1 { font-family: 'Fredoka', sans-serif; font-size: 20px; margin: 0; }
+    .sub { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
+    .switcher { display: inline-flex; gap: 6px; padding: 4px; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 999px; }
+    .switcher button { border: 0; border-radius: 999px; padding: 7px 14px; font-weight: 800; font-size: 12px; cursor: pointer; background: transparent; color: var(--muted); }
+    .switcher button.active { background: #0284c7; color: #ffffff; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; }
+    .card {
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 24px;
+      padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 11px;
+    }
+    .label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .title { font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 700; line-height: 1.15; }
+    .subtle { background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 14px; padding: 9px 11px; font-size: 12px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--pill-bg); border: 1.5px solid var(--pill-border);
+      border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 800;
+    }
+    .accent-box { background: var(--accent-bg); border: 1px solid var(--accent-border); color: var(--accent-text); border-radius: 12px; padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-weight: 800; }
+    .rose-box { background: var(--rose-bg); border: 1px solid var(--rose-border); color: var(--rose-text); border-radius: 12px; padding: 4px 10px; font-weight: 800; }
+    .amber-box { background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text); border-radius: 12px; padding: 4px 10px; font-weight: 800; }
+    .btn-green { background: linear-gradient(180deg, #22c55e, #16a34a); border: 2px solid #fff; box-shadow: 0 3px 0 #15803d; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; }
+    .btn-red { background: linear-gradient(180deg, #f43f5e, #e11d48); border: 2px solid #fff; box-shadow: 0 3px 0 #be123c; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; }
+    .btn-amber { background: linear-gradient(180deg, #f59e0b, #d97706); border: 2px solid #fff; box-shadow: 0 3px 0 #b45309; color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; }
+    .btn-secondary { background: var(--surface-subtle); border: 1.5px solid var(--border); color: var(--text); font-weight: 800; border-radius: 999px; padding: 9px 14px; font-size: 12px; cursor: pointer; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .divider { border-bottom: 1px solid var(--border); padding-bottom: 9px; }
+    .icon-badge { width: 38px; height: 38px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar-header">
+      <div>
+        <h1>World Tycoon — All Alerts &amp; Modals Preview</h1>
+        <p class="sub">14 unified UI surfaces shifting between Option A (Day / Sunset) and Option B (Night / Cyberpunk).</p>
+      </div>
+      <div class="switcher">
+        <button id="btn-day" class="active" onclick="setTheme(false)">☀️ Day / Sunset (Option A)</button>
+        <button id="btn-night" onclick="setTheme(true)">🌙 Night / Cyber (Option B)</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- 1. TopBar & StatusPill -->
+      <div class="card">
+        <span class="label">1. TopBar &amp; Status Pill</span>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <span class="pill"><i class="fa-solid fa-house" style="color:#6366f1;"></i> Lobby</span>
+          <span class="pill"><i class="fa-solid fa-clock" style="color:#0284c7;"></i> 14:32</span>
+          <span class="pill"><i class="fa-solid fa-sun" style="color:#f59e0b;"></i> Morning</span>
+        </div>
+        <div class="pill row" style="width:100%;">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#10b981;margin-right:6px;"></span>Your Turn — Roll dice</span>
+          <span style="font-size:10px;color:var(--muted);">LOG</span>
+        </div>
+      </div>
+
+      <!-- 2. Buy City Dock -->
+      <div class="card">
+        <span class="label">2. Buy City / Resort Dock</span>
+        <div class="row divider">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="width:11px;height:11px;border-radius:99px;background:#0ea5e9;"></span>
+            <div><div class="title">Riviera</div><div class="label">Coastal Resort</div></div>
+          </div>
+          <div class="accent-box"><div style="font-size:9px;">BASE RENT</div>$60K</div>
+        </div>
+        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Buy for $200K</button><button class="btn-secondary">Pass</button></div>
+      </div>
+
+      <!-- 3. Upgrade City Dock -->
+      <div class="card">
+        <span class="label">3. Upgrade City Dock</span>
+        <div class="row divider">
+          <div><div class="title">Tokyo</div><div class="label">Green District • Lvl 1 → 2</div></div>
+          <div class="accent-box"><div style="font-size:9px;">NEW RENT</div>$360K</div>
+        </div>
+        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Upgrade for $240K</button><button class="btn-secondary">Skip</button></div>
+      </div>
+
+      <!-- 4. Hostile Buyout Dock -->
+      <div class="card">
+        <span class="label">4. Hostile Buyout Dock</span>
+        <div class="row divider">
+          <div><div class="title">London</div><div class="label">Owned by Baron • Takeover 1/2</div></div>
+          <div class="rose-box" style="font-family:'JetBrains Mono',monospace;">$680K</div>
+        </div>
+        <div style="display:flex;gap:8px;"><button class="btn-red" style="flex:1;">Buyout for $680K</button><button class="btn-secondary">Pass</button></div>
+      </div>
+
+      <!-- 5. Auction Dock -->
+      <div class="card">
+        <span class="label">5. Live Auction Dock</span>
+        <div class="row divider">
+          <div><div class="title">Dubai</div><div class="label">Highest Bid • Baron</div></div>
+          <div class="amber-box" style="font-family:'JetBrains Mono',monospace;">$380K • 4s</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-amber" style="flex:1;">+$20K</button>
+          <button class="btn-amber" style="flex:1;">+$50K</button>
+          <button class="btn-secondary">Pass</button>
+        </div>
+      </div>
+
+      <!-- 6. Sell Cities (Debt Liquidation) -->
+      <div class="card">
+        <span class="label">6. Sell Cities (Rent Debt)</span>
+        <div class="row divider">
+          <div><div class="title">Raise $180K</div><div class="label">Owed to Atlas • Cash $90K</div></div>
+          <div class="rose-box">-$90K Short</div>
+        </div>
+        <div class="subtle row"><span><strong>Cairo</strong> <span style="color:var(--muted);">• Lvl 0</span></span><button class="btn-red" style="padding:5px 11px;font-size:11px;">Sell +$100K</button></div>
+      </div>
+
+      <!-- 7. Trade Modal / Incoming Offer -->
+      <div class="card">
+        <span class="label">7. Incoming Trade Offer</span>
+        <div class="row divider">
+          <div><div class="title">Offer from Nova</div><div class="label">1 City + $120K ↔ Your 1 City</div></div>
+          <span class="accent-box" style="font-size:11px;">+$120K</span>
+        </div>
+        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Accept Trade</button><button class="btn-secondary">Decline</button></div>
+      </div>
+
+      <!-- 8. Monopoly Celebration Dock -->
+      <div class="card">
+        <span class="label">8. Monopoly Complete Dock</span>
+        <div class="row divider">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span class="icon-badge amber-box"><i class="fa-solid fa-crown"></i></span>
+            <div><div class="title">Naman Completed Red!</div><div class="label">2× District Rent Active</div></div>
+          </div>
+          <button class="btn-secondary" style="padding:6px 10px;">✕</button>
+        </div>
+        <div class="subtle row"><span>Dubai • Singapore • Hong Kong</span><span class="accent-box" style="font-size:11px;">2× Rent</span></div>
+      </div>
+
+      <!-- 9. Festival Boost / No Properties Alert -->
+      <div class="card">
+        <span class="label">9. Festival Boost &amp; Info Alert</span>
+        <div class="row divider">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span class="icon-badge amber-box"><i class="fa-solid fa-champagne-glasses"></i></span>
+            <div><div class="title">World Festival</div><div class="label">Pick a city for 2× rent</div></div>
+          </div>
+          <button class="btn-secondary" style="padding:6px 10px;">Skip</button>
+        </div>
+        <div class="subtle">Or when 0 properties owned: <strong>No properties to boost yet.</strong></div>
+      </div>
+
+      <!-- 10. Inspector & Leaderboard -->
+      <div class="card">
+        <span class="label">10. Inspector &amp; Leaderboard</span>
+        <div class="subtle row"><span><strong>#1 Naman</strong> <span style="color:var(--muted);">• 4 cities</span></span><span class="accent-box" style="font-size:12px;">$2.84M</span></div>
+        <div class="subtle row"><span><strong>#2 Baron</strong> <span style="color:var(--muted);">• 2 cities</span></span><span style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--muted);">$1.95M</span></div>
+      </div>
+
+      <!-- 11. Exit to Lobby & Resume Match -->
+      <div class="card">
+        <span class="label">11. Exit Match &amp; Resume Alerts</span>
+        <div class="row divider">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span class="icon-badge rose-box"><i class="fa-solid fa-door-open"></i></span>
+            <div><div class="title">Exit to Lobby?</div><div class="label">Current match progress will be lost</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;">Keep Playing</button><button class="btn-red" style="flex:1;">Exit Match</button></div>
+      </div>
+
+      <!-- 12. Disconnect & Reconnect Grace -->
+      <div class="card">
+        <span class="label">12. Disconnect / Reconnect Alerts</span>
+        <div class="row divider">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span class="icon-badge amber-box"><i class="fa-solid fa-wifi"></i></span>
+            <div><div class="title">Reconnecting Peer...</div><div class="label">Waiting for Brave (24s)</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;"><button class="btn-amber" style="flex:1;">Replace with Bot</button><button class="btn-secondary">Wait</button></div>
+      </div>
+
+      <!-- 13. Edit Name & Rules -->
+      <div class="card">
+        <span class="label">13. Edit Name &amp; Rules Modals</span>
+        <div class="subtle" style="font-weight:800;">NAMAN</div>
+        <div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;">Cancel</button><button class="btn-green" style="flex:1;">Save Name</button></div>
+      </div>
+
+      <!-- 14. Victory Podium -->
+      <div class="card">
+        <span class="label">14. Victory Modal</span>
+        <div class="row divider">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span class="icon-badge amber-box"><i class="fa-solid fa-trophy"></i></span>
+            <div><div class="title">Naman Wins!</div><div class="label">Monopoly Victory • $4.20M</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;"><button class="btn-green" style="flex:1;">Play Again</button><button class="btn-secondary">Lobby</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setTheme(isDark) {
+      document.body.classList.toggle('dark', isDark);
+      document.getElementById('btn-day').classList.toggle('active', !isDark);
+      document.getElementById('btn-night').classList.toggle('active', isDark);
+    }
+  </script>
+</body>
+</html>

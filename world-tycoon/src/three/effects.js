@@ -538,9 +538,9 @@ const THEME_COMBINATIONS = {
 const LOBBY_THEMES = {
   // 🪵 WOOD / DEFAULT
   'wood:day': {
-    bg: 'linear-gradient(180deg, #60a5fa 0%, #93c5fd 40%, #bfdbfe 75%, #dbeafe 100%)',
+    bg: 'linear-gradient(180deg, #0b1324 0%, #112240 42%, #1a3358 78%, #1e3a5f 100%)',
     skyIcons: ['☁️', '☁️', '☁️'],
-    skyStyle: 'opacity: 0.35; filter: drop-shadow(0 4px 12px rgba(2,132,199,0.18));'
+    skyStyle: 'opacity: 0.25; filter: drop-shadow(0 4px 12px rgba(2,132,199,0.18));'
   },
   'wood:sunset': {
     bg: 'linear-gradient(180deg, #fb923c 0%, #ea580c 25%, #be185d 55%, #581c87 80%, #1e1b4b 100%)',
@@ -602,7 +602,7 @@ export function applyLightingMode(key, threeSceneObjects) {
 
   // Sync Svelte HUD and Lobby reactive stores
   const modeLabel = boardStyle === 'cyberpunk' ? 'Day' : (key === 'night' ? 'Night' : (key === 'sunset' ? 'Sunset' : 'Morning'));
-  updateHudState({ lightingMode: modeLabel });
+  updateHudState({ lightingMode: modeLabel, boardStyle });
   updateLobbyStore({ lightingTheme: key });
 
   // Update Main Menu (Lobby) full-screen background & sky elements

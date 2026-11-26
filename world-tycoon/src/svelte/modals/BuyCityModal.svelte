@@ -1,9 +1,18 @@
 <script>
   import { modalStore } from '../stores/modalStore.js';
+  import { hudStore } from '../stores/hudStore.js';
   import ActionChipShell from '../components/ActionChipShell.svelte';
 
   let state = $state({});
+  let hud = $state({});
   modalStore.subscribe(val => { state = val.buyCity || {}; });
+  hudStore.subscribe(val => { hud = val || {}; });
+
+  const isDarkTheme = $derived(hud.lightingMode === 'Night' || hud.boardStyle === 'cyberpunk');
+  const formatCurrency = (val) => {
+    const str = String(val || '0');
+    return str.startsWith('$') ? str : `$${str}`;
+  };
 
   function onConfirmBuy() {
     window.confirmBuyCity?.();
@@ -30,23 +39,26 @@
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
-<ActionChipShell modalId="modal-buy-city" cardId="modal-buy-city-card" visible={state.visible} borderColor="border-sky-500/80">
+<ActionChipShell modalId="modal-buy-city" cardId="modal-buy-city-card" visible={state.visible} themeAware={true}>
   <!-- Top Summary Line -->
-  <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
-    <div class="flex items-center gap-2 truncate min-w-0">
-      <span class="w-3.5 h-3.5 rounded-full border border-white/40 shrink-0" style="background-color: {state.colorHex || '#0284c7'};"></span>
-      <h3 id="buy-modal-name" class="font-display font-black text-sm sm:text-base tracking-wide text-white truncate drop-shadow-xs">
-        {state.cityName || 'CITY'}
-      </h3>
-      <span id="buy-modal-country" class="text-xs font-black px-2 py-0.5 rounded-full bg-white/20 text-slate-100 border border-white/40 shadow-xs shrink-0">
-        {state.countryName || 'ESTATE'}
-      </span>
+  <div class="flex items-center justify-between gap-2 pb-2.5 border-b {isDarkTheme ? 'border-white/10' : 'border-slate-100'}">
+    <div class="flex items-center gap-2.5 truncate min-w-0">
+      <span class="w-3 h-3 rounded-full shrink-0" style="background-color: {state.colorHex || '#0284c7'}; box-shadow: 0 0 0 3px {isDarkTheme ? 'rgba(255,255,255,0.12)' : 'rgba(14,165,233,0.16)'};"></span>
+      <div class="min-w-0">
+        <h3 id="buy-modal-name" class="font-display font-black text-base sm:text-lg leading-tight truncate {isDarkTheme ? 'text-white' : 'text-slate-900'}">
+          {state.cityName || 'City'}
+        </h3>
+        <div id="buy-modal-country" class="text-[11px] font-bold uppercase tracking-wider truncate {isDarkTheme ? 'text-slate-400' : 'text-slate-500'}">
+          {state.countryName || 'Estate'}
+        </div>
+      </div>
     </div>
-    <div class="flex items-center gap-2 bg-emerald-950/80 border border-emerald-400/60 rounded-xl px-2.5 sm:px-3 py-1 shadow-inner shrink-0">
+
+    <div class="flex items-center rounded-xl px-2.5 sm:px-3 py-1 shrink-0 border {isDarkTheme ? 'bg-emerald-500/15 border-emerald-400/35' : 'bg-emerald-50 border-emerald-200'}">
       <div class="flex flex-col items-end leading-none">
-        <span class="text-xs font-black uppercase tracking-wider text-emerald-400">Rent</span>
-        <span id="buy-modal-rent" class="text-emerald-300 font-black text-base sm:text-lg tabular-nums drop-shadow-[0_0_8px_rgba(52,211,153,0.4)] mt-0.5">
-          {state.rentFormatted || '0'}
+        <span class="text-[10px] font-black uppercase tracking-wider {isDarkTheme ? 'text-emerald-400' : 'text-emerald-700'}">Base Rent</span>
+        <span id="buy-modal-rent" class="font-mono font-black text-base sm:text-lg tabular-nums mt-0.5 {isDarkTheme ? 'text-emerald-300' : 'text-emerald-700'}">
+          {formatCurrency(state.rentFormatted)}
         </span>
       </div>
     </div>
@@ -57,27 +69,23 @@
   <span id="buy-modal-balance-preview" class="hidden">{state.balancePreview || ''}</span>
 
   {#if state.isMonopolyFinisher}
-    <div class="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/25 border border-amber-400/50 flex items-center justify-between text-xs shadow-inner">
-      <span class="font-black text-amber-300 flex items-center gap-1.5">
-        <i class="fa-solid fa-crown text-amber-400 text-xs" aria-hidden="true"></i>
-        <span>MONOPOLY FINISHER!</span>
+    <div class="px-3 py-1.5 rounded-xl border flex items-center justify-between text-xs {isDarkTheme ? 'bg-amber-500/15 border-amber-400/40 text-amber-200' : 'bg-amber-50 border-amber-200 text-amber-900'}">
+      <span class="font-black flex items-center gap-1.5 {isDarkTheme ? 'text-amber-300' : 'text-amber-800'}">
+        <i class="fa-solid fa-crown text-amber-500 text-xs" aria-hidden="true"></i>
+        <span>Monopoly Finisher</span>
       </span>
-      <span class="text-xs font-extrabold text-amber-200">
-        Doubles all district rent (2×)!
-      </span>
+      <span class="text-xs font-bold">2× District Rent</span>
     </div>
   {/if}
 
   <!-- Action Buttons Row -->
   <div class="flex items-center gap-2 pt-0.5">
-    <button id="btn-confirm-buy" onclick={onConfirmBuy} disabled={!state.canAfford} class="game-btn game-btn-green flex-1 py-2.5 px-3 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:hover:brightness-100 disabled:hover:translate-y-0 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none {!state.canAfford ? 'opacity-50 cursor-not-allowed' : ''}">
-      <i class="fa-solid fa-cart-shopping"></i>
-      <span>BUY PROPERTY</span>
-      <span class="text-xs font-bold opacity-90">({state.priceFormatted || '0'})</span>
+    <button id="btn-confirm-buy" onclick={onConfirmBuy} disabled={!state.canAfford} class="game-btn game-btn-green flex-1 py-2.5 px-4 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none {!state.canAfford ? 'opacity-50 cursor-not-allowed' : ''}">
+      <span>Buy for {formatCurrency(state.priceFormatted)}</span>
     </button>
 
-    <button id="btn-pass-buy" onclick={onPassBuy} class="game-btn game-btn-slate py-2.5 px-4 text-xs font-black shrink-0 cursor-pointer transition-all duration-150 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none">
-      PASS ✕
+    <button id="btn-pass-buy" onclick={onPassBuy} class="py-2.5 px-4 text-xs sm:text-sm font-black shrink-0 cursor-pointer transition-all duration-150 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none {isDarkTheme ? 'rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-slate-200' : 'game-btn game-btn-slate'}">
+      Pass
     </button>
   </div>
 </ActionChipShell>
