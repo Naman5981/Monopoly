@@ -64,4 +64,14 @@ describe('Phase 5: Pre-Game Lobby & Svelte Store Synchronization (/clean-code)',
     networkState.isMultiplayer = false;
     assert.equal(state.players[1].isConnectedPeer, true);
   });
+
+  it('tracks and resets portalRoomCode in lobbyStore for invite links', () => {
+    updateLobbyStore({ portalRoomCode: 'P6ZL' });
+    let state;
+    const unsub = lobbyStore.subscribe(val => { state = val; });
+    assert.equal(state.portalRoomCode, 'P6ZL');
+    resetLobbyStore();
+    assert.equal(state.portalRoomCode, '');
+    unsub();
+  });
 });

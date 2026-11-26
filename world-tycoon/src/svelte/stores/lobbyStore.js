@@ -18,6 +18,7 @@ export const initialLobbyState = {
   isTeamBalanceValid: true,
   teamBalanceError: null,
   roomCode: '',
+  portalRoomCode: '',
   networkStatus: 'Ready',
   networkStatusKind: 'neutral',
   portalStatus: '',

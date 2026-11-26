@@ -43,12 +43,15 @@
       <span>{state.teamBalanceError || 'Teams must be balanced to start!'}</span>
     </div>
   {/if}
-  <button id="landing-play-btn" onclick={startMatch} disabled={state.isMultiplayer && !state.isHost} class="w-full py-4 sm:py-4.5 rounded-full font-rounded font-black text-2xl sm:text-3xl text-white tracking-widest uppercase game-btn shadow-2xl {state.isMultiplayer && !state.isHost ? 'bg-slate-500 opacity-75 cursor-not-allowed' : (state.isTeamMode && !state.isTeamBalanceValid ? 'bg-rose-500 hover:bg-rose-600 ring-4 ring-rose-300/60' : 'game-btn-green')}">
-    <i class="fa-solid {state.isMultiplayer && !state.isHost ? 'fa-hourglass-half fa-spin text-lg' : (state.isTeamMode && !state.isTeamBalanceValid ? 'fa-triangle-exclamation text-xl' : 'fa-play text-xl')} mr-2"></i>
-    {state.isMultiplayer && !state.isHost
-      ? 'WAITING FOR HOST...'
-      : (state.isTeamMode
-          ? (state.isTeamBalanceValid ? (state.playerCount === 6 ? 'START 3v3 CLASH' : 'START 2v2 CLASH') : 'BALANCE TEAMS')
-          : 'PLAY')}
-  </button>
+  {#if state.isMultiplayer && !state.isHost}
+    <button id="landing-play-btn" disabled class="w-full py-3.5 px-5 rounded-full bg-slate-900/90 text-white border-2 border-white/80 shadow-lg cursor-not-allowed flex items-center justify-center gap-2.5 text-sm sm:text-base font-rounded font-black tracking-wider uppercase">
+      <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" aria-hidden="true"></span>
+      <span>Waiting for Host...</span>
+    </button>
+  {:else}
+    <button id="landing-play-btn" onclick={startMatch} class="w-full py-4 sm:py-4.5 px-5 rounded-full font-rounded font-black {state.isTeamMode ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'} text-white tracking-widest uppercase game-btn shadow-2xl inline-flex items-center justify-center gap-2 {state.isTeamMode && !state.isTeamBalanceValid ? 'bg-rose-500 hover:bg-rose-600 ring-4 ring-rose-300/60' : 'game-btn-green'}">
+      <i class="fa-solid {state.isTeamMode && !state.isTeamBalanceValid ? 'fa-triangle-exclamation text-xl' : 'fa-play text-xl'}"></i>
+      <span>{state.isTeamMode ? (state.isTeamBalanceValid ? (state.playerCount === 6 ? 'START 3v3 CLASH' : 'START 2v2 CLASH') : 'BALANCE TEAMS') : 'PLAY'}</span>
+    </button>
+  {/if}
 {/if}

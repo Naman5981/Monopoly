@@ -181,24 +181,39 @@
 {#snippet openTeamSeat(label, variant)}
   {@const isRedSeat = variant === 'red'}
   {@const totalPlayers = state.players?.length || state.playerCount || 4}
-  {@const canAdd = totalPlayers < 6 && (!state.isMultiplayer || state.isHost)}
-  <button
-    type="button"
-    disabled={!canAdd}
-    onclick={() => window.addBotOrSlot?.()}
-    aria-label="Add player or bot to {label}"
-    class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed flex items-center justify-between transition {isRedSeat
-      ? 'border-rose-200/90 bg-white/50 text-rose-400 hover:border-rose-300 hover:bg-rose-50/70 hover:text-rose-600'
-      : 'border-sky-200/90 bg-white/50 text-sky-400 hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-600'} {canAdd ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}"
-  >
-    <div class="flex items-center gap-2.5 sm:gap-3">
-      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed {isRedSeat ? 'border-rose-200' : 'border-sky-200'} flex items-center justify-center flex-shrink-0">
-        <i class="fa-solid fa-plus text-xs"></i>
+  {@const isGuest = Boolean(state.isMultiplayer && !state.isHost)}
+  {@const canAdd = totalPlayers < 6 && !isGuest}
+  {#if isGuest}
+    <div class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed flex items-center justify-between select-none {isRedSeat
+      ? 'border-rose-200/80 bg-white/40 text-rose-400'
+      : 'border-sky-200/80 bg-white/40 text-sky-400'}">
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed {isRedSeat ? 'border-rose-200' : 'border-sky-200'} flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-user-clock text-xs"></i>
+        </div>
+        <span class="text-xs sm:text-sm font-bold tracking-wide">{label}</span>
       </div>
-      <span class="text-xs sm:text-sm font-bold tracking-wide">{label}</span>
+      <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border {isRedSeat ? 'border-rose-200' : 'border-sky-200'}">Waiting...</span>
     </div>
-    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border {isRedSeat ? 'border-rose-200' : 'border-sky-200'}">+ Add</span>
-  </button>
+  {:else}
+    <button
+      type="button"
+      disabled={!canAdd}
+      onclick={() => window.addBotOrSlot?.()}
+      aria-label="Add player or bot to {label}"
+      class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed flex items-center justify-between transition {isRedSeat
+        ? 'border-rose-200/90 bg-white/50 text-rose-400 hover:border-rose-300 hover:bg-rose-50/70 hover:text-rose-600'
+        : 'border-sky-200/90 bg-white/50 text-sky-400 hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-600'} {canAdd ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}"
+    >
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed {isRedSeat ? 'border-rose-200' : 'border-sky-200'} flex items-center justify-center flex-shrink-0">
+          <i class="fa-solid fa-plus text-xs"></i>
+        </div>
+        <span class="text-xs sm:text-sm font-bold tracking-wide">{label}</span>
+      </div>
+      <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border {isRedSeat ? 'border-rose-200' : 'border-sky-200'}">+ Add</span>
+    </button>
+  {/if}
 {/snippet}
 
 {#if !state.isTeamMode}

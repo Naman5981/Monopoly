@@ -19,8 +19,9 @@ import {
   updateMultiplayerUI
 } from '../../network/p2p.js';
 import { closeAllGameModals } from '../modals/common.js';
+import { get } from 'svelte/store';
 import { animateLobbyEntrance } from '../anim.js';
-import { updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
+import { lobbyStore, updateLobbyStore } from '../../svelte/stores/lobbyStore.js';
 
 import { setLobbyView, showTitleScreen, showMultiplayerSetup } from './lobbyNavigation.js';
 import { renderPlayerCards } from './playerCards.js';
@@ -112,43 +113,53 @@ export function initLandingSetup() {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
     if (roomParam) {
-      showMultiplayerSetup();
       const code = roomParam.toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
-      const portalInput = document.getElementById('input-p2p-room-code-portal');
-      if (portalInput) portalInput.value = code;
-      const input = document.getElementById('input-p2p-room-code');
-      if (input) input.value = code;
+      if (code) {
+        showMultiplayerSetup();
+        updateLobbyStore({
+          portalRoomCode: code,
+          portalStatus: `Invite link for Room ${code} detected. Connecting...`,
+          portalStatusKind: 'loading'
+        });
 
-      updateLobbyStore({ portalStatus: `Invite link for Room ${code} detected. Connecting...`, portalStatusKind: 'loading' });
-
-      // Auto-trigger join after DOM elements and PeerJS scripts finish readying
-      setTimeout(() => {
-        joinP2PRoomFromPortal();
-      }, 700);
+        const triggerAutoJoin = (attempts = 0) => {
+          if (typeof Peer !== 'undefined' || attempts >= 20) {
+            joinP2PRoomFromPortal(code);
+          } else {
+            setTimeout(() => triggerAutoJoin(attempts + 1), 250);
+          }
+        };
+        setTimeout(() => triggerAutoJoin(0), 250);
+      }
     }
   }
 }
 
-export async function joinP2PRoomFromPortal() {
+function extractRoomCode(explicitCode) {
+  const storeCode = get(lobbyStore)?.portalRoomCode;
   const portalInput = document.getElementById('input-p2p-room-code-portal');
   const legacyInput = document.getElementById('input-p2p-room-code');
-
-  let raw = (portalInput?.value || legacyInput?.value || '').trim();
+  const raw = String(explicitCode ?? storeCode ?? portalInput?.value ?? legacyInput?.value ?? '').trim();
   const urlMatch = raw.match(/[?&]room=([a-z0-9]+)/i);
-  let code = urlMatch ? urlMatch[1].toUpperCase() : raw.toUpperCase();
-  code = code.replace(/[^A-Z0-9]/g, '');
+  return (urlMatch ? urlMatch[1] : raw).toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+export async function joinP2PRoomFromPortal(explicitCode) {
+  const code = extractRoomCode(explicitCode);
 
   if (!code) {
     updateLobbyStore({ portalStatus: '⚠️ Enter a 4-letter room code', portalStatusKind: 'error' });
-    portalInput?.focus();
+    document.getElementById('input-p2p-room-code-portal')?.focus();
     return;
   }
 
-  if (legacyInput) legacyInput.value = code;
-  if (portalInput) portalInput.value = code;
-  updateLobbyStore({ portalStatus: `Joining Room ${code}...`, portalStatusKind: 'loading' });
+  updateLobbyStore({
+    portalRoomCode: code,
+    portalStatus: `Joining Room ${code}...`,
+    portalStatusKind: 'loading'
+  });
 
-  await joinP2PRoom();
+  await joinP2PRoom(code);
 }
 
 export async function hostP2PRoom() {
@@ -164,14 +175,8 @@ export async function hostP2PRoom() {
   }
 }
 
-export async function joinP2PRoom() {
-  const portalInput = document.getElementById('input-p2p-room-code-portal');
-  const input = document.getElementById('input-p2p-room-code');
-
-  let raw = (portalInput?.value || input?.value || '').trim();
-  const urlMatch = raw.match(/[?&]room=([a-z0-9]+)/i);
-  let code = urlMatch ? urlMatch[1].toUpperCase() : raw.toUpperCase();
-  code = code.replace(/[^A-Z0-9]/g, '');
+export async function joinP2PRoom(explicitCode) {
+  const code = extractRoomCode(explicitCode);
 
   if (!code) {
     updateLobbyStore({ networkStatus: '⚠️ Enter a 4-letter room code', networkStatusKind: 'error', portalStatus: '⚠️ Enter a 4-letter room code', portalStatusKind: 'error' });

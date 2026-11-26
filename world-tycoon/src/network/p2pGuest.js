@@ -42,18 +42,24 @@ export function joinRoom(roomCode, playerProfile = {}) {
       if (stepTimer2) clearTimeout(stepTimer2);
     };
 
+    const failInitialJoin = (message, rejectErr = new Error(message)) => {
+      if (isSettled) return;
+      isSettled = true;
+      cleanupTimers();
+      networkState.status = 'error';
+      networkState.statusText = message;
+      networkState.isMultiplayer = false;
+      networkState.roomCode = '';
+      try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
+      updateMultiplayerUI();
+      reject(rejectErr);
+    };
+
     // Watchdog timer (14s max before failing gracefully instead of hanging indefinitely)
     const joinTimeoutTimer = setTimeout(() => {
       if (!isSettled) {
-        isSettled = true;
-        cleanupTimers();
         console.warn(`[P2P Guest] Connection to room ${code} timed out.`);
-        networkState.status = 'error';
-        const timeoutMsg = `Could not connect to Room "${code}". Verify the room code and ensure the host is online in the room lobby.`;
-        networkState.statusText = timeoutMsg;
-        try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
-        updateMultiplayerUI();
-        reject(new Error(timeoutMsg));
+        failInitialJoin(`Could not connect to Room "${code}". Verify the room code and ensure the host is online in the room lobby.`);
       }
     }, 14000);
 
@@ -108,16 +114,7 @@ export function joinRoom(roomCode, playerProfile = {}) {
           if (pc) {
             pc.addEventListener('iceconnectionstatechange', () => {
               if (pc.iceConnectionState === 'failed') {
-                if (!isSettled) {
-                  isSettled = true;
-                  cleanupTimers();
-                  networkState.status = 'error';
-                  const iceMsg = `P2P connection blocked by network NAT/firewall. Try disabling VPN or using mobile hotspot.`;
-                  networkState.statusText = iceMsg;
-                  try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
-                  updateMultiplayerUI();
-                  reject(new Error(iceMsg));
-                }
+                failInitialJoin('P2P connection blocked by network NAT/firewall. Try disabling VPN or using mobile hotspot.');
               }
             });
           }
@@ -131,14 +128,7 @@ export function joinRoom(roomCode, playerProfile = {}) {
 
       conn.on('close', () => {
         if (!isSettled) {
-          isSettled = true;
-          cleanupTimers();
-          networkState.status = 'error';
-          const closeMsg = `Connection to Room "${code}" was closed by host.`;
-          networkState.statusText = closeMsg;
-          try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
-          updateMultiplayerUI();
-          reject(new Error(closeMsg));
+          failInitialJoin(`Connection to Room "${code}" was closed by host.`);
           return;
         }
 
@@ -158,15 +148,7 @@ export function joinRoom(roomCode, playerProfile = {}) {
 
       conn.on('error', (err) => {
         console.warn('[P2P Guest Conn Error]', err);
-        if (!isSettled) {
-          isSettled = true;
-          cleanupTimers();
-          networkState.status = 'error';
-          networkState.statusText = 'Failed to connect to room.';
-          try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
-          updateMultiplayerUI();
-          reject(err);
-        }
+        failInitialJoin('Failed to connect to room.', err);
       });
     });
 
@@ -183,21 +165,13 @@ export function joinRoom(roomCode, playerProfile = {}) {
 
     peer.on('error', (err) => {
       console.warn('[P2P Guest Peer Error]', err);
-      if (!isSettled) {
-        isSettled = true;
-        cleanupTimers();
-        networkState.status = 'error';
-        let friendly = err.message || 'Peer network error.';
-        if (err.type === 'peer-unavailable') {
-          friendly = `Room "${code}" was not found. Verify the code with your friend and make sure they are waiting in the room.`;
-        } else if (err.type === 'network' || err.type === 'server-error') {
-          friendly = 'Signaling server connection error. Check your internet connection and try again.';
-        }
-        networkState.statusText = friendly;
-        try { if (networkState.peer) networkState.peer.destroy(); } catch (_) {}
-        updateMultiplayerUI();
-        reject(new Error(friendly));
+      let friendly = err.message || 'Peer network error.';
+      if (err.type === 'peer-unavailable') {
+        friendly = `Room "${code}" was not found. Verify the code with your friend and make sure they are waiting in the room.`;
+      } else if (err.type === 'network' || err.type === 'server-error') {
+        friendly = 'Signaling server connection error. Check your internet connection and try again.';
       }
+      failInitialJoin(friendly);
     });
   });
 }

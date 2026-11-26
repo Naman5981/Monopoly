@@ -3,25 +3,18 @@
    * svelte/lobby/MultiplayerPortal.svelte
    * Declarative multiplayer choice portal: Create Room or Join Room via code.
    */
-  import { lobbyStore } from '../stores/lobbyStore.js';
+  import { lobbyStore, updateLobbyStore } from '../stores/lobbyStore.js';
   import LobbyNetworkStatus from './LobbyNetworkStatus.svelte';
 
   let state = $state({});
-  lobbyStore.subscribe(val => { state = val; });
-
-  let enteredCode = $state('');
+  lobbyStore.subscribe(val => { state = val || {}; });
 
   function hostRoom() {
     window.hostP2PRoom?.();
   }
 
   function joinRoom() {
-    const input = document.getElementById('input-p2p-room-code-portal');
-    const oldInput = document.getElementById('input-p2p-room-code');
-    if (input && oldInput) {
-      oldInput.value = input.value.toUpperCase();
-    }
-    window.joinP2PRoomFromPortal?.();
+    window.joinP2PRoomFromPortal?.(state.portalRoomCode || '');
   }
 </script>
 
@@ -105,12 +98,9 @@
               type="text"
               maxlength="6"
               placeholder="ROOM CODE"
-              bind:value={enteredCode}
+              value={state.portalRoomCode || ''}
               oninput={(e) => {
-                const val = e.currentTarget.value.toUpperCase();
-                enteredCode = val;
-                const oldInput = document.getElementById('input-p2p-room-code');
-                if (oldInput) oldInput.value = val;
+                updateLobbyStore({ portalRoomCode: e.currentTarget.value.toUpperCase() });
               }}
               onkeydown={(e) => e.key === 'Enter' && joinRoom()}
               class="w-full text-center uppercase tracking-[0.25em] text-2xl font-mono font-black py-3 px-4 rounded-2xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-slate-50 focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-sans placeholder:font-bold placeholder:text-sm"

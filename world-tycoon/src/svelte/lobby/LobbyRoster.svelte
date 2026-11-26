@@ -13,6 +13,7 @@
   });
 
   const playerCount = $derived(state.players?.length || state.playerCount || 4);
+  const isGuest = $derived(Boolean(state.isMultiplayer && !state.isHost));
 
   let prevBalanceValid = null;
   $effect(() => {
@@ -85,52 +86,71 @@
       <PlayerSetupCards />
       {#if !state.isTeamMode && playerCount < 6}
         {#each Array(6 - playerCount) as _, emptyIdx}
-          <button
-            type="button"
-            onclick={addBot}
-            aria-label="Add player or bot to seat {playerCount + emptyIdx + 1}"
-            class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed border-slate-200/90 bg-slate-50/50 hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-700 flex items-center justify-between text-slate-400 transition cursor-pointer"
-          >
-            <div class="flex items-center gap-2.5 sm:gap-3">
-              <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center flex-shrink-0">
-                <i class="fa-solid fa-plus text-xs"></i>
+          {#if isGuest}
+            <div class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed border-slate-200/80 bg-slate-50/40 flex items-center justify-between text-slate-400 select-none">
+              <div class="flex items-center gap-2.5 sm:gap-3">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center flex-shrink-0">
+                  <i class="fa-solid fa-user-clock text-xs"></i>
+                </div>
+                <span class="text-xs sm:text-sm font-bold tracking-wide">Open Seat {playerCount + emptyIdx + 1}</span>
               </div>
-              <span class="text-xs sm:text-sm font-bold tracking-wide">Open Seat {playerCount + emptyIdx + 1}</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border border-slate-200">Waiting...</span>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border border-slate-200">+ Add</span>
-          </button>
+          {:else}
+            <button
+              type="button"
+              onclick={addBot}
+              aria-label="Add player or bot to seat {playerCount + emptyIdx + 1}"
+              class="w-full p-2.5 sm:p-3 rounded-2xl border-2 border-dashed border-slate-200/90 bg-slate-50/50 hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-700 flex items-center justify-between text-slate-400 transition cursor-pointer"
+            >
+              <div class="flex items-center gap-2.5 sm:gap-3">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center flex-shrink-0">
+                  <i class="fa-solid fa-plus text-xs"></i>
+                </div>
+                <span class="text-xs sm:text-sm font-bold tracking-wide">Open Seat {playerCount + emptyIdx + 1}</span>
+              </div>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 border border-slate-200">+ Add</span>
+            </button>
+          {/if}
         {/each}
       {/if}
     </div>
   </div>
 
-  <!-- Add bot / Remove bot / Randomize actions -->
+  <!-- Add bot / Remove bot / Randomize actions (Host / Local only) -->
   <div class="pt-3 border-t-2 border-sky-100 space-y-2 flex-shrink-0 mt-3">
-    <div class="flex gap-2">
+    {#if !isGuest}
+      <div class="flex gap-2">
+        <button
+          onclick={addBot}
+          disabled={playerCount >= 6}
+          aria-label="Add player or bot"
+          class="flex-1 py-3 rounded-2xl font-rounded font-black text-xs sm:text-sm text-white game-btn game-btn-blue shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <i class="fa-solid fa-plus text-xs"></i> Add Player / Bot
+        </button>
+        <button
+          onclick={removeBot}
+          disabled={playerCount <= 2}
+          class="w-12 py-3 rounded-2xl font-rounded font-black text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 cursor-pointer shadow-xs flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Remove last player"
+          aria-label="Remove last player"
+        >
+          <i class="fa-solid fa-minus"></i>
+        </button>
+      </div>
       <button
-        onclick={addBot}
-        disabled={playerCount >= 6}
-        aria-label="Add player or bot"
-        class="flex-1 py-3 rounded-2xl font-rounded font-black text-xs sm:text-sm text-white game-btn game-btn-blue shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+        onclick={randomizeNames}
+        class="w-full py-2.5 rounded-2xl font-rounded font-extrabold text-xs text-sky-700 bg-sky-50/80 hover:bg-sky-100 border border-sky-200 transition cursor-pointer flex items-center justify-center gap-2 shadow-2xs active:scale-98"
+        title="Randomize names of all AI Bots at the table"
       >
-        <i class="fa-solid fa-plus text-xs"></i> Add Player / Bot
+        <i class="fa-solid fa-dice text-sky-500"></i> Randomize Bot Names
       </button>
-      <button
-        onclick={removeBot}
-        disabled={playerCount <= 2}
-        class="w-12 py-3 rounded-2xl font-rounded font-black text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 cursor-pointer shadow-xs flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-        title="Remove last player"
-        aria-label="Remove last player"
-      >
-        <i class="fa-solid fa-minus"></i>
-      </button>
-    </div>
-    <button
-      onclick={randomizeNames}
-      class="w-full py-2.5 rounded-2xl font-rounded font-extrabold text-xs text-sky-700 bg-sky-50/80 hover:bg-sky-100 border border-sky-200 transition cursor-pointer flex items-center justify-center gap-2 shadow-2xs active:scale-98"
-      title="Randomize names of all AI Bots at the table"
-    >
-      <i class="fa-solid fa-dice text-sky-500"></i> Randomize Bot Names
-    </button>
+    {:else}
+      <div class="w-full py-3 px-3.5 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-900 text-xs font-black flex items-center justify-center gap-2">
+        <i class="fa-solid fa-lock text-amber-600"></i>
+        <span>Table slots controlled by Room Host</span>
+      </div>
+    {/if}
   </div>
 </div>
