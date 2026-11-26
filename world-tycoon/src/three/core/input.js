@@ -183,24 +183,34 @@ export function handleCanvasHover(event) {
       }
 
       const st = gameState.properties[tileId];
+      const isDarkUi = typeof document !== 'undefined' && document.body?.classList?.contains('theme-dark-ui');
       const groupColor = tile.group ? GROUP_META[tile.group].hex : '#38bdf8';
+      const ownerColor = (st?.owner !== null && st?.owner !== undefined)
+        ? (gameState.players[st.owner]?.colorHex || PLAYER_THEMES[st.owner]?.colorHex || '#38bdf8')
+        : null;
       const ownerText = (st?.owner !== null && st?.owner !== undefined)
-        ? `<span style="color:${PLAYER_THEMES[st.owner].colorHex}">${gameState.players[st.owner]?.name}</span>`
-        : 'Unowned';
+        ? `<span class="inline-flex items-center gap-1.5 font-extrabold ${isDarkUi ? 'text-white' : 'text-slate-900'}"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${ownerColor}"></span>${gameState.players[st.owner]?.name}</span>`
+        : `<span class="${isDarkUi ? 'text-slate-300' : 'text-slate-600'}">Unowned</span>`;
 
       let detailsHtml = '';
       if (tile.type === 'city' || tile.type === 'resort') {
         const curRent = (st?.owner !== null && st?.owner !== undefined)
           ? fmtMoney(calculateTileRent(tileId))
           : fmtMoney(tile.rent[0]);
-        detailsHtml = `<div class="flex justify-between gap-4 text-xs text-slate-200 mt-1.5"><span>Price: <strong class="text-white font-bold">${fmtMoney(tile.price)}</strong></span><span>Rent: <strong class="text-emerald-400 font-bold">${curRent}</strong></span></div><div class="text-xs text-slate-200 mt-1">Owner: <strong class="text-white font-bold">${ownerText}</strong></div>`;
+        const rentCls = isDarkUi ? 'text-emerald-300' : 'text-emerald-700';
+        const labelCls = isDarkUi ? 'text-slate-300' : 'text-slate-600';
+        const valCls = isDarkUi ? 'text-white' : 'text-slate-900';
+        detailsHtml = `<div class="flex justify-between items-baseline gap-4 text-xs ${labelCls} mt-2"><span>Price: <strong class="${valCls} font-extrabold">$${fmtMoney(tile.price)}</strong></span><span>Rent: <strong class="${rentCls} text-sm font-black">$${curRent}</strong></span></div><div class="text-xs ${labelCls} mt-1">Owner: ${ownerText}</div>`;
       } else {
-        detailsHtml = `<div class="text-xs text-slate-200 mt-1.5 font-medium">${tile.subtitle || 'Special Board Tile'}</div>`;
+        detailsHtml = `<div class="text-xs ${isDarkUi ? 'text-slate-300' : 'text-slate-600'} mt-1.5 font-medium">${tile.subtitle || 'Special Board Tile'}</div>`;
       }
 
       if (isNewHover) {
-        tooltip.innerHTML = `<div class="flex items-center gap-2 border-b border-slate-700 pb-1.5"><span class="w-3.5 h-3.5 rounded-full flex-shrink-0" style="background:${groupColor}"></span><span class="font-extrabold text-sm tracking-wide text-white">${tile.name}</span></div>${detailsHtml}`;
+        const headerBorder = isDarkUi ? 'border-slate-700' : 'border-slate-200';
+        const titleColor = isDarkUi ? 'text-white' : 'text-slate-900';
+        tooltip.innerHTML = `<div class="flex items-center gap-2 border-b ${headerBorder} pb-1.5"><span class="w-3.5 h-3.5 rounded-full flex-shrink-0" style="background:${groupColor}"></span><span class="font-extrabold text-sm tracking-wide ${titleColor}">${tile.name}</span></div>${detailsHtml}`;
       }
+      tooltip.classList.toggle('tooltip-below', event.clientY < 120);
       tooltip.style.left = `${event.clientX}px`;
       tooltip.style.top = `${event.clientY}px`;
       tooltip.classList.remove('hidden');
