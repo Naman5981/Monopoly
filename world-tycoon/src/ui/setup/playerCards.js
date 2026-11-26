@@ -12,6 +12,7 @@ import { networkState, broadcastLobbySettings, sendClientProfileUpdate, broadcas
 import {
   ARCHETYPES,
   canCurrentPlayerEditSlot,
+  canCurrentPlayerChangeColor,
   selectedSetupPlayerIdx,
   setSelectedSetupPlayerIdx,
   FIXED_AI_NAMES,
@@ -109,6 +110,7 @@ export function renderPlayerCards() {
     selectedPlayerIdx: selectedSetupPlayerIdx,
     activeDisplayName,
     canEditCurrent: canCurrentPlayerEditSlot(selectedSetupPlayerIdx),
+    canChangeCurrentColor: canCurrentPlayerChangeColor(selectedSetupPlayerIdx),
     archetypeId: curArchForStore.id,
     archetypeName: curArchForStore.name.toUpperCase(),
     archetypeIcon: curArchForStore.icon,

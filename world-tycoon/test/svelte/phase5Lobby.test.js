@@ -74,4 +74,16 @@ describe('Phase 5: Pre-Game Lobby & Svelte Store Synchronization (/clean-code)',
     assert.equal(state.portalRoomCode, '');
     unsub();
   });
+
+  it('tracks canChangeCurrentColor separately from archetype lock in lobbyStore', () => {
+    networkState.isMultiplayer = true;
+    networkState.isHost = true;
+    networkState.localPlayerIdx = 0;
+    renderPlayerCards();
+    let state;
+    const unsub = lobbyStore.subscribe(val => { state = val; });
+    assert.equal(state.canChangeCurrentColor, true);
+    unsub();
+    networkState.isMultiplayer = false;
+  });
 });

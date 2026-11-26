@@ -11,6 +11,7 @@ export const initialLobbyState = {
   currentView: 'title', // 'title' | 'local' | 'multiplayer-portal' | 'multiplayer-room'
   activeDisplayName: 'TYCOON',
   canEditCurrent: true,
+  canChangeCurrentColor: true,
   isRoomActive: false,
   isMultiplayer: false,
   isHost: false,

@@ -118,17 +118,23 @@
         <div id="setup-color-swatches-container" class="flex items-center gap-1 px-1">
           <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider mr-0.5">COLOR</span>
           <div id="setup-color-swatches" class="flex items-center gap-1.5">
+            {@const canEditColor = state.canChangeCurrentColor !== false}
             {#each CANDY_PALETTE as candy}
-              {@const isSelected = (state.selectedColorHex || activePlayer.colorHex || '').toLowerCase() === candy.hex.toLowerCase()}
+              {@const candyHex = candy.hex.toLowerCase()}
+              {@const isSelected = (state.selectedColorHex || activePlayer.colorHex || '').toLowerCase() === candyHex}
+              {@const takenByHuman = (state.players || []).find(p => p.idx !== activePlayer.idx && !p.isAI && (p.colorHex || '').toLowerCase() === candyHex)}
+              {@const isBlocked = Boolean(takenByHuman) || !canEditColor}
               <button
                 onclick={() => selectColor(candy.hex, candy.charColor)}
-                disabled={!state.canEditCurrent}
-                class="w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center {state.canEditCurrent ? 'cursor-pointer' : 'cursor-not-allowed opacity-55 pointer-events-none'} {isSelected ? 'scale-110 border-white ring-2 ring-sky-400 shadow-sm' : 'border-white/80 hover:scale-105'}"
+                disabled={isBlocked}
+                class="w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center {takenByHuman ? 'opacity-35 grayscale cursor-not-allowed pointer-events-none border-slate-300' : (!canEditColor ? 'opacity-45 cursor-not-allowed pointer-events-none border-white/60' : 'cursor-pointer border-white/80 hover:scale-105')} {isSelected && !takenByHuman ? 'scale-110 !border-white ring-2 ring-sky-400 shadow-sm' : ''}"
                 style="background-color: {candy.hex};"
-                title="{candy.name}"
-                aria-label="Select {candy.name}"
+                title={takenByHuman ? `${candy.name} (Taken by ${takenByHuman.name})` : (!canEditColor ? 'Select your own player to edit color' : candy.name)}
+                aria-label={takenByHuman ? `${candy.name} - Taken by ${takenByHuman.name}` : `Select ${candy.name}`}
               >
-                {#if isSelected}
+                {#if takenByHuman}
+                  <i class="fa-solid fa-lock text-[9px] text-white drop-shadow"></i>
+                {:else if isSelected}
                   <i class="fa-solid fa-check text-[10px] text-white drop-shadow"></i>
                 {/if}
               </button>
