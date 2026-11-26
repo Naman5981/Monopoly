@@ -105,7 +105,7 @@
       <!-- Bottom Hint Bar (Single clean hint, no duplicate dismiss buttons) -->
       <div class="w-full mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-medium">
         <span>Tap anywhere or press ESC to dismiss</span>
-        <span class="font-mono text-slate-500 uppercase tracking-wider text-[9px]">Auto-closing</span>
+        <span class="font-mono text-slate-500 uppercase tracking-wider text-[10px]">Auto-closing</span>
       </div>
 
       <!-- Depleting Progress Bar (District Color Harmonized) -->

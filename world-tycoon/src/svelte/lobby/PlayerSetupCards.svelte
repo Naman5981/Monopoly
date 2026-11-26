@@ -250,9 +250,9 @@
       <div
         class="px-2.5 py-1 rounded-full bg-slate-900 text-amber-300 text-[10px] font-black uppercase tracking-widest shadow-xs flex items-center gap-1.5 border border-amber-400/40"
       >
-        <i class="fa-solid fa-bolt text-[9px] text-amber-400"></i>
+        <i class="fa-solid fa-bolt text-[10px] text-amber-400"></i>
         <span>VS</span>
-        <i class="fa-solid fa-bolt text-[9px] text-amber-400"></i>
+        <i class="fa-solid fa-bolt text-[10px] text-amber-400"></i>
       </div>
       <div
         class="flex-1 h-0.5 bg-gradient-to-r from-amber-300 via-sky-300 to-transparent"

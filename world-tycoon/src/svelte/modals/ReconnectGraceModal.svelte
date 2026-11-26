@@ -13,10 +13,10 @@
 
 <div
   id="modal-reconnect-grace"
-  class="fixed inset-0 z-50 items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xl overscroll-contain select-none text-center {state.visible ? 'flex' : 'hidden'}"
+  class="fixed inset-0 z-50 items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs overscroll-contain select-none text-center {state.visible ? 'flex' : 'hidden'}"
 >
   <div
-    class="relative w-full max-w-sm bg-slate-950/95 border border-amber-500/40 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden font-ui transition-all duration-200"
+    class="relative w-full max-w-sm bg-slate-950/95 border border-amber-500/40 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui transition-all duration-200"
     style="box-shadow: 0 25px 60px -15px rgba(0,0,0,0.9), 0 0 35px rgba(245,158,11,0.2);"
   >
     <!-- Header with Atmospheric Amber Halo -->
@@ -24,10 +24,10 @@
       class="relative p-5 text-white overflow-hidden flex flex-col items-center gap-2 shadow-md"
       style="background: radial-gradient(circle at 50% 20%, rgba(245,158,11,0.38) 0%, rgba(2,6,23,0.95) 85%); border-bottom: 1px solid rgba(245,158,11,0.35);"
     >
-      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 backdrop-blur-md border border-amber-400/40 flex items-center justify-center text-2xl text-amber-300 shadow-inner mb-1 animate-pulse">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 backdrop-blur-xs border border-amber-400/40 flex items-center justify-center text-2xl text-amber-300 shadow-inner mb-1 animate-pulse">
         <i class="fa-solid fa-satellite-dish"></i>
       </div>
-      <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/15 backdrop-blur-md text-[10px] font-mono font-bold uppercase tracking-widest text-amber-300 border border-amber-400/30">
+      <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/15 backdrop-blur-xs text-[10px] font-mono font-bold uppercase tracking-widest text-amber-300 border border-amber-400/30">
         <i class="fa-solid fa-rotate fa-spin"></i>
         <span>RECONNECTING</span>
       </div>

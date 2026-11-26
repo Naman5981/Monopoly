@@ -111,7 +111,7 @@
   <!-- Bottom Controls: Default Setup Mode -->
   <div class="lobby-hero-default-controls relative z-20 flex flex-col items-center gap-2 sm:gap-2.5 2xl:gap-3 w-full">
     <!-- Customization Row: Wardrobe & Colors Unified Capsule Dock -->
-    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center bg-white/80 backdrop-blur-md p-1.5 rounded-full border-2 border-white/90 shadow-md">
+    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center bg-white/80 backdrop-blur-xs p-1.5 rounded-full border-2 border-white/90 shadow-md">
 
       <!-- Color Swatches Bar: Hidden in Team Mode (strictly Red & Blue) -->
       {#if !state.isTeamMode}
@@ -128,7 +128,7 @@
                 aria-label="Select {candy.name}"
               >
                 {#if isSelected}
-                  <i class="fa-solid fa-check text-[9px] text-white drop-shadow"></i>
+                  <i class="fa-solid fa-check text-[10px] text-white drop-shadow"></i>
                 {/if}
               </button>
             {/each}
@@ -165,7 +165,7 @@
             </p>
             <div class="flex items-center gap-2 mt-0.5">
               <button onclick={() => { editName(); dismissHeadsUp(); }} class="flex-1 py-1.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs flex items-center justify-center gap-1 shadow-md cursor-pointer transition">
-                <i class="fa-solid fa-pen text-[9px]"></i> Change Name
+                <i class="fa-solid fa-pen text-[10px]"></i> Change Name
               </button>
               <button onclick={dismissHeadsUp} class="py-1.5 px-3 rounded-xl bg-white/90 hover:bg-white text-slate-900 font-black text-xs shadow-2xs border border-white cursor-pointer transition">
                 Got It!
@@ -184,7 +184,7 @@
             </strong>
           </div>
           <button onclick={editName} class="px-2.5 sm:px-3 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-[11px] sm:text-xs cursor-pointer transition shadow-2xs flex items-center gap-1 flex-shrink-0" title="Edit your Tycoon name" aria-label="Edit Tycoon Name">
-            <i class="fa-solid fa-pen text-[9px] sm:text-[10px]"></i>
+            <i class="fa-solid fa-pen text-[10px] sm:text-[10px]"></i>
             <span>EDIT</span>
           </button>
         </div>
@@ -199,7 +199,7 @@
               </div>
               <div class="text-left min-w-0">
                 <div class="text-sm sm:text-base lg:text-lg font-black leading-tight tracking-wider truncate">LOCAL PLAY</div>
-                <div class="text-[9px] sm:text-[10px] font-extrabold text-emerald-100 uppercase tracking-widest truncate">Pass &amp; Play + Bots</div>
+                <div class="text-[10px] sm:text-[10px] font-extrabold text-emerald-100 uppercase tracking-widest truncate">Pass &amp; Play + Bots</div>
               </div>
             </div>
             <i class="fa-solid fa-chevron-right text-emerald-200 text-xs group-hover:translate-x-1 transition-transform flex-shrink-0 ml-1"></i>
@@ -213,7 +213,7 @@
               </div>
               <div class="text-left min-w-0">
                 <div class="text-sm sm:text-base lg:text-lg font-black leading-tight tracking-wider truncate">MULTIPLAYER</div>
-                <div class="text-[9px] sm:text-[10px] font-extrabold text-sky-100 uppercase tracking-widest truncate">Online via Room Code</div>
+                <div class="text-[10px] sm:text-[10px] font-extrabold text-sky-100 uppercase tracking-widest truncate">Online via Room Code</div>
               </div>
             </div>
             <i class="fa-solid fa-chevron-right text-sky-200 text-xs group-hover:translate-x-1 transition-transform flex-shrink-0 ml-1"></i>

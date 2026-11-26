@@ -20,7 +20,7 @@
 >
   <div
     id="modal-sell-cities-card"
-    class="w-full bg-slate-950/92 backdrop-blur-xl border-2 border-rose-500/80 rounded-3xl text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_35px_rgba(244,63,94,0.3)] flex flex-col max-h-[64vh] sm:max-h-[58vh] select-none font-ui pointer-events-auto overflow-hidden"
+    class="w-full bg-slate-950/92 backdrop-blur-xs border-2 border-rose-500/80 rounded-3xl text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_35px_rgba(244,63,94,0.3)] flex flex-col max-h-[64vh] sm:max-h-[58vh] select-none font-ui pointer-events-auto overflow-hidden"
   >
     <!-- Compact Urgency Header -->
     <div class="bg-gradient-to-r from-rose-700 via-rose-600 to-slate-900 px-4 py-3 border-b border-white/10 flex items-center justify-between gap-3 shrink-0">

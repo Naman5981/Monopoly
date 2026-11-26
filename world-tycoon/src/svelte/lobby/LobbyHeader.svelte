@@ -65,7 +65,7 @@
             {state.activeDisplayName || 'TYCOON'}
           </span>
           <svg class="ui-icon w-3 h-3 text-amber-500 flex-shrink-0" aria-hidden="true"><use href="#icon-crown"></use></svg>
-          <i id="setup-profile-edit-icon" class="fa-solid {isTitle ? 'fa-pen text-amber-500' : 'fa-lock text-slate-400'} text-[8px] ml-0.5 flex-shrink-0"></i>
+          <i id="setup-profile-edit-icon" class="fa-solid {isTitle ? 'fa-pen text-amber-500' : 'fa-lock text-slate-400'} text-[10px] ml-0.5 flex-shrink-0"></i>
         </button>
       </div>
     </div>
@@ -79,7 +79,7 @@
       <span class="logo-brand-tycoon text-sm sm:text-xl lg:text-2xl font-black">TYCOON</span>
     </div>
     <div class="flex items-center gap-1 sm:gap-1.5 mt-0.5">
-      <div class="logo-edition-pill text-[9px] sm:text-[10px]">
+      <div class="logo-edition-pill text-[10px] sm:text-[10px]">
         GLOBAL EDITION
       </div>
     </div>
@@ -97,7 +97,7 @@
       <i class="fa-solid fa-book-open text-sky-600 text-xs"></i>
       <span class="hidden sm:inline">RULES</span>
     </button>
-    <div class="h-[38px] flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
+    <div class="h-[38px] flex items-center gap-1.5 bg-white/95 backdrop-blur-xs px-2.5 rounded-full shadow-md border-2 border-white flex-shrink-0" title="Adjust Sound Volume">
       <button onclick={toggleSound} id="setup-btn-sound" class="text-slate-700 hover:text-slate-900 cursor-pointer flex items-center justify-center p-1 rounded-full hover:bg-slate-100/80 active:scale-95 flex-shrink-0" title="Mute / Unmute Sound" aria-label="Mute or Unmute Sound">
         <i id="setup-btn-sound-icon" class="fa-solid {state.soundEnabled && state.soundVolume > 0 ? (state.soundVolume >= 50 ? 'fa-volume-high' : 'fa-volume-low') : 'fa-volume-xmark'} text-xs text-sky-600"></i>
       </button>

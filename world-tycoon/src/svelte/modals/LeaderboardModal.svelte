@@ -69,7 +69,7 @@
         <div>
           <div class="flex items-center gap-1.5 leading-none">
             <span class="font-display font-black text-sm sm:text-base tracking-wide text-white uppercase">Empire Standings</span>
-            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[9px] font-mono font-black text-emerald-300">
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[10px] font-mono font-black text-emerald-300">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE
             </span>
           </div>
@@ -119,10 +119,10 @@
                     <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" style="background:{s.colorHex}"></span>
                     <span class="font-display font-black text-xs sm:text-sm text-white truncate">{s.name}</span>
                     {#if s.isLocal}
-                      <span class="text-[9px] font-mono font-black uppercase px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">YOU</span>
+                      <span class="text-[10px] font-mono font-black uppercase px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">YOU</span>
                     {/if}
                     {#if s.isAI}
-                      <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-white/10 text-slate-400 border border-white/10">BOT</span>
+                      <span class="text-[10px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-white/10 text-slate-400 border border-white/10">BOT</span>
                     {/if}
                   </div>
                   <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
@@ -141,13 +141,13 @@
                 <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">Net Worth</div>
                 <div class="font-mono font-black text-sm sm:text-base text-amber-300 drop-shadow-xs">{s.netWorthFormatted}</div>
                 {#if s.velocity}
-                  <div class="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1 rounded border mt-0.5 {s.velocity.trend === 'up' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : s.velocity.trend === 'down' ? 'text-rose-400 bg-rose-500/10 border-rose-500/30' : 'text-slate-400 bg-slate-800 border-slate-700'}">
+                  <div class="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-1 rounded border mt-0.5 {s.velocity.trend === 'up' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : s.velocity.trend === 'down' ? 'text-rose-400 bg-rose-500/10 border-rose-500/30' : 'text-slate-400 bg-slate-800 border-slate-700'}">
                     {#if s.velocity.trend === 'up'}
-                      <i class="fa-solid fa-arrow-trend-up text-[8px]" aria-hidden="true"></i>
+                      <i class="fa-solid fa-arrow-trend-up text-[10px]" aria-hidden="true"></i>
                     {:else if s.velocity.trend === 'down'}
-                      <i class="fa-solid fa-arrow-trend-down text-[8px]" aria-hidden="true"></i>
+                      <i class="fa-solid fa-arrow-trend-down text-[10px]" aria-hidden="true"></i>
                     {:else}
-                      <i class="fa-solid fa-minus text-[8px]" aria-hidden="true"></i>
+                      <i class="fa-solid fa-minus text-[10px]" aria-hidden="true"></i>
                     {/if}
                     <span>{s.velocity.formattedDelta}</span>
                   </div>
@@ -164,10 +164,10 @@
           <span class="flex items-center gap-1.5 text-amber-300/90">
             <i class="fa-solid fa-chart-line text-amber-400"></i> Trajectory
             {#if state.roundCount !== undefined}
-              <span class="px-1.5 py-0.2 rounded bg-amber-500/15 border border-amber-400/30 text-[9px] text-amber-300">Round {state.roundCount}</span>
+              <span class="px-1.5 py-0.2 rounded bg-amber-500/15 border border-amber-400/30 text-[10px] text-amber-300">Round {state.roundCount}</span>
             {/if}
           </span>
-          <span class="text-[9px] text-slate-500 font-normal">Hover / drag to inspect rounds</span>
+          <span class="text-[10px] text-slate-500 font-normal">Hover / drag to inspect rounds</span>
         </div>
         <div id="leaderboard-timeline-chart" class="w-full bg-slate-900/90 rounded-xl border border-white/10 p-2 overflow-hidden flex items-center justify-center">
           <NetWorthChart chart={state.historyChart} {spotlightIdx} />

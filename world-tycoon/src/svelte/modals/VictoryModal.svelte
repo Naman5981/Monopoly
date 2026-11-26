@@ -13,14 +13,14 @@
   }
 </script>
 
-<div id="modal-victory" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[9999] items-center justify-center p-3 sm:p-5 overflow-y-auto overscroll-contain {state.visible ? 'flex' : 'hidden'}">
+<div id="modal-victory" class="fixed inset-0 bg-slate-950/85 backdrop-blur-xs z-[9999] items-center justify-center p-3 sm:p-5 overflow-y-auto overscroll-contain {state.visible ? 'flex' : 'hidden'}">
   <!-- Rotating Radiant Sunburst Background -->
   <div class="fixed inset-0 flex items-center justify-center pointer-events-none opacity-20">
     <div class="w-[640px] h-[640px] sm:w-[860px] sm:h-[860px] rounded-full victory-sunburst animate-spin-slow"></div>
   </div>
 
   <!-- Victory Celebration Card -->
-  <div id="victory-card" class="relative bg-white/95 backdrop-blur-xl border-4 border-amber-400 rounded-3xl max-w-md w-full max-h-[92vh] overflow-hidden shadow-[0_0_60px_rgba(245,158,11,0.45)] transform flex flex-col z-10 victory-card-animate my-auto">
+  <div id="victory-card" class="relative bg-white/95 backdrop-blur-xs border-4 border-amber-400 rounded-3xl max-w-md w-full max-h-[92vh] overflow-hidden shadow-[0_0_60px_rgba(245,158,11,0.45)] transform flex flex-col z-10 victory-card-animate my-auto">
     <!-- Grand Banner Header (Clean & Vibrant, No Empty Void) -->
     <div class="relative px-5 py-4 text-center text-white overflow-hidden bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-500 shadow-sm flex-shrink-0">
       <!-- Watermark icons -->
@@ -89,14 +89,14 @@
                 <span class="w-3 h-3 rounded-full flex-shrink-0 shadow-xs border border-white" style="background-color: {player.colorHex}"></span>
                 <span class="text-xs font-black truncate max-w-[120px] sm:max-w-[150px]">{player.name}</span>
                 {#if player.isWinner}
-                  <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full bg-amber-500 text-white shadow-2xs">WIN</span>
+                  <span class="text-[10px] font-black uppercase px-1.5 py-0.2 rounded-full bg-amber-500 text-white shadow-2xs">WIN</span>
                 {/if}
               </div>
 
               <!-- Right: Cities & Net Worth -->
               <div class="flex items-center gap-2.5 flex-shrink-0">
                 <span class="text-[11px] font-extrabold text-slate-500 tabular-nums">
-                  {player.citiesCount} <span class="text-[9px]">🏙️</span>
+                  {player.citiesCount} <span class="text-[10px]">🏙️</span>
                 </span>
                 <span class="text-xs font-black tabular-nums {player.bankrupt ? 'text-rose-600 italic' : (player.isWinner ? 'text-amber-800' : 'text-slate-700')}">
                   {player.bankrupt ? 'BANKRUPT' : player.netWorthFormatted}

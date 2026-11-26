@@ -242,7 +242,7 @@
                 <!-- Top Header -->
                 <div class="w-full flex items-center justify-between text-xs font-bold relative z-10" style="color: {prize.themeColor || prize.color || '#f59e0b'};">
                   <span class="text-base">{prize.icon || '🎁'}</span>
-                  <span class="font-mono text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-white">
+                  <span class="font-mono text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-white">
                     {prize.sub || 'CHANCE'}
                   </span>
                 </div>
@@ -259,7 +259,7 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="text-[9px] font-mono font-black tracking-widest uppercase relative z-10" style="color: {prize.themeColor || prize.color || '#f59e0b'};">
+                <div class="text-[10px] font-mono font-black tracking-widest uppercase relative z-10" style="color: {prize.themeColor || prize.color || '#f59e0b'};">
                   &bull; UNLOCKED &bull;
                 </div>
               </div>
@@ -288,7 +288,7 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="font-mono text-[9px] font-black text-amber-300/80 tracking-widest uppercase z-10">
+                <div class="font-mono text-[10px] font-black text-amber-300/80 tracking-widest uppercase z-10">
                   {matchSettings?.boardEdition === 'rajasthan' ? '• PALACE •' : '• DECK •'}
                 </div>
               </div>

@@ -31,7 +31,7 @@ function developmentAutomationPlugin() {
 }
 
 export default defineConfig(({ mode }) => {
-  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || process.env.VITE_NO_DEBUG === 'true';
+  const isCI = process.env.CI === 'true' || process.env.CI === '1' || process.env.VERCEL === '1' || process.env.GITHUB_ACTIONS === 'true' || process.env.VITE_NO_DEBUG === 'true';
 
   return {
     plugins: [developmentAutomationPlugin(), svelte()],

@@ -34,7 +34,7 @@
   <!-- Event Log Drawer (opens above button in bottom-left corner) -->
   <div
     id="event-log-drawer"
-    class="{isOpen ? 'flex' : 'hidden'} w-72 sm:w-80 max-h-60 sm:max-h-72 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-2xl p-3 flex-col pointer-events-auto overscroll-contain transition-all duration-200"
+    class="{isOpen ? 'flex' : 'hidden'} w-72 sm:w-80 max-h-60 sm:max-h-72 bg-white/95 backdrop-blur-xs border border-slate-200/90 rounded-2xl shadow-2xl p-3 flex-col pointer-events-auto overscroll-contain transition-all duration-200"
   >
     <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
       <span class="font-extrabold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">

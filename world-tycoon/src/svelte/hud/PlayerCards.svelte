@@ -100,7 +100,7 @@
                 <span class="turn-badge-live">TURN</span>
               {:else if player.inIsland}
                 <span class="role-badge jail-badge" style="background: rgba(0,0,0,0.32);" title="Island Detention (Turn {player.islandTurns || 0}/3)">
-                  <i class="fa-solid fa-lock text-[8px] mr-0.5"></i>JAIL {player.islandTurns || 0}/3
+                  <i class="fa-solid fa-lock text-[10px] mr-0.5"></i>JAIL {player.islandTurns || 0}/3
                 </span>
               {:else if player.isPartner}
                 <span class="role-badge" style="background: rgba(16, 185, 129, 0.85);">ALLY</span>
@@ -133,12 +133,12 @@
   {#if state.isTeamMode && (state.leftPlayers || []).length > 0}
     {@const leftColor = (state.leftPlayers && state.leftPlayers[0]?.teamId !== undefined) ? (state.leftPlayers[0].teamId === 0 ? '#ef4444' : '#3b82f6') : (state.leftTeamColor || '#ef4444')}
     <div
-      class="team-networth-pill mt-1 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border-2 shadow-md text-slate-800"
+      class="team-networth-pill mt-1 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-xs border-2 shadow-md text-slate-800"
       style="border-color: {leftColor};"
     >
       <span class="w-2.5 h-2.5 rounded-full shadow-xs flex-shrink-0 animate-pulse" style="background-color: {leftColor};"></span>
       <div class="flex flex-col">
-        <span class="text-[9px] font-black uppercase tracking-wider leading-none" style="color: {leftColor};">{state.leftTeamLabel || 'TEAM RED'}</span>
+        <span class="text-[10px] font-black uppercase tracking-wider leading-none" style="color: {leftColor};">{state.leftTeamLabel || 'TEAM RED'}</span>
         <span class="text-xs font-black font-mono text-slate-900 leading-normal mt-0.5">{state.leftTeamNetWorth || '$0'}</span>
       </div>
     </div>
@@ -184,7 +184,7 @@
                 <span class="turn-badge-live">TURN</span>
               {:else if player.inIsland}
                 <span class="role-badge jail-badge" style="background: rgba(0,0,0,0.32);" title="Island Detention (Turn {player.islandTurns || 0}/3)">
-                  <i class="fa-solid fa-lock text-[8px] mr-0.5"></i>JAIL {player.islandTurns || 0}/3
+                  <i class="fa-solid fa-lock text-[10px] mr-0.5"></i>JAIL {player.islandTurns || 0}/3
                 </span>
               {:else if player.isPartner}
                 <span class="role-badge" style="background: rgba(16, 185, 129, 0.85);">ALLY</span>
@@ -217,11 +217,11 @@
   {#if state.isTeamMode && (state.rightPlayers || []).length > 0}
     {@const rightColor = (state.rightPlayers && state.rightPlayers[0]?.teamId !== undefined) ? (state.rightPlayers[0].teamId === 0 ? '#ef4444' : '#3b82f6') : (state.rightTeamColor || '#3b82f6')}
     <div
-      class="team-networth-pill mt-1 flex items-center justify-end gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border-2 shadow-md text-slate-800"
+      class="team-networth-pill mt-1 flex items-center justify-end gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-xs border-2 shadow-md text-slate-800"
       style="border-color: {rightColor};"
     >
       <div class="flex flex-col text-right">
-        <span class="text-[9px] font-black uppercase tracking-wider leading-none" style="color: {rightColor};">{state.rightTeamLabel || 'TEAM BLUE'}</span>
+        <span class="text-[10px] font-black uppercase tracking-wider leading-none" style="color: {rightColor};">{state.rightTeamLabel || 'TEAM BLUE'}</span>
         <span class="text-xs font-black font-mono text-slate-900 leading-normal mt-0.5">{state.rightTeamNetWorth || '$0'}</span>
       </div>
       <span class="w-2.5 h-2.5 rounded-full shadow-xs flex-shrink-0 animate-pulse" style="background-color: {rightColor};"></span>

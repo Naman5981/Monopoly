@@ -43,7 +43,7 @@
           {state.activeDisplayName || 'TYCOON'}
         </span>
         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 text-[10px] font-black tracking-wider shadow-2xs" title="Names can only be changed on the Home Screen">
-          <i class="fa-solid fa-lock text-[9px] text-amber-700"></i> LOCKED IN LOBBY
+          <i class="fa-solid fa-lock text-[10px] text-amber-700"></i> LOCKED IN LOBBY
         </span>
       </div>
       <input id="portal-player-name-input" type="hidden" value={state.activeDisplayName || 'TYCOON'} />

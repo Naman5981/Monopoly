@@ -19,7 +19,17 @@
       window.downgradeCityLevel?.(state.tile.id);
     }
   }
+
+  function handleWindowKeydown(e) {
+    if (!state.visible) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <div
   id="modal-tile-inspector"
@@ -27,7 +37,7 @@
 >
   <div
     id="modal-tile-inspector-card"
-    class="pointer-events-auto w-80 sm:w-92 max-w-[calc(100vw-24px)] bg-slate-950/95 border border-white/15 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden font-ui select-none transition-all duration-200"
+    class="pointer-events-auto w-80 sm:w-92 max-w-[calc(100vw-24px)] bg-slate-950/95 border border-white/15 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui select-none transition-all duration-200"
     style="box-shadow: 0 20px 50px -10px rgba(0,0,0,0.8), 0 0 25px {state.groupHex ? state.groupHex + '25' : 'rgba(255,255,255,0.05)'};"
   >
     <!-- Header with Dynamic Atmospheric District Glow & 3D Preview -->
@@ -40,7 +50,7 @@
       <button
         onclick={onClose}
         aria-label="Close property inspector"
-        class="absolute top-3 right-3 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/25 active:scale-90 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition border border-white/20 backdrop-blur-md shadow-xs focus-visible:ring-2 focus-visible:ring-white/50"
+        class="absolute top-3 right-3 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/25 active:scale-90 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition border border-white/20 backdrop-blur-xs shadow-xs focus-visible:ring-2 focus-visible:ring-white/50"
       >
         ✕
       </button>
@@ -48,7 +58,7 @@
       <!-- District Category Badge -->
       <div
         id="insp-group"
-        class="text-[10px] sm:text-[11px] px-3 py-0.5 rounded-full font-mono font-bold tracking-widest uppercase border border-white/20 bg-white/10 text-white/90 backdrop-blur-md shadow-xs"
+        class="text-[10px] sm:text-[11px] px-3 py-0.5 rounded-full font-mono font-bold tracking-widest uppercase border border-white/20 bg-white/10 text-white/90 backdrop-blur-xs shadow-xs"
         style="border-color: {state.groupHex ? state.groupHex + '60' : 'rgba(255,255,255,0.2)'};"
       >
         {state.groupName || 'PROPERTY DEED'}
@@ -124,7 +134,7 @@
                   </span>
                   <div class="flex items-center gap-1.5">
                     <span class="font-display font-black text-xs text-white">{tier.label}</span>
-                    <span class="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 font-black tracking-wider shadow-xs">ACTIVE</span>
+                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 font-black tracking-wider shadow-xs">ACTIVE</span>
                   </div>
                 </div>
                 <div class="text-xs font-mono font-black text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-lg shadow-xs">
@@ -139,7 +149,7 @@
                   </span>
                   <div class="flex items-center gap-1.5">
                     <span class="font-display font-bold text-xs text-amber-200">{tier.label}</span>
-                    <span class="text-[9px] uppercase px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">MAX</span>
+                    <span class="text-[10px] uppercase px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">MAX</span>
                   </div>
                 </div>
                 <div class="text-xs font-mono font-bold text-amber-300 px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20">

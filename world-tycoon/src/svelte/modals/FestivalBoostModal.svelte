@@ -15,7 +15,20 @@
   function onCloseNoProps() {
     window.closeFestivalNoPropertiesModal?.();
   }
+
+  function handleWindowKeydown(e) {
+    if (e.key !== 'Escape') return;
+    if (state.visible) {
+      e.preventDefault();
+      onClose();
+    } else if (state.noPropertiesVisible) {
+      e.preventDefault();
+      onCloseNoProps();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <!-- 1. World Festival City Selection Modal -->
 <div id="modal-festival-boost" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}">
@@ -72,14 +85,14 @@
 </div>
 
 <!-- 2. World Festival No Properties Alert Modal -->
-<div id="modal-festival-no-properties" role="alertdialog" aria-modal="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.noPropertiesVisible ? 'flex' : 'hidden'}">
+<div id="modal-festival-no-properties" role="alertdialog" aria-modal="true" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 items-center justify-center p-4 overscroll-contain {state.noPropertiesVisible ? 'flex' : 'hidden'}">
   <div id="modal-festival-no-properties-card" class="game-modal-shell modal-shell-amber relative w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border-4 !border-amber-400" tabindex="-1">
     <div class="game-modal-header bg-gradient-to-r from-amber-500 to-amber-700 p-5 text-white relative overflow-hidden flex items-center gap-3.5 shadow-md">
-      <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-xl shadow-inner text-white relative z-10 shrink-0">
+      <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xs border border-white/30 flex items-center justify-center text-xl shadow-inner text-white relative z-10 shrink-0">
         <i class="fa-solid fa-masks-theater text-white" aria-hidden="true"></i>
       </div>
       <div class="relative z-10 flex-1">
-        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-xs font-black uppercase tracking-widest text-amber-100 shadow-xs mb-1 border border-white/20">
+        <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-xs text-xs font-black uppercase tracking-widest text-amber-100 shadow-xs mb-1 border border-white/20">
           WORLD FESTIVAL
         </div>
         <h2 id="festival-no-props-title" class="font-rounded font-black text-xl text-white tracking-wide drop-shadow">NO PROPERTIES OWNED</h2>

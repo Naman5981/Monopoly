@@ -35,6 +35,14 @@ skills-lock.json
 scratch/
 brain/
 
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
 # Operating System & Editor Files
 .DS_Store
 .DS_Store?

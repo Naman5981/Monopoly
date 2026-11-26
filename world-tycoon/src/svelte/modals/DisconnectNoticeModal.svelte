@@ -13,10 +13,10 @@
 
 <div
   id="modal-disconnect-notice"
-  class="fixed inset-0 z-50 items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xl overscroll-contain select-none text-center {state.visible ? 'flex' : 'hidden'}"
+  class="fixed inset-0 z-50 items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs overscroll-contain select-none text-center {state.visible ? 'flex' : 'hidden'}"
 >
   <div
-    class="relative w-full max-w-sm bg-slate-950/95 border border-rose-500/40 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden font-ui transition-all duration-200"
+    class="relative w-full max-w-sm bg-slate-950/95 border border-rose-500/40 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui transition-all duration-200"
     style="box-shadow: 0 25px 60px -15px rgba(0,0,0,0.9), 0 0 35px rgba(244,63,94,0.2);"
   >
     <!-- Header with Atmospheric Rose Halo -->
@@ -24,10 +24,10 @@
       class="relative p-5 text-white overflow-hidden flex flex-col items-center gap-2 shadow-md"
       style="background: radial-gradient(circle at 50% 20%, rgba(244,63,94,0.38) 0%, rgba(2,6,23,0.95) 85%); border-bottom: 1px solid rgba(244,63,94,0.35);"
     >
-      <div class="w-12 h-12 rounded-2xl bg-rose-500/20 backdrop-blur-md border border-rose-400/40 flex items-center justify-center text-2xl text-rose-300 shadow-inner mb-1">
+      <div class="w-12 h-12 rounded-2xl bg-rose-500/20 backdrop-blur-xs border border-rose-400/40 flex items-center justify-center text-2xl text-rose-300 shadow-inner mb-1">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
-      <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-rose-500/15 backdrop-blur-md text-[10px] font-mono font-bold uppercase tracking-widest text-rose-300 border border-rose-400/30">
+      <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-rose-500/15 backdrop-blur-xs text-[10px] font-mono font-bold uppercase tracking-widest text-rose-300 border border-rose-400/30">
         <i class="fa-solid fa-wifi"></i>
         <span>CONNECTION LOST</span>
       </div>

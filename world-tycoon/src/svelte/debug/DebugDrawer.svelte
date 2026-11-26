@@ -125,7 +125,7 @@
 
 <div
   id="debug-suite-panel"
-  class="{state.visible ? 'flex' : 'hidden'} fixed top-12 right-3 z-[1400] w-[460px] max-w-[96vw] max-h-[88vh] bg-slate-950/95 backdrop-blur-xl border-2 border-amber-400/80 rounded-3xl shadow-2xl text-slate-100 flex-col overflow-hidden select-none font-sans text-xs"
+  class="{state.visible ? 'flex' : 'hidden'} fixed top-12 right-3 z-[1400] w-[460px] max-w-[96vw] max-h-[88vh] bg-slate-950/95 backdrop-blur-xs border-2 border-amber-400/80 rounded-3xl shadow-2xl text-slate-100 flex-col overflow-hidden select-none font-sans text-xs"
   style="display: {state.visible ? 'flex' : 'none'};"
 >
   <!-- 1. Header Bar -->
@@ -137,7 +137,7 @@
       <div>
         <div class="font-black text-sm text-amber-300 tracking-wide flex items-center gap-2">
           DEV & QA SUITE
-          <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono">v2.0.0</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono">v2.0.0</span>
         </div>
         <div id="debug-header-subtitle" class="text-[10px] text-slate-400 font-medium">
           <span>Turn: <strong>P{gameState?.currentPlayerIdx ?? 0} ({currPlayer.name})</strong></span> •

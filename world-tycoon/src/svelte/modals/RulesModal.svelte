@@ -23,7 +23,7 @@
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
-<div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}" onclick={onBackdropClick}>
+<div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 items-center justify-center p-4 overscroll-contain {state.visible ? 'flex' : 'hidden'}" onclick={onBackdropClick}>
   <div class="game-modal-shell modal-shell-sky max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
     <!-- Grand Banner Header (Victory Style) -->
     <div class="game-modal-header bg-gradient-to-r from-sky-600 to-indigo-700 p-5 text-white relative overflow-hidden flex items-center justify-between shadow-md">
@@ -32,11 +32,11 @@
       <svg class="ui-watermark -left-3 -bottom-3 w-28 h-28 text-white/10" aria-hidden="true"><use href="#icon-globe"></use></svg>
 
       <div class="relative z-10 flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
+        <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xs border border-white/30 flex items-center justify-center text-2xl shadow-inner text-white">
           <svg class="ui-icon w-6 h-6 text-white" aria-hidden="true"><use href="#icon-scroll"></use></svg>
         </div>
         <div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-sky-100 shadow-xs mb-1 border border-white/20">
+          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/20 backdrop-blur-xs text-[10px] font-black uppercase tracking-widest text-sky-100 shadow-xs mb-1 border border-white/20">
             <svg class="ui-icon w-3 h-3 text-sky-200" aria-hidden="true"><use href="#icon-crown"></use></svg> OFFICIAL RULEBOOK
           </div>
           <h3 class="font-rounded font-black text-xl sm:text-2xl text-white tracking-wide drop-shadow-md">

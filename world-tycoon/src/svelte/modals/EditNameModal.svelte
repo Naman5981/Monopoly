@@ -49,7 +49,16 @@
       onCancel();
     }
   }
+  function handleWindowKeydown(e) {
+    if (!state.visible) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onCancel();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 {#if state.visible}
   <!-- ═══════════════════════════════════════════════════════════════════

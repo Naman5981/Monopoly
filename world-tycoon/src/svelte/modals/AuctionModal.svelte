@@ -30,7 +30,7 @@
 >
   <div
     id="modal-auction-card"
-    class="w-full bg-slate-950/95 border-2 border-amber-500/80 rounded-3xl p-3.5 sm:p-4 text-white shadow-2xl flex flex-col gap-2.5 select-none font-ui pointer-events-auto backdrop-blur-md"
+    class="w-full bg-slate-950/95 border-2 border-amber-500/80 rounded-3xl p-3.5 sm:p-4 text-white shadow-2xl flex flex-col gap-2.5 select-none font-ui pointer-events-auto backdrop-blur-xs"
     style="box-shadow: 0 20px 40px -10px rgba(0,0,0,0.85), 0 0 30px rgba(245,158,11,0.25);"
   >
     <!-- Header with Amber Gradient Ramp (from-amber-500 to-amber-700) -->

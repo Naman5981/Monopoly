@@ -70,7 +70,7 @@
   <div class="w-full flex flex-col items-center relative select-none">
     <!-- Floating Scrubber Tooltip -->
     {#if scrubTurn}
-      <div class="absolute top-1 right-1 bg-slate-950/95 border border-amber-400/50 rounded-lg px-2 py-1 text-[9px] font-mono pointer-events-none z-20 shadow-lg">
+      <div class="absolute top-1 right-1 bg-slate-950/95 border border-amber-400/50 rounded-lg px-2 py-1 text-[10px] font-mono pointer-events-none z-20 shadow-lg">
         <div class="text-amber-300 font-bold border-b border-white/10 pb-0.5 mb-0.5">
           {scrubIdx === 0 ? 'Match Start' : scrubTurn.isLive ? 'Current (Live)' : `Round ${scrubTurn.turn}`}
         </div>

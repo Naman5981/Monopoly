@@ -19,10 +19,10 @@
 
 <div
   id="modal-resume-match"
-  class="fixed inset-0 z-50 items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xl overscroll-contain select-none {state.visible ? 'flex' : 'hidden'}"
+  class="fixed inset-0 z-50 items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs overscroll-contain select-none {state.visible ? 'flex' : 'hidden'}"
 >
   <div
-    class="relative w-full max-w-md bg-slate-950/95 border border-white/15 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden font-ui transition-all duration-200"
+    class="relative w-full max-w-md bg-slate-950/95 border border-white/15 rounded-3xl p-0 text-white shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui transition-all duration-200"
     style="box-shadow: 0 25px 60px -15px rgba(0,0,0,0.9), 0 0 35px rgba(16,185,129,0.2);"
   >
     <!-- Grand Atmospheric Emerald Header -->
@@ -32,7 +32,7 @@
     >
       <!-- Top Row Badges -->
       <div class="flex items-center justify-between w-full relative z-10">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 backdrop-blur-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest text-emerald-300 shadow-xs border border-emerald-400/30">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 backdrop-blur-xs text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest text-emerald-300 shadow-xs border border-emerald-400/30">
           <i class="fa-solid fa-floppy-disk text-emerald-400"></i>
           <span>SAVED GAME SESSION</span>
         </div>
@@ -102,7 +102,7 @@
                   <span class="w-3 h-3 rounded-full shrink-0 shadow-xs" style="background:{p.colorHex || '#6366f1'}"></span>
                   <span class="font-display font-black text-white text-xs sm:text-sm tracking-wide">{p.name}</span>
                   {#if p.isAI}
-                    <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-md bg-white/10 text-slate-400 border border-white/10">AI</span>
+                    <span class="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-md bg-white/10 text-slate-400 border border-white/10">AI</span>
                   {/if}
                 </div>
                 <div class="text-right flex items-center gap-1.5">

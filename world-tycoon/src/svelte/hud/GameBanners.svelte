@@ -35,7 +35,7 @@
       <div
         id="monopoly-threat-banner"
         style="display: flex;"
-        class="relative px-5 sm:px-6 py-2.5 rounded-2xl bg-slate-950/95 backdrop-blur-md border-2 border-amber-400 text-white shadow-[0_12px_40px_rgba(0,0,0,0.85),0_0_24px_rgba(245,158,11,0.35)] flex items-center gap-3.5 will-change-transform max-w-lg"
+        class="relative px-5 sm:px-6 py-2.5 rounded-2xl bg-slate-950/95 backdrop-blur-xs border-2 border-amber-400 text-white shadow-[0_12px_40px_rgba(0,0,0,0.85),0_0_24px_rgba(245,158,11,0.35)] flex items-center gap-3.5 will-change-transform max-w-lg"
         use:threatBannerEntrance
         transition:fly={{ y: -30, duration: 450, easing: cubicOut }}
       >
@@ -141,7 +141,7 @@
           class="relative bg-gradient-to-r from-sky-600 to-indigo-700 text-white rounded-3xl p-5 shadow-[0_16px_48px_rgba(2,132,199,0.55)] border-2 border-white/60 flex items-center gap-5 min-w-[320px] max-w-sm -translate-y-16"
           transition:fly={{ duration: 450, y: -40, easing: backOut }}
         >
-          <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/30 shrink-0">
+          <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-2xl shadow-inner border border-white/30 shrink-0">
             <i class="fa-solid fa-plane-departure text-white" aria-hidden="true"></i>
           </div>
           <div class="flex flex-col">
