@@ -119,10 +119,11 @@
           <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider mr-0.5">COLOR</span>
           <div id="setup-color-swatches" class="flex items-center gap-1.5">
             {#each CANDY_PALETTE as candy}
-              {@const isSelected = (activePlayer.colorHex || '').toLowerCase() === candy.hex.toLowerCase()}
+              {@const isSelected = (state.selectedColorHex || activePlayer.colorHex || '').toLowerCase() === candy.hex.toLowerCase()}
               <button
                 onclick={() => selectColor(candy.hex, candy.charColor)}
-                class="w-6 h-6 rounded-full border-2 transition-all cursor-pointer flex items-center justify-center {isSelected ? 'scale-110 border-white ring-2 ring-sky-400 shadow-sm' : 'border-white/80 hover:scale-105'}"
+                disabled={!state.canEditCurrent}
+                class="w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center {state.canEditCurrent ? 'cursor-pointer' : 'cursor-not-allowed opacity-55 pointer-events-none'} {isSelected ? 'scale-110 border-white ring-2 ring-sky-400 shadow-sm' : 'border-white/80 hover:scale-105'}"
                 style="background-color: {candy.hex};"
                 title="{candy.name}"
                 aria-label="Select {candy.name}"
