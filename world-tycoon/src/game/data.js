@@ -133,6 +133,7 @@ const WORLD_CHANCE_WHEEL_PRIZES = [
   { label: '+250K Bonus',  color: '#312e81', themeColor: '#d97706', type: 'cash',   amount: 250000, icon: '💎', sub: 'BONUS',   title: 'Unicorn Dividend',         desc: 'Tech Unicorn Dividend! Collect 250K!'                  },
   { label: 'Go to Island', color: '#1e293b', themeColor: '#ea580c', type: 'island',                 icon: '🏝️', sub: 'JAIL',    title: 'Tropical Island Arrest',   desc: 'Stormy Seas! Detained on Tropical Island!'              },
   { label: 'World Tour!',  color: '#312e81', themeColor: '#7c3aed', type: 'move',   target: 24,     icon: '✈️', sub: 'AIRPORT', title: 'World Tour Flight',        desc: 'VIP Ticket to World Tour Airport!'                     },
+  { label: 'Mystery Warp', color: '#1e293b', themeColor: '#06b6d4', type: 'random_move',          icon: '🌀', sub: 'WARP',    title: 'Mystery Warp',             desc: 'Teleport to any random tile on the board!'             },
 ];
 
 const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
@@ -142,6 +143,7 @@ const RAJASTHAN_CHANCE_WHEEL_PRIZES = [
   { label: 'Royal Haveli',   color: '#312e81', themeColor: '#d97706', type: 'upgrade', amount: 250000, icon: '🏛️', sub: 'HAVELI',  title: "Maharaja's Architect",     desc: 'Free Haveli upgrade on your estate, or collect 250K grant!' },
   { label: 'Desert Jail',    color: '#1e293b', themeColor: '#ea580c', type: 'island',                  icon: '🏜️', sub: 'JAIL',    title: 'Thar Dust Storm',          desc: 'Blinding Thar sandstorm! Detained at Desert Retreat!' },
   { label: 'Train to START', color: '#312e81', themeColor: '#0284c7', type: 'move',    target: 0,      icon: '🚂', sub: '+350K',   title: 'Palace on Wheels Express', desc: 'Royal luxury express to START! Collect +$350,000 salary!' },
+  { label: 'Magic Carpet',   color: '#1e293b', themeColor: '#06b6d4', type: 'random_move',             icon: '🪄', sub: 'WARP',    title: 'Magic Carpet Ride',        desc: 'Fly on a magic carpet to any random tile on the board!' },
 ];
 
 export const BOARD_EDITIONS = {

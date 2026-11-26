@@ -264,9 +264,13 @@ export async function applyChancePrize(playerIdx, prize, isDoubles, isRemote = f
       broadcastFullGameState();
     }
     return;
-  } else if (prize.type === 'move') {
+  } else if (prize.type === 'move' || prize.type === 'random_move') {
     const fromPos = p.position;
-    const dest = prize.target;
+    let dest = prize.target;
+    if (!Number.isInteger(dest) || dest < 0 || dest >= BOARD_TILES.length) {
+      const candidates = BOARD_TILES.map((_, idx) => idx).filter(idx => idx !== fromPos);
+      dest = candidates[Math.floor(Math.random() * candidates.length)] ?? 0;
+    }
     gameState.phase = 'MOVING';
 
     playSFX('flight');

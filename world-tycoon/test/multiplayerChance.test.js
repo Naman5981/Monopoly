@@ -232,4 +232,27 @@ describe('Multiplayer Chance Card Reveal & State Transfer (/bug-hunter)', () => 
     assert.equal(gameState.players[0].inIsland, true);
     assert.equal(gameState.players[0].position, 8);
   });
+
+  it('resolves random_move destination tile, broadcasts targetTileId, and displays destination on card', async () => {
+    networkState.isHost = true;
+    networkState.localPlayerIdx = 0;
+    gameState.currentPlayerIdx = 0;
+
+    openChanceWheelModal(false, 0);
+    // Index 6 is Mystery Warp (random_move); force targetTileId = 18
+    spinChanceWheel(6, 5, 0, false, false, 18);
+
+    const spinAction = broadcastedActions.find(a => a.type === 'ACTION_CHANCE_SPIN');
+    assert.notEqual(spinAction, undefined);
+    assert.equal(spinAction.prizeIdx, 6);
+    assert.equal(spinAction.targetTileId, 18);
+
+    await new Promise(r => setTimeout(r, 2200));
+
+    const state = getModalSlice('chanceWheel');
+    assert.equal(state.hasWon, true);
+    assert.equal(state.winnerIdx, 6);
+    assert.equal(state.wonPrize.label, `Go to ${BOARD_TILES[18].name}`);
+    assert.match(state.wonPrize.desc, new RegExp(BOARD_TILES[18].name));
+  });
 });

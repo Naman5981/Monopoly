@@ -31,8 +31,8 @@ describe('Concept C: 3D Mystery Chance Card Fan Deck Suite (/better-ui /multipla
     clearChanceTimers();
   });
 
-  it('verifies all 6 chance prizes have rich metadata, semantic colors, icons, and subtitles', () => {
-    assert.equal(CHANCE_WHEEL_PRIZES.length, 6);
+  it('verifies all 7 chance prizes have rich metadata, semantic colors, icons, and subtitles', () => {
+    assert.equal(CHANCE_WHEEL_PRIZES.length, 7);
     CHANCE_WHEEL_PRIZES.forEach((p, i) => {
       assert.ok(p.label, `Prize ${i} must have label`);
       assert.ok(p.color && p.color.startsWith('#'), `Prize ${i} must have valid hex color`);

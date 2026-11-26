@@ -115,14 +115,11 @@
       <div id="leaderboard-players-list" class="space-y-2">
         {#if state.standings && state.standings.length > 0}
           {#each state.standings as s}
-            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
-              tabindex="0"
               onmouseenter={() => { spotlightIdx = s.playerIdx; }}
               onmouseleave={() => { spotlightIdx = null; }}
-              onfocus={() => { spotlightIdx = s.playerIdx; }}
-              onblur={() => { spotlightIdx = null; }}
-              class="p-2.5 sm:p-3 rounded-2xl border shadow-xs flex items-center justify-between gap-3 transition-all cursor-pointer hover:border-amber-400/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 {isDarkTheme ? 'bg-slate-900/90 border-white/15 hover:bg-slate-900' : 'bg-slate-50 border-slate-200 hover:bg-amber-50/40'} {spotlightIdx !== null && spotlightIdx !== s.playerIdx ? 'opacity-45' : 'opacity-100'}"
+              class="p-2.5 sm:p-3 rounded-2xl border shadow-xs flex items-center justify-between gap-3 transition-all cursor-pointer hover:border-amber-400/70 {isDarkTheme ? 'bg-slate-900/90 border-white/15 hover:bg-slate-900' : 'bg-slate-50 border-slate-200 hover:bg-amber-50/40'} {spotlightIdx !== null && spotlightIdx !== s.playerIdx ? 'opacity-45' : 'opacity-100'}"
             >
               <div class="flex items-center gap-3 min-w-0">
                 <div class="w-7 h-7 rounded-lg font-mono font-black tabular-nums flex items-center justify-center text-xs shadow-inner shrink-0 {s.rank === 1 ? 'bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 text-slate-950 border border-amber-200' : s.rank === 2 ? 'bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 text-slate-950 border border-white' : s.rank === 3 ? 'bg-gradient-to-br from-amber-700 via-amber-800 to-amber-900 text-amber-50 border border-amber-600/50' : (isDarkTheme ? 'bg-slate-800 text-slate-200 border border-slate-700' : 'bg-slate-200 text-slate-800 border border-slate-300')}">

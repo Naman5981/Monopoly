@@ -26,6 +26,7 @@ import { getTileWorldPosition } from '../three/board/coords.js';
 import {
   refreshTileTextureAndBuildings,
   refreshTileAndGroup,
+  refreshTilesAndGroups,
   spawnAllPlayerTokens3D,
   showSpeechBubble,
   setTileHighlightRing,
@@ -426,8 +427,8 @@ export function initEngine() {
     onWorldTour: (playerIdx, destTileId) => {
       executeWorldTourFlight(destTileId, true, playerIdx, evaluateTileLanding);
     },
-    onChanceSpin: (playerIdx, prizeIdx, fullSpins, isDoubles) => {
-      executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles);
+    onChanceSpin: (playerIdx, prizeIdx, fullSpins, isDoubles, targetTileId) => {
+      executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles, targetTileId);
     },
     onChancePrize: (playerIdx, prize, isDoubles, prizeIdx) => {
       handleRemoteChancePrize(playerIdx, prize, isDoubles, prizeIdx);
@@ -487,22 +488,6 @@ export function initEngine() {
           values: [...(pt.values || [])]
         }));
       }
-      if (incomingState.properties) {
-        Object.keys(incomingState.properties).forEach(id => {
-          const src = incomingState.properties[id];
-          if (!src) return;
-          const tid = Number(id);
-          if (!gameState.properties[tid]) {
-            gameState.properties[tid] = { ...src, festivalBoost: Boolean(src.festivalBoost || src.festival) };
-          } else {
-            gameState.properties[tid].owner = src.owner;
-            gameState.properties[tid].level = src.level;
-            gameState.properties[tid].festivalBoost = Boolean(src.festivalBoost || src.festival);
-            gameState.properties[tid].takeoverCount = Number(src.takeoverCount || 0);
-          }
-          refreshTileTextureAndBuildings(tid);
-        });
-      }
       if (incomingState.players && Array.isArray(incomingState.players)) {
         incomingState.players.forEach((srcP, idx) => {
           const p = gameState.players[idx];
@@ -531,6 +516,24 @@ export function initEngine() {
         if (gameState.phase !== 'MOVING') {
           updatePlayerTokenPositions3D();
         }
+      }
+      if (incomingState.properties) {
+        const syncedTileIds = [];
+        Object.keys(incomingState.properties).forEach(id => {
+          const src = incomingState.properties[id];
+          if (!src) return;
+          const tid = Number(id);
+          if (!gameState.properties[tid]) {
+            gameState.properties[tid] = { ...src, festivalBoost: Boolean(src.festivalBoost || src.festival) };
+          } else {
+            gameState.properties[tid].owner = src.owner;
+            gameState.properties[tid].level = src.level;
+            gameState.properties[tid].festivalBoost = Boolean(src.festivalBoost || src.festival);
+            gameState.properties[tid].takeoverCount = Number(src.takeoverCount || 0);
+          }
+          syncedTileIds.push(tid);
+        });
+        refreshTilesAndGroups(syncedTileIds);
       }
       if (typeof incomingState.festivalPot === 'number') {
         gameState.festivalPot = incomingState.festivalPot;

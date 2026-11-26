@@ -233,6 +233,7 @@ export { spawnFlyingThreatCard, cancelFlyingThreatCard } from './board/flyingThr
 export {
   refreshTileTextureAndBuildings,
   refreshTileAndGroup,
+  refreshTilesAndGroups,
   updateTileMesh,
   refreshAllTileTexturesAndMaterials
 } from './board/tiles.js';

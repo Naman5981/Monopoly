@@ -347,13 +347,25 @@ export const updateTileMesh = refreshTileTextureAndBuildings;
  * @param {number} tileId
  */
 export function refreshTileAndGroup(tileId) {
-  refreshTileTextureAndBuildings(tileId);
-  const tile = BOARD_TILES[tileId];
-  if (!tile?.group) return;
-  for (const sibling of BOARD_TILES) {
-    if (sibling.id !== tileId && sibling.group === tile.group) {
-      refreshTileTextureAndBuildings(sibling.id);
+  refreshTilesAndGroups([tileId]);
+}
+
+/**
+ * Refreshes a batch of tiles and their color-group siblings once each, after all state mutations complete.
+ * @param {Iterable<number>} tileIds
+ */
+export function refreshTilesAndGroups(tileIds) {
+  const toRefresh = new Set();
+  for (const tileId of tileIds) {
+    toRefresh.add(tileId);
+    const tile = BOARD_TILES[tileId];
+    if (!tile?.group) continue;
+    for (const sibling of BOARD_TILES) {
+      if (sibling.group === tile.group) toRefresh.add(sibling.id);
     }
+  }
+  for (const id of toRefresh) {
+    refreshTileTextureAndBuildings(id);
   }
 }
 

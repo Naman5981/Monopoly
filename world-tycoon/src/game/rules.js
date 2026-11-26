@@ -200,6 +200,7 @@ export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks, creditor
       : null;
 
     let inheritedCount = 0;
+    const transferredTileIds = [];
     BOARD_TILES.forEach(t => {
       const st = gameState.properties[t.id];
       if (st && st.owner === playerIdx) {
@@ -210,9 +211,22 @@ export function checkAndHandleNegativeCash(playerIdx, refreshCallbacks, creditor
           st.owner = null;
           st.level = 0;
         }
-        refreshCallbacks?.onRefreshTile?.(t.id);
+        transferredTileIds.push(t.id);
       }
     });
+    if (refreshCallbacks?.onRefreshTile && transferredTileIds.length > 0) {
+      const toRefresh = new Set();
+      for (const tid of transferredTileIds) {
+        toRefresh.add(tid);
+        const grp = BOARD_TILES[tid]?.group;
+        if (grp) {
+          BOARD_TILES.forEach(s => { if (s.group === grp) toRefresh.add(s.id); });
+        }
+      }
+      for (const id of toRefresh) {
+        refreshCallbacks.onRefreshTile(id);
+      }
+    }
 
     if (creditor && !creditor.bankrupt && inheritedCount > 0) {
       refreshCallbacks?.onLog?.(`💥 <strong>${p.name}</strong> went BANKRUPT to <strong>${creditor.name}</strong>! <strong>${creditor.name}</strong> inherited ${inheritedCount} properties.`);

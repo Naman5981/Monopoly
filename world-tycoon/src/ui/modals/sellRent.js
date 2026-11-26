@@ -8,7 +8,7 @@ import { gameState, displayedCash } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
 import { playSFX } from '../../game/audio.js';
 import { networkState, broadcastAction, broadcastFullGameState } from '../../network/p2p.js';
-import { refreshTileTextureAndBuildings, refreshTileAndGroup, spawnShatterDebris, triggerBoardShockwave } from '../../three/scene.js';
+import { refreshTileTextureAndBuildings, refreshTileAndGroup, refreshTilesAndGroups, spawnShatterDebris, triggerBoardShockwave } from '../../three/scene.js';
 import { renderCornerHUDs, logEvent, updateRollButtonsUI } from '../hud.js';
 import { spawnAnimatedReaction } from '../../three/effects.js';
 import { engineCallbacks, isLobbyScreenActive } from './common.js';
@@ -318,6 +318,7 @@ export function settleDebtDeficitWithoutProperties() {
   p.bankrupt = true;
 
   // Transfer remaining properties to creditor if solvent, otherwise revert to bank
+  const transferredTileIds = [];
   BOARD_TILES.forEach(t => {
     const st = gameState.properties[t.id];
     if (st && st.owner === pIdx) {
@@ -327,9 +328,10 @@ export function settleDebtDeficitWithoutProperties() {
         st.owner = null;
         st.level = 0;
       }
-      refreshTileTextureAndBuildings(t.id);
+      transferredTileIds.push(t.id);
     }
   });
+  refreshTilesAndGroups(transferredTileIds);
 
   playSFX('bankrupt');
   if (creditor) {

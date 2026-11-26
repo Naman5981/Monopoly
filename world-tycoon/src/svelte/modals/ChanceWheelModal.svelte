@@ -251,10 +251,10 @@
                 <div class="my-auto flex flex-col items-center w-full px-1 relative z-10">
                   <div class="text-4xl leading-none mb-1.5">{prize.icon || '🎁'}</div>
                   <div class="text-base sm:text-lg font-black text-white leading-tight tracking-tight">
-                    {prize.label}
+                    {isWinner && state.wonPrize?.label ? state.wonPrize.label : prize.label}
                   </div>
                   <div class="text-[11px] font-bold text-slate-300 mt-1 line-clamp-2 leading-tight">
-                    {prize.desc || prize.title}
+                    {isWinner && state.wonPrize?.desc ? state.wonPrize.desc : (prize.desc || prize.title)}
                   </div>
                 </div>
 

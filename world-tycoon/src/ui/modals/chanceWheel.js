@@ -3,7 +3,7 @@
  * Chance wheel canvas rendering, rotation physics, audio ticks, and award popups.
  */
 
-import { CHANCE_WHEEL_PRIZES, PLAYER_THEMES } from '../../game/data.js';
+import { BOARD_TILES, CHANCE_WHEEL_PRIZES, PLAYER_THEMES } from '../../game/data.js';
 import { getActiveChancePrizes } from '../../game/engine/chance.js';
 import { gameState } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
@@ -209,7 +209,34 @@ export function handleRemoteChancePrize(playerIdx, prize, isDoubles = false, for
   revealChanceWinnerCard(resolvedIdx, resolvedPrize, pIdx, isDoubles, true);
 }
 
-export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx = null, isDoubles = null, isRemote = false) {
+/**
+ * Resolves a dynamic destination tile for `random_move` Chance cards so both
+ * the revealed card UI and all P2P peers show the exact same destination.
+ */
+function resolveChancePrize(basePrize, playerIdx, forcedTargetTileId = null) {
+  if (!basePrize || basePrize.type !== 'random_move') {
+    return { prize: basePrize, targetTileId: null };
+  }
+  const currentPos = gameState.players?.[playerIdx]?.position ?? -1;
+  let targetTileId = forcedTargetTileId;
+  if (!Number.isInteger(targetTileId) || targetTileId < 0 || targetTileId >= BOARD_TILES.length) {
+    const candidates = BOARD_TILES.map((_, idx) => idx).filter(idx => idx !== currentPos);
+    targetTileId = candidates[Math.floor(Math.random() * candidates.length)] ?? 0;
+  }
+  const destTile = BOARD_TILES[targetTileId] || { name: `Tile ${targetTileId + 1}` };
+  return {
+    targetTileId,
+    prize: {
+      ...basePrize,
+      target: targetTileId,
+      label: `Go to ${destTile.name}`,
+      title: `Warp to ${destTile.name}!`,
+      desc: `Teleport to ${destTile.name} (Tile ${targetTileId + 1})!`
+    }
+  };
+}
+
+export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx = null, isDoubles = null, isRemote = false, forcedTargetTileId = null) {
   if (isWheelSpinning) return;
   isWheelSpinning = true;
   clearChanceTimers();
@@ -229,7 +256,8 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
 
   const prizes = getActiveChancePrizes();
   const prizeIdx = forcedPrizeIdx !== null ? forcedPrizeIdx : Math.floor(Math.random() * prizes.length);
-  const prize = prizes[prizeIdx] || prizes[0];
+  const rawPrize = prizes[prizeIdx] || prizes[0];
+  const { prize, targetTileId } = resolveChancePrize(rawPrize, activePIdx, forcedTargetTileId);
 
   // N slices for angle calculations (if canvas is inspected)
   const N = prizes.length;
@@ -247,7 +275,8 @@ export function spinChanceWheel(forcedPrizeIdx = null, forcedSpins = null, pIdx 
       playerIdx: activePIdx,
       prizeIdx,
       fullSpins,
-      isDoubles: isDoub
+      isDoubles: isDoub,
+      ...(targetTileId !== null ? { targetTileId } : {})
     });
   }
 
@@ -344,6 +373,11 @@ export async function revealChanceWinnerCard(prizeIdx, prize, activePIdx, isDoub
     icon = prize.target === 0 ? '🚀' : '✈️';
     title = prize.target === 0 ? 'EXPRESS JET TO START!' : 'WORLD TOUR FLIGHT!';
     tag = 'BOARD WARP';
+  } else if (prize.type === 'random_move') {
+    const destName = BOARD_TILES[prize.target]?.name || 'RANDOM TILE';
+    icon = prize.icon || '🌀';
+    title = `GO TO ${destName.toUpperCase()}!`;
+    tag = 'MYSTERY WARP';
   }
 
   // Highlight the result in modalStore
@@ -353,6 +387,7 @@ export async function revealChanceWinnerCard(prizeIdx, prize, activePIdx, isDoub
     wonPrize: {
       icon,
       tag,
+      label: prize.label,
       title,
       desc: prize.desc || prize.label,
       themeColor: prize.themeColor || prize.color || '#f59e0b'
@@ -389,12 +424,12 @@ export async function revealChanceWinnerCard(prizeIdx, prize, activePIdx, isDoub
   });
 }
 
-export function executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles) {
+export function executeRemoteChanceSpin(playerIdx, prizeIdx, fullSpins, isDoubles, targetTileId = null) {
   openChanceWheelModal(isDoubles, playerIdx);
   const player = (gameState.players && gameState.players[playerIdx]) || null;
   const playerName = player ? player.name : `Player ${playerIdx + 1}`;
   setStatusPill(`🃏 <strong>${playerName}</strong> is drawing a Chance Card...`, { isThinking: true, playerIdx });
-  spinChanceWheel(prizeIdx, fullSpins, playerIdx, isDoubles, true);
+  spinChanceWheel(prizeIdx, fullSpins, playerIdx, isDoubles, true, targetTileId);
 }
 
 if (typeof window !== 'undefined') {

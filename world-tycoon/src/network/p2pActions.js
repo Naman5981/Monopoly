@@ -11,6 +11,8 @@ import { spawnAnimatedReaction, fireConfettiBurst } from '../three/effects.js';
 import { BOARD_TILES, GROUP_META } from '../game/data.js';
 import {
   refreshTileTextureAndBuildings,
+  refreshTileAndGroup,
+  refreshTilesAndGroups,
   showSpeechBubble,
   spawnShatterDebris,
   triggerBoardShockwave,
@@ -176,7 +178,7 @@ export function executeIncomingNetworkAction(msg) {
       if (st) {
         st.owner = null;
         st.level = 0;
-        refreshTileTextureAndBuildings(msg.tileId);
+        refreshTileAndGroup(msg.tileId);
       }
       if (p) {
         p.cash += (msg.saleVal ?? msg.saleRefund ?? 0);
@@ -262,6 +264,7 @@ export function executeIncomingNetworkAction(msg) {
           creditorP.cash += msg.paidCash;
           if (displayedCash) displayedCash[msg.creditorIdx] = creditorP.cash;
         }
+        const transferredTileIds = [];
         BOARD_TILES.forEach(t => {
           const st = gameState.properties[t.id];
           if (st && st.owner === msg.bankruptIdx) {
@@ -271,9 +274,10 @@ export function executeIncomingNetworkAction(msg) {
               st.owner = null;
               st.level = 0;
             }
-            refreshTileTextureAndBuildings(t.id);
+            transferredTileIds.push(t.id);
           }
         });
+        refreshTilesAndGroups(transferredTileIds);
         if (creditorP) {
           logEvent(`💥 <strong>${bankruptP.name}</strong> went bankrupt to <strong>${creditorP.name}</strong>!`);
         } else {
@@ -330,7 +334,7 @@ export function executeIncomingNetworkAction(msg) {
 
     case 'ACTION_CHANCE_SPIN':
       if (networkCallbacks.onChanceSpin) {
-        networkCallbacks.onChanceSpin(msg.playerIdx, msg.prizeIdx, msg.fullSpins, msg.isDoubles);
+        networkCallbacks.onChanceSpin(msg.playerIdx, msg.prizeIdx, msg.fullSpins, msg.isDoubles, msg.targetTileId ?? null);
       }
       break;
 

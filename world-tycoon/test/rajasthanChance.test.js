@@ -18,10 +18,10 @@ test('Rajasthan Distinctive Chance Cards & Royal Fortune Deck', async (t) => {
     matchSettings.boardEdition = 'rajasthan';
   });
 
-  await t.test('verifies all 6 distinctive royal fortune cards are configured', () => {
-    assert.equal(CHANCE_WHEEL_PRIZES.length, 6);
+  await t.test('verifies all 7 distinctive royal fortune cards are configured', () => {
+    assert.equal(CHANCE_WHEEL_PRIZES.length, 7);
 
-    const [vault, pushkar, cess, haveli, desertJail, startTrain] = CHANCE_WHEEL_PRIZES;
+    const [vault, pushkar, cess, haveli, desertJail, startTrain, magicCarpet] = CHANCE_WHEEL_PRIZES;
 
     // Slot 0: Amber Fort Vault
     assert.equal(vault.type, 'cash');
@@ -57,6 +57,11 @@ test('Rajasthan Distinctive Chance Cards & Royal Fortune Deck', async (t) => {
     assert.equal(startTrain.target, 0);
     assert.equal(startTrain.icon, '🚂');
     assert.equal(startTrain.title, 'Palace on Wheels Express');
+
+    // Slot 6: Magic Carpet Ride (Random Tile Warp)
+    assert.equal(magicCarpet.type, 'random_move');
+    assert.equal(magicCarpet.icon, '🪄');
+    assert.equal(magicCarpet.title, 'Magic Carpet Ride');
   });
 
   await t.test('Maharaja Architect upgrades lowest-level owned property for free', async () => {
