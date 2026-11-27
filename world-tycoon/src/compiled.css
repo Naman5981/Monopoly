@@ -951,9 +951,6 @@ video {
 .max-h-60{
   max-height: 15rem;
 }
-.max-h-\[340px\]{
-  max-height: 340px;
-}
 .max-h-\[50vh\]{
   max-height: 50vh;
 }
@@ -971,6 +968,9 @@ video {
 }
 .max-h-\[92vh\]{
   max-height: 92vh;
+}
+.max-h-\[calc\(100vh-76px\)\]{
+  max-height: calc(100vh - 76px);
 }
 .max-h-full{
   max-height: 100%;
@@ -6959,10 +6959,6 @@ html, body {
     max-height: 18rem;
   }
 
-  .sm\:max-h-\[400px\]{
-    max-height: 400px;
-  }
-
   .sm\:max-h-\[58vh\]{
     max-height: 58vh;
   }
@@ -7023,8 +7019,8 @@ html, body {
     max-width: 150px;
   }
 
-  .sm\:max-w-\[420px\]{
-    max-width: 420px;
+  .sm\:max-w-\[440px\]{
+    max-width: 440px;
   }
 
   .sm\:max-w-md{

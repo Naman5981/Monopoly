@@ -60,7 +60,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="leaderboard-title"
-    class="speech-bubble-pop-in relative z-10 w-full max-w-[380px] sm:max-w-[420px] max-h-[340px] sm:max-h-[400px] border-2 border-amber-400/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden font-ui pointer-events-auto {isDarkTheme ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}"
+    class="speech-bubble-pop-in relative z-10 w-full max-w-[380px] sm:max-w-[440px] max-h-[calc(100vh-76px)] border-2 border-amber-400/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden font-ui pointer-events-auto {isDarkTheme ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}"
   >
 
     <!-- Header with Atmospheric Amber Gradient -->
