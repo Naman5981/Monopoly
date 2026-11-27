@@ -11,6 +11,8 @@ const initialHudState = {
   gameSpeed: 1,
   monopolySets: '0/3 Sets',
   playerCount: '2/2',
+  localRank: 1,
+  localNetWorthFormatted: '$0',
   roomCode: '',
   isMultiplayer: false,
   isHost: false,

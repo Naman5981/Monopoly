@@ -38,13 +38,13 @@
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
-<!-- Leaderboard Speech-Bubble Popover (Unobstructed 3D Board, Attached to TopBar Trophy Pill) -->
+<!-- Bottom-Left Empire Standings Drawer (Unobstructed 3D Board, Anchored Above Local Standing Pill) -->
 <div
   id="modal-leaderboard"
-  class="fixed inset-0 z-50 flex flex-col items-center justify-start pt-[54px] sm:pt-[58px] px-2.5 sm:px-4 pointer-events-none select-none overscroll-contain {state.visible ? 'pointer-events-auto' : 'hidden pointer-events-none'}"
+  class="fixed inset-0 z-50 flex flex-col items-start justify-end pb-[56px] sm:pb-[64px] px-3 sm:px-4 pointer-events-none select-none overscroll-contain {state.visible ? 'pointer-events-auto' : 'hidden pointer-events-none'}"
   style="background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;"
 >
-  <!-- Transparent click-outside dismisser (board stays visible, clicking anywhere outside closes popover) -->
+  <!-- Transparent click-outside dismisser (board stays visible, clicking anywhere outside closes drawer) -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
@@ -54,19 +54,14 @@
     aria-hidden="true"
   ></div>
 
-  <!-- Comic / Arcade Speech Bubble Window with Spring Pop-In Animation -->
+  <!-- Empire Standings Card -->
   <div
     id="modal-leaderboard-card"
     role="dialog"
     aria-modal="true"
     aria-labelledby="leaderboard-title"
-    class="speech-bubble-pop-in relative z-10 w-full max-w-[430px] sm:max-w-[480px] max-h-[calc(100vh-74px)] border-2 border-amber-400/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden font-ui pointer-events-auto {isDarkTheme ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}"
+    class="speech-bubble-pop-in relative z-10 w-full max-w-[380px] sm:max-w-[420px] max-h-[340px] sm:max-h-[400px] border-2 border-amber-400/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden font-ui pointer-events-auto {isDarkTheme ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'}"
   >
-    <!-- Pointer Beak pointing up to TopBar Trophy Pill -->
-    <svg class="absolute -top-[11px] left-[65%] -translate-x-1/2 w-7 h-3 z-30 pointer-events-none overflow-visible drop-shadow-[0_-2px_4px_rgba(245,158,11,0.25)]" viewBox="0 0 28 12" fill="none" aria-hidden="true">
-      <polygon points="4,12 14,1 24,12" fill={isDarkTheme ? '#020617' : '#ffffff'} />
-      <polyline points="3,12 14,1 25,12" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
 
     <!-- Header with Atmospheric Amber Gradient -->
     <div class="relative px-4 py-3 sm:px-5 sm:py-3.5 border-b flex items-center justify-between shadow-xs shrink-0 {isDarkTheme ? 'bg-gradient-to-r from-amber-950/70 via-slate-950 to-slate-950 border-amber-400/30' : 'bg-gradient-to-r from-amber-50 via-white to-white border-amber-200'}">
@@ -78,7 +73,7 @@
           <div class="flex items-center gap-2 leading-none">
             <h2 id="leaderboard-title" class="font-display font-black text-base sm:text-lg tracking-wide uppercase {isDarkTheme ? 'text-white' : 'text-slate-900'}">Empire Standings</h2>
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-mono font-bold {isDarkTheme ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300' : 'bg-emerald-50 border-emerald-300 text-emerald-800'}">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span> LIVE
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse" aria-hidden="true"></span> LIVE
             </span>
           </div>
           <p class="text-xs font-semibold mt-1 flex items-center gap-1.5 flex-wrap {isDarkTheme ? 'text-amber-200' : 'text-amber-800'}">

@@ -72,6 +72,9 @@ export function sendQuickEmote(text) {
 
 export function toggleEventLogDrawer() {
   const nextOpen = !get(hudStore).isEventLogOpen;
+  if (nextOpen && get(modalStore).leaderboard?.visible) {
+    updateModalSlice('leaderboard', { visible: false });
+  }
   updateHudState({ isEventLogOpen: nextOpen });
   if (nextOpen) playSFX('hop');
 

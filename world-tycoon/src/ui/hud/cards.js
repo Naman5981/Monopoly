@@ -7,7 +7,7 @@ import { PLAYER_THEMES, GROUP_META, TEAM_META, BOARD_TILES } from '../../game/da
 import { triggerBanner } from '../../svelte/stores/bannerStore.js';
 import { gameState, displayedCash, matchSettings } from '../../game/state.js';
 import { fmtMoney } from '../../game/utils.js';
-import { ownsFullColorGroup, calculateTeamNetWorth, isTeammate } from '../../game/rules.js';
+import { ownsFullColorGroup, calculateTeamNetWorth, calculatePlayerNetWorth, isTeammate } from '../../game/rules.js';
 import { triggerTokenHurtAnimation } from '../../three/scene.js';
 import { networkState } from '../../network/p2p.js';
 import { playSFX } from '../../game/audio.js';
@@ -131,6 +131,17 @@ export function renderCornerHUDs() {
   const mySets = Object.keys(GROUP_META).filter(group => ownsFullColorGroup(0, group)).length;
   const targetSets = matchSettings.monopolySetsToWin || (isTeamMode ? 4 : 3);
 
+  const rankedByNetWorth = gameState.players
+    .map((p, idx) => ({ idx, bankrupt: Boolean(p.bankrupt), nw: calculatePlayerNetWorth(idx) }))
+    .sort((a, b) => {
+      if (a.bankrupt !== b.bankrupt) return a.bankrupt ? 1 : -1;
+      return b.nw - a.nw;
+    });
+  const localRankEntryIdx = rankedByNetWorth.findIndex(entry => entry.idx === localPlayerIdx);
+  const localRank = localRankEntryIdx >= 0 ? localRankEntryIdx + 1 : 1;
+  const localNetWorth = localRankEntryIdx >= 0 ? rankedByNetWorth[localRankEntryIdx].nw : calculatePlayerNetWorth(localPlayerIdx);
+  const localNetWorthFormatted = fmtMoney(localNetWorth);
+
   let leftTeamNetWorth = '$0';
   let rightTeamNetWorth = '$0';
   let leftTeamLabel = 'TEAM RED';
@@ -153,6 +164,8 @@ export function renderCornerHUDs() {
 
   updateHudState({
     playerCount: `${aliveCount}/${gameState.players.length}`,
+    localRank,
+    localNetWorthFormatted,
     monopolySets: `${mySets}/${targetSets} Sets`,
     isTeamMode,
     leftPlayers,

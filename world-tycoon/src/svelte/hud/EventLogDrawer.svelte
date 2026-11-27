@@ -4,12 +4,24 @@
    * Declarative floating event log drawer and bottom-left toggle pill.
    */
   import { hudStore, updateHudState } from '../stores/hudStore.js';
+  import { modalStore } from '../stores/modalStore.js';
 
   let isOpen = $state(false);
   let isDarkTheme = $state(false);
+  let isLeaderboardOpen = $state(false);
+  let localRank = $state(1);
+  let totalPlayers = $state('2');
+  let localNetWorth = $state('$0');
+
   hudStore.subscribe(val => {
     isOpen = Boolean(val?.isEventLogOpen);
     isDarkTheme = val?.lightingMode === 'Night' || val?.boardStyle === 'cyberpunk';
+    localRank = val?.localRank || 1;
+    totalPlayers = String(val?.playerCount || '2/2').split('/')[1] || '2';
+    localNetWorth = val?.localNetWorthFormatted || '$0';
+  });
+  modalStore.subscribe(val => {
+    isLeaderboardOpen = Boolean(val?.leaderboard?.visible);
   });
 
   export function toggle() {
@@ -19,6 +31,10 @@
       isOpen = !isOpen;
       updateHudState({ isEventLogOpen: isOpen });
     }
+  }
+
+  function onLeaderboard() {
+    window.toggleLeaderboardModal?.();
   }
 
   function onClose() {
@@ -70,16 +86,32 @@
     ></div>
   </div>
 
-  <!-- Bottom-Left Event Log Toggle Button -->
-  <button
-    id="btn-hud-event-log"
-    onclick={toggle}
-    class="hud-pill pointer-events-auto flex items-center gap-2 text-xs font-bold shadow-md transition-[transform,background-color,color,border-color] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96] cursor-pointer {isOpen ? '!bg-indigo-600 !text-white !border-indigo-700 shadow-indigo-500/20' : ''}"
-    title="Toggle Match Event Log"
-    aria-label="Toggle Match Event Log"
-    aria-expanded={isOpen}
-  >
-    <i class="fa-solid fa-list-ul text-xs {isOpen ? 'text-white' : 'text-indigo-600'}"></i>
-    <span>Event Log</span>
-  </button>
+  <!-- Bottom-Left Utility Pills (Event Log + Local Standing Leaderboard) -->
+  <div class="flex items-center gap-2 pointer-events-auto">
+    <button
+      id="btn-hud-event-log"
+      onclick={toggle}
+      class="hud-pill flex items-center gap-2 text-xs font-bold shadow-md transition-[transform,background-color,color,border-color] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96] cursor-pointer {isOpen ? '!bg-indigo-600 !text-white !border-indigo-700 shadow-indigo-500/20' : ''}"
+      title="Toggle Match Event Log"
+      aria-label="Toggle Match Event Log"
+      aria-expanded={isOpen}
+    >
+      <i class="fa-solid fa-list-ul text-xs {isOpen ? 'text-white' : 'text-indigo-600'}"></i>
+      <span>Event Log</span>
+    </button>
+
+    <button
+      id="btn-hud-leaderboard"
+      onclick={onLeaderboard}
+      class="hud-pill flex items-center gap-1.5 text-xs font-bold shadow-md transition-[transform,background-color,color,border-color,box-shadow] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96] cursor-pointer {isLeaderboardOpen ? '!bg-amber-400 !text-slate-950 !border-amber-300 ring-2 ring-amber-300' : ''}"
+      title="View Empire Standings"
+      aria-label="View Net Worth Leaderboard"
+      aria-expanded={isLeaderboardOpen}
+    >
+      <i class="fa-solid fa-trophy text-xs {isLeaderboardOpen ? 'text-slate-950' : 'text-amber-500'}"></i>
+      <span class="tabular-nums font-black">#{localRank} of {totalPlayers}</span>
+      <span class="opacity-40" aria-hidden="true">•</span>
+      <span class="tabular-nums font-mono font-black">{localNetWorth}</span>
+    </button>
+  </div>
 </div>

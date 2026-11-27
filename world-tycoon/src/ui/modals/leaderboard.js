@@ -13,6 +13,7 @@ import { isLobbyScreenActive, closeOtherInformationalModals } from './common.js'
 import { animateModalSpringOpen, animateModalSpringClose } from '../anim.js';
 import { get } from 'svelte/store';
 import { modalStore, updateModalSlice } from '../../svelte/stores/modalStore.js';
+import { updateHudState } from '../../svelte/stores/hudStore.js';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    LIVE LEADERBOARD & NET WORTH STANDINGS MODAL
@@ -102,6 +103,7 @@ export function renderLeaderboardModal() {
 export function openLeaderboardModal() {
   if (isLobbyScreenActive()) return;
   closeOtherInformationalModals('modal-leaderboard');
+  updateHudState({ isEventLogOpen: false });
   updateModalSlice('leaderboard', { visible: true });
   renderLeaderboardModal();
   animateModalSpringOpen('#modal-leaderboard');

@@ -7,11 +7,13 @@ import { gameState, resetGameStateForNewMatch, matchSettings } from '../src/game
 import { BOARD_TILES } from '../src/game/data.js';
 import { openPortfolioModal, closePortfolioModal } from '../src/ui/modals/inspector.js';
 import { openRulesModal, closeRulesModal, toggleEventLogDrawer } from '../src/ui/modals/system.js';
+import { openLeaderboardModal } from '../src/ui/modals/leaderboard.js';
+import { get } from 'svelte/store';
 import { modalStore } from '../src/svelte/stores/modalStore.js';
 import { hudStore } from '../src/svelte/stores/hudStore.js';
 import { bannerStore, dismissBanner } from '../src/svelte/stores/bannerStore.js';
 import { revealGameHud, hideGameHud } from '../src/ui/hud/controls.js';
-import { showRentTransferBanner } from '../src/ui/hud/cards.js';
+import { showRentTransferBanner, renderCornerHUDs } from '../src/ui/hud/cards.js';
 
 describe('UI Polish & Design Gaps Audit (/better-ui /anti-ui-slop)', () => {
   beforeEach(() => {
@@ -111,5 +113,28 @@ describe('UI Polish & Design Gaps Audit (/better-ui /anti-ui-slop)', () => {
     const unsub2 = bannerStore.subscribe(val => { banner = val; });
     unsub2();
     assert.equal(banner.activeBanner, null);
+  });
+
+  it('syncs localRank & localNetWorthFormatted to hudStore and keeps Event Log & Leaderboard mutually exclusive', () => {
+    gameState.players[0].cash = 1000000;
+    gameState.players[1].cash = 2500000;
+    renderCornerHUDs();
+
+    const hudAfterRender = get(hudStore);
+    assert.equal(hudAfterRender.localRank, 2);
+    assert.equal(hudAfterRender.localNetWorthFormatted, '1M');
+
+    // Open Event Log -> then open Leaderboard (must close Event Log)
+    if (!get(hudStore).isEventLogOpen) toggleEventLogDrawer();
+    assert.equal(get(hudStore).isEventLogOpen, true);
+
+    openLeaderboardModal();
+    assert.equal(get(modalStore).leaderboard.visible, true);
+    assert.equal(get(hudStore).isEventLogOpen, false);
+
+    // Re-open Event Log (must close Leaderboard)
+    toggleEventLogDrawer();
+    assert.equal(get(hudStore).isEventLogOpen, true);
+    assert.equal(get(modalStore).leaderboard.visible, false);
   });
 });

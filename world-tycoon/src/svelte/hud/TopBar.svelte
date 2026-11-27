@@ -1,19 +1,15 @@
 <script>
   import { hudStore } from '../stores/hudStore.js';
-  import { modalStore } from '../stores/modalStore.js';
   import { BUILD_CONFIG, isLocalDevEnvironment } from '../../game/buildConfig.js';
 
   let state = $state({});
-  let isLeaderboardOpen = $state(false);
   const showDebug = BUILD_CONFIG.DEBUG_ENABLED && isLocalDevEnvironment();
   hudStore.subscribe(val => { state = val; });
-  modalStore.subscribe(val => { isLeaderboardOpen = Boolean(val?.leaderboard?.visible); });
 
   function onLobby() { window.handleLobbyButtonClick?.(); }
   function onCities() { window.openPortfolioModal?.(); }
   function onTrade() { window.openTradeModal?.(); }
   function onSpeed() { window.cycleGameSpeed?.(); }
-  function onLeaderboard() { window.toggleLeaderboardModal?.(); }
   function onCopyRoom() { window.copyRoomInviteLink?.(); }
   function onLight() { window.cycleLightingMode?.(); }
   function onToggleSound() { window.toggleSound?.(); }
@@ -84,20 +80,6 @@
       <i class="fa-solid fa-crown text-amber-500"></i>
       <span id="hud-bonus-counter" class="tabular-nums font-black">{state.monopolySets || '0/3 Sets'}</span>
     </div>
-
-    <span class="hud-capsule-divider"></span>
-
-    <button
-      id="btn-hud-leaderboard"
-      onclick={onLeaderboard}
-      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold transition-[transform,background-color,color,box-shadow] duration-150 ease-out cursor-pointer active:scale-[0.96] {isLeaderboardOpen ? 'bg-amber-400 text-slate-950 shadow-xs ring-2 ring-amber-300' : 'text-slate-700 hover:text-amber-600 hover:bg-slate-100/80 active:bg-amber-50'}"
-      title="View Tycoon Leaderboard"
-      aria-label="View Net Worth Leaderboard"
-      aria-expanded={isLeaderboardOpen}
-    >
-      <i class="fa-solid fa-trophy {isLeaderboardOpen ? 'text-slate-950 rotate-[-8deg] scale-110' : 'text-amber-500'} transition-transform duration-200"></i>
-      <span class="tabular-nums font-black {isLeaderboardOpen ? 'text-slate-950' : 'text-slate-800'}">{state.playerCount || '2/2'}</span>
-    </button>
   </div>
 
   <!-- Right Pod: Settings, Atmosphere & Tools -->
