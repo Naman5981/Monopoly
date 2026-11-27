@@ -211,6 +211,11 @@ body.theme-dark-ui .hud-glass-capsule button:hover {
   transform: translateY(2px) scale(0.96);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
 }
+.game-circle-btn:focus-visible,
+.game-btn:focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
+}
 
 /* ═══ WORLD TYCOON ORIGINAL 3D LOGO ═══ */
 .game-logo-3d {
@@ -2484,7 +2489,6 @@ body.production-build #debug-modal {
 }
 
 #btn-lobby-back-to-title {
-  height: 42px !important;
   flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;

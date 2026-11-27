@@ -77,7 +77,7 @@ describe('Upgrade City Modal & Chance Wheel Visual Optimization (/better-layout 
   });
 
   it('verifies chance wheel prizes use calm alternating luxury palette instead of rainbow clutter', () => {
-    assert.equal(CHANCE_WHEEL_PRIZES.length, 6);
+    assert.equal(CHANCE_WHEEL_PRIZES.length, 7);
     // Even slices should be slate-800 (#1e293b) and odd slices indigo-900 (#312e81)
     assert.equal(CHANCE_WHEEL_PRIZES[0].color, '#1e293b');
     assert.equal(CHANCE_WHEEL_PRIZES[1].color, '#312e81');
@@ -85,6 +85,7 @@ describe('Upgrade City Modal & Chance Wheel Visual Optimization (/better-layout 
     assert.equal(CHANCE_WHEEL_PRIZES[3].color, '#312e81');
     assert.equal(CHANCE_WHEEL_PRIZES[4].color, '#1e293b');
     assert.equal(CHANCE_WHEEL_PRIZES[5].color, '#312e81');
+    assert.equal(CHANCE_WHEEL_PRIZES[6].color, '#1e293b');
   });
 
   it('correctly upgrades tile.id (and not playerIdx) when bot lands on its self-owned property', async () => {

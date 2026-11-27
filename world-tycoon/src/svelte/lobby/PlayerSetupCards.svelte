@@ -75,8 +75,15 @@
   <div
     role="button"
     tabindex="0"
+    aria-pressed={isSelected}
+    aria-label="Select {p.name}"
     onclick={() => selectPlayer(idx)}
-    onkeydown={(e) => e.key === 'Enter' && selectPlayer(idx)}
+    onkeydown={(e) => {
+      if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        selectPlayer(idx);
+      }
+    }}
     class="lobby-roster-slot player-setup-card group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl border-2 transition-[transform,background-color,border-color,box-shadow] duration-150 cursor-pointer {isSelected
       ? (isTeam
           ? (isRed
@@ -114,9 +121,10 @@
               type="text"
               value={p.name}
               maxlength="12"
+              aria-label="Player {idx + 1} name"
               onclick={(e) => e.stopPropagation()}
               oninput={(e) => onNameChange(idx, e.currentTarget.value)}
-              class="font-black text-xs sm:text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-sky-500 focus:outline-none transition-all truncate leading-tight py-0"
+              class="font-black text-xs sm:text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-sky-500 focus:outline-none transition-colors duration-150 truncate leading-tight py-0"
               placeholder="Name..."
             />
           {:else}
@@ -140,7 +148,8 @@
         <button
           type="button"
           onclick={(e) => toggleTeam(idx, e)}
-          class="text-xs font-black px-2.5 py-1 rounded-xl border-2 transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1 {p.teamId === 0 ? 'bg-rose-50 border-rose-300 text-rose-800 hover:bg-rose-100' : 'bg-sky-50 border-sky-300 text-sky-800 hover:bg-sky-100'}"
+          aria-label="Switch {p.name} team"
+          class="text-xs font-black px-2.5 py-1 rounded-xl border-2 transition-[transform,background-color,border-color] duration-150 cursor-pointer shadow-xs active:scale-95 flex items-center gap-1 {p.teamId === 0 ? 'bg-rose-50 border-rose-300 text-rose-800 hover:bg-rose-100' : 'bg-sky-50 border-sky-300 text-sky-800 hover:bg-sky-100'}"
           title="Click to switch Team (Red ↔ Blue)"
         >
           <span>{p.teamId === 0 ? '🔴 RED' : '🔵 BLUE'}</span>
@@ -149,25 +158,28 @@
 
       {#if p.isConnectedPeer}
         <span class="text-[11px] font-black px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span>
           <span>ONLINE</span>
         </span>
       {:else if !p.isHost || !p.isSelf}
         <button
           type="button"
           onclick={(e) => toggleRole(idx, e)}
-          class="text-xs font-black px-2.5 py-1 rounded-xl border-2 transition cursor-pointer active:scale-95 {p.isAI ? 'bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200' : 'bg-amber-50 border-amber-300 text-amber-950 hover:bg-amber-100 shadow-2xs'}"
+          aria-pressed={!p.isAI}
+          aria-label="Toggle {p.name} between Human and Bot"
+          class="text-xs font-black px-2.5 py-1 rounded-xl border-2 transition-[transform,background-color,border-color] duration-150 cursor-pointer active:scale-95 {p.isAI ? 'bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200' : 'bg-amber-50 border-amber-300 text-amber-950 hover:bg-amber-100 shadow-2xs'}"
           title="Toggle Human / Bot"
         >
           <i class="fa-solid {p.isAI ? 'fa-robot' : 'fa-user'} mr-1 text-[10px]"></i>
-          {p.isAI ? 'Bot' : 'Player'}
+          {p.isAI ? 'Bot' : 'Human'}
         </button>
 
         {#if idx > 0 && (state.playerCount || 4) > 2}
           <button
             type="button"
             onclick={(e) => removeSlot(idx, e)}
-            class="w-7 h-7 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:border-rose-300 flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-90 text-xs font-black"
+            aria-label="Remove {p.name}"
+            class="w-7 h-7 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:border-rose-300 flex items-center justify-center transition-[transform,background-color,border-color] duration-150 cursor-pointer shadow-2xs active:scale-90 text-xs font-black"
             title="Remove Player Slot"
           >
             ✕
@@ -240,7 +252,7 @@
           class="text-xs font-black uppercase text-rose-700 tracking-wider flex items-center gap-1.5"
         >
           <span
-            class="w-2 h-2 rounded-full bg-rose-500 shadow-2xs animate-pulse"
+            class="w-2 h-2 rounded-full bg-rose-500 shadow-2xs motion-safe:animate-pulse"
           ></span>
           TEAM RED
         </span>
@@ -288,7 +300,7 @@
         <span
           class="text-xs font-black uppercase text-sky-700 tracking-wider flex items-center gap-1.5"
         >
-          <span class="w-2 h-2 rounded-full bg-sky-500 shadow-2xs animate-pulse"
+          <span class="w-2 h-2 rounded-full bg-sky-500 shadow-2xs motion-safe:animate-pulse"
           ></span>
           TEAM BLUE
         </span>

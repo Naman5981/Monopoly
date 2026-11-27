@@ -58,8 +58,8 @@
   <!-- Center Pod: Match Status Capsule -->
   <div id="hud-match-status-capsule" class="hud-glass-capsule pointer-events-auto md:flex items-center gap-2.5 px-3.5 shadow-sm flex-shrink-0">
     <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700" title={state.isCountdown ? "Match Time Remaining" : "Elapsed Match Time"}>
-      <i class="fa-regular fa-clock {state.clockUrgent ? 'text-rose-500 animate-spin' : 'text-slate-500'}"></i>
-      <span id="hud-game-clock" class="tabular-nums font-black {state.clockUrgent ? 'text-rose-600 animate-pulse' : 'text-slate-800'}">{state.clock || '00:00'}</span>
+      <i class="fa-regular fa-clock {state.clockUrgent ? 'text-rose-500 motion-safe:animate-spin' : 'text-slate-500'}"></i>
+      <span id="hud-game-clock" class="tabular-nums font-black {state.clockUrgent ? 'text-rose-600 motion-safe:animate-pulse' : 'text-slate-800'}">{state.clock || '00:00'}</span>
     </div>
 
     {#if !state.isMultiplayer}
@@ -90,7 +90,7 @@
     <button
       id="btn-hud-leaderboard"
       onclick={onLeaderboard}
-      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-150 ease-out cursor-pointer active:scale-[0.96] {isLeaderboardOpen ? 'bg-amber-400 text-slate-950 shadow-xs ring-2 ring-amber-300' : 'text-slate-700 hover:text-amber-600 hover:bg-slate-100/80 active:bg-amber-50'}"
+      class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold transition-[transform,background-color,color,box-shadow] duration-150 ease-out cursor-pointer active:scale-[0.96] {isLeaderboardOpen ? 'bg-amber-400 text-slate-950 shadow-xs ring-2 ring-amber-300' : 'text-slate-700 hover:text-amber-600 hover:bg-slate-100/80 active:bg-amber-50'}"
       title="View Tycoon Leaderboard"
       aria-label="View Net Worth Leaderboard"
       aria-expanded={isLeaderboardOpen}
@@ -103,8 +103,8 @@
   <!-- Right Pod: Settings, Atmosphere & Tools -->
   <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-shrink-0">
     {#if state.isMultiplayer && state.roomCode}
-      <button onclick={onCopyRoom} class="hud-pill !bg-indigo-50 border-indigo-200 text-indigo-900 cursor-pointer" title="Click to copy room invite link" aria-label="Copy Room Invite Link">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <button onclick={onCopyRoom} class="hud-pill border-indigo-200 text-indigo-900 cursor-pointer" title="Click to copy room invite link" aria-label="Copy Room Invite Link">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span>
         <span class="font-extrabold text-xs">Room: {state.roomCode}</span>
         <i class="fa-regular fa-copy text-xs text-indigo-500"></i>
       </button>
@@ -117,10 +117,10 @@
 
     <!-- Sound Control Pill -->
     <div id="hud-sound-container" class="hud-pill hud-pill-sound flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1" title="Adjust Sound Volume">
-      <button id="btn-sound" onclick={onToggleSound} class="text-slate-700 hover:text-slate-950 transition cursor-pointer flex items-center justify-center p-1 rounded-full hover:bg-slate-100/80 active:scale-95 flex-shrink-0" title="Mute / Unmute Sound" aria-label="Mute or Unmute Sound">
+      <button id="btn-sound" onclick={onToggleSound} class="text-slate-700 hover:text-slate-950 transition-colors cursor-pointer flex items-center justify-center p-1 rounded-full hover:bg-slate-100/80 active:scale-95 flex-shrink-0" title="Mute / Unmute Sound" aria-label="Mute or Unmute Sound">
         <i id="btn-sound-icon" class="fa-solid {state.soundEnabled && state.soundVolume > 0 ? (state.soundVolume >= 50 ? 'fa-volume-high' : 'fa-volume-low') : 'fa-volume-xmark'} text-xs text-sky-600"></i>
       </button>
-      <div class="flex items-center gap-1.5 flex-shrink-0">
+      <div class="hidden md:flex items-center gap-1.5 flex-shrink-0">
         <input id="sound-volume-slider" type="range" min="0" max="100" value={state.soundVolume} oninput={onVolumeInput} class="sound-slider min-w-[64px] w-16 sm:w-20 flex-shrink-0" title="Slide to adjust volume" aria-label="Sound volume slider">
         <span id="sound-volume-val" class="text-[11px] font-black tabular-nums text-slate-700 w-7 text-right flex-shrink-0">{state.soundVolume}%</span>
       </div>
@@ -131,7 +131,7 @@
       <button
         id="btn-hud-camera-rotate-left"
         onclick={onRotateLeft}
-        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all duration-150 ease-out active:scale-[0.96] cursor-pointer"
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] cursor-pointer"
         title="Turn Board Left (90°)"
         aria-label="Turn Board Left"
       >
@@ -143,7 +143,7 @@
       <button
         id="btn-hud-camera-reset"
         onclick={onResetCam}
-        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all duration-150 ease-out active:scale-[0.96] cursor-pointer"
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] cursor-pointer"
         title="Reset Board View (Home)"
         aria-label="Reset Board View"
       >
@@ -155,7 +155,7 @@
       <button
         id="btn-hud-camera-rotate-right"
         onclick={onRotateRight}
-        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-all duration-150 ease-out active:scale-[0.96] cursor-pointer"
+        class="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-full transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] cursor-pointer"
         title="Turn Board Right (90°)"
         aria-label="Turn Board Right"
       >

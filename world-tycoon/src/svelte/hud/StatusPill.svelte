@@ -45,7 +45,7 @@
 
 <!-- Turn Lock Notification Toast -->
 {#if state.toast?.visible}
-  <div id="turn-lock-toast" class="turn-lock-toast flex items-center gap-2">
+  <div id="turn-lock-toast" role="status" aria-live="polite" class="turn-lock-toast flex items-center gap-2">
     <i class="fa-solid fa-lock text-amber-400"></i>
     <span>{state.toast.text || 'Wait for your turn!'}</span>
   </div>
@@ -54,9 +54,9 @@
 <!-- Unified Bottom Action Dock -->
 <div id="hud-bottom-status-wrap" class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 hidden flex flex-col items-center gap-2.5 pointer-events-none w-full max-w-xl px-4 transition-[transform,opacity] duration-300">
   <!-- Status Pill (hidden when a bottom action dock is open so it never peeks behind) -->
-  <div id="hud-status-pill" onclick={onStatusPill} class="hud-status-pill pointer-events-auto cursor-pointer transition-all duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 {hideStatusPillForDock ? 'opacity-0 pointer-events-none' : ''}" title="Click to roll dice or view activity log">
+  <button type="button" id="hud-status-pill" onclick={onStatusPill} aria-label="Open activity log or roll dice" class="hud-status-pill pointer-events-auto cursor-pointer transition-[transform,filter,opacity] duration-150 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 {hideStatusPillForDock ? 'opacity-0 pointer-events-none' : ''}" title="Click to roll dice or view activity log">
     <div class="hud-status-pill-avatar shrink-0">
-      <span id="hud-status-pill-dot" class="w-2.5 h-2.5 rounded-full {state.statusPill?.isThinking ? 'animate-ping' : ''}" style="background-color: {state.statusPill?.dotColor || '#10b981'}"></span>
+      <span id="hud-status-pill-dot" class="w-2.5 h-2.5 rounded-full {state.statusPill?.isThinking ? 'motion-safe:animate-ping' : ''}" style="background-color: {state.statusPill?.dotColor || '#10b981'}"></span>
     </div>
     <div id="hud-status-pill-icon" class="hud-status-pill-icon text-sm flex items-center justify-center shrink-0" aria-hidden="true">
       {#if state.statusPill?.icon === '🎲'}
@@ -71,27 +71,27 @@
         <span>{state.statusPill?.icon || ''}</span>
       {/if}
     </div>
-    <div id="hud-status-pill-text" class="hud-status-pill-text truncate">
+    <div id="hud-status-pill-text" class="hud-status-pill-text truncate text-left">
       {@html formattedText}
     </div>
     <div class="hud-status-pill-badge text-xs text-slate-300 font-extrabold uppercase tracking-wider hidden sm:flex items-center gap-1 border-l border-white/20 pl-2 shrink-0">
       <i class="fa-solid fa-list-ul text-[10px] text-amber-400" aria-hidden="true"></i> LOG
     </div>
-  </div>
+  </button>
 
   <!-- Roll Station: Bail + Centered Roll + 15s Timer Ring (only visible when roll station is active) -->
   {#if state.rollButton?.visible}
     <div id="hud-roll-station" class="relative flex items-center justify-center pointer-events-auto">
       <!-- Island Pay Bail Button -->
       {#if state.bailButton?.visible}
-        <button id="btn-escape-island" onclick={onBail} class="bottom-bail-btn flex max-sm:static max-sm:mr-2 sm:absolute sm:right-full sm:mr-3 items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all duration-150 ease-out hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96]" title="Pay 150K bail to exit Island immediately">
+        <button id="btn-escape-island" onclick={onBail} class="bottom-bail-btn flex max-sm:static max-sm:mr-2 sm:absolute sm:right-full sm:mr-3 items-center gap-1.5 whitespace-nowrap cursor-pointer transition-[transform,filter] duration-150 ease-out hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96]" title="Pay 150K bail to exit Island immediately">
           <i class="fa-solid fa-lock-open text-sm" aria-hidden="true"></i>
           <span id="bottom-bail-label">{state.bailButton.label || 'Pay 150K Bail'}</span>
         </button>
       {/if}
 
       <!-- Primary Roll Button -->
-      <button id="btn-bottom-roll" onclick={onRoll} class="bottom-roll-btn cursor-pointer transition-all duration-150 ease-out hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96] disabled:hover:brightness-100 disabled:hover:translate-y-0 {state.rollButton?.enabled ? '' : 'opacity-70'}" title="Roll Dice [Space]">
+      <button id="btn-bottom-roll" onclick={onRoll} aria-disabled={!state.rollButton?.enabled} class="bottom-roll-btn cursor-pointer transition-[transform,filter,opacity] duration-150 ease-out hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96] disabled:hover:brightness-100 disabled:hover:translate-y-0 {state.rollButton?.enabled ? '' : 'opacity-70'}" title="Roll Dice [Space]">
         <i class="fa-solid fa-dice text-xl" aria-hidden="true"></i>
         <span id="bottom-roll-label">{state.rollButton?.label || 'Roll'}</span>
         <kbd class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-mono text-white/90 border border-white/20 hidden sm:inline-block">SPACE</kbd>

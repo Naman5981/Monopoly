@@ -26,7 +26,16 @@
       toggle();
     }
   }
+
+  function handleWindowKeydown(e) {
+    if (isOpen && e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <!-- Bottom-Left Event Log Layer -->
 <div
@@ -36,7 +45,9 @@
   <!-- Event Log Drawer (opens above button in bottom-left corner) -->
   <div
     id="event-log-drawer"
-    class="{isOpen ? 'flex' : 'hidden'} w-72 sm:w-80 max-h-60 sm:max-h-72 backdrop-blur-xs border rounded-2xl shadow-2xl p-3 flex-col pointer-events-auto overscroll-contain transition-all duration-200 {isDarkTheme ? 'bg-slate-900/95 border-white/15 text-slate-100' : 'bg-white/95 border-slate-200/90 text-slate-900'}"
+    role="region"
+    aria-label="Live Event Log"
+    class="{isOpen ? 'flex' : 'hidden'} w-72 sm:w-80 max-h-60 sm:max-h-72 backdrop-blur-xs border rounded-2xl shadow-2xl p-3 flex-col pointer-events-auto overscroll-contain transition-[transform,opacity] duration-200 {isDarkTheme ? 'bg-slate-900/95 border-white/15 text-slate-100' : 'bg-white/95 border-slate-200/90 text-slate-900'}"
   >
     <div class="flex items-center justify-between border-b pb-2 mb-2 {isDarkTheme ? 'border-white/10' : 'border-slate-100'}">
       <span class="font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 {isDarkTheme ? 'text-slate-100' : 'text-slate-800'}">
@@ -53,6 +64,8 @@
     </div>
     <div
       id="activity-log"
+      role="log"
+      aria-live="polite"
       class="flex-1 overflow-y-auto space-y-1.5 text-xs font-medium pr-1 max-h-44 sm:max-h-56 {isDarkTheme ? 'text-slate-200' : 'text-slate-800'}"
     ></div>
   </div>
@@ -61,7 +74,7 @@
   <button
     id="btn-hud-event-log"
     onclick={toggle}
-    class="hud-pill pointer-events-auto flex items-center gap-2 text-xs font-bold shadow-md transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.96] cursor-pointer {isOpen ? '!bg-indigo-600 !text-white !border-indigo-700 shadow-indigo-500/20' : ''}"
+    class="hud-pill pointer-events-auto flex items-center gap-2 text-xs font-bold shadow-md transition-[transform,background-color,color,border-color] duration-150 ease-out hover:scale-[1.02] active:scale-[0.96] cursor-pointer {isOpen ? '!bg-indigo-600 !text-white !border-indigo-700 shadow-indigo-500/20' : ''}"
     title="Toggle Match Event Log"
     aria-label="Toggle Match Event Log"
     aria-expanded={isOpen}

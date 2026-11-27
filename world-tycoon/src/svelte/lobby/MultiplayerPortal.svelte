@@ -71,7 +71,7 @@
         </div>
       </div>
 
-      <button onclick={hostRoom} class="mt-6 w-full py-4 rounded-2xl font-rounded font-black text-lg text-white game-btn game-btn-blue shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]">
+      <button onclick={hostRoom} class="mt-6 w-full py-4 rounded-2xl font-rounded font-black text-lg text-white game-btn game-btn-blue shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-[transform,box-shadow] duration-150 hover:scale-[1.02] active:scale-[0.98]">
         <i class="fa-solid fa-plus text-base"></i>
         <span>CREATE ROOM</span>
       </button>
@@ -97,20 +97,23 @@
               id="input-p2p-room-code-portal"
               type="text"
               maxlength="6"
+              aria-label="Room Code"
+              autocomplete="off"
+              autocapitalize="characters"
               placeholder="ROOM CODE"
               value={state.portalRoomCode || ''}
               oninput={(e) => {
                 updateLobbyStore({ portalRoomCode: e.currentTarget.value.toUpperCase() });
               }}
               onkeydown={(e) => e.key === 'Enter' && joinRoom()}
-              class="w-full text-center uppercase tracking-[0.25em] text-2xl font-mono font-black py-3 px-4 rounded-2xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-slate-50 focus:bg-white outline-none transition text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-sans placeholder:font-bold placeholder:text-sm"
+              class="w-full text-center uppercase tracking-[0.25em] text-2xl font-mono font-black py-3 px-4 rounded-2xl border-2 border-slate-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-slate-50 focus:bg-white outline-none transition-[border-color,background-color,box-shadow] duration-150 text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:font-sans placeholder:font-bold placeholder:text-sm"
             />
           </div>
           <LobbyNetworkStatus variant="portal" />
         </div>
       </div>
 
-      <button onclick={joinRoom} class="mt-4 w-full py-4 rounded-2xl font-rounded font-black text-lg text-white game-btn game-btn-green shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]">
+      <button onclick={joinRoom} class="mt-4 w-full py-4 rounded-2xl font-rounded font-black text-lg text-white game-btn game-btn-green shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-[transform,box-shadow] duration-150 hover:scale-[1.02] active:scale-[0.98]">
         <i class="fa-solid fa-gamepad text-base"></i>
         <span>JOIN GAME</span>
       </button>

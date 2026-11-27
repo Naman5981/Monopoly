@@ -26,6 +26,7 @@
   const activePlayer = $derived(
     state.players?.[state.selectedPlayerIdx || 0] || state.players?.[0] || {}
   );
+  const isTitle = $derived(state.currentView === 'title');
 
   onMount(() => {
     const canvas = canvasEl || document.getElementById('lobby-avatar-3d-canvas');
@@ -93,10 +94,10 @@
       <button id="setup-archetype-carousel-prev" onclick={prevArchetype} class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-sm shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Previous Archetype" aria-label="Previous Archetype">
         <i class="fa-solid fa-chevron-left text-xs sm:text-sm"></i>
       </button>
-      <div id="setup-character-archetype-name" class="px-4 sm:px-5 py-1 sm:py-1.5 rounded-full bg-white/95 text-slate-900 font-black text-xs sm:text-sm shadow-md border-2 border-white flex items-center gap-1.5 cursor-pointer hover:bg-white select-none transition-transform hover:scale-[1.02] active:scale-[0.98]" onclick={nextArchetype} title="Click to cycle next archetype">
+      <button type="button" id="setup-character-archetype-name" disabled={!isTitle} class="px-4 sm:px-5 py-1 sm:py-1.5 rounded-full bg-white/95 text-slate-900 font-black text-xs sm:text-sm shadow-md border-2 border-white flex items-center gap-1.5 {isTitle ? 'cursor-pointer hover:bg-white transition-transform hover:scale-[1.02] active:scale-[0.98]' : 'cursor-default'} select-none" onclick={nextArchetype} title={isTitle ? 'Click to cycle next archetype' : 'Archetype'} aria-label="Cycle avatar archetype">
         <span>{state.archetypeIcon || '🎩'}</span>
         <span class="tracking-wide">{state.archetypeName || 'BANKER'}</span>
-      </div>
+      </button>
       <button id="setup-archetype-carousel-next" onclick={nextArchetype} class="game-circle-btn bg-white hover:bg-slate-50 text-sky-600 font-black text-sm shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95" title="Next Archetype" aria-label="Next Archetype">
         <i class="fa-solid fa-chevron-right text-xs sm:text-sm"></i>
       </button>
@@ -125,9 +126,11 @@
               {@const takenByHuman = (state.players || []).find(p => p.idx !== activePlayer.idx && !p.isAI && (p.colorHex || '').toLowerCase() === candyHex)}
               {@const isBlocked = Boolean(takenByHuman) || !canEditColor}
               <button
+                type="button"
                 onclick={() => selectColor(candy.hex, candy.charColor)}
                 disabled={isBlocked}
-                class="w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center {takenByHuman ? 'opacity-35 grayscale cursor-not-allowed pointer-events-none border-slate-300' : (!canEditColor ? 'opacity-45 cursor-not-allowed pointer-events-none border-white/60' : 'cursor-pointer border-white/80 hover:scale-105')} {isSelected && !takenByHuman ? 'scale-110 !border-white ring-2 ring-sky-400 shadow-sm' : ''}"
+                aria-pressed={isSelected}
+                class="w-6 h-6 rounded-full border-2 transition-[transform,box-shadow] duration-150 flex items-center justify-center {takenByHuman ? 'opacity-35 grayscale cursor-not-allowed pointer-events-none border-slate-300' : (!canEditColor ? 'opacity-45 cursor-not-allowed pointer-events-none border-white/60' : 'cursor-pointer border-white/80 hover:scale-105')} {isSelected && !takenByHuman ? 'scale-110 !border-white ring-2 ring-sky-400 shadow-sm' : ''}"
                 style="background-color: {candy.hex};"
                 title={takenByHuman ? `${candy.name} (Taken by ${takenByHuman.name})` : (!canEditColor ? 'Select your own player to edit color' : candy.name)}
                 aria-label={takenByHuman ? `${candy.name} - Taken by ${takenByHuman.name}` : `Select ${candy.name}`}
@@ -144,7 +147,7 @@
       {:else}
         <!-- Team Mode: Locked Team Badge -->
         <div class="flex items-center gap-1.5 px-3 py-1 rounded-full {activePlayer.teamId === 0 ? 'bg-rose-50 border border-rose-300 text-rose-800' : 'bg-sky-50 border border-sky-300 text-sky-800'} shadow-2xs">
-          <span class="w-2.5 h-2.5 rounded-full {activePlayer.teamId === 0 ? 'bg-rose-500' : 'bg-sky-500'} shadow-2xs animate-pulse"></span>
+          <span class="w-2.5 h-2.5 rounded-full {activePlayer.teamId === 0 ? 'bg-rose-500' : 'bg-sky-500'} shadow-2xs motion-safe:animate-pulse"></span>
           <span class="text-[10px] font-black tracking-wider uppercase">{activePlayer.teamId === 0 ? '🔴 TEAM RED' : '🔵 TEAM BLUE'}</span>
         </div>
       {/if}
@@ -171,30 +174,30 @@
               You can customize your player name right here on the Home Screen! Once you enter Local or Multiplayer lobbies, names are locked.
             </p>
             <div class="flex items-center gap-2 mt-0.5">
-              <button onclick={() => { editName(); dismissHeadsUp(); }} class="flex-1 py-1.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs flex items-center justify-center gap-1 shadow-md cursor-pointer transition">
+              <button onclick={() => { editName(); dismissHeadsUp(); }} class="flex-1 py-1.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs flex items-center justify-center gap-1 shadow-md cursor-pointer transition-[background-color,transform] duration-150">
                 <i class="fa-solid fa-pen text-[10px]"></i> Change Name
               </button>
-              <button onclick={dismissHeadsUp} class="py-1.5 px-3 rounded-xl bg-white/90 hover:bg-white text-slate-900 font-black text-xs shadow-2xs border border-white cursor-pointer transition">
+              <button onclick={dismissHeadsUp} class="py-1.5 px-3 rounded-xl bg-white/90 hover:bg-white text-slate-900 font-black text-xs shadow-2xs border border-white cursor-pointer transition-[background-color,transform] duration-150">
                 Got It!
               </button>
             </div>
           </div>
-        {/if}
-
-        <!-- Tycoon Profile Quick Card on Home Screen -->
-        <div class="w-full max-w-sm sm:max-w-md mx-auto flex items-center justify-between px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/95 border-2 border-amber-300/80 shadow-xs">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
-            <span class="text-[10px] sm:text-[11px] font-black uppercase text-amber-800 tracking-wider flex-shrink-0">YOUR NAME:</span>
-            <strong id="home-tycoon-name-display" class="text-xs sm:text-sm font-black text-slate-800 uppercase truncate">
-              {state.activeDisplayName || 'TYCOON'}
-            </strong>
+        {:else}
+          <!-- Tycoon Profile Quick Card on Home Screen (shown once Heads Up is dismissed) -->
+          <div class="w-full max-w-sm sm:max-w-md mx-auto flex items-center justify-between px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/95 border-2 border-amber-300/80 shadow-xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse flex-shrink-0"></span>
+              <span class="text-[10px] sm:text-[11px] font-black uppercase text-amber-800 tracking-wider flex-shrink-0">YOUR NAME:</span>
+              <strong id="home-tycoon-name-display" class="text-xs sm:text-sm font-black text-slate-800 uppercase truncate">
+                {state.activeDisplayName || 'TYCOON'}
+              </strong>
+            </div>
+            <button onclick={editName} class="px-2.5 sm:px-3 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-[11px] sm:text-xs cursor-pointer transition-[background-color,transform] duration-150 shadow-2xs flex items-center gap-1 flex-shrink-0" title="Edit your Tycoon name" aria-label="Edit Tycoon Name">
+              <i class="fa-solid fa-pen text-[10px] sm:text-[10px]"></i>
+              <span>EDIT</span>
+            </button>
           </div>
-          <button onclick={editName} class="px-2.5 sm:px-3 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-black text-[11px] sm:text-xs cursor-pointer transition shadow-2xs flex items-center gap-1 flex-shrink-0" title="Edit your Tycoon name" aria-label="Edit Tycoon Name">
-            <i class="fa-solid fa-pen text-[10px] sm:text-[10px]"></i>
-            <span>EDIT</span>
-          </button>
-        </div>
+        {/if}
 
         <!-- Game Mode Cards -->
         <div id="title-game-modes-grid" class="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 lg:gap-3.5">

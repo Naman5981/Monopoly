@@ -42,20 +42,22 @@
 >
   <div
     id="modal-tile-inspector-card"
-    class="pointer-events-auto w-80 sm:w-92 max-w-[calc(100vw-24px)] border rounded-3xl p-0 shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui select-none transition-all duration-200 {isDarkTheme ? 'bg-slate-950/95 border-white/15 text-white' : 'bg-white border-slate-200 text-slate-900'}"
+    role="dialog"
+    aria-label="Property Inspector"
+    class="pointer-events-auto w-80 sm:w-92 max-w-[calc(100vw-24px)] border rounded-3xl p-0 shadow-2xl backdrop-blur-xs flex flex-col overflow-hidden font-ui select-none transition-[transform,opacity] duration-200 {isDarkTheme ? 'bg-slate-950/95 border-white/15 text-white' : 'bg-white border-slate-200 text-slate-900'}"
     style="box-shadow: 0 20px 50px -10px rgba(0,0,0,{isDarkTheme ? '0.8' : '0.22'}), 0 0 25px {state.groupHex ? state.groupHex + '25' : 'rgba(255,255,255,0.05)'};"
   >
     <!-- Header with Dynamic Atmospheric District Glow & 3D Preview -->
     <div
       id="insp-header"
-      class="relative p-3.5 flex flex-col justify-between items-center text-center text-white overflow-hidden transition-all duration-200"
+      class="relative p-3.5 flex flex-col justify-between items-center text-center text-white overflow-hidden transition-colors duration-200"
       style="background: radial-gradient(circle at 50% 25%, {state.groupHex ? state.groupHex + '40' : 'rgba(59,130,246,0.3)'} 0%, {isDarkTheme ? 'rgba(2,6,23,0.92)' : 'rgba(15,23,42,0.88)'} 85%); border-bottom: 1px solid {state.groupHex ? state.groupHex + '40' : 'rgba(255,255,255,0.1)'};"
     >
       <!-- Close Button -->
       <button
         onclick={onClose}
         aria-label="Close property inspector"
-        class="absolute top-3 right-3 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/25 active:scale-90 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition border border-white/20 backdrop-blur-xs shadow-xs focus-visible:ring-2 focus-visible:ring-white/50"
+        class="absolute top-3 right-3 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/25 active:scale-90 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition-[transform,background-color] duration-150 border border-white/20 backdrop-blur-xs shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
       >
         ✕
       </button>

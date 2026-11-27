@@ -7,6 +7,8 @@
   import { BUILD_CONFIG, isLocalDevEnvironment } from '../../game/buildConfig.js';
 
   let state = $state({});
+  let confirmReset = $state(false);
+  let resetTimer = null;
   lobbyStore.subscribe(val => { state = val; });
 
   const isTitle = $derived(state.currentView === 'title');
@@ -39,9 +41,14 @@
   }
 
   function resetLobby() {
-    if (confirm('Reset match settings to defaults?')) {
-      window.location.reload();
+    if (!confirmReset) {
+      confirmReset = true;
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => { confirmReset = false; }, 3000);
+      return;
     }
+    clearTimeout(resetTimer);
+    window.location.reload();
   }
 </script>
 
@@ -104,8 +111,16 @@
       <input type="range" id="setup-sound-slider" min="0" max="100" value={state.soundVolume ?? 75} oninput={onVolumeInput} class="sound-slider hidden sm:inline-block w-14 sm:w-18 flex-shrink-0" title="Slide to adjust volume" aria-label="Volume Slider" />
       <span id="setup-sound-volume-val" class="hidden sm:inline-block text-[11px] font-black tabular-nums text-slate-700 w-7 text-right flex-shrink-0">{state.soundVolume ?? 75}%</span>
     </div>
-    <button onclick={resetLobby} class="w-[38px] h-[38px] rounded-full border-2 border-white bg-rose-500 hover:bg-rose-600 text-white shadow-md flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer" title="Reset Lobby" aria-label="Reset Match Settings to Defaults">
-      <i class="fa-solid fa-rotate-left text-xs font-black"></i>
+    <button
+      onclick={resetLobby}
+      class="h-[38px] rounded-full border-2 border-white text-white shadow-md flex items-center justify-center flex-shrink-0 transition-[transform,background-color] duration-150 hover:scale-105 active:scale-95 cursor-pointer {confirmReset ? 'px-3 bg-rose-600 hover:bg-rose-700 gap-1.5 text-xs font-black' : 'w-[38px] bg-rose-500 hover:bg-rose-600'}"
+      title="Reset Match Settings"
+      aria-label={confirmReset ? 'Click again to confirm match reset' : 'Reset Match Settings'}
+    >
+      <i class="fa-solid {confirmReset ? 'fa-check' : 'fa-rotate-left'} text-xs font-black"></i>
+      {#if confirmReset}
+        <span>Confirm?</span>
+      {/if}
     </button>
   </div>
 </div>

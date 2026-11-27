@@ -77,7 +77,7 @@
               : "UNBALANCED"}</span
           >
         {/if}
-        <span>{playerCount}/6</span>
+        <span class="tabular-nums">{playerCount}/6</span>
       </div>
     </div>
 
@@ -131,14 +131,14 @@
           onclick={addBot}
           disabled={playerCount >= 6}
           aria-label="Add player or bot"
-          class="flex-1 py-3 rounded-2xl font-rounded font-black text-xs sm:text-sm text-white game-btn game-btn-blue shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          class="flex-1 py-2.5 rounded-2xl font-rounded font-black text-xs sm:text-sm text-white game-btn game-btn-blue shadow-md flex items-center justify-center gap-1.5 transition-transform duration-150 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <i class="fa-solid fa-plus text-xs"></i> Add Player / Bot
         </button>
         <button
           onclick={removeBot}
           disabled={playerCount <= 2}
-          class="w-12 py-3 rounded-2xl font-rounded font-black text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 cursor-pointer shadow-xs flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          class="w-11 py-2.5 rounded-2xl font-rounded font-black text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 cursor-pointer shadow-xs flex items-center justify-center transition-[transform,background-color] duration-150 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           title="Remove last player"
           aria-label="Remove last player"
         >
@@ -147,7 +147,7 @@
       </div>
       <button
         onclick={randomizeNames}
-        class="w-full py-2.5 rounded-2xl font-rounded font-extrabold text-xs text-sky-700 bg-sky-50/80 hover:bg-sky-100 border border-sky-200 transition cursor-pointer flex items-center justify-center gap-2 shadow-2xs active:scale-98"
+        class="w-full py-2 rounded-2xl font-rounded font-extrabold text-xs text-sky-700 bg-sky-50/80 hover:bg-sky-100 border border-sky-200 transition-[transform,background-color] duration-150 cursor-pointer flex items-center justify-center gap-2 shadow-2xs active:scale-98"
         title="Randomize names of all AI Bots at the table"
       >
         <i class="fa-solid fa-dice text-sky-500"></i> Randomize Bot Names

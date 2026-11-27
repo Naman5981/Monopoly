@@ -98,8 +98,8 @@
               <i class="fa-solid fa-crown text-amber-300 mr-1.5"></i> Host Room
             </button>
             <div class="flex gap-2">
-              <input id="input-p2p-room-code" type="text" maxlength="6" placeholder="ENTER ROOM CODE" onkeydown={(e) => e.key === 'Enter' && window.joinP2PRoom?.()} class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-black uppercase bg-white tracking-wider focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200" />
-              <button id="btn-p2p-join-room" onclick={() => window.joinP2PRoom?.()} class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black text-xs shadow-sm cursor-pointer transition">
+              <input id="input-p2p-room-code" type="text" maxlength="6" aria-label="Room Code" autocomplete="off" autocapitalize="characters" placeholder="ENTER ROOM CODE" onkeydown={(e) => e.key === 'Enter' && window.joinP2PRoom?.()} class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-black uppercase bg-white tracking-wider focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200" />
+              <button id="btn-p2p-join-room" onclick={() => window.joinP2PRoom?.()} class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black text-xs shadow-sm cursor-pointer transition-[transform,background-color] duration-150">
                 Join
               </button>
             </div>
@@ -125,20 +125,24 @@
         <button
           id="setup-mode-ffa"
           type="button"
+          aria-pressed={!state.isTeamMode}
           onclick={() => window.setTeamMode?.(false)}
           disabled={isGuest}
           class="py-2 px-2.5 rounded-lg text-xs font-black transition-[transform,background-color,color] duration-150 enabled:active:scale-[0.96] cursor-pointer flex items-center justify-center gap-1.5 {!state.isTeamMode ? 'bg-sky-500 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
         >
-          <span>👑 Solo FFA</span>
+          <i class="fa-solid fa-crown text-[11px] {!state.isTeamMode ? 'text-amber-200' : 'text-amber-500'}" aria-hidden="true"></i>
+          <span>Solo FFA</span>
         </button>
         <button
           id="setup-mode-team"
           type="button"
+          aria-pressed={Boolean(state.isTeamMode)}
           onclick={() => window.setTeamMode?.(true)}
           disabled={isGuest}
           class="py-2 px-2.5 rounded-lg text-xs font-black transition-[transform,background-color,color] duration-150 enabled:active:scale-[0.96] cursor-pointer flex items-center justify-center gap-1.5 {state.isTeamMode ? 'bg-indigo-600 text-white shadow-xs ring-1 ring-indigo-400' : 'text-slate-700 hover:text-slate-900'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
         >
-          <span>🤝 Team Mode</span>
+          <i class="fa-solid fa-handshake text-[11px] {state.isTeamMode ? 'text-indigo-200' : 'text-indigo-600'}" aria-hidden="true"></i>
+          <span>Team Mode</span>
         </button>
       </div>
 
@@ -149,9 +153,11 @@
           {#each [1500000, 2000000, 3000000, 5000000] as cashOpt}
             <button
               id="setup-cash-{cashOpt}"
+              type="button"
+              aria-pressed={state.startingCash === cashOpt}
               onclick={() => setCash(cashOpt)}
               disabled={isGuest}
-              class="py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-center {state.startingCash === cashOpt ? 'bg-sky-500 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
+              class="py-1.5 rounded-lg text-xs font-black tabular-nums transition-[background-color,color] duration-150 cursor-pointer text-center {state.startingCash === cashOpt ? 'bg-sky-500 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
             >
               ${cashOpt / 1000000}M
             </button>
@@ -164,20 +170,20 @@
         <!-- Turn Timer Stepper Capsule -->
         <div class="flex items-center justify-between bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 shadow-2xs">
           <span class="text-[11px] font-black uppercase text-slate-700 tracking-wider">Timer</span>
-          <div class="flex items-center gap-2">
-            <button onclick={() => stepDecision(-1)} disabled={isGuest} aria-label="Decrease turn timer" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition {isGuest ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">-</button>
-            <span id="setup-decision-time-text" class="text-xs font-black text-slate-900 font-mono min-w-[28px] text-center">{state.decisionTime || 20}s</span>
-            <button onclick={() => stepDecision(1)} disabled={isGuest} aria-label="Increase turn timer" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition {isGuest ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">+</button>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick={() => stepDecision(-1)} disabled={isGuest} aria-label="Decrease turn timer" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition-[transform,background-color] duration-150 {isGuest ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">-</button>
+            <span id="setup-decision-time-text" class="text-xs font-black text-slate-900 font-mono tabular-nums min-w-[28px] text-center">{state.decisionTime || 20}s</span>
+            <button type="button" onclick={() => stepDecision(1)} disabled={isGuest} aria-label="Increase turn timer" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition-[transform,background-color] duration-150 {isGuest ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">+</button>
           </div>
         </div>
 
         <!-- Match Limit Stepper Capsule -->
         <div class="flex items-center justify-between bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 shadow-2xs">
           <span class="text-[11px] font-black uppercase text-slate-700 tracking-wider">Limit</span>
-          <div class="flex items-center gap-2">
-            <button onclick={() => stepDuration(-1)} disabled={isGuest} aria-label="Decrease match duration" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition {isGuest ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">-</button>
-            <span id="setup-match-duration-text" class="text-xs font-black text-slate-900 font-mono min-w-[34px] text-center">{state.matchDuration || 15}m</span>
-            <button onclick={() => stepDuration(1)} disabled={isGuest} aria-label="Increase match duration" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition {isGuest ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">+</button>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick={() => stepDuration(-1)} disabled={isGuest} aria-label="Decrease match duration" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition-[transform,background-color] duration-150 {isGuest ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">-</button>
+            <span id="setup-match-duration-text" class="text-xs font-black text-slate-900 font-mono tabular-nums min-w-[34px] text-center">{state.matchDuration || 15}m</span>
+            <button type="button" onclick={() => stepDuration(1)} disabled={isGuest} aria-label="Increase match duration" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition-[transform,background-color] duration-150 {isGuest ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">+</button>
           </div>
         </div>
       </div>
@@ -199,19 +205,25 @@
       <div class="grid grid-cols-2 gap-1.5 bg-slate-200/80 p-1 rounded-xl">
         <button
           id="setup-edition-world"
+          type="button"
+          aria-pressed={state.boardEdition !== 'rajasthan'}
           onclick={() => setEdition('world')}
           disabled={isGuest}
-          class="py-2 px-2.5 rounded-lg text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 {state.boardEdition !== 'rajasthan' ? 'bg-sky-500 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
+          class="py-2 px-2.5 rounded-lg text-xs font-black transition-[background-color,color] duration-150 cursor-pointer flex items-center justify-center gap-1.5 {state.boardEdition !== 'rajasthan' ? 'bg-sky-500 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
         >
-          <span>🌍 World Tour</span>
+          <i class="fa-solid fa-earth-americas text-[11px]" aria-hidden="true"></i>
+          <span>World Tour</span>
         </button>
         <button
           id="setup-edition-rajasthan"
+          type="button"
+          aria-pressed={state.boardEdition === 'rajasthan'}
           onclick={() => setEdition('rajasthan')}
           disabled={isGuest}
-          class="py-2 px-2.5 rounded-lg text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 {state.boardEdition === 'rajasthan' ? 'bg-sky-500 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
+          class="py-2 px-2.5 rounded-lg text-xs font-black transition-[background-color,color] duration-150 cursor-pointer flex items-center justify-center gap-1.5 {state.boardEdition === 'rajasthan' ? 'bg-sky-500 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
         >
-          <span>🏰 Rajasthan</span>
+          <i class="fa-solid fa-chess-rook text-[11px]" aria-hidden="true"></i>
+          <span>Rajasthan</span>
         </button>
       </div>
 
@@ -221,16 +233,18 @@
         <div class="flex items-center justify-between bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 shadow-2xs">
           <span class="text-[11px] font-black uppercase text-slate-700 tracking-wider">Style</span>
           <div class="flex items-center gap-1">
-            {#each [{ id: 'wood', icon: '🪵', label: 'Wood' }, { id: 'cyberpunk', icon: '⚡', label: 'Cyber' }, { id: 'elegant', icon: '✨', label: 'Elegant' }] as styleOpt}
+            {#each [{ id: 'wood', icon: 'fa-tree', label: 'Wood' }, { id: 'cyberpunk', icon: 'fa-bolt', label: 'Cyber' }, { id: 'elegant', icon: 'fa-gem', label: 'Elegant' }] as styleOpt}
               <button
                 id="setup-board-{styleOpt.id}"
+                type="button"
+                aria-pressed={state.boardStyle === styleOpt.id}
                 onclick={() => setStyle(styleOpt.id)}
                 disabled={isGuest}
                 aria-label="Board style: {styleOpt.label}"
-                class="w-6 h-6 rounded-lg text-xs transition cursor-pointer flex items-center justify-center {state.boardStyle === styleOpt.id ? 'bg-sky-500 text-white shadow-2xs scale-105' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
+                class="w-7 h-7 rounded-lg text-xs transition-[transform,background-color,color] duration-150 cursor-pointer flex items-center justify-center {state.boardStyle === styleOpt.id ? 'bg-sky-500 text-white shadow-2xs scale-105' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'} {isGuest ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}"
                 title={styleOpt.label}
               >
-                {styleOpt.icon}
+                <i class="fa-solid {styleOpt.icon} text-[11px]" aria-hidden="true"></i>
               </button>
             {/each}
           </div>
@@ -239,14 +253,13 @@
         <!-- Atmosphere Stepper Capsule -->
         <div class="flex items-center justify-between bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 shadow-2xs">
           <span class="text-[11px] font-black uppercase text-slate-700 tracking-wider">Light</span>
-          <div class="flex items-center gap-1.5">
-            <button onclick={() => stepAtmo(-1)} disabled={isGuest || isCyber} aria-label="Previous lighting theme" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition {(isGuest || isCyber) ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">-</button>
-            <span id="setup-atmosphere-text" class="text-xs font-black text-slate-900 font-mono truncate min-w-[48px] text-center">
+          <div class="flex items-center gap-1">
+            <button type="button" onclick={() => stepAtmo(-1)} disabled={isGuest || isCyber} aria-label="Previous lighting theme" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition-[transform,background-color] duration-150 {(isGuest || isCyber) ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">-</button>
+            <span id="setup-atmosphere-text" class="text-xs font-black text-slate-900 font-mono truncate min-w-[46px] text-center">
               {getAtmoLabel(state.lightingTheme)}
             </span>
-            <button onclick={() => stepAtmo(1)} disabled={isGuest || isCyber} aria-label="Next lighting theme" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition {(isGuest || isCyber) ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">+</button>
+            <button type="button" onclick={() => stepAtmo(1)} disabled={isGuest || isCyber} aria-label="Next lighting theme" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-black text-xs flex items-center justify-center cursor-pointer active:scale-90 transition-[transform,background-color] duration-150 {(isGuest || isCyber) ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">+</button>
           </div>
-          <span id="setup-atmosphere-desc" class="hidden"></span>
         </div>
       </div>
     </div>

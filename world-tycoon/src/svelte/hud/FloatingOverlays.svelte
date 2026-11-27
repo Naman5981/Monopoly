@@ -17,13 +17,13 @@
 
 <!-- World Tour Destination Selection Banner -->
 <div id="world-tour-banner" class="world-tour-banner fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-sky-600 to-indigo-700 text-white px-5 py-2 rounded-full font-extrabold text-xs shadow-xl border-2 border-white items-center gap-2 select-none">
-  <i class="fa-solid fa-plane-departure animate-bounce"></i>
+  <i class="fa-solid fa-plane-departure motion-safe:animate-bounce" aria-hidden="true"></i>
   <span>WORLD TOUR! Click any tile to fly.</span>
 </div>
 
 <!-- World Festival Selection Banner -->
-<div id="festival-select-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-5 py-2.5 rounded-full font-black text-xs shadow-2xl border-2 border-white/90 items-center gap-2.5 animate-pulse select-none">
-  <i class="fa-solid fa-champagne-glasses text-amber-300 text-sm animate-bounce"></i>
-  <span>🎪 <strong>WORLD FESTIVAL!</strong> Click any flashing owned city on the board to double rent (2×)!</span>
-  <button onclick={openFestivalBoostModal} class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-[11px] font-black underline cursor-pointer ml-1 transition" title="Open Property List">📋 View List</button>
+<div id="festival-select-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-40 hidden bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-5 py-2.5 rounded-full font-black text-xs shadow-2xl border-2 border-white/90 items-center gap-2.5 motion-safe:animate-pulse select-none">
+  <i class="fa-solid fa-champagne-glasses text-amber-300 text-sm motion-safe:animate-bounce" aria-hidden="true"></i>
+  <span><strong>WORLD FESTIVAL!</strong> Click any flashing owned city on the board to double rent (2×)!</span>
+  <button onclick={openFestivalBoostModal} class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-[11px] font-black cursor-pointer ml-1 transition-colors duration-150 inline-flex items-center gap-1.5" title="Open Property List"><i class="fa-solid fa-list-ul text-[10px]" aria-hidden="true"></i><span>View List</span></button>
 </div>

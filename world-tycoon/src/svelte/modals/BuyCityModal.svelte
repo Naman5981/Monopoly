@@ -64,9 +64,16 @@
     </div>
   </div>
 
-  <!-- Hidden compatibility elements -->
+  <!-- Hidden compatibility price element + visible balance preview -->
   <span id="buy-modal-price" class="hidden">{state.priceFormatted || '0'}</span>
-  <span id="buy-modal-balance-preview" class="hidden">{state.balancePreview || ''}</span>
+  {#if state.balancePreview}
+    <div class="flex items-center justify-between text-[11px] font-bold px-1 {isDarkTheme ? 'text-slate-300' : 'text-slate-600'}">
+      <span class="uppercase tracking-wider">Balance After</span>
+      <span id="buy-modal-balance-preview" class="font-mono font-black tabular-nums {isDarkTheme ? 'text-sky-300' : 'text-sky-700'}">{state.balancePreview}</span>
+    </div>
+  {:else}
+    <span id="buy-modal-balance-preview" class="hidden"></span>
+  {/if}
 
   {#if state.isMonopolyFinisher}
     <div class="px-3 py-1.5 rounded-xl border flex items-center justify-between text-xs {isDarkTheme ? 'bg-amber-500/15 border-amber-400/40 text-amber-200' : 'bg-amber-50 border-amber-200 text-amber-900'}">
@@ -80,11 +87,11 @@
 
   <!-- Action Buttons Row -->
   <div class="flex items-center gap-2 pt-0.5">
-    <button id="btn-confirm-buy" onclick={onConfirmBuy} disabled={!state.canAfford} class="flex-1 py-2.5 px-4 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md transition-all duration-150 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none {!state.canAfford ? (isDarkTheme ? 'rounded-full bg-slate-800 border border-white/10 text-slate-400 cursor-not-allowed' : 'rounded-full bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed') : 'game-btn game-btn-green cursor-pointer hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95'}">
+    <button id="btn-confirm-buy" onclick={onConfirmBuy} disabled={!state.canAfford} class="flex-1 py-2.5 px-4 text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 shadow-md transition-[transform,filter] duration-150 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none {!state.canAfford ? (isDarkTheme ? 'rounded-full bg-slate-800 border border-white/10 text-slate-400 cursor-not-allowed' : 'rounded-full bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed') : 'game-btn game-btn-green cursor-pointer hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-95'}">
       <span>Buy for {formatCurrency(state.priceFormatted)}</span>
     </button>
 
-    <button id="btn-pass-buy" onclick={onPassBuy} class="py-2.5 px-4 text-xs sm:text-sm font-black shrink-0 cursor-pointer transition-all duration-150 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none {isDarkTheme ? 'rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-slate-200' : 'game-btn game-btn-slate'}">
+    <button id="btn-pass-buy" onclick={onPassBuy} class="py-2.5 px-4 text-xs sm:text-sm font-black shrink-0 cursor-pointer transition-[transform,filter] duration-150 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none {isDarkTheme ? 'rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-slate-200' : 'game-btn game-btn-slate'}">
       Pass
     </button>
   </div>

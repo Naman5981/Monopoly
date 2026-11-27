@@ -16,7 +16,7 @@
   <div id="mp-room-capsule" class="w-full rounded-2xl bg-white/95 border-2 border-sky-300 p-2.5 shadow-md flex flex-col items-center gap-2">
     <div class="flex items-center justify-between w-full">
       <div class="flex items-center gap-1.5">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span>
         <span class="text-xs font-black uppercase text-sky-900 tracking-wider">ROOM:</span>
         <strong class="font-mono text-base font-black text-slate-900">{state.roomCode || '----'}</strong>
       </div>
@@ -31,21 +31,21 @@
     </div>
   </div>
 {:else if variant === 'badge' && state.isRoomActive}
-  <span id="setup-p2p-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black border border-emerald-300"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><strong>{state.roomCode || '----'}</strong></span>
+  <span id="setup-p2p-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black border border-emerald-300"><span class="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span><strong>{state.roomCode || '----'}</strong></span>
 {:else if variant === 'status'}
-  <span id="setup-p2p-status-text" class="text-xs font-bold {state.networkStatusKind === 'error' ? 'text-rose-600' : 'text-sky-600'}">{state.networkStatus}</span>
+  <span id="setup-p2p-status-text" role={state.networkStatusKind === 'error' ? 'alert' : 'status'} aria-live="polite" class="text-xs font-bold {state.networkStatusKind === 'error' ? 'text-rose-600' : 'text-sky-600'}">{state.networkStatus}</span>
 {:else if variant === 'portal'}
-  <p id="portal-p2p-status-text" class="text-xs font-bold text-center min-h-[18px] {state.portalStatusKind === 'error' ? 'text-rose-500' : (state.portalStatusKind === 'loading' ? 'text-emerald-600' : 'text-slate-500')}">{state.portalStatus}</p>
+  <p id="portal-p2p-status-text" role={state.portalStatusKind === 'error' ? 'alert' : 'status'} aria-live="polite" class="text-xs font-bold text-center min-h-[18px] {state.portalStatusKind === 'error' ? 'text-rose-500' : (state.portalStatusKind === 'loading' ? 'text-emerald-600' : 'text-slate-500')}">{state.portalStatus}</p>
 {:else if variant === 'play'}
   {#if state.isTeamMode && !state.isTeamBalanceValid}
-    <div class="team-balance-warning-pill w-full px-3 py-2 rounded-2xl bg-rose-50/95 border-2 border-rose-300 text-rose-800 text-xs font-black shadow-md flex items-center justify-center gap-1.5 animate-pulse text-center leading-tight">
+    <div role="alert" class="team-balance-warning-pill w-full px-3 py-2 rounded-2xl bg-rose-50/95 border-2 border-rose-300 text-rose-800 text-xs font-black shadow-md flex items-center justify-center gap-1.5 motion-safe:animate-pulse text-center leading-tight">
       <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm flex-shrink-0"></i>
       <span>{state.teamBalanceError || 'Teams must be balanced to start!'}</span>
     </div>
   {/if}
   {#if state.isMultiplayer && !state.isHost}
     <button id="landing-play-btn" disabled class="w-full py-3.5 px-5 rounded-full bg-slate-900/90 text-white border-2 border-white/80 shadow-lg cursor-not-allowed flex items-center justify-center gap-2.5 text-sm sm:text-base font-rounded font-black tracking-wider uppercase">
-      <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" aria-hidden="true"></span>
+      <span class="w-2.5 h-2.5 rounded-full bg-amber-400 motion-safe:animate-pulse flex-shrink-0" aria-hidden="true"></span>
       <span>Waiting for Host...</span>
     </button>
   {:else}

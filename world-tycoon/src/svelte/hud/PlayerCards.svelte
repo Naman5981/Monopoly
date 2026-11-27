@@ -67,7 +67,7 @@
     <div class="player-hud-wrapper flex items-center {player.bankrupt ? 'opacity-35 grayscale' : (player.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150">
       <div
         id="hud-card-{player.id}"
-        class="player-hud-card hud-ticket-c cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud is-turn' : ''} {player.inIsland ? 'in-island-detention is-jail' : ''} {activeSpotlightPlayerId === player.id ? 'is-spotlight scale-105' : 'hover:scale-[1.02]'}"
+        class="player-hud-card hud-ticket-c cursor-pointer transition-[transform,box-shadow,opacity] duration-200 {player.isCurrent ? 'active-turn-hud is-turn' : ''} {player.inIsland ? 'in-island-detention is-jail' : ''} {activeSpotlightPlayerId === player.id ? 'is-spotlight scale-105' : 'hover:scale-[1.02]'}"
         style="--player-accent: {player.colorHex || '#3b82f6'}; --player-color: {player.colorHex || '#3b82f6'};"
         onmouseenter={() => onEmpireHover(player.id)}
         onmouseleave={onEmpireLeave}
@@ -77,6 +77,8 @@
         onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleEmpireSpotlight(player.id); } }}
         role="button"
         tabindex="0"
+        aria-pressed={activeSpotlightPlayerId === player.id}
+        aria-label="Highlight {player.name}'s properties on the board"
         title="Click or hover to highlight {player.name}'s empire on the board"
       >
         <!-- Protruding 3D Avatar Coin Medallion -->
@@ -119,7 +121,7 @@
           <!-- Bottom Economy Deck (High-Contrast Solid White Shelf) -->
           <div class="deck-bottom hud-cash-row">
             <div class="cash-block flex items-baseline gap-1">
-              <span id="hud-cash-val-{player.id}" class="hud-cash-amount cash-amount font-black font-brand text-slate-900 tracking-tight text-sm sm:text-base">
+              <span id="hud-cash-val-{player.id}" class="hud-cash-amount cash-amount font-black font-brand tabular-nums text-slate-900 tracking-tight text-sm sm:text-base">
                 ${player.cashFormatted ?? '0'}
               </span>
             </div>
@@ -136,10 +138,10 @@
       class="team-networth-pill mt-1 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-xs border-2 shadow-md text-slate-800"
       style="border-color: {leftColor};"
     >
-      <span class="w-2.5 h-2.5 rounded-full shadow-xs flex-shrink-0 animate-pulse" style="background-color: {leftColor};"></span>
+      <span class="w-2.5 h-2.5 rounded-full shadow-xs flex-shrink-0 motion-safe:animate-pulse" style="background-color: {leftColor};"></span>
       <div class="flex flex-col">
         <span class="text-[10px] font-black uppercase tracking-wider leading-none" style="color: {leftColor};">{state.leftTeamLabel || 'TEAM RED'}</span>
-        <span class="text-xs font-black font-mono text-slate-900 leading-normal mt-0.5">{state.leftTeamNetWorth || '$0'}</span>
+        <span class="text-xs font-black font-mono tabular-nums text-slate-900 leading-normal mt-0.5">{state.leftTeamNetWorth || '$0'}</span>
       </div>
     </div>
   {/if}
@@ -151,7 +153,7 @@
     <div class="player-hud-wrapper flex items-center {player.bankrupt ? 'opacity-35 grayscale' : (player.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100')} transition-opacity duration-150">
       <div
         id="hud-card-{player.id}"
-        class="player-hud-card hud-ticket-c mirrored cursor-pointer transition-all duration-200 {player.isCurrent ? 'active-turn-hud is-turn' : ''} {player.inIsland ? 'in-island-detention is-jail' : ''} {activeSpotlightPlayerId === player.id ? 'is-spotlight scale-105' : 'hover:scale-[1.02]'}"
+        class="player-hud-card hud-ticket-c mirrored cursor-pointer transition-[transform,box-shadow,opacity] duration-200 {player.isCurrent ? 'active-turn-hud is-turn' : ''} {player.inIsland ? 'in-island-detention is-jail' : ''} {activeSpotlightPlayerId === player.id ? 'is-spotlight scale-105' : 'hover:scale-[1.02]'}"
         style="--player-accent: {player.colorHex || '#3b82f6'}; --player-color: {player.colorHex || '#3b82f6'};"
         onmouseenter={() => onEmpireHover(player.id)}
         onmouseleave={onEmpireLeave}
@@ -161,6 +163,8 @@
         onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleEmpireSpotlight(player.id); } }}
         role="button"
         tabindex="0"
+        aria-pressed={activeSpotlightPlayerId === player.id}
+        aria-label="Highlight {player.name}'s properties on the board"
         title="Click or hover to highlight {player.name}'s empire on the board"
       >
         <!-- Protruding 3D Avatar Coin Medallion -->
@@ -203,7 +207,7 @@
           <!-- Bottom Economy Deck (High-Contrast Solid White Shelf) -->
           <div class="deck-bottom hud-cash-row">
             <div class="cash-block flex items-baseline gap-1">
-              <span id="hud-cash-val-{player.id}" class="hud-cash-amount cash-amount font-black font-brand text-slate-900 tracking-tight text-sm sm:text-base">
+              <span id="hud-cash-val-{player.id}" class="hud-cash-amount cash-amount font-black font-brand tabular-nums text-slate-900 tracking-tight text-sm sm:text-base">
                 ${player.cashFormatted ?? '0'}
               </span>
             </div>
@@ -222,9 +226,9 @@
     >
       <div class="flex flex-col text-right">
         <span class="text-[10px] font-black uppercase tracking-wider leading-none" style="color: {rightColor};">{state.rightTeamLabel || 'TEAM BLUE'}</span>
-        <span class="text-xs font-black font-mono text-slate-900 leading-normal mt-0.5">{state.rightTeamNetWorth || '$0'}</span>
+        <span class="text-xs font-black font-mono tabular-nums text-slate-900 leading-normal mt-0.5">{state.rightTeamNetWorth || '$0'}</span>
       </div>
-      <span class="w-2.5 h-2.5 rounded-full shadow-xs flex-shrink-0 animate-pulse" style="background-color: {rightColor};"></span>
+      <span class="w-2.5 h-2.5 rounded-full shadow-xs flex-shrink-0 motion-safe:animate-pulse" style="background-color: {rightColor};"></span>
     </div>
   {/if}
 </div>

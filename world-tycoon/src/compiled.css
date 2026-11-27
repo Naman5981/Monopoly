@@ -1095,8 +1095,8 @@ video {
 .min-w-\[34px\]{
   min-width: 34px;
 }
-.min-w-\[48px\]{
-  min-width: 48px;
+.min-w-\[46px\]{
+  min-width: 46px;
 }
 .min-w-\[64px\]{
   min-width: 64px;
@@ -1814,10 +1814,6 @@ video {
 }
 .\!bg-amber-950\/40{
   background-color: rgb(69 26 3 / 0.4) !important;
-}
-.\!bg-indigo-50{
-  --tw-bg-opacity: 1 !important;
-  background-color: rgb(238 242 255 / var(--tw-bg-opacity, 1)) !important;
 }
 .\!bg-indigo-600{
   --tw-bg-opacity: 1 !important;
@@ -2876,6 +2872,10 @@ video {
   --tw-text-opacity: 1;
   color: rgb(2 44 34 / var(--tw-text-opacity, 1));
 }
+.text-indigo-200{
+  --tw-text-opacity: 1;
+  color: rgb(199 210 254 / var(--tw-text-opacity, 1));
+}
 .text-indigo-300{
   --tw-text-opacity: 1;
   color: rgb(165 180 252 / var(--tw-text-opacity, 1));
@@ -3058,9 +3058,6 @@ video {
 }
 .text-white\/90{
   color: rgb(255 255 255 / 0.9);
-}
-.underline{
-  text-decoration-line: underline;
 }
 .line-through{
   text-decoration-line: line-through;
@@ -3303,6 +3300,21 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+.transition-\[background-color\2c color\]{
+  transition-property: background-color,color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.transition-\[background-color\2c transform\]{
+  transition-property: background-color,transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.transition-\[border-color\2c background-color\2c box-shadow\]{
+  transition-property: border-color,background-color,box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
 .transition-\[border-color\2c background-color\]{
   transition-property: border-color,background-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -3313,8 +3325,23 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+.transition-\[transform\2c background-color\2c border-color\]{
+  transition-property: transform,background-color,border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
 .transition-\[transform\2c background-color\2c box-shadow\]{
   transition-property: transform,background-color,box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.transition-\[transform\2c background-color\2c color\2c border-color\]{
+  transition-property: transform,background-color,color,border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.transition-\[transform\2c background-color\2c color\2c box-shadow\]{
+  transition-property: transform,background-color,color,box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -3323,13 +3350,33 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+.transition-\[transform\2c background-color\]{
+  transition-property: transform,background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
 .transition-\[transform\2c box-shadow\2c filter\]{
   transition-property: transform,box-shadow,filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+.transition-\[transform\2c box-shadow\2c opacity\]{
+  transition-property: transform,box-shadow,opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
 .transition-\[transform\2c box-shadow\]{
   transition-property: transform,box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.transition-\[transform\2c filter\2c opacity\]{
+  transition-property: transform,filter,opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.transition-\[transform\2c filter\]{
+  transition-property: transform,filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -3598,6 +3645,11 @@ body.theme-dark-ui .hud-glass-capsule button:hover {
 .game-circle-btn:not(:disabled):active {
   transform: translateY(2px) scale(0.96);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+.game-circle-btn:focus-visible,
+.game-btn:focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
 }
 
 /* ═══ WORLD TYCOON ORIGINAL 3D LOGO ═══ */
@@ -5885,7 +5937,6 @@ body.production-build #debug-modal {
 }
 
 #btn-lobby-back-to-title {
-  height: 42px !important;
   flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
@@ -6311,6 +6362,11 @@ html, body {
   background-color: rgb(225 29 72 / var(--tw-bg-opacity, 1));
 }
 
+.hover\:bg-rose-700:hover{
+  --tw-bg-opacity: 1;
+  background-color: rgb(190 18 60 / var(--tw-bg-opacity, 1));
+}
+
 .hover\:bg-rose-950\/30:hover{
   background-color: rgb(76 5 25 / 0.3);
 }
@@ -6604,8 +6660,8 @@ html, body {
   --tw-ring-color: rgb(148 163 184 / var(--tw-ring-opacity, 1));
 }
 
-.focus-visible\:ring-white\/50:focus-visible{
-  --tw-ring-color: rgb(255 255 255 / 0.5);
+.focus-visible\:ring-white\/60:focus-visible{
+  --tw-ring-color: rgb(255 255 255 / 0.6);
 }
 
 .active\:translate-y-0:active{
@@ -6723,6 +6779,60 @@ html, body {
 .group:hover .group-hover\:text-white{
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+@media (prefers-reduced-motion: no-preference){
+
+  @keyframes bounce{
+
+    0%, 100%{
+      transform: translateY(-25%);
+      animation-timing-function: cubic-bezier(0.8,0,1,1);
+    }
+
+    50%{
+      transform: none;
+      animation-timing-function: cubic-bezier(0,0,0.2,1);
+    }
+  }
+
+  .motion-safe\:animate-bounce{
+    animation: bounce 1s infinite;
+  }
+
+  @keyframes ping{
+
+    75%, 100%{
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  .motion-safe\:animate-ping{
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes pulse{
+
+    50%{
+      opacity: .5;
+    }
+  }
+
+  .motion-safe\:animate-pulse{
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes spin{
+
+    to{
+      transform: rotate(360deg);
+    }
+  }
+
+  .motion-safe\:animate-spin{
+    animation: spin 1s linear infinite;
+  }
 }
 
 @media not all and (min-width: 640px){
